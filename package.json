@@ -1,0 +1,21 @@
+{
+  "name": "out-of-your-element",
+  "version": "1.0.0",
+  "description": "A bridge between Matrix and Discord",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@ssh.gitdab.com:cadence/out-of-your-element.git"
+  },
+  "keywords": [
+    "matrix",
+    "discord",
+    "bridge"
+  ],
+  "author": "Cadence, PapiOphidian",
+  "license": "MIT",
+  "dependencies": {
+    "cloudstorm": "^0.6.1",
+    "snowtransfer": "^0.6.1"
+  }
+}
