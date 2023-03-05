@@ -15,7 +15,8 @@
   "author": "Cadence, PapiOphidian",
   "license": "MIT",
   "dependencies": {
-    "cloudstorm": "^0.6.1",
-    "snowtransfer": "^0.6.1"
+    "cloudstorm": "^0.7.0",
+    "heatsync": "^2.4.0",
+    "snowtransfer": "^0.7.0"
   }
 }
