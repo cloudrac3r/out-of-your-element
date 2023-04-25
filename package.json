@@ -15,8 +15,16 @@
   "author": "Cadence, PapiOphidian",
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^8.3.0",
     "cloudstorm": "^0.7.0",
+    "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#24508e701e91d5a00fa5e773ced874d9ee8c889b",
     "heatsync": "^2.4.0",
-    "snowtransfer": "^0.7.0"
+    "matrix-appservice": "^2.0.0",
+    "matrix-js-sdk": "^24.1.0",
+    "snowtransfer": "^0.7.0",
+    "supertape": "^8.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.0"
   }
 }

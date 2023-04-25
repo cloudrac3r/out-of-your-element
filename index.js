@@ -1,3 +1,5 @@
+// @ts-check
+
 const HeatSync = require("heatsync")
 
 const config = require("./config")
@@ -7,7 +9,7 @@ const sync = new HeatSync()
 
 Object.assign(passthrough, { config, sync })
 
-const DiscordClient = require("./modules/DiscordClient")
+const DiscordClient = require("./d2m/discord-client")
 
 const discord = new DiscordClient(config.discordToken)
 passthrough.discord = discord
@@ -19,5 +21,5 @@ passthrough.discord = discord
 	require("./stdin")
 })()
 
-process.on("unhandledRejection", console.error)
-process.on("uncaughtException", console.error)
+// process.on("unhandledRejection", console.error)
+// process.on("uncaughtException", console.error)

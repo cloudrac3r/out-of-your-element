@@ -1,11 +1,13 @@
+// @ts-check
+
 const { SnowTransfer } = require("snowtransfer")
 const { Client: CloudStorm } = require("cloudstorm")
 
 const passthrough = require("../passthrough")
 const { sync } = passthrough
 
-/** @type {typeof import("./DiscordUtils")} */
-const dUtils = sync.require("./DiscordUtils")
+/** @type {typeof import("./discord-packets")} */
+const discordPackets = sync.require("./discord-packets")
 
 class DiscordClient {
 	/**
@@ -15,7 +17,7 @@ class DiscordClient {
 		this.discordToken = discordToken
 		this.snow = new SnowTransfer(discordToken)
 		this.cloud = new CloudStorm(discordToken, {
-			shards: "auto",
+			shards: [0],
 			reconnect: true,
 			snowtransferInstance: this.snow,
 			intents: [
@@ -41,7 +43,7 @@ class DiscordClient {
 		this.guilds = new Map()
 		/** @type {Map<string, Array<string>>} */
 		this.guildChannelMap = new Map()
-		this.cloud.on("event", message => dUtils.onPacket(this, message))
+		this.cloud.on("event", message => discordPackets.onPacket(this, message))
 		this.cloud.on("error", console.error)
 	}
 }

@@ -1,12 +1,14 @@
+// @ts-check
+
 const passthrough = require("../passthrough")
 const { sync } = passthrough
 
-/** @type {typeof import("./DiscordEvents")} */
-const DiscordEvents = sync.require("./DiscordEvents")
+/** @type {typeof import("./event-dispatcher")} */
+const eventDispatcher = sync.require("./event-dispatcher")
 
 const utils = {
 	/**
-	 * @param {import("./DiscordClient")} client
+	 * @param {import("./discord-client")} client
 	 * @param {import("cloudstorm").IGatewayMessage} message
 	 */
 	onPacket(client, message) {
@@ -56,7 +58,13 @@ const utils = {
 			}
 
 
-		} else if (message.t === "MESSAGE_CREATE") DiscordEvents.onMessageCreate(client, message.d)
+		} else if (message.t === "MESSAGE_CREATE") {
+			eventDispatcher.onMessageCreate(client, message.d)
+
+
+		} else if (message.t === "MESSAGE_REACTION_ADD") {
+			eventDispatcher.onReactionAdd(client, message.d)
+		}
 	}
 }
 
