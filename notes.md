@@ -5,7 +5,7 @@ Remember that a discord message may be transformed to multiple matrix messages.
 A database will be used to store the discord id to matrix event id mapping. Table columns:
 - discord id
 - matrix id
-- the "type" of the matrix id, used to update things properly next time. for example, whether it is the message text or an attachment
+- the "type" of the matrix id, used to update things properly next time. for example, whether it is the message text or an attachment. alternatively, whether it is a primary or supporting event for the discord message, primary being message content and supporting being embeds or attachments or etc.
 
 There needs to be a way to easily manually trigger something later. For example, it should be easy to manually retry sending a message, or check all members for changes, etc.
 
@@ -21,6 +21,35 @@ There needs to be a way to easily manually trigger something later. For example,
 4. Send reply+message.
 5. Send attachments.
 6. Store in database.
+
+## Discord's permissions in spaces
+
+### The space itself
+
+Discord guilds are invite only, so the corresponding **space** should initially be set to:
+
+- Find & join access: Invite only
+- Preview space: Yes
+
+Public channels in that server should then use the following settings, so that they can be opened by anyone who was successfully invited to the space:
+
+- Find & join access: Space members (so users must have been invited to the space already, even if they find out the room ID to join)
+- Who can read history: Anyone (so that people can see messages during the preview before joining)
+
+### Private channels
+
+Discord **channels** that disallow view permission to @everyone should instead have the following **room** settings in Matrix:
+
+- Find & join access: Private (so space members cannot join without an additional invitation)
+- Who can read history: Anyone (XXX: is this safe??? is this a fishbowl situation? https://github.com/matrix-org/synapse/issues/9202)
+
+### Discord experience
+
+To add an initial Matrix user to the **space**, a Discord member would use /invite @cadence:cadence.moe in any channel. If this member has create invite permissions, then the bridge bot should send a Matrix invite to the **space** for @cadence:cadence.moe.
+
+Not yet sure how access to private **channels** would be granted to individual Matrix users. Maybe somebody with Manage Server can use another invite command?
+
+# d2m events
 
 ## Message sent
 

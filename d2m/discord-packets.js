@@ -1,5 +1,7 @@
 // @ts-check
 
+// Discord library internals type beat
+
 const passthrough = require("../passthrough")
 const { sync } = passthrough
 

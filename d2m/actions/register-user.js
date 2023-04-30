@@ -3,19 +3,17 @@
 const reg = require("../../matrix/read-registration.js")
 const fetch = require("node-fetch")
 
-fetch("https://matrix.cadence.moe/_matrix/client/v3/createRoom?user_id=@_ooye_example:cadence.moe", {
+fetch("https://matrix.cadence.moe/_matrix/client/v3/register", {
 	method: "POST",
 	body: JSON.stringify({
-		invite: ["@cadence:cadence.moe"],
-		is_direct: false,
-		name: "New Bot User Room",
-		preset: "trusted_private_chat"
+		type: "m.login.application_service",
+		username: "_ooye_example"
 	}),
 	headers: {
 		Authorization: `Bearer ${reg.as_token}`
 	}
 }).then(res => res.text()).then(text => {
-	// {"room_id":"!aAVaqeAKwChjWbsywj:cadence.moe"}
+	// {"user_id":"@_ooye_example:cadence.moe","home_server":"cadence.moe","access_token":"XXX","device_id":"XXX"}
 	console.log(text)
 }).catch(err => {
 	console.log(err)

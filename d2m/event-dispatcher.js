@@ -1,5 +1,9 @@
 // @ts-check
 
+// Grab Discord events we care about for the bridge, check them, and pass them on
+
+const sendMessage = require("./actions/send-message")
+
 module.exports = {
 	/**
 	 * @param {import("./discord-client")} client
@@ -9,7 +13,7 @@ module.exports = {
 		console.log(message)
 		console.log(message.guild_id)
 		console.log(message.member)
-		return {}
+		sendMessage(message)
 	},
 
 	/**
