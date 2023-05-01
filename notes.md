@@ -43,11 +43,13 @@ Discord **channels** that disallow view permission to @everyone should instead h
 - Find & join access: Private (so space members cannot join without an additional invitation)
 - Who can read history: Anyone (XXX: is this safe??? is this a fishbowl situation? https://github.com/matrix-org/synapse/issues/9202)
 
-### Discord experience
+### Discord experience: /invite command
 
-To add an initial Matrix user to the **space**, a Discord member would use /invite @cadence:cadence.moe in any channel. If this member has create invite permissions, then the bridge bot should send a Matrix invite to the **space** for @cadence:cadence.moe.
+The context-sensitive /invite command will invite Matrix users to the corresponding spaces or rooms.
 
-Not yet sure how access to private **channels** would be granted to individual Matrix users. Maybe somebody with Manage Server can use another invite command?
+- In a **public channel** (i.e. @everyone is allowed access), /invite will invite an MXID to the **space**, provided the user has Create Invites.
+- In a **private channel**, /invite will invite a distinct username or MXID to the **room**, provided the user has Manage Server.
+- In a **public or private thread**, /invite will invite a distinct username or MXID to the **thread room**.
 
 # d2m events
 
