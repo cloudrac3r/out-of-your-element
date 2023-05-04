@@ -1,8 +1,14 @@
 // @ts-check
 
-// Grab Discord events we care about for the bridge, check them, and pass them on
+const {sync} = require("../passthrough")
 
-const sendMessage = require("./actions/send-message")
+/** @type {import("./actions/create-space")}) */
+const createSpace = sync.require("./actions/create-space")
+
+/** @type {import("./actions/send-message")}) */
+const sendMessage = sync.require("./actions/send-message")
+
+// Grab Discord events we care about for the bridge, check them, and pass them on
 
 module.exports = {
 	/**
@@ -10,10 +16,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
 	onMessageCreate(client, message) {
-		console.log(message)
-		console.log(message.guild_id)
-		console.log(message.member)
-		sendMessage(message)
+		sendMessage.sendMessage(message)
 	},
 
 	/**

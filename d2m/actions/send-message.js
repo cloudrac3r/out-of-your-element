@@ -10,7 +10,7 @@ const messageToEvent = require("../converters/message-to-event.js")
  */
 function sendMessage(message) {
 	const event = messageToEvent(message)
-	fetch(`https://matrix.cadence.moe/_matrix/client/v3/rooms/!VwVlIAjOjejUpDhlbA:cadence.moe/send/m.room.message/${makeTxnId()}?user_id=@_ooye_example:cadence.moe`, {
+	return fetch(`https://matrix.cadence.moe/_matrix/client/v3/rooms/!VwVlIAjOjejUpDhlbA:cadence.moe/send/m.room.message/${makeTxnId()}?user_id=@_ooye_example:cadence.moe`, {
 		method: "PUT",
 		body: JSON.stringify(event),
 		headers: {
@@ -24,4 +24,4 @@ function sendMessage(message) {
 	})
 }
 
-module.exports = sendMessage
+module.exports.sendMessage = sendMessage

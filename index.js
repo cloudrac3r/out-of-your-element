@@ -1,13 +1,15 @@
 // @ts-check
 
+const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
 
 const config = require("./config")
 const passthrough = require("./passthrough")
+const db = new sqlite("db/ooye.db")
 
 const sync = new HeatSync()
 
-Object.assign(passthrough, { config, sync })
+Object.assign(passthrough, { config, sync, db })
 
 const DiscordClient = require("./d2m/discord-client")
 

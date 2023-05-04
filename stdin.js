@@ -4,7 +4,12 @@ const repl = require("repl")
 const util = require("util")
 
 const passthrough = require("./passthrough")
-const { discord, config, sync } = passthrough
+const { discord, config, sync, db } = passthrough
+
+const createSpace = sync.require("./d2m/actions/create-space.js")
+const createRoom = sync.require("./d2m/actions/create-room.js")
+const mreq = sync.require("./matrix/mreq.js")
+const guildID = "112760669178241024"
 
 const extraContext = {}
 

@@ -36,6 +36,13 @@ Public channels in that server should then use the following settings, so that t
 - Find & join access: Space members (so users must have been invited to the space already, even if they find out the room ID to join)
 - Who can read history: Anyone (so that people can see messages during the preview before joining)
 
+Step by step process:
+
+1. Create a space room for the guild. Store the guild-space ID relationship in the database. Configure the space room to act like a space.
+	- `{"name":"NAME","preset":"private_chat","visibility":"private","power_level_content_override":{"events_default":100,"invite":50},"topic":"TOPIC","creation_content":{"type":"m.space"},"initial_state":[{"type":"m.room.guest_access","state_key":"","content":{"guest_access":"can_join"}},{"type":"m.room.history_visibility","content":{"history_visibility":"invited"}}]}`
+2. Create channel rooms for the channels. Store the channel-room ID relationship in the database. (Probably no need to store parent-child relationships in the database?)
+3. Send state events to put the channel rooms in the space.
+
 ### Private channels
 
 Discord **channels** that disallow view permission to @everyone should instead have the following **room** settings in Matrix:
@@ -57,6 +64,13 @@ The context-sensitive /invite command will invite Matrix users to the correspond
 
 1. Transform content.
 2. Send to matrix.
+
+## Webhook message sent
+
+- Consider using the _ooye_bot account to send all webhook messages to prevent extraneous joins?
+	- Downside: the profile information from the most recently sent message would stick around in the member list. This is toleable.
+- Otherwise, could use an account per webhook ID, but if webhook IDs are often deleted and re-created, this could still end up leaving too many accounts in the room.
+- The original bridge uses an account per webhook display name, which does the most sense in terms of canonical accounts, but leaves too many accounts in the room.
 
 ## Message deleted
 
@@ -91,4 +105,13 @@ The context-sensitive /invite command will invite Matrix users to the correspond
 	1. Create the corresponding room.
 	2. Add to database.
 3. Update room details to match.
-4. Add to space.
+4. Make sure the permissions are correct according to the rules above!
+5. Add to space.
+
+## Emojis updated
+
+1. Upload any newly added images to msc.
+2. Create or replace state event for the bridged pack. (Can just use key "ooye" and display name "Discord", or something, for this pack.)
+3. The emojis may now be sent by Matrix users!
+
+TOSPEC: m2d emoji uploads??

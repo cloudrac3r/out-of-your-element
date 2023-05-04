@@ -2,6 +2,7 @@
 
 // Discord library internals type beat
 
+const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../passthrough")
 const { sync } = passthrough
 
@@ -27,6 +28,8 @@ const utils = {
 			const arr = []
 			client.guildChannelMap.set(message.d.id, arr)
 			for (const channel of message.d.channels || []) {
+				// @ts-ignore
+				channel.guild_id = message.d.id
 				arr.push(channel.id)
 				client.channels.set(channel.id, channel)
 			}
