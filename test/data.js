@@ -39,7 +39,7 @@ module.exports = {
 			},
 			"m.room.avatar/": {
 				discord_path: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024",
-				url: "mxc://cadence.moe/sZtPwbfOIsvfSoWCWPrGnzql"
+				url: "mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF"
 			}
 		}
 	},

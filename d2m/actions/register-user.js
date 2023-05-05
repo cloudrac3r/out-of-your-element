@@ -1,7 +1,7 @@
 // @ts-check
 
 const reg = require("../../matrix/read-registration.js")
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 
 fetch("https://matrix.cadence.moe/_matrix/client/v3/register", {
 	method: "POST",

@@ -24,13 +24,15 @@
     "matrix-js-sdk": "^24.1.0",
     "mixin-deep": "^2.0.1",
     "node-fetch": "^2.6.7",
-    "snowtransfer": "^0.7.0",
-    "supertape": "^8.3.0"
+    "snowtransfer": "^0.7.0"
   },
   "devDependencies": {
-    "@types/node": "^18.16.0"
+    "@types/node": "^18.16.0",
+    "@types/node-fetch": "^2.6.3",
+    "supertape": "^8.3.0",
+    "tap-dot": "github:cloudrac3r/tap-dot#223a4e67a6f7daf015506a12a7af74605f06c7f4"
   },
   "scripts": {
-    "test": "supertape --format short test/test.js"
+    "test": "FORCE_COLOR=true supertape --format tap test/test.js | tap-dot"
   }
 }

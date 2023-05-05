@@ -36,7 +36,7 @@ async function uploadDiscordFileToMxc(path) {
 		const body = res.body
 
 		// Upload to Matrix
-		/** @type {import("../types").R_FileUploaded} */
+		/** @type {import("../types").R.FileUploaded} */
 		const root = await mreq.mreq("POST", "/media/v3/upload", body, {
 			headers: {
 				"Content-Type": res.headers.get("content-type")

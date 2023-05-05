@@ -37,7 +37,7 @@ function createSpace(guild) {
 				}
 			}
 		]
-	}).then(/** @param {import("../../types").R_RoomCreated} root */ root => {
+	}).then(/** @param {import("../../types").R.RoomCreated} root */ root => {
 		db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, root.room_id)
 		return root
 	})

@@ -22,6 +22,3 @@ passthrough.discord = discord
 
 	require("./stdin")
 })()
-
-// process.on("unhandledRejection", console.error)
-// process.on("uncaughtException", console.error)

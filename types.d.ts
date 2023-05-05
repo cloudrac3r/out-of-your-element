@@ -8,17 +8,42 @@ export type AppServiceRegistrationConfig = {
 	rate_limited: boolean
 }
 
-export type M_Room_Message_content = {
-	msgtype: "m.text"
-	body: string
-	formatted_body?: "org.matrix.custom.html"
-	format?: string
+namespace Event {
+	export type BaseStateEvent = {
+		type: string
+		room_id: string
+		sender: string
+		content: any
+		state_key: string
+		origin_server_ts: number
+		unsigned: any
+		event_id: string
+		user_id: string
+		age: number
+		replaces_state: string
+		prev_content?: any
+	}
+
+	export type M_Room_Message = {
+		msgtype: "m.text"
+		body: string
+		formatted_body?: "org.matrix.custom.html"
+		format?: string
+	}
+
+	export type M_Room_Member = {
+		membership: string
+		display_name?: string
+		avatar_url?: string
+	}
 }
 
-export type R_RoomCreated = {
-	room_id: string
-}
+namespace R {
+	export type RoomCreated = {
+		room_id: string
+	}
 
-export type R_FileUploaded = {
-	content_uri: string
+	export type FileUploaded = {
+		content_uri: string
+	}
 }

@@ -10,8 +10,9 @@ const reg = sync.require("./read-registration.js")
 
 const baseUrl = "https://matrix.cadence.moe/_matrix"
 
-class MatrixServerError {
+class MatrixServerError extends Error {
 	constructor(data) {
+		super(data.error || data.errcode)
 		this.data = data
 		/** @type {string} */
 		this.errcode = data.errcode
@@ -35,7 +36,7 @@ async function mreq(method, url, body, extra = {}) {
 		}
 	}, extra)
 
-	console.log(baseUrl + url, opts)
+	// console.log(baseUrl + url, opts)
 	const res = await fetch(baseUrl + url, opts)
 	const root = await res.json()
 

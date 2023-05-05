@@ -43,7 +43,7 @@ async function customEval(input, _context, _filename, callback) {
 		const output = util.inspect(result, false, depth, true)
 		return callback(null, output)
 	} catch (e) {
-		return callback(null, util.inspect(e, true, 100, true))
+		return callback(null, util.inspect(e, false, 100, true))
 	}
 }
 

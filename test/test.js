@@ -12,4 +12,4 @@ const sync = new HeatSync({persistent: false})
 
 Object.assign(passthrough, { config, sync, db })
 
-require("../d2m/actions/create-room")
+require("../d2m/actions/create-room.test")
