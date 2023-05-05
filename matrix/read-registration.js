@@ -3,5 +3,6 @@
 const fs = require("fs")
 const yaml = require("js-yaml")
 
-/** @type {import("../types").AppServiceRegistrationConfig} */
-module.exports = yaml.load(fs.readFileSync("registration.yaml", "utf8"))
+/** @ts-ignore @type {import("../types").AppServiceRegistrationConfig} */
+const reg = yaml.load(fs.readFileSync("registration.yaml", "utf8"))
+module.exports = reg

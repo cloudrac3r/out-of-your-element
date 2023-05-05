@@ -1,6 +1,6 @@
 // @ts-check
 
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 const mixin = require("mixin-deep")
 
 const passthrough = require("../passthrough")
@@ -26,7 +26,7 @@ class MatrixServerError {
  * @param {any} [body]
  * @param {any} [extra]
  */
-function mreq(method, url, body, extra = {}) {
+async function mreq(method, url, body, extra = {}) {
 	const opts = mixin({
 		method,
 		body: (body == undefined || Object.is(body.constructor, Object)) ? JSON.stringify(body) : body,
@@ -34,13 +34,13 @@ function mreq(method, url, body, extra = {}) {
 			Authorization: `Bearer ${reg.as_token}`
 		}
 	}, extra)
+
 	console.log(baseUrl + url, opts)
-	return fetch(baseUrl + url, opts).then(res => {
-		return res.json().then(root => {
-			if (!res.ok || root.errcode) throw new MatrixServerError(root)
-			return root
-		})
-	})
+	const res = await fetch(baseUrl + url, opts)
+	const root = await res.json()
+
+	if (!res.ok || root.errcode) throw new MatrixServerError(root)
+	return root
 }
 
 module.exports.MatrixServerError = MatrixServerError

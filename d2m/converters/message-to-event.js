@@ -6,7 +6,7 @@ const markdown = require("discord-markdown")
  * @param {import("discord-api-types/v10").APIMessage} message
  * @returns {import("../../types").M_Room_Message_content}
  */
-module.exports = function messageToEvent(message) {
+function messageToEvent(message) {
 	const body = message.content
 	const html = markdown.toHTML(body, {
 		/* discordCallback: {
@@ -24,3 +24,5 @@ module.exports = function messageToEvent(message) {
 		formatted_body: html
 	}
 }
+
+module.exports.messageToEvent = messageToEvent

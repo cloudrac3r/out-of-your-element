@@ -1,6 +1,6 @@
 // @ts-check
 
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 
 const passthrough = require("../passthrough")
 const { sync, db } = passthrough
@@ -33,7 +33,6 @@ async function uploadDiscordFileToMxc(path) {
 
 	// Download from Discord
 	const promise = fetch(url, {}).then(/** @param {import("node-fetch").Response} res */ async res => {
-		/** @ts-ignore @type {import("stream").Readable} body */
 		const body = res.body
 
 		// Upload to Matrix
@@ -56,7 +55,7 @@ async function uploadDiscordFileToMxc(path) {
 }
 
 function guildIcon(guild) {
-	return `/icons/${guild.id}/${guild.icon}?size=${IMAGE_SIZE}`
+	return `/icons/${guild.id}/${guild.icon}.png?size=${IMAGE_SIZE}`
 }
 
 module.exports.guildIcon = guildIcon
