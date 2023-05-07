@@ -46,4 +46,12 @@ namespace R {
 	export type FileUploaded = {
 		content_uri: string
 	}
+
+	export type Registered = {
+		/** "@localpart:domain.tld" */
+		user_id: string
+		home_server: string
+		access_token: string
+		device_id: string
+	}
 }
