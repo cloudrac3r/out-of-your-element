@@ -43,6 +43,7 @@ function* generateLocalpartAlternatives(preferences) {
 }
 
 /**
+ * Whole process for checking the database and generating the right sim name.
  * @param {import("discord-api-types/v10").APIUser} user
  * @returns {string}
  */

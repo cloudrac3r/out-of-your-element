@@ -54,4 +54,8 @@ namespace R {
 		access_token: string
 		device_id: string
 	}
+
+	export type EventSent = {
+		event_id: string
+	}
 }

@@ -4,7 +4,7 @@ const markdown = require("discord-markdown")
 
 /**
  * @param {import("discord-api-types/v10").APIMessage} message
- * @returns {import("../../types").M_Room_Message_content}
+ * @returns {import("../../types").Event.M_Room_Message}
  */
 function messageToEvent(message) {
 	const body = message.content

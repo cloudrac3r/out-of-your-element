@@ -10,15 +10,7 @@
 			},
 			"problemMatcher": [],
 			"label": "npm: test",
-			"detail": "cross-env FORCE_COLOR=true supertape --format tap test/test.js | tap-dot",
-			"presentation": {
-				"echo": false,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared",
-				"showReuseMessage": false,
-				"clear": true
-			}
+			"detail": "cross-env FORCE_COLOR=true supertape --format tap test/test.js | tap-dot"
 		}
 	]
 }

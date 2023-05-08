@@ -2,14 +2,14 @@
 
 const passthrough = require("../../passthrough")
 const { sync, db } = passthrough
-/** @type {import("../../matrix/mreq")} */
-const mreq = sync.require("../../matrix/mreq")
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
 
 /**
  * @param {import("discord-api-types/v10").RESTGetAPIGuildResult} guild
  */
 function createSpace(guild) {
-	return mreq.mreq("POST", "/client/v3/createRoom", {
+	return api.createRoom({
 		name: guild.name,
 		preset: "private_chat",
 		visibility: "private",
@@ -37,7 +37,7 @@ function createSpace(guild) {
 				}
 			}
 		]
-	}).then(/** @param {import("../../types").R.RoomCreated} root */ root => {
+	}).then(root => {
 		db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, root.room_id)
 		return root
 	})

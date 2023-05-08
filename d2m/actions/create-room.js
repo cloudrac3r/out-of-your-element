@@ -5,10 +5,10 @@ const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
-/** @type {import("../../matrix/mreq")} */
-const mreq = sync.require("../../matrix/mreq")
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
 
 function kstateStripConditionals(kstate) {
 	for (const [k, content] of Object.entries(kstate)) {
@@ -51,8 +51,7 @@ function stateToKState(events) {
  * @param {string} roomID
  */
 async function roomToKState(roomID) {
-	/** @type {import("../../types").Event.BaseStateEvent[]} */
-	const root = await mreq.mreq("GET", `/client/v3/rooms/${roomID}/state`)
+	const root = await api.getAllState(roomID)
 	return stateToKState(root)
 }
 
@@ -63,7 +62,7 @@ async function roomToKState(roomID) {
 function applyKStateDiffToRoom(roomID, kstate) {
 	const events = kstateToState(kstate)
 	return Promise.all(events.map(({type, state_key, content}) =>
-		mreq.mreq("PUT", `/client/v3/rooms/${roomID}/state/${type}/${state_key}`, content)
+		api.sendState(roomID, type, state_key, content)
 	))
 }
 
@@ -131,8 +130,7 @@ async function channelToKState(channel, guild) {
  * @param {any} kstate
  */
 async function createRoom(channel, guild, spaceID, kstate) {
-	/** @type {import("../../types").R.RoomCreated} */
-	const root = await mreq.mreq("POST", "/client/v3/createRoom", {
+	const root = await api.createRoom({
 		name: channel.name,
 		topic: channel.topic || undefined,
 		preset: "private_chat",
@@ -144,7 +142,7 @@ async function createRoom(channel, guild, spaceID, kstate) {
 	db.prepare("INSERT INTO channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, root.room_id)
 
 	// Put the newly created child into the space
-	await mreq.mreq("PUT", `/client/v3/rooms/${spaceID}/state/m.space.child/${root.room_id}`, {
+	await api.sendState(spaceID, "m.space.child", root.room_id, {
 		via: ["cadence.moe"] // TODO: use the proper server
 	})
 }
