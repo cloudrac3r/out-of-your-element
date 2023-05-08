@@ -11,7 +11,12 @@ const file = sync.require("./file")
 /** @type {import("./txnid")} */
 const makeTxnId = sync.require("./txnid")
 
-function path(p, mxid = null) {
+/**
+ * @param {string} p endpoint to access
+ * @param {string} [mxid] optional: user to act as, for the ?user_id parameter
+ * @returns {string} the new endpoint
+ */
+function path(p, mxid) {
    if (!mxid) return p
    const u = new URL(p, "http://localhost")
    u.searchParams.set("user_id", mxid)
@@ -65,6 +70,7 @@ function getAllState(roomID) {
  * @param {string} roomID
  * @param {string} type
  * @param {string} stateKey
+ * @param {string} [mxid]
  * @returns {Promise<string>} event ID
  */
 async function sendState(roomID, type, stateKey, content, mxid) {

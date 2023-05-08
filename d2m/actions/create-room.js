@@ -124,13 +124,15 @@ async function channelToKState(channel, guild) {
 }
 
 /**
+ * Create a bridge room, store the relationship in the database, and add it to the guild's space.
  * @param {import("discord-api-types/v10").APIGuildTextChannel} channel
  * @param guild
  * @param {string} spaceID
  * @param {any} kstate
+ * @returns {Promise<string>} room ID
  */
 async function createRoom(channel, guild, spaceID, kstate) {
-	const root = await api.createRoom({
+	const roomID = await api.createRoom({
 		name: channel.name,
 		topic: channel.topic || undefined,
 		preset: "private_chat",
@@ -139,12 +141,14 @@ async function createRoom(channel, guild, spaceID, kstate) {
 		initial_state: kstateToState(kstate)
 	})
 
-	db.prepare("INSERT INTO channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, root.room_id)
+	db.prepare("INSERT INTO channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, roomID)
 
 	// Put the newly created child into the space
-	await api.sendState(spaceID, "m.space.child", root.room_id, {
+	await api.sendState(spaceID, "m.space.child", roomID, { // TODO: should I deduplicate with the equivalent code from syncRoom?
 		via: ["cadence.moe"] // TODO: use the proper server
 	})
+
+	return roomID
 }
 
 /**
@@ -158,22 +162,46 @@ function channelToGuild(channel) {
 	return guild
 }
 
+/*
+	Ensure flow:
+	1. Get IDs
+	2. Does room exist? If so great!
+	(it doesn't, so it needs to be created)
+	3. Get kstate for channel
+	4. Create room, return new ID
+
+	New combined flow with ensure / sync:
+	1. Get IDs
+	2. Does room exist?
+	2.5: If room does exist AND don't need to sync: return here
+	3. Get kstate for channel
+	4. Create room with kstate if room doesn't exist
+	5. Get and update room state with kstate if room does exist
+*/
+
 /**
  * @param {string} channelID
+ * @param {boolean} shouldActuallySync false if just need to ensure room exists (which is a quick database check), true if also want to sync room data when it does exist (slow)
+ * @returns {Promise<string>} room ID
  */
-async function syncRoom(channelID) {
+async function _syncRoom(channelID, shouldActuallySync) {
 	/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	assert.ok(channel)
 	const guild = channelToGuild(channel)
 
-	const {spaceID, channelKState} = await channelToKState(channel, guild)
-
 	/** @type {string?} */
 	const existing = db.prepare("SELECT room_id from channel_room WHERE channel_id = ?").pluck().get(channel.id)
 	if (!existing) {
+		const {spaceID, channelKState} = await channelToKState(channel, guild)
 		return createRoom(channel, guild, spaceID, channelKState)
 	} else {
+		if (!shouldActuallySync) {
+			return existing // only need to ensure room exists, and it does. return the room ID
+		}
+
+		const {spaceID, channelKState} = await channelToKState(channel, guild)
+
 		// sync channel state to room
 		const roomKState = await roomToKState(existing)
 		const roomDiff = diffKState(roomKState, channelKState)
@@ -187,8 +215,18 @@ async function syncRoom(channelID) {
 			}
 		})
 		const spaceApply = applyKStateDiffToRoom(spaceID, spaceDiff)
-		return Promise.all([roomApply, spaceApply])
+		await Promise.all([roomApply, spaceApply])
+
+		return existing
 	}
+}
+
+function ensureRoom(channelID) {
+	return _syncRoom(channelID, false)
+}
+
+function syncRoom(channelID) {
+	return _syncRoom(channelID, true)
 }
 
 async function createAllForGuild(guildID) {
@@ -200,6 +238,7 @@ async function createAllForGuild(guildID) {
 }
 
 module.exports.createRoom = createRoom
+module.exports.ensureRoom = ensureRoom
 module.exports.syncRoom = syncRoom
 module.exports.createAllForGuild = createAllForGuild
 module.exports.kstateToState = kstateToState

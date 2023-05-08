@@ -16,6 +16,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
 	onMessageCreate(client, message) {
+		if (message.guild_id !== "112760669178241024") return // TODO: activate on other servers (requires the space creation flow to be done first)
 		sendMessage.sendMessage(message)
 	},
 
