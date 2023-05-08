@@ -14,3 +14,4 @@ Object.assign(passthrough, { config, sync, db })
 
 require("../d2m/actions/create-room.test")
 require("../d2m/converters/user-to-mxid.test")
+require("../matrix/api.test")

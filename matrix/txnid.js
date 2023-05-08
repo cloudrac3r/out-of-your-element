@@ -2,6 +2,6 @@
 
 let now = Date.now()
 
-module.exports = function makeTxnId() {
+module.exports.makeTxnId = function makeTxnId() {
 	return now++
 }

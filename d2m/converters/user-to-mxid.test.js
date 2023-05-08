@@ -13,7 +13,7 @@ test("user2name: works on normal name", t => {
 })
 
 test("user2name: works on emojis", t => {
-   t.equal(userToSimName({username: "Cookie 🍪", discriminator: "0001"}), "cookie")
+   t.equal(userToSimName({username: "🍪 Cookie Monster 🍪", discriminator: "0001"}), "cookie_monster")
 })
 
 test("user2name: works on crazy name", t => {

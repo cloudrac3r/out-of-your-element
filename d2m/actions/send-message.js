@@ -1,27 +1,29 @@
 // @ts-check
 
-const reg = require("../../matrix/read-registration.js")
-const makeTxnId = require("../../matrix/txnid.js")
 const fetch = require("node-fetch").default
-const messageToEvent = require("../converters/message-to-event.js")
+const reg = require("../../matrix/read-registration.js")
+
+const passthrough = require("../../passthrough")
+const { discord, sync, db } = passthrough
+/** @type {import("../converters/message-to-event")} */
+const messageToEvent = sync.require("../converters/message-to-event")
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
+/** @type {import("./register-user")} */
+const registerUser = sync.require("./register-user")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
  */
-function sendMessage(message) {
+async function sendMessage(message) {
 	const event = messageToEvent.messageToEvent(message)
-	return fetch(`https://matrix.cadence.moe/_matrix/client/v3/rooms/!VwVlIAjOjejUpDhlbA:cadence.moe/send/m.room.message/${makeTxnId()}?user_id=@_ooye_example:cadence.moe`, {
-		method: "PUT",
-		body: JSON.stringify(event),
-		headers: {
-			Authorization: `Bearer ${reg.as_token}`
-		}
-	}).then(res => res.text()).then(text => {
-		// {"event_id":"$4Zxs0fMmYlbo-sTlMmSEvwIs9b4hcg6yORzK0Ems84Q"}
-		console.log(text)
-	}).catch(err => {
-		console.log(err)
-	})
+	const roomID = "!VwVlIAjOjejUpDhlbA:cadence.moe"
+	let senderMxid = null
+	if (!message.webhook_id) {
+		senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
+	}
+	const eventID = api.sendEvent(roomID, "m.room.message", event, senderMxid)
+	return eventID
 }
 
 module.exports.sendMessage = sendMessage

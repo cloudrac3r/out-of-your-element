@@ -8,6 +8,7 @@ const { discord, config, sync, db } = passthrough
 
 const createSpace = sync.require("./d2m/actions/create-space")
 const createRoom = sync.require("./d2m/actions/create-room")
+const registerUser = sync.require("./d2m/actions/register-user")
 const mreq = sync.require("./matrix/mreq")
 const api = sync.require("./matrix/api")
 const guildID = "112760669178241024"

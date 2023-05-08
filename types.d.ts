@@ -4,6 +4,7 @@ export type AppServiceRegistrationConfig = {
 	hs_token: string
 	url: string
 	sender_localpart: string
+	namespace_prefix: string
 	protocols: [string]
 	rate_limited: boolean
 }
@@ -40,6 +41,10 @@ namespace Event {
 
 namespace R {
 	export type RoomCreated = {
+		room_id: string
+	}
+
+	export type RoomJoined = {
 		room_id: string
 	}
 

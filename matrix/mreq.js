@@ -16,8 +16,6 @@ class MatrixServerError extends Error {
 		this.data = data
 		/** @type {string} */
 		this.errcode = data.errcode
-		/** @type {string} */
-		this.error = data.error
 	}
 }
 

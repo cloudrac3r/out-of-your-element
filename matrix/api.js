@@ -8,6 +8,15 @@ const { discord, sync, db } = passthrough
 const mreq = sync.require("./mreq")
 /** @type {import("./file")} */
 const file = sync.require("./file")
+/** @type {import("./txnid")} */
+const makeTxnId = sync.require("./txnid")
+
+function path(p, mxid = null) {
+   if (!mxid) return p
+   const u = new URL(p, "http://localhost")
+   u.searchParams.set("user_id", mxid)
+   return u.pathname + "?" + u.searchParams.toString()
+}
 
 /**
  * @param {string} username
@@ -21,10 +30,27 @@ function register(username) {
 }
 
 /**
- * @returns {Promise<import("../types").R.RoomCreated>}
+ * @returns {Promise<string>} room ID
  */
-function createRoom(content) {
-   return mreq.mreq("POST", "/client/v3/createRoom", content)
+async function createRoom(content) {
+   /** @type {import("../types").R.RoomCreated} */
+   const root = await mreq.mreq("POST", "/client/v3/createRoom", content)
+   return root.room_id
+}
+
+/**
+ * @returns {Promise<string>} room ID
+ */
+async function joinRoom(roomIDOrAlias, mxid) {
+   /** @type {import("../types").R.RoomJoined} */
+   const root = await mreq.mreq("POST", path(`/client/v3/join/${roomIDOrAlias}`, mxid))
+   return root.room_id
+}
+
+async function inviteToRoom(roomID, mxidToInvite, mxid) {
+   await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/invite`, mxid), {
+      user_id: mxidToInvite
+   })
 }
 
 /**
@@ -39,15 +65,27 @@ function getAllState(roomID) {
  * @param {string} roomID
  * @param {string} type
  * @param {string} stateKey
- * @returns {Promise<import("../types").R.EventSent>}
+ * @returns {Promise<string>} event ID
  */
-function sendState(roomID, type, stateKey, content) {
+async function sendState(roomID, type, stateKey, content, mxid) {
    assert.ok(type)
    assert.ok(stateKey)
-   return mreq.mreq("PUT", `/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, content)
+   /** @type {import("../types").R.EventSent} */
+   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, mxid), content)
+   return root.event_id
 }
 
+async function sendEvent(roomID, type, content, mxid) {
+   /** @type {import("../types").R.EventSent} */
+   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid), content)
+   return root.event_id
+}
+
+module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
+module.exports.joinRoom = joinRoom
+module.exports.inviteToRoom = inviteToRoom
 module.exports.getAllState = getAllState
 module.exports.sendState = sendState
+module.exports.sendEvent = sendEvent

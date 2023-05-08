@@ -8,8 +8,8 @@ const api = sync.require("../../matrix/api")
 /**
  * @param {import("discord-api-types/v10").RESTGetAPIGuildResult} guild
  */
-function createSpace(guild) {
-	return api.createRoom({
+async function createSpace(guild) {
+	const roomID = api.createRoom({
 		name: guild.name,
 		preset: "private_chat",
 		visibility: "private",
@@ -37,10 +37,9 @@ function createSpace(guild) {
 				}
 			}
 		]
-	}).then(root => {
-		db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, root.room_id)
-		return root
 	})
+	db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, roomID)
+	return roomID
 }
 
 module.exports.createSpace = createSpace
