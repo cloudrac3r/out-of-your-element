@@ -18,21 +18,23 @@
     "better-sqlite3": "^8.3.0",
     "cloudstorm": "^0.7.0",
     "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#24508e701e91d5a00fa5e773ced874d9ee8c889b",
-    "heatsync": "^2.4.0",
+    "heatsync": "^2.4.1",
     "js-yaml": "^4.1.0",
     "matrix-appservice": "^2.0.0",
     "matrix-js-sdk": "^24.1.0",
     "mixin-deep": "^2.0.1",
     "node-fetch": "^2.6.7",
-    "snowtransfer": "^0.7.0"
+    "snowtransfer": "^0.7.0",
+    "try-to-catch": "^3.0.1"
   },
   "devDependencies": {
     "@types/node": "^18.16.0",
     "@types/node-fetch": "^2.6.3",
+    "cross-env": "^7.0.3",
     "supertape": "^8.3.0",
     "tap-dot": "github:cloudrac3r/tap-dot#223a4e67a6f7daf015506a12a7af74605f06c7f4"
   },
   "scripts": {
-    "test": "FORCE_COLOR=true supertape --format tap test/test.js | tap-dot"
+    "test": "cross-env FORCE_COLOR=true supertape --format tap test/test.js | tap-dot"
   }
 }
