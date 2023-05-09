@@ -28,6 +28,7 @@ function path(p, mxid) {
  * @returns {Promise<import("../types").R.Registered>}
  */
 function register(username) {
+   console.log(`[api] register: ${username}`)
    return mreq.mreq("POST", "/client/v3/register", {
       type: "m.login.application_service",
       username
@@ -38,6 +39,7 @@ function register(username) {
  * @returns {Promise<string>} room ID
  */
 async function createRoom(content) {
+   console.log(`[api] create room:`, content)
    /** @type {import("../types").R.RoomCreated} */
    const root = await mreq.mreq("POST", "/client/v3/createRoom", content)
    return root.room_id
@@ -74,6 +76,7 @@ function getAllState(roomID) {
  * @returns {Promise<string>} event ID
  */
 async function sendState(roomID, type, stateKey, content, mxid) {
+   console.log(`[api] state: ${roomID}: ${type}/${stateKey}`)
    assert.ok(type)
    assert.ok(stateKey)
    /** @type {import("../types").R.EventSent} */
@@ -82,6 +85,7 @@ async function sendState(roomID, type, stateKey, content, mxid) {
 }
 
 async function sendEvent(roomID, type, content, mxid) {
+   console.log(`[api] event to ${roomID} as ${mxid || "default sim"}`)
    /** @type {import("../types").R.EventSent} */
    const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid), content)
    return root.event_id

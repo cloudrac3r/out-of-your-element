@@ -44,6 +44,7 @@ function* generateLocalpartAlternatives(preferences) {
 
 /**
  * Whole process for checking the database and generating the right sim name.
+ * It is very important this is not an async function: once the name has been chosen, the calling function should be able to immediately claim that name into the database in the same event loop tick.
  * @param {import("discord-api-types/v10").APIUser} user
  * @returns {string}
  */

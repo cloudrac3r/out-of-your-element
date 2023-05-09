@@ -6,15 +6,16 @@ const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../passthrough")
 const { sync } = passthrough
 
-/** @type {typeof import("./event-dispatcher")} */
-const eventDispatcher = sync.require("./event-dispatcher")
-
 const utils = {
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {import("cloudstorm").IGatewayMessage} message
 	 */
 	onPacket(client, message) {
+		// requiring this later so that the client is already constructed by the time event-dispatcher is loaded
+		/** @type {typeof import("./event-dispatcher")} */
+		const eventDispatcher = sync.require("./event-dispatcher")
+
 		if (message.t === "READY") {
 			if (client.ready) return
 			client.ready = true

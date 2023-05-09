@@ -2,9 +2,6 @@
 
 const {sync} = require("../passthrough")
 
-/** @type {import("./actions/create-space")}) */
-const createSpace = sync.require("./actions/create-space")
-
 /** @type {import("./actions/send-message")}) */
 const sendMessage = sync.require("./actions/send-message")
 

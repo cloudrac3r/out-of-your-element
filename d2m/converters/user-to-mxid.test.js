@@ -31,3 +31,7 @@ test("user2name: adds number suffix if name is unavailable (new username format)
 test("user2name: uses ID if name becomes too short", t => {
    t.equal(userToSimName({username: "f***", discriminator: "0001", id: "9"}), "9")
 })
+
+test("user2name: uses ID when name has only disallowed characters", t => {
+   t.equal(userToSimName({username: "!@#$%^&*", discriminator: "0001", id: "9"}), "9")
+})

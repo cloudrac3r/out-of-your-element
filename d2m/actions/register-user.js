@@ -24,10 +24,18 @@ async function createSim(user) {
 	const mxid = "@" + localpart + ":cadence.moe"
 
 	// Save chosen name in the database forever
+	// Making this database change right away so that in a concurrent registration, the 2nd registration will already have generated a different localpart because it can see this row when it generates
 	db.prepare("INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(user.id, simName, localpart, mxid)
 
 	// Register matrix user with that name
-	await api.register(localpart)
+	try {
+		await api.register(localpart)
+	} catch (e) {
+		// If user creation fails, manually undo the database change. Still isn't perfect, but should help.
+		// (A transaction would be preferable, but I don't think it's safe to leave transaction open across event loop ticks.)
+		db.prepare("DELETE FROM sim WHERE discord_id = ?").run(user.id)
+		throw e
+	}
 	return mxid
 }
 
