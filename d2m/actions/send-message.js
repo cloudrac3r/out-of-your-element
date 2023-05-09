@@ -1,8 +1,5 @@
 // @ts-check
 
-const fetch = require("node-fetch").default
-const reg = require("../../matrix/read-registration.js")
-
 const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
 /** @type {import("../converters/message-to-event")} */
@@ -24,7 +21,8 @@ async function sendMessage(message) {
 	if (!message.webhook_id) {
 		senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
 	}
-	const eventID = api.sendEvent(roomID, "m.room.message", event, senderMxid)
+	const eventID = await api.sendEvent(roomID, "m.room.message", event, senderMxid)
+	db.prepare("INSERT INTO event_message (event_id, message_id, part) VALUES (?, ?, ?)").run(eventID, message.id, 0) // 0 is primary, 1 is supporting
 	return eventID
 }
 

@@ -4,6 +4,8 @@ const {sync} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
 const sendMessage = sync.require("./actions/send-message")
+/** @type {import("./actions/add-reaction")}) */
+const addReaction = sync.require("./actions/add-reaction")
 
 // Grab Discord events we care about for the bridge, check them, and pass them on
 
@@ -22,7 +24,8 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
 	 */
 	onReactionAdd(client, data) {
+		if (data.emoji.id !== null) return // TOOD: image emoji reactions
 		console.log(data)
-		return {}
+		addReaction.addReaction(data)
 	}
 }
