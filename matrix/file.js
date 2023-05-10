@@ -17,7 +17,14 @@ const inflight = new Map()
  * @param {string} path
  */
 async function uploadDiscordFileToMxc(path) {
-	const url = DISCORD_IMAGES_BASE + path
+	let url
+	if (path.startsWith("http")) {
+		// TODO: this is cheating to make seed.js easier. due a refactor or a name change since it's not soley for discord?
+		// possibly could be good to save non-discord external URLs under a user-specified key rather than simply using the url?
+		url = path
+	} else {
+		url = DISCORD_IMAGES_BASE + path
+	}
 
 	// Are we uploading this file RIGHT NOW? Return the same inflight promise with the same resolution
 	let existing = inflight.get(url)

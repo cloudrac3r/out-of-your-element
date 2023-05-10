@@ -7,7 +7,6 @@ const config = require("../config")
 const passthrough = require("../passthrough")
 const db = new sqlite("db/ooye.db")
 
-// @ts-ignore
 const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, { config, sync, db })

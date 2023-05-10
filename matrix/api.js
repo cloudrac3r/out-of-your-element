@@ -91,6 +91,18 @@ async function sendEvent(roomID, type, content, mxid) {
    return root.event_id
 }
 
+async function profileSetDisplayname(mxid, displayname) {
+   await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/displayname`, mxid), {
+      displayname
+   })
+}
+
+async function profileSetAvatarUrl(mxid, avatar_url) {
+   await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/avatar_url`, mxid), {
+      avatar_url
+   })
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -99,3 +111,5 @@ module.exports.inviteToRoom = inviteToRoom
 module.exports.getAllState = getAllState
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
+module.exports.profileSetDisplayname = profileSetDisplayname
+module.exports.profileSetAvatarUrl = profileSetAvatarUrl
