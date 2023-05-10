@@ -80,13 +80,81 @@ async function ensureSimJoined(user, roomID) {
 
 /**
  * @param {import("discord-api-types/v10").APIUser} user
- * @param {Required<Omit<import("discord-api-types/v10").APIGuildMember, "user">>} member
+ * @param {Omit<import("discord-api-types/v10").APIGuildMember, "user">} member
  */
-async function memberToStateContent(user, member) {
-	return {
-		displayname: member.nick || user.username
+async function memberToStateContent(user, member, guildID) {
+	let displayname = user.username
+	if (member.nick && member.nick !== displayname) displayname = member.nick + " | " + displayname // prepend nick if present
+
+	const content = {
+		displayname,
+		membership: "join",
+		"moe.cadence.ooye.member": {
+		},
+		"uk.half-shot.discord.member": {
+			bot: !!user.bot,
+			displayColor: user.accent_color,
+			id: user.id,
+			username: user.discriminator.length === 4 ? `${user.username}#${user.discriminator}` : `@${user.username}`
+		}
+	}
+
+	if (member.avatar || user.avatar) {
+		// const avatarPath = file.userAvatar(user) // the user avatar only
+		const avatarPath = file.memberAvatar(guildID, user, member) // the member avatar or the user avatar
+		content["moe.cadence.ooye.member"].avatar = avatarPath
+		content.avatar_url = await file.uploadDiscordFileToMxc(avatarPath)
+	}
+
+	return content
+}
+
+function calculateProfileEventContentHash(content) {
+	return `${content.displayname}\u0000${content.avatar_url}`
+}
+
+/**
+ * @param {import("discord-api-types/v10").APIUser} user
+ * @param {Omit<import("discord-api-types/v10").APIGuildMember, "user">} member
+ */
+async function syncUser(user, member, guildID, roomID) {
+	const mxid = await ensureSimJoined(user, roomID)
+	const content = await memberToStateContent(user, member, guildID)
+	const profileEventContentHash = calculateProfileEventContentHash(content)
+	const existingHash = db.prepare("SELECT profile_event_content_hash FROM sim_member WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
+	// only do the actual sync if the hash has changed since we last looked
+	if (existingHash !== profileEventContentHash) {
+		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
+		db.prepare("UPDATE sim_member SET profile_event_content_hash = ? WHERE room_id = ? AND mxid = ?").run(profileEventContentHash, roomID, mxid)
+	}
+}
+
+async function syncAllUsersInRoom(roomID) {
+	const mxids = db.prepare("SELECT mxid FROM sim_member WHERE room_id = ?").pluck().all(roomID)
+
+	const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+	assert.ok(typeof channelID === "string")
+	/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
+	const channel = discord.channels.get(channelID)
+	const guildID = channel.guild_id
+	assert.ok(typeof guildID === "string")
+
+	for (const mxid of mxids) {
+		const userID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(mxid)
+		assert.ok(typeof userID === "string")
+
+		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIGuildMember>} */
+		const member = await discord.snow.guild.getGuildMember(guildID, userID)
+		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIUser>} user */
+		const user = member.user
+		assert.ok(user)
+
+		console.log(`[user sync] to matrix: ${user.username} in ${channel.name}`)
+		await syncUser(user, member, guildID, roomID)
 	}
 }
 
 module.exports.ensureSim = ensureSim
 module.exports.ensureSimJoined = ensureSimJoined
+module.exports.syncUser = syncUser
+module.exports.syncAllUsersInRoom = syncAllUsersInRoom

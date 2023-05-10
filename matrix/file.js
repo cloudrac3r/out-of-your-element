@@ -58,5 +58,16 @@ function guildIcon(guild) {
 	return `/icons/${guild.id}/${guild.icon}.png?size=${IMAGE_SIZE}`
 }
 
+function userAvatar(user) {
+	return `/avatars/${user.id}/${user.avatar}.png?size=${IMAGE_SIZE}`
+}
+
+function memberAvatar(guildID, user, member) {
+	if (!member.avatar) return userAvatar(user)
+	return `/guilds/${guildID}/users/${user.id}/avatars/${member.avatar}.png?size=${IMAGE_SIZE}`
+}
+
 module.exports.guildIcon = guildIcon
+module.exports.userAvatar = userAvatar
+module.exports.memberAvatar = memberAvatar
 module.exports.uploadDiscordFileToMxc = uploadDiscordFileToMxc

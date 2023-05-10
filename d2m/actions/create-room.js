@@ -144,6 +144,8 @@ async function _syncRoom(channelID, shouldActuallySync) {
 			return existing // only need to ensure room exists, and it does. return the room ID
 		}
 
+		console.log(`[room sync] to matrix: ${channel.name}`)
+
 		const {spaceID, channelKState} = await channelToKState(channel, guild)
 
 		// sync channel state to room
