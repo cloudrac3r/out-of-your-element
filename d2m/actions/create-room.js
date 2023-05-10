@@ -9,50 +9,15 @@ const { discord, sync, db } = passthrough
 const file = sync.require("../../matrix/file")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
-
-function kstateStripConditionals(kstate) {
-	for (const [k, content] of Object.entries(kstate)) {
-		if ("$if" in content) {
-			if (content.$if) delete content.$if
-			else delete kstate[k]
-		}
-	}
-	return kstate
-}
-
-function kstateToState(kstate) {
-	const events = []
-	for (const [k, content] of Object.entries(kstate)) {
-		// conditional for whether a key is even part of the kstate (doing this declaratively on json is hard, so represent it as a property instead.)
-		if ("$if" in content && !content.$if) continue
-		delete content.$if
-
-		const [type, state_key] = k.split("/")
-		assert.ok(typeof type === "string")
-		assert.ok(typeof state_key === "string")
-		events.push({type, state_key, content})
-	}
-	return events
-}
-
-/**
- * @param {import("../../types").Event.BaseStateEvent[]} events
- * @returns {any}
- */
-function stateToKState(events) {
-	const kstate = {}
-	for (const event of events) {
-		kstate[event.type + "/" + event.state_key] = event.content
-	}
-	return kstate
-}
+/** @type {import("../../matrix/kstate")} */
+const ks = sync.require("../../matrix/kstate")
 
 /**
  * @param {string} roomID
  */
 async function roomToKState(roomID) {
 	const root = await api.getAllState(roomID)
-	return stateToKState(root)
+	return ks.stateToKState(root)
 }
 
 /**
@@ -60,31 +25,10 @@ async function roomToKState(roomID) {
  * @params {any} kstate
  */
 function applyKStateDiffToRoom(roomID, kstate) {
-	const events = kstateToState(kstate)
+	const events = ks.kstateToState(kstate)
 	return Promise.all(events.map(({type, state_key, content}) =>
 		api.sendState(roomID, type, state_key, content)
 	))
-}
-
-function diffKState(actual, target) {
-	const diff = {}
-	// go through each key that it should have
-	for (const key of Object.keys(target)) {
-		if (key in actual) {
-			// diff
-			try {
-				assert.deepEqual(actual[key], target[key])
-			} catch (e) {
-				// they differ. reassign the target
-				diff[key] = target[key]
-			}
-		} else {
-			// not present, needs to be added
-			diff[key] = target[key]
-		}
-		// keys that are missing in "actual" will not be deleted on "target" (no action)
-	}
-	return diff
 }
 
 /**
@@ -98,7 +42,7 @@ async function channelToKState(channel, guild) {
 	const avatarEventContent = {}
 	if (guild.icon) {
 		avatarEventContent.discord_path = file.guildIcon(guild)
-		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path)
+		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
 	const channelKState = {
@@ -138,7 +82,7 @@ async function createRoom(channel, guild, spaceID, kstate) {
 		preset: "private_chat",
 		visibility: "private",
 		invite: ["@cadence:cadence.moe"], // TODO
-		initial_state: kstateToState(kstate)
+		initial_state: ks.kstateToState(kstate)
 	})
 
 	db.prepare("INSERT INTO channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, roomID)
@@ -204,12 +148,12 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 		// sync channel state to room
 		const roomKState = await roomToKState(existing)
-		const roomDiff = diffKState(roomKState, channelKState)
+		const roomDiff = ks.diffKState(roomKState, channelKState)
 		const roomApply = applyKStateDiffToRoom(existing, roomDiff)
 
 		// sync room as space member
 		const spaceKState = await roomToKState(spaceID)
-		const spaceDiff = diffKState(spaceKState, {
+		const spaceDiff = ks.diffKState(spaceKState, {
 			[`m.space.child/${existing}`]: {
 				via: ["cadence.moe"] // TODO: use the proper server
 			}
@@ -241,8 +185,4 @@ module.exports.createRoom = createRoom
 module.exports.ensureRoom = ensureRoom
 module.exports.syncRoom = syncRoom
 module.exports.createAllForGuild = createAllForGuild
-module.exports.kstateToState = kstateToState
-module.exports.stateToKState = stateToKState
-module.exports.diffKState = diffKState
 module.exports.channelToKState = channelToKState
-module.exports.kstateStripConditionals = kstateStripConditionals

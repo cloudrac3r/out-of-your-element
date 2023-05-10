@@ -78,5 +78,15 @@ async function ensureSimJoined(user, roomID) {
 	return mxid
 }
 
+/**
+ * @param {import("discord-api-types/v10").APIUser} user
+ * @param {Required<Omit<import("discord-api-types/v10").APIGuildMember, "user">>} member
+ */
+async function memberToStateContent(user, member) {
+	return {
+		displayname: member.nick || user.username
+	}
+}
+
 module.exports.ensureSim = ensureSim
 module.exports.ensureSimJoined = ensureSimJoined
