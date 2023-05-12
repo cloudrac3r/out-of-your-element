@@ -6,18 +6,18 @@ module.exports = {
 	channel: {
 		general: {
 			type: 0,
-			topic: 'https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:',
+			topic: "https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:",
 			rate_limit_per_user: 0,
 			position: 0,
 			permission_overwrites: [],
 			parent_id: null,
 			nsfw: false,
-			name: 'collective-unconscious' ,
-			last_pin_timestamp: '2023-04-06T09:51:57+00:00',
-			last_message_id: '1103832925784514580',
-			id: '112760669178241024',
+			name: "collective-unconscious" ,
+			last_pin_timestamp: "2023-04-06T09:51:57+00:00",
+			last_message_id: "1103832925784514580",
+			id: "112760669178241024",
 			default_thread_rate_limit_per_user: 0,
-			guild_id: '112760669178241024'
+			guild_id: "112760669178241024"
 		}
 	},
 	room: {
@@ -45,41 +45,85 @@ module.exports = {
 	},
 	guild: {
 		general: {
-			owner_id: '112760500130975744',
+			owner_id: "112760500130975744",
 			premium_tier: 3,
 			stickers: [],
 			max_members: 500000,
-			splash: '86a34ed02524b972918bef810087f8e7',
+			splash: "86a34ed02524b972918bef810087f8e7",
 			explicit_content_filter: 0,
 			afk_channel_id: null,
 			nsfw_level: 0,
 			description: null,
-			preferred_locale: 'en-US',
-			system_channel_id: '112760669178241024',
+			preferred_locale: "en-US",
+			system_channel_id: "112760669178241024",
 			mfa_level: 0,
 			/** @type {300} */
 			afk_timeout: 300,
-			id: '112760669178241024',
-			icon: 'a_f83622e09ead74f0c5c527fe241f8f8c',
+			id: "112760669178241024",
+			icon: "a_f83622e09ead74f0c5c527fe241f8f8c",
 			emojis: [],
 			premium_subscription_count: 14,
 			roles: [],
 			discovery_splash: null,
 			default_message_notifications: 1,
-			region: 'deprecated',
+			region: "deprecated",
 			max_video_channel_users: 25,
 			verification_level: 0,
 			application_id: null,
 			premium_progress_bar_enabled: false,
-			banner: 'a_a666ae551605a2d8cda0afd591c0af3a',
+			banner: "a_a666ae551605a2d8cda0afd591c0af3a",
 			features: [],
 			vanity_url_code: null,
 			hub_type: null,
 			public_updates_channel_id: null,
 			rules_channel_id: null,
-			name: 'Psychonauts 3',
+			name: "Psychonauts 3",
 			max_stage_video_channel_users: 300,
 			system_channel_flags: 0|0
 		}
+	},
+	message: {
+		// Display order is text content, attachments, then stickers
+		sticker: {
+			id: "1106366167788044450",
+			type: 0,
+			content: "can have attachments too",
+			channel_id: "122155380120748034",
+			author: {
+				id: "113340068197859328",
+				username: "Cookie 🍪",
+				global_name: null,
+				display_name: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "7766",
+				public_flags: 128,
+				avatar_decoration: null
+			},
+			attachments: [{
+				id: "1106366167486038016",
+				filename: "image.png",
+				size: 127373,
+				url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
+				proxy_url: "https://media.discordapp.net/attachments/122155380120748034/1106366167486038016/image.png",
+				width: 333,
+				height: 287,
+				content_type: "image/png"
+			}],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-05-11T23:44:09.690000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			sticker_items: [{
+				id: "1106323941183717586",
+				format_type: 1,
+				name: "pomu puff"
+			}]
+		 }
 	}
 }

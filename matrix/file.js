@@ -74,7 +74,14 @@ function memberAvatar(guildID, user, member) {
 	return `/guilds/${guildID}/users/${user.id}/avatars/${member.avatar}.png?size=${IMAGE_SIZE}`
 }
 
+function emoji(emojiID, animated) {
+	const base = `/emojis/${emojiID}`
+	if (animated) return base + ".gif"
+	else return base + ".png"
+}
+
 module.exports.guildIcon = guildIcon
 module.exports.userAvatar = userAvatar
 module.exports.memberAvatar = memberAvatar
+module.exports.emoji = emoji
 module.exports.uploadDiscordFileToMxc = uploadDiscordFileToMxc

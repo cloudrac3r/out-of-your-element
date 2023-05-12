@@ -19,16 +19,31 @@ const createRoom = sync.require("../actions/create-room")
 async function sendMessage(message) {
 	assert.ok(message.member)
 
-	const event = messageToEvent.messageToEvent(message)
 	const roomID = await createRoom.ensureRoom(message.channel_id)
+
 	let senderMxid = null
 	if (!message.webhook_id) {
 		senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
 		await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
 	}
-	const eventID = await api.sendEvent(roomID, "m.room.message", event, senderMxid)
-	db.prepare("INSERT INTO event_message (event_id, message_id, part) VALUES (?, ?, ?)").run(eventID, message.id, 0) // 0 is primary, 1 is supporting
-	return eventID
+
+	const events = await messageToEvent.messageToEvent(message)
+	const eventIDs = []
+	let eventPart = 0 // 0 is primary, 1 is supporting
+	for (const event of events) {
+		const eventType = event.$type
+		/** @type {Pick<typeof event, Exclude<keyof event, "$type">> & { $type?: string }} */
+		const eventWithoutType = {...event}
+		delete eventWithoutType.$type
+
+		const eventID = await api.sendEvent(roomID, eventType, event, senderMxid)
+		db.prepare("INSERT INTO event_message (event_id, message_id, part) VALUES (?, ?, ?)").run(eventID, message.id, eventPart)
+
+		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
+		eventIDs.push(eventID)
+	}
+
+	return eventIDs
 }
 
 module.exports.sendMessage = sendMessage
