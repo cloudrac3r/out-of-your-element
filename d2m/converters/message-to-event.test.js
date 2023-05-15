@@ -23,6 +23,12 @@ test("message2event: stickers", async t => {
       },
    }, {
       $type: "m.sticker",
-      todo: "todo"
+      body: "pomu puff - damn that tiny lil bitch really chuffing. puffing that fat ass dart",
+      info: {
+         mimetype: "image/png"
+         // thumbnail_url
+         // thumbnail_info
+      },
+      url: "mxc://"
    }])
 })

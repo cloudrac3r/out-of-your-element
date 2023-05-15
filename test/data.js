@@ -47,7 +47,18 @@ module.exports = {
 		general: {
 			owner_id: "112760500130975744",
 			premium_tier: 3,
-			stickers: [],
+			stickers: [{
+				version: 1683838696974,
+				type: 2,
+				tags: "sunglasses",
+				name: "pomu puff",
+				id: "1106323941183717586",
+				guild_id: "112760669178241024",
+				format_type: 1,
+				description: "damn that tiny lil bitch really chuffing. puffing that fat ass dart",
+				available: true,
+				asset: ""
+			}],
 			max_members: 500000,
 			splash: "86a34ed02524b972918bef810087f8e7",
 			explicit_content_filter: 0,

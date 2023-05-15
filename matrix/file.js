@@ -80,8 +80,24 @@ function emoji(emojiID, animated) {
 	else return base + ".png"
 }
 
+const stickerFormat = new Map([
+	[1, {label: "PNG", ext: "png", mime: "image/png"}],
+	[2, {label: "APNG", ext: "png", mime: "image/apng"}],
+	[3, {label: "LOTTIE", ext: "json", mime: "application/json"}],
+	[4, {label: "GIF", ext: "gif", mime: "image/gif"}]
+])
+
+function sticker(sticker) {
+	const format = stickerFormat.get(sticker.format_type)
+	if (!format) throw new Error(`No such format ${sticker.format_type} for sticker ${JSON.stringify(sticker)}`)
+	const ext = format.ext
+	return `/stickers/${sticker.id}.${ext}`
+}
+
 module.exports.guildIcon = guildIcon
 module.exports.userAvatar = userAvatar
 module.exports.memberAvatar = memberAvatar
 module.exports.emoji = emoji
+module.exports.stickerFormat = stickerFormat
+module.exports.sticker = sticker
 module.exports.uploadDiscordFileToMxc = uploadDiscordFileToMxc

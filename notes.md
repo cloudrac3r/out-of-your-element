@@ -60,6 +60,22 @@ The context-sensitive /invite command will invite Matrix users to the correspond
 
 # d2m events
 
+## Login - backfill
+
+Need to backfill any messages that were missed while offline.
+
+After logging in, check last_message_id on each channel and compare against database to see if anything has been missed. However, mustn't interpret old channels from before the bridge was created as being "new". So, something has been missed if:
+
+- The last_message_id is not in the table of bridged messages
+- The channel is already set up with a bridged room
+- A message has been bridged in that channel before
+
+(If either of the last two conditions is false, that means the channel predates the bridge and we haven't actually missed anything there.)
+
+For channels that have missed messages, use the getChannelMessages function, and bridge each in turn.
+
+Can use custom transaction ID (?) to send the original timestamps to Matrix. See appservice docs for details.
+
 ## Message sent
 
 1. Transform content.
