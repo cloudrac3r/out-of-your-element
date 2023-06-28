@@ -83,10 +83,11 @@ function emoji(emojiID, animated) {
 const stickerFormat = new Map([
 	[1, {label: "PNG", ext: "png", mime: "image/png"}],
 	[2, {label: "APNG", ext: "png", mime: "image/apng"}],
-	[3, {label: "LOTTIE", ext: "json", mime: "application/json"}],
+	[3, {label: "LOTTIE", ext: "json", mime: null}],
 	[4, {label: "GIF", ext: "gif", mime: "image/gif"}]
 ])
 
+/** @param {{id: string, format_type: number}} sticker */
 function sticker(sticker) {
 	const format = stickerFormat.get(sticker.format_type)
 	if (!format) throw new Error(`No such format ${sticker.format_type} for sticker ${JSON.stringify(sticker)}`)

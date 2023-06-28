@@ -4,7 +4,7 @@ const {messageToEvent} = require("./message-to-event")
 const data = require("../../test/data")
 
 test("message2event: stickers", async t => {
-   const events = await messageToEvent(data.message.sticker)
+   const events = await messageToEvent(data.message.sticker, data.guild.general)
    t.deepEqual(events, [{
       $type: "m.room.message",
       msgtype: "m.text",
@@ -29,6 +29,6 @@ test("message2event: stickers", async t => {
          // thumbnail_url
          // thumbnail_info
       },
-      url: "mxc://"
+      url: "mxc://cadence.moe/UuUaLwXhkxFRwwWCXipDlBHn"
    }])
 })

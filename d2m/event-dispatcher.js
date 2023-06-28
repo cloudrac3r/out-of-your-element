@@ -1,5 +1,4 @@
-// @ts-check
-
+const assert = require("assert").strict
 const {sync} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
@@ -15,8 +14,11 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
 	onMessageCreate(client, message) {
+		/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
+		const channel = client.channels.get(message.channel_id)
+		const guild = client.guilds.get(channel.guild_id)
 		if (message.guild_id !== "112760669178241024") return // TODO: activate on other servers (requires the space creation flow to be done first)
-		sendMessage.sendMessage(message)
+		sendMessage.sendMessage(message, guild)
 	},
 
 	/**

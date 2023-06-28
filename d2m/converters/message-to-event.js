@@ -1,16 +1,18 @@
 // @ts-check
 
+const assert = require("assert").strict
 const markdown = require("discord-markdown")
 
 const passthrough = require("../../passthrough")
-const { sync, db } = passthrough
+const { sync, db, discord } = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 
 /**
  * @param {import("discord-api-types/v10").APIMessage} message
+ * @param {import("discord-api-types/v10").APIGuild} guild
  */
-async function messageToEvent(message) {
+async function messageToEvent(message, guild) {
 	const events = []
 
 	// Text content appears first
@@ -87,6 +89,31 @@ async function messageToEvent(message) {
 	events.push(...attachmentEvents)
 
 	// Then stickers
+	if (message.sticker_items) {
+		const stickerEvents = await Promise.all(message.sticker_items.map(async stickerItem => {
+			const format = file.stickerFormat.get(stickerItem.format_type)
+			if (format?.mime) {
+				let body = stickerItem.name
+				const sticker = guild.stickers.find(sticker => sticker.id === stickerItem.id)
+				if (sticker && sticker.description) body += ` - ${sticker.description}`
+				return {
+					$type: "m.sticker",
+					body,
+					info: {
+						mimetype: format.mime
+					},
+					url: await file.uploadDiscordFileToMxc(file.sticker(stickerItem))
+				}
+			} else {
+				return {
+					$type: "m.room.message",
+					msgtype: "m.text",
+					body: "Unsupported sticker format. Name: " + stickerItem.name
+				}
+			}
+		}))
+		events.push(...stickerEvents)
+	}
 
 	return events
 }

@@ -32,12 +32,13 @@ function applyKStateDiffToRoom(roomID, kstate) {
 }
 
 /**
- * @param {import("discord-api-types/v10").APIGuildTextChannel} channel
- * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {DiscordTypes.APIGuildTextChannel} channel
+ * @param {DiscordTypes.APIGuild} guild
  */
 async function channelToKState(channel, guild) {
 	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
 	assert.ok(typeof spaceID === "string")
+	const customName = db.prepare("SELECT nick FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
 
 	const avatarEventContent = {}
 	if (guild.icon) {
@@ -45,9 +46,27 @@ async function channelToKState(channel, guild) {
 		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
+	// TODO: Improve nasty nested ifs
+	let convertedName, convertedTopic
+	if (customName) {
+		convertedName = customName
+		if (channel.topic) {
+			convertedTopic = `${channel.name} | ${channel.topic}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
+		} else {
+			convertedTopic = `${channel.name}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
+		}
+	} else {
+		convertedName = channel.name
+		if (channel.topic) {
+			convertedTopic = `${channel.topic}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
+		} else {
+			convertedTopic = `Channel ID: ${channel.id}\nGuild ID: ${guild.id}`
+		}
+	}
+
 	const channelKState = {
-		"m.room.name/": {name: channel.name},
-		"m.room.topic/": {$if: channel.topic, topic: channel.topic},
+		"m.room.name/": {name: convertedName},
+		"m.room.topic/": {topic: convertedTopic},
 		"m.room.avatar/": avatarEventContent,
 		"m.room.guest_access/": {guest_access: "can_join"},
 		"m.room.history_visibility/": {history_visibility: "invited"},
@@ -69,7 +88,7 @@ async function channelToKState(channel, guild) {
 
 /**
  * Create a bridge room, store the relationship in the database, and add it to the guild's space.
- * @param {import("discord-api-types/v10").APIGuildTextChannel} channel
+ * @param {DiscordTypes.APIGuildTextChannel} channel
  * @param guild
  * @param {string} spaceID
  * @param {any} kstate
@@ -96,7 +115,7 @@ async function createRoom(channel, guild, spaceID, kstate) {
 }
 
 /**
- * @param {import("discord-api-types/v10").APIGuildChannel} channel
+ * @param {DiscordTypes.APIGuildChannel} channel
  */
 function channelToGuild(channel) {
 	const guildID = channel.guild_id
@@ -129,7 +148,7 @@ function channelToGuild(channel) {
  * @returns {Promise<string>} room ID
  */
 async function _syncRoom(channelID, shouldActuallySync) {
-	/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
+	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	assert.ok(channel)
 	const guild = channelToGuild(channel)

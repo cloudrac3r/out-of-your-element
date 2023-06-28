@@ -22,8 +22,8 @@ module.exports = {
 	},
 	room: {
 		general: {
-			"m.room.name/": {name: "collective-unconscious"},
-			"m.room.topic/": {topic: "https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:"},
+			"m.room.name/": {name: "main"},
+			"m.room.topic/": {topic: "collective-unconscious | https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:\n\nChannel ID: 112760669178241024\nGuild ID: 112760669178241024"},
 			"m.room.guest_access/": {guest_access: "can_join"},
 			"m.room.history_visibility/": {history_visibility: "invited"},
 			"m.space.parent/!jjWAGMeQdNrVZSSfvz:cadence.moe": {
