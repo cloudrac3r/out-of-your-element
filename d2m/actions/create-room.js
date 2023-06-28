@@ -58,7 +58,7 @@ async function channelToKState(channel, guild) {
 		"m.room.join_rules/": {
 			join_rule: "restricted",
 			allow: [{
-				type: "m.room.membership",
+				type: "m.room_membership",
 				room_id: spaceID
 			}]
 		}
@@ -179,7 +179,9 @@ async function createAllForGuild(guildID) {
 	const channelIDs = discord.guildChannelMap.get(guildID)
 	assert.ok(channelIDs)
 	for (const channelID of channelIDs) {
-		await syncRoom(channelID).then(r => console.log(`synced ${channelID}:`, r))
+		if (discord.channels.get(channelID)?.type === DiscordTypes.ChannelType.GuildText) { // TODO: guild sync thread channels and such. maybe make a helper function to check if a given channel is syncable?
+			await syncRoom(channelID).then(r => console.log(`synced ${channelID}:`, r))
+		}
 	}
 }
 

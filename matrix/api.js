@@ -78,7 +78,7 @@ function getAllState(roomID) {
 async function sendState(roomID, type, stateKey, content, mxid) {
    console.log(`[api] state: ${roomID}: ${type}/${stateKey}`)
    assert.ok(type)
-   assert.ok(stateKey)
+   assert.ok(typeof stateKey === "string")
    /** @type {import("../types").R.EventSent} */
    const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, mxid), content)
    return root.event_id

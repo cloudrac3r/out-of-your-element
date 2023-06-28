@@ -33,7 +33,7 @@ module.exports = {
 			"m.room.join_rules/": {
 				join_rule: "restricted",
 				allow: [{
-					type: "m.room.membership",
+					type: "m.room_membership",
 					room_id: "!jjWAGMeQdNrVZSSfvz:cadence.moe"
 				}]
 			},

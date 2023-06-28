@@ -15,14 +15,14 @@ const createRoom = sync.require("../actions/create-room")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
+ * @param {import("discord-api-types/v10").APIGuild} guild
  */
-async function sendMessage(message) {
-	assert.ok(message.member)
-
+async function sendMessage(message, guild) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 
 	let senderMxid = null
 	if (!message.webhook_id) {
+		assert(message.member)
 		senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
 		await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
 	}

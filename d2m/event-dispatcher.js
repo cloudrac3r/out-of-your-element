@@ -24,7 +24,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
 	 */
 	onReactionAdd(client, data) {
-		if (data.emoji.id !== null) return // TOOD: image emoji reactions
+		if (data.emoji.id !== null) return // TODO: image emoji reactions
 		console.log(data)
 		addReaction.addReaction(data)
 	}
