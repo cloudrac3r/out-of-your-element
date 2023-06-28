@@ -7,6 +7,7 @@
  * @property {import("./d2m/discord-client")} discord
  * @property {import("heatsync")} sync
  * @property {import("better-sqlite3/lib/database")} db
+ * @property {import("matrix-appservice").AppService} as
  */
 /** @type {Passthrough} */
 // @ts-ignore
