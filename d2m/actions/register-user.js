@@ -154,6 +154,7 @@ async function syncAllUsersInRoom(roomID) {
 	}
 }
 
+module.exports._memberToStateContent = memberToStateContent
 module.exports.ensureSim = ensureSim
 module.exports.ensureSimJoined = ensureSimJoined
 module.exports.syncUser = syncUser
