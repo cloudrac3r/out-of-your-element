@@ -9,6 +9,11 @@ export type AppServiceRegistrationConfig = {
 	rate_limited: boolean
 }
 
+export type WebhookCreds = {
+	id: string
+	token: string
+}
+
 namespace Event {
 	export type BaseStateEvent = {
 		type: string
