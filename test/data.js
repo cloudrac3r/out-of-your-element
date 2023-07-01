@@ -140,6 +140,43 @@ module.exports = {
 	},
 	message: {
 		// Display order is text content, attachments, then stickers
+		attachment_no_content: {
+			id: "1124628646670389348",
+			type: 0,
+			content: "",
+			channel_id: "497161332244742154",
+			author: {
+				id: "320067006521147393",
+				username: "papiophidian",
+				global_name: "PapiOphidian",
+				avatar: "fb2b4535f7a108619e3edae12fcb16c5",
+				discriminator: "0",
+				public_flags: 4194880,
+				avatar_decoration: null
+			},
+			attachments: [
+				{
+					id: "1124628646431297546",
+					filename: "image.png",
+					size: 12919,
+					url: "https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png",
+					proxy_url: "https://media.discordapp.net/attachments/497161332244742154/1124628646431297546/image.png",
+					width: 466,
+					height: 85,
+					content_type: "image/png"
+				}
+			],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-07-01T09:12:43.956000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		sticker: {
 			id: "1106366167788044450",
 			type: 0,
@@ -180,6 +217,6 @@ module.exports = {
 				format_type: 1,
 				name: "pomu puff"
 			}]
-		 }
+		}
 	}
 }

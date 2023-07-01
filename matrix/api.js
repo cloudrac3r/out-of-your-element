@@ -60,6 +60,10 @@ async function inviteToRoom(roomID, mxidToInvite, mxid) {
    })
 }
 
+async function leaveRoom(roomID, mxid) {
+   await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/leave`, mxid), {})
+}
+
 /**
  * @param {string} roomID
  * @returns {Promise<import("../types").Event.BaseStateEvent[]>}
@@ -108,6 +112,7 @@ module.exports.register = register
 module.exports.createRoom = createRoom
 module.exports.joinRoom = joinRoom
 module.exports.inviteToRoom = inviteToRoom
+module.exports.leaveRoom = leaveRoom
 module.exports.getAllState = getAllState
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent

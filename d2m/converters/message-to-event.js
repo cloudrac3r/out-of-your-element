@@ -16,48 +16,50 @@ async function messageToEvent(message, guild) {
 	const events = []
 
 	// Text content appears first
-	const body = message.content
-	const html = markdown.toHTML(body, {
-		discordCallback: {
-			user: node => {
-				const mxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(node.id)
-				if (mxid) {
-					return "https://matrix.to/#/" + mxid
-				} else {
-					return "@" + node.id
-				}
-			},
-			channel: node => {
-				const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(node.id)
-				if (roomID) {
-					return "https://matrix.to/#/" + roomID
-				} else {
-					return "#" + node.id
-				}
-			},
-			role: node =>
-				"@&" + node.id,
-			everyone: node =>
-				"@room",
-			here: node =>
-				"@here"
+	if (message.content) {
+		const body = message.content
+		const html = markdown.toHTML(body, {
+			discordCallback: {
+				user: node => {
+					const mxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(node.id)
+					if (mxid) {
+						return "https://matrix.to/#/" + mxid
+					} else {
+						return "@" + node.id
+					}
+				},
+				channel: node => {
+					const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(node.id)
+					if (roomID) {
+						return "https://matrix.to/#/" + roomID
+					} else {
+						return "#" + node.id
+					}
+				},
+				role: node =>
+					"@&" + node.id,
+				everyone: node =>
+					"@room",
+				here: node =>
+					"@here"
+			}
+		}, null, null)
+		const isPlaintext = body === html
+		if (isPlaintext) {
+			events.push({
+				$type: "m.room.message",
+				msgtype: "m.text",
+				body: body
+			})
+		} else {
+			events.push({
+				$type: "m.room.message",
+				msgtype: "m.text",
+				body: body,
+				format: "org.matrix.custom.html",
+				formatted_body: html
+			})
 		}
-	}, null, null)
-	const isPlaintext = body === html
-	if (isPlaintext) {
-		events.push({
-			$type: "m.room.message",
-			msgtype: "m.text",
-			body: body
-		})
-	} else {
-		events.push({
-			$type: "m.room.message",
-			msgtype: "m.text",
-			body: body,
-			format: "org.matrix.custom.html",
-			formatted_body: html
-		})
 	}
 
 	// Then attachments
