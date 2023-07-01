@@ -17,7 +17,7 @@ module.exports = {
 		/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
 		const channel = client.channels.get(message.channel_id)
 		const guild = client.guilds.get(channel.guild_id)
-		if (message.guild_id !== "112760669178241024") return // TODO: activate on other servers (requires the space creation flow to be done first)
+		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
 		sendMessage.sendMessage(message, guild)
 	},
 

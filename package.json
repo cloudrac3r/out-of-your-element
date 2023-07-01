@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^8.3.0",
-    "cloudstorm": "^0.7.0",
+    "cloudstorm": "^0.8.0",
     "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#24508e701e91d5a00fa5e773ced874d9ee8c889b",
     "heatsync": "^2.4.1",
     "js-yaml": "^4.1.0",
@@ -24,7 +24,7 @@
     "matrix-js-sdk": "^24.1.0",
     "mixin-deep": "^2.0.1",
     "node-fetch": "^2.6.7",
-    "snowtransfer": "^0.7.0",
+    "snowtransfer": "^0.8.0",
     "try-to-catch": "^3.0.1"
   },
   "devDependencies": {

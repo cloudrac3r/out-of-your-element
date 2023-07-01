@@ -9,7 +9,7 @@ const api = sync.require("../../matrix/api")
  * @param {import("discord-api-types/v10").RESTGetAPIGuildResult} guild
  */
 async function createSpace(guild) {
-	const roomID = api.createRoom({
+	const roomID = await api.createRoom({
 		name: guild.name,
 		preset: "private_chat",
 		visibility: "private",
