@@ -10,7 +10,7 @@ const registerWebhook = sync.require("./register-webhook")
 
 /**
  * @param {string} channelID
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {name: string, file: Buffer}[]} data
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}[]} data
  */
 // param {DiscordTypes.RESTPostAPIWebhookWithTokenQuery & {wait: true, disableEveryone?: boolean}} options
 async function sendMessage(channelID, data) {

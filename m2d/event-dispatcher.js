@@ -1,3 +1,5 @@
+// @ts-check
+
 const assert = require("assert").strict
 const {sync, as} = require("../passthrough")
 
@@ -5,4 +7,6 @@ const {sync, as} = require("../passthrough")
 
 sync.addTemporaryListener(as, "type:m.room.message", event => {
 	console.log(event)
+	// TODO: filter out events that were bridged discord messages (i.e. sent by OOYE)
+	// TODO: call sendMessage
 })

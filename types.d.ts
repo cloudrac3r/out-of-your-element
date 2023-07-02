@@ -15,6 +15,18 @@ export type WebhookCreds = {
 }
 
 namespace Event {
+	export type Outer<T> = {
+		type: string
+		room_id: string
+		sender: string
+		content: T
+		origin_server_ts: number
+		unsigned: any
+		event_id: string
+		user_id: string
+		age: number
+	}
+
 	export type BaseStateEvent = {
 		type: string
 		room_id: string
