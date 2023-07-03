@@ -1,6 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
+const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
 const {discord, db} = passthrough
 
@@ -46,5 +47,17 @@ async function withWebhook(channelID, callback) {
 	})
 }
 
+/**
+ * @param {string} channelID
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}[]} data
+ */
+async function sendMessageWithWebhook(channelID, data) {
+   const result = await withWebhook(channelID, async webhook => {
+      return discord.snow.webhook.executeWebhook(webhook.id, webhook.token, data, {wait: true, disableEveryone: true})
+   })
+   return result
+}
+
 module.exports.ensureWebhook = ensureWebhook
 module.exports.withWebhook = withWebhook
+module.exports.sendMessageWithWebhook = sendMessageWithWebhook

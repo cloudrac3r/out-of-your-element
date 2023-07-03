@@ -5,6 +5,16 @@ export type AppServiceRegistrationConfig = {
 	url: string
 	sender_localpart: string
 	namespace_prefix: string
+	namespaces: {
+		users: {
+			exclusive: boolean
+			regex: string
+		}[]
+		aliases: {
+			exclusive: boolean
+			regex: string
+		}[]
+	}
 	protocols: [string]
 	rate_limited: boolean
 }
@@ -23,8 +33,6 @@ namespace Event {
 		origin_server_ts: number
 		unsigned: any
 		event_id: string
-		user_id: string
-		age: number
 	}
 
 	export type BaseStateEvent = {
