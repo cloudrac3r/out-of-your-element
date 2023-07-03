@@ -1,5 +1,4 @@
 const {test} = require("supertape")
-const assert = require("assert")
 const {messageToEvent} = require("./message-to-event")
 const data = require("../../test/data")
 

@@ -17,7 +17,6 @@ const createRoom = sync.require("../actions/create-room")
 async function addReaction(data) {
    const user = data.member?.user
    assert.ok(user && user.username)
-   // TODO: should add my own sent messages to event_message so they can be reacted to?
    const parentID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
    if (!parentID) return // TODO: how to handle reactions for unbridged messages? is there anything I can do?
    assert.equal(typeof parentID, "string")

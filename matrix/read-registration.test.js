@@ -1,5 +1,4 @@
 const {test} = require("supertape")
-const assert = require("assert")
 const reg = require("./read-registration")
 
 test("reg: has necessary parameters", t => {

@@ -12,28 +12,22 @@ const eventToMessage = sync.require("../converters/event-to-message")
 
 /** @param {import("../../types").Event.Outer<any>} event */
 async function sendEvent(event) {
-   // TODO: matrix equivalents...
-	const roomID = await createRoom.ensureRoom(message.channel_id)
-   // TODO: no need to sync the member to the other side... right?
-	let senderMxid = null
-	if (!message.webhook_id) {
-		assert(message.member)
-		senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
-		await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
-	}
+   // TODO: we just assume the bridge has already been created
+	const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(event.room_id)
+
+   // no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
 	const messages = eventToMessage.eventToMessage(event)
-   assert(Array.isArray(messages))
+   assert(Array.isArray(messages)) // sanity
 
    /** @type {DiscordTypes.APIMessage[]} */
 	const messageResponses = []
 	let eventPart = 0 // 0 is primary, 1 is supporting
 	for (const message of messages) {
       const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message)
-      // TODO: are you sure about that? many to many? and we don't need to store which side it originated from?
-		db.prepare("INSERT INTO event_message (event_id, message_id, part) VALUES (?, ?, ?)").run(event.event_id, messageResponse.id, eventPart)
+		db.prepare("INSERT INTO event_message (event_id, message_id, part, source) VALUES (?, ?, ?, 0)").run(event.event_id, messageResponse.id, eventPart) // source 0 = matrix
 
-		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
+		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting?
 		messageResponses.push(messageResponse)
 	}
 

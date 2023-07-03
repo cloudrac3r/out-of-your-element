@@ -11,7 +11,7 @@ const createRoom = sync.require("./d2m/actions/create-room")
 const registerUser = sync.require("./d2m/actions/register-user")
 const mreq = sync.require("./matrix/mreq")
 const api = sync.require("./matrix/api")
-const sendMessage = sync.require("./m2d/actions/send-message")
+const sendEvent = sync.require("./m2d/actions/send-event")
 const guildID = "112760669178241024"
 
 const extraContext = {}

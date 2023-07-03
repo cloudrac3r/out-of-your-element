@@ -49,7 +49,7 @@ async function withWebhook(channelID, callback) {
 
 /**
  * @param {string} channelID
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}[]} data
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}} data
  */
 async function sendMessageWithWebhook(channelID, data) {
    const result = await withWebhook(channelID, async webhook => {

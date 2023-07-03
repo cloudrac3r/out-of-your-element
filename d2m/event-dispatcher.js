@@ -1,5 +1,5 @@
 const assert = require("assert").strict
-const {sync} = require("../passthrough")
+const {sync, db} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
 const sendMessage = sync.require("./actions/send-message")
@@ -18,6 +18,13 @@ module.exports = {
 		const channel = client.channels.get(message.channel_id)
 		const guild = client.guilds.get(channel.guild_id)
 		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
+		if (message.webhook_id) {
+			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(message.webhook_id)
+			if (row) {
+				// The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
+				return
+			}
+		}
 		sendMessage.sendMessage(message, guild)
 	},
 

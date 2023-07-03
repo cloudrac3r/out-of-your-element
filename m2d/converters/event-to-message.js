@@ -1,6 +1,5 @@
 // @ts-check
 
-const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 const markdown = require("discord-markdown")
 

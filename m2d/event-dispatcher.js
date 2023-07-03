@@ -4,34 +4,19 @@
  * Grab Matrix events we care about, check them, and bridge them.
  */
 
-const assert = require("assert").strict
 const {sync, as} = require("../passthrough")
-const reg = require("../matrix/read-registration")
+
 /** @type {import("./actions/send-event")} */
 const sendEvent = sync.require("./actions/send-event")
+/** @type {import("./converters/utils")} */
+const utils = sync.require("./converters/utils")
 
-const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
+
+sync.addTemporaryListener(as, "type:m.room.message",
 /**
- * Determine whether an event is the bridged representation of a discord message.
- * Such messages shouldn't be bridged again.
- * @param {import("../types").Event.Outer<any>} event
+ * @param {import("../types").Event.Outer<import("../types").Event.M_Room_Message>} event it is a m.room.message because that's what this listener is filtering for
  */
-function eventOriginatedFromDiscord(event) {
-	if (
-		// If it's from a user in the bridge's namespace...
-		userRegex.some(x => event.sender.match(x))
-		// ...not counting the appservice's own user...
-		&& !event.sender.startsWith(`@${reg.sender_localpart}:`)
-	) {
-		// ...then it originated from discord
-		return true
-	}
-
-	return false
-}
-
-sync.addTemporaryListener(as, "type:m.room.message", event => {
-	console.log(event)
-	if (eventOriginatedFromDiscord(event)) return
-	const messageResponses = sendEvent.sendEvent(event)
+async event => {
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const messageResponses = await sendEvent.sendEvent(event)
 })

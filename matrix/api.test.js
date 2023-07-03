@@ -1,5 +1,4 @@
 const {test} = require("supertape")
-const assert = require("assert")
 const {path} = require("./api")
 
 test("api path: no change for plain path", t => {

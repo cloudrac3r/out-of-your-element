@@ -1,14 +1,12 @@
 // @ts-check
 
 const {test} = require("supertape")
-const assert = require("assert")
 const {eventToMessage} = require("./event-to-message")
 const data = require("../../test/data")
 
 test("event2message: janky test", t => {
 	t.deepEqual(
 		eventToMessage({
-			age: 405299,
 			content: {
 				body: "test",
 				msgtype: "m.text"
@@ -20,8 +18,7 @@ test("event2message: janky test", t => {
 			type: "m.room.message",
 			unsigned: {
 				age: 405299
-			},
-			user_id: "@cadence:cadence.moe"
+			}
 		}),
 		[{
 			username: "cadence:cadence.moe",
