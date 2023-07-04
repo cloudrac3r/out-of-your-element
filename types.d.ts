@@ -62,6 +62,14 @@ namespace Event {
 		display_name?: string
 		avatar_url?: string
 	}
+
+	export type M_Reaction = {
+		"m.relates_to": {
+			rel_type: "m.annotation"
+			event_id: string // the event that was reacted to
+			key: string // the unicode emoji, mxc uri, or reaction text
+		}
+	}
 }
 
 namespace R {

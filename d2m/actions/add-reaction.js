@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
@@ -18,7 +18,7 @@ async function addReaction(data) {
    const user = data.member?.user
    assert.ok(user && user.username)
    const parentID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
-   if (!parentID) return // TODO: how to handle reactions for unbridged messages? is there anything I can do?
+   if (!parentID) return // Nothing can be done if the parent message was never bridged.
    assert.equal(typeof parentID, "string")
 	const roomID = await createRoom.ensureRoom(data.channel_id)
 	const senderMxid = await registerUser.ensureSimJoined(user, roomID)

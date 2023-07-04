@@ -1,5 +1,6 @@
 // @ts-check
 
+const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 const markdown = require("discord-markdown")
 
@@ -9,7 +10,7 @@ const { sync, db, discord } = passthrough
 const file = sync.require("../../matrix/file")
 
 /**
- * @param {import("../../types").Event.Outer<import("../../types").Event.M_Room_Message>} event
+ * @param {Ty.Event.Outer<Ty.Event.M_Room_Message>} event
  */
 function eventToMessage(event) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]})[]} */

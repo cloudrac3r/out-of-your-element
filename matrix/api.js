@@ -1,5 +1,6 @@
 // @ts-check
 
+const Ty = require("../types")
 const assert = require("assert")
 
 const passthrough = require("../passthrough")
@@ -25,7 +26,7 @@ function path(p, mxid) {
 
 /**
  * @param {string} username
- * @returns {Promise<import("../types").R.Registered>}
+ * @returns {Promise<Ty.R.Registered>}
  */
 function register(username) {
    console.log(`[api] register: ${username}`)
@@ -40,7 +41,7 @@ function register(username) {
  */
 async function createRoom(content) {
    console.log(`[api] create room:`, content)
-   /** @type {import("../types").R.RoomCreated} */
+   /** @type {Ty.R.RoomCreated} */
    const root = await mreq.mreq("POST", "/client/v3/createRoom", content)
    return root.room_id
 }
@@ -49,7 +50,7 @@ async function createRoom(content) {
  * @returns {Promise<string>} room ID
  */
 async function joinRoom(roomIDOrAlias, mxid) {
-   /** @type {import("../types").R.RoomJoined} */
+   /** @type {Ty.R.RoomJoined} */
    const root = await mreq.mreq("POST", path(`/client/v3/join/${roomIDOrAlias}`, mxid))
    return root.room_id
 }
@@ -66,7 +67,7 @@ async function leaveRoom(roomID, mxid) {
 
 /**
  * @param {string} roomID
- * @returns {Promise<import("../types").Event.BaseStateEvent[]>}
+ * @returns {Promise<Ty.Event.BaseStateEvent[]>}
  */
 function getAllState(roomID) {
    return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state`)
@@ -83,14 +84,14 @@ async function sendState(roomID, type, stateKey, content, mxid) {
    console.log(`[api] state: ${roomID}: ${type}/${stateKey}`)
    assert.ok(type)
    assert.ok(typeof stateKey === "string")
-   /** @type {import("../types").R.EventSent} */
+   /** @type {Ty.R.EventSent} */
    const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, mxid), content)
    return root.event_id
 }
 
 async function sendEvent(roomID, type, content, mxid) {
    console.log(`[api] event to ${roomID} as ${mxid || "default sim"}`)
-   /** @type {import("../types").R.EventSent} */
+   /** @type {Ty.R.EventSent} */
    const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid), content)
    return root.event_id
 }
