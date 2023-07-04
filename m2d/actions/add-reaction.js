@@ -17,7 +17,9 @@ async function addReaction(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	const emoji = event.content["m.relates_to"].key // TODO: handle custom text or emoji reactions
+	let emoji = event.content["m.relates_to"].key // TODO: handle custom text or emoji reactions
+	emoji = encodeURIComponent(emoji)
+	emoji = emoji.replace(/%EF%B8%8F/g, "")
 
 	return discord.snow.channel.createReaction(channelID, messageID, emoji)
 }

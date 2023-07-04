@@ -104,7 +104,7 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 
 ## Reaction removed
 
-1. Remove reaction on matrix.
+1. Remove reaction on matrix. Just redact the event.
 
 ## Member data changed
 

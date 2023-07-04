@@ -14,10 +14,6 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
 	onMessageCreate(client, message) {
-		/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
-		const channel = client.channels.get(message.channel_id)
-		const guild = client.guilds.get(channel.guild_id)
-		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
 		if (message.webhook_id) {
 			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(message.webhook_id)
 			if (row) {
@@ -25,6 +21,11 @@ module.exports = {
 				return
 			}
 		}
+		/** @type {import("discord-api-types/v10").APIGuildChannel} */
+		const channel = client.channels.get(message.channel_id)
+		if (!channel.guild_id) return // Nothing we can do in direct messages.
+		const guild = client.guilds.get(channel.guild_id)
+		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
 		sendMessage.sendMessage(message, guild)
 	},
 
@@ -33,6 +34,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
 	 */
 	onReactionAdd(client, data) {
+		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		if (data.emoji.id !== null) return // TODO: image emoji reactions
 		console.log(data)
 		addReaction.addReaction(data)

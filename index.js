@@ -21,6 +21,10 @@ passthrough.as = as
 
 sync.require("./m2d/event-dispatcher")
 
+discord.snow.requestHandler.on("requestError", data => {
+	console.error("request error", data)
+})
+
 ;(async () => {
 	await discord.cloud.connect()
 	console.log("Discord gateway started")
