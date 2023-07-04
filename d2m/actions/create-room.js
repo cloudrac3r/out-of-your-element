@@ -32,28 +32,19 @@ function applyKStateDiffToRoom(roomID, kstate) {
 }
 
 /**
- * @param {DiscordTypes.APIGuildTextChannel} channel
- * @param {DiscordTypes.APIGuild} guild
+ * @param {{id: string, name: string, topic?: string?}} channel
+ * @param {{id: string}} guild
+ * @param {string?} customName
  */
-async function channelToKState(channel, guild) {
-	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
-	assert.ok(typeof spaceID === "string")
-	const customName = db.prepare("SELECT nick FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
-
-	const avatarEventContent = {}
-	if (guild.icon) {
-		avatarEventContent.discord_path = file.guildIcon(guild)
-		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
-	}
-
+function convertNameAndTopic(channel, guild, customName) {
 	// TODO: Improve nasty nested ifs
 	let convertedName, convertedTopic
 	if (customName) {
 		convertedName = customName
 		if (channel.topic) {
-			convertedTopic = `${channel.name} | ${channel.topic}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
+			convertedTopic = `#${channel.name} | ${channel.topic}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
 		} else {
-			convertedTopic = `${channel.name}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
+			convertedTopic = `#${channel.name}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
 		}
 	} else {
 		convertedName = channel.name
@@ -62,6 +53,26 @@ async function channelToKState(channel, guild) {
 		} else {
 			convertedTopic = `Channel ID: ${channel.id}\nGuild ID: ${guild.id}`
 		}
+	}
+
+	return [convertedName, convertedTopic]
+}
+
+/**
+ * @param {DiscordTypes.APIGuildTextChannel} channel
+ * @param {DiscordTypes.APIGuild} guild
+ */
+async function channelToKState(channel, guild) {
+	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
+	assert.ok(typeof spaceID === "string")
+
+	const customName = db.prepare("SELECT nick FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
+	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
+
+	const avatarEventContent = {}
+	if (guild.icon) {
+		avatarEventContent.discord_path = file.guildIcon(guild)
+		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
 	const channelKState = {
@@ -209,3 +220,4 @@ module.exports.ensureRoom = ensureRoom
 module.exports.syncRoom = syncRoom
 module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
+module.exports._convertNameAndTopic = convertNameAndTopic

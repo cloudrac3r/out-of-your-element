@@ -23,7 +23,7 @@ module.exports = {
 	room: {
 		general: {
 			"m.room.name/": {name: "main"},
-			"m.room.topic/": {topic: "collective-unconscious | https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:\n\nChannel ID: 112760669178241024\nGuild ID: 112760669178241024"},
+			"m.room.topic/": {topic: "#collective-unconscious | https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:\n\nChannel ID: 112760669178241024\nGuild ID: 112760669178241024"},
 			"m.room.guest_access/": {guest_access: "can_join"},
 			"m.room.history_visibility/": {history_visibility: "invited"},
 			"m.space.parent/!jjWAGMeQdNrVZSSfvz:cadence.moe": {
@@ -48,7 +48,6 @@ module.exports = {
 			owner_id: "112760500130975744",
 			premium_tier: 3,
 			stickers: [{
-				version: 1683838696974,
 				type: 2,
 				tags: "sunglasses",
 				name: "pomu puff",
@@ -56,8 +55,7 @@ module.exports = {
 				guild_id: "112760669178241024",
 				format_type: 1,
 				description: "damn that tiny lil bitch really chuffing. puffing that fat ass dart",
-				available: true,
-				asset: ""
+				available: true
 			}],
 			max_members: 500000,
 			splash: "86a34ed02524b972918bef810087f8e7",
