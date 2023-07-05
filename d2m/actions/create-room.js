@@ -37,25 +37,17 @@ function applyKStateDiffToRoom(roomID, kstate) {
  * @param {string?} customName
  */
 function convertNameAndTopic(channel, guild, customName) {
-	// TODO: Improve nasty nested ifs
-	let convertedName, convertedTopic
-	if (customName) {
-		convertedName = customName
-		if (channel.topic) {
-			convertedTopic = `#${channel.name} | ${channel.topic}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
-		} else {
-			convertedTopic = `#${channel.name}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
-		}
-	} else {
-		convertedName = channel.name
-		if (channel.topic) {
-			convertedTopic = `${channel.topic}\n\nChannel ID: ${channel.id}\nGuild ID: ${guild.id}`
-		} else {
-			convertedTopic = `Channel ID: ${channel.id}\nGuild ID: ${guild.id}`
-		}
-	}
+	const convertedName = customName || channel.name;
+	const maybeTopicWithPipe = channel.topic ? ` | ${channel.topic}` : '';
+	const maybeTopicWithNewlines = channel.topic ? `${channel.topic}\n\n` : '';
+	const channelIDPart = `Channel ID: ${channel.id}`;
+	const guildIDPart = `Guild ID: ${guild.id}`;
 
-	return [convertedName, convertedTopic]
+	const convertedTopic = customName
+		 ? `#${channel.name}${maybeTopicWithPipe}\n\n${channelIDPart}\n${guildIDPart}`
+		 : `${maybeTopicWithNewlines}${channelIDPart}\n${guildIDPart}`;
+
+	return [convertedName, convertedTopic];
 }
 
 /**
