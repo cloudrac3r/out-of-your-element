@@ -8,6 +8,34 @@ const { sync, db, discord } = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 
+function getDiscordParseCallbacks(message, useHTML) {
+	return {
+		user: node => {
+			const mxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(node.id)
+			const username = message.mentions.find(ment => ment.id === node.id)?.username || node.id
+			if (mxid && useHTML) {
+				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
+			} else {
+				return `@${username}:`
+			}
+		},
+		channel: node => {
+			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(node.id)
+			if (roomID && useHTML) {
+				return "https://matrix.to/#/" + roomID
+			} else {
+				return "#" + node.id
+			}
+		},
+		role: node =>
+			"@&" + node.id,
+		everyone: node =>
+			"@room",
+		here: node =>
+			"@here"
+	}
+}
+
 /**
  * @param {import("discord-api-types/v10").APIMessage} message
  * @param {import("discord-api-types/v10").APIGuild} guild
@@ -17,34 +45,18 @@ async function messageToEvent(message, guild) {
 
 	// Text content appears first
 	if (message.content) {
-		const body = message.content
-		const html = markdown.toHTML(body, {
-			discordCallback: {
-				user: node => {
-					const mxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(node.id)
-					if (mxid) {
-						return "https://matrix.to/#/" + mxid
-					} else {
-						return "@" + node.id
-					}
-				},
-				channel: node => {
-					const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(node.id)
-					if (roomID) {
-						return "https://matrix.to/#/" + roomID
-					} else {
-						return "#" + node.id
-					}
-				},
-				role: node =>
-					"@&" + node.id,
-				everyone: node =>
-					"@room",
-				here: node =>
-					"@here"
-			}
+		const html = markdown.toHTML(message.content, {
+			discordCallback: getDiscordParseCallbacks(message, true)
 		}, null, null)
+
+		const body = markdown.toHTML(message.content, {
+			discordCallback: getDiscordParseCallbacks(message, false), //TODO: library bug!!
+			discordOnly: true,
+			escapeHTML: false,
+		}, null, null)
+
 		const isPlaintext = body === html
+
 		if (isPlaintext) {
 			events.push({
 				$type: "m.room.message",

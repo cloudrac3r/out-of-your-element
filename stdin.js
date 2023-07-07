@@ -6,6 +6,7 @@ const util = require("util")
 const passthrough = require("./passthrough")
 const { discord, config, sync, db } = passthrough
 
+const data = sync.require("./test/data")
 const createSpace = sync.require("./d2m/actions/create-space")
 const createRoom = sync.require("./d2m/actions/create-room")
 const registerUser = sync.require("./d2m/actions/register-user")
