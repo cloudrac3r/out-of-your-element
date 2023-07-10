@@ -12,8 +12,9 @@ const discordPackets = sync.require("./discord-packets")
 class DiscordClient {
 	/**
 	 * @param {string} discordToken
+	 * @param {boolean} listen whether to set up the event listeners for OOYE to operate
 	 */
-	constructor(discordToken) {
+	constructor(discordToken, listen) {
 		this.discordToken = discordToken
 		this.snow = new SnowTransfer(discordToken)
 		this.cloud = new CloudStorm(discordToken, {

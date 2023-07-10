@@ -27,9 +27,9 @@ test("message2event: simple room mention", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.text",
-		body: "@crunch god: Tell me about Phil, renowned martial arts master and creator of the Chin Trick",
+		body: "#main",
 		format: "org.matrix.custom.html",
-		formatted_body: '<a href="https://matrix.to/#/@_ooye_crunch_god:cadence.moe">@crunch god</a> Tell me about Phil, renowned martial arts master and creator of the Chin Trick'
+		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe">#main</a>'
 	}])
 })
 

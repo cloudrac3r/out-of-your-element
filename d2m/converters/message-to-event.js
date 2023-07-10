@@ -20,11 +20,11 @@ function getDiscordParseCallbacks(message, useHTML) {
 			}
 		},
 		channel: node => {
-			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(node.id)
-			if (roomID && useHTML) {
-				return "https://matrix.to/#/" + roomID
+			const {room_id, name, nick} = db.prepare("SELECT room_id, name, nick FROM channel_room WHERE channel_id = ?").get(node.id)
+			if (room_id && useHTML) {
+				return `<a href="https://matrix.to/#/${room_id}">#${nick || name}</a>`
 			} else {
-				return "#" + node.id
+				return `#${nick || name}`
 			}
 		},
 		role: node =>

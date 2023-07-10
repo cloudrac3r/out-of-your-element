@@ -13,7 +13,7 @@ Object.assign(passthrough, {config, sync, db})
 
 const DiscordClient = require("./d2m/discord-client")
 
-const discord = new DiscordClient(config.discordToken)
+const discord = new DiscordClient(config.discordToken, true)
 passthrough.discord = discord
 
 const as = require("./m2d/appservice")
