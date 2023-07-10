@@ -22,6 +22,28 @@ test("message2event: simple user mention", async t => {
 	}])
 })
 
+test("message2event: simple room mention", async t => {
+	const events = await messageToEvent(data.message.simple_room_mention, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "@crunch god: Tell me about Phil, renowned martial arts master and creator of the Chin Trick",
+		format: "org.matrix.custom.html",
+		formatted_body: '<a href="https://matrix.to/#/@_ooye_crunch_god:cadence.moe">@crunch god</a> Tell me about Phil, renowned martial arts master and creator of the Chin Trick'
+	}])
+})
+
+test("message2event: simple message link", async t => {
+	const events = await messageToEvent(data.message.simple_message_link, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg",
+		format: "org.matrix.custom.html",
+		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg</a>'
+	}])
+})
+
 test("message2event: attachment with no content", async t => {
 	const events = await messageToEvent(data.message.attachment_no_content, data.guild.general)
 	t.deepEqual(events, [{

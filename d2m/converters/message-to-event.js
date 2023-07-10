@@ -45,12 +45,22 @@ async function messageToEvent(message, guild) {
 
 	// Text content appears first
 	if (message.content) {
-		const html = markdown.toHTML(message.content, {
+		let content = message.content
+		content = content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
+			const row = db.prepare("SELECT room_id, event_id FROM event_message INNER JOIN channel_room USING (channel_id) WHERE channel_id = ? AND message_id = ? AND part = 0").get(channelID, messageID)
+			if (row) {
+				return `https://matrix.to/#/${row.room_id}/${row.event_id}`
+			} else {
+				return `${whole} [event not found]`
+			}
+		})
+
+		const html = markdown.toHTML(content, {
 			discordCallback: getDiscordParseCallbacks(message, true)
 		}, null, null)
 
-		const body = markdown.toHTML(message.content, {
-			discordCallback: getDiscordParseCallbacks(message, false), //TODO: library bug!!
+		const body = markdown.toHTML(content, {
+			discordCallback: getDiscordParseCallbacks(message, false),
 			discordOnly: true,
 			escapeHTML: false,
 		}, null, null)

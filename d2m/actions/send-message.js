@@ -37,7 +37,7 @@ async function sendMessage(message, guild) {
 		delete eventWithoutType.$type
 
 		const eventID = await api.sendEvent(roomID, eventType, event, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, message_id, part, source) VALUES (?, ?, ?, 1)").run(eventID, message.id, eventPart) // source 1 = discord
+		db.prepare("INSERT INTO event_message (event_id, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, 1)").run(eventID, message.id, message.channel_id, eventPart) // source 1 = discord
 
 		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
 		eventIDs.push(eventID)
