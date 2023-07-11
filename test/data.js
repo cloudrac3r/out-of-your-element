@@ -423,6 +423,434 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		skull_webp_attachment_with_content: {
+			type: 0,
+			tts: false,
+			timestamp: "2023-07-10T22:06:02.805000+00:00",
+			referenced_message: null,
+			pinned: false,
+			nonce: "1128084721398448128",
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [
+					"112767366235959296",
+					"118924814567211009",
+					"199995902742626304",
+					"204427286542417920",
+					"222168467627835392",
+					"271173313575780353",
+					"392141548932038658",
+					"1040735082610167858",
+					"372954403902193689",
+					"1124134606514442300",
+					"585531096071012409"
+				],
+				premium_since: "2022-04-20T21:11:14.016000+00:00",
+				pending: false,
+				nick: "Tap to add a nickname",
+				mute: false,
+				joined_at: "2022-04-20T20:16:02.828000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: "a_4ea72c7b058ad848c9d9d35479fac26e"
+			},
+			id: "1128084748338741392",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "Image",
+			components: [],
+			channel_id: "112760669178241024",
+			author: {
+				username: "extremity",
+				public_flags: 768,
+				id: "114147806469554185",
+				global_name: "Extremity",
+				discriminator: "0",
+				avatar_decoration: null,
+				avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+			},
+			attachments: [
+				{
+					width: 1200,
+					url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084747910918195/skull.webp",
+					size: 74290,
+					proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1128084747910918195/skull.webp",
+					id: "1128084747910918195",
+					height: 628,
+					filename: "skull.webp",
+					content_type: "image/webp"
+				}
+			],
+			guild_id: "112760669178241024"
+		},
+		reply_to_skull_webp_attachment_with_content: {
+			type: 19,
+			tts: false,
+			timestamp: "2023-07-10T22:06:27.348000+00:00",
+			referenced_message: {
+				type: 0,
+				tts: false,
+				timestamp: "2023-07-10T22:06:02.805000+00:00",
+				pinned: false,
+				mentions: [],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1128084748338741392",
+				flags: 0,
+				embeds: [],
+				edited_timestamp: null,
+				content: "Image",
+				components: [],
+				channel_id: "112760669178241024",
+				author: {
+					username: "extremity",
+					public_flags: 768,
+					id: "114147806469554185",
+					global_name: "Extremity",
+					discriminator: "0",
+					avatar_decoration: null,
+					avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+				},
+				attachments: [
+					{
+						width: 1200,
+						url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084747910918195/skull.webp",
+						size: 74290,
+						proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1128084747910918195/skull.webp",
+						id: "1128084747910918195",
+						height: 628,
+						filename: "skull.webp",
+						content_type: "image/webp"
+					}
+				]
+			},
+			pinned: false,
+			nonce: "1128084845403045888",
+			message_reference: {
+				message_id: "1128084748338741392",
+				guild_id: "112760669178241024",
+				channel_id: "112760669178241024"
+			},
+			mentions: [
+				{
+					username: "extremity",
+					public_flags: 768,
+					member: {
+						roles: [
+							"112767366235959296",
+							"118924814567211009",
+							"199995902742626304",
+							"204427286542417920",
+							"222168467627835392",
+							"271173313575780353",
+							"392141548932038658",
+							"1040735082610167858",
+							"372954403902193689",
+							"1124134606514442300",
+							"585531096071012409"
+						],
+						premium_since: "2022-04-20T21:11:14.016000+00:00",
+						pending: false,
+						nick: "Tap to add a nickname",
+						mute: false,
+						joined_at: "2022-04-20T20:16:02.828000+00:00",
+						flags: 0,
+						deaf: false,
+						communication_disabled_until: null,
+						avatar: "a_4ea72c7b058ad848c9d9d35479fac26e"
+					},
+					id: "114147806469554185",
+					global_name: "Extremity",
+					discriminator: "0",
+					avatar_decoration: null,
+					avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+				}
+			],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [
+					"112767366235959296",
+					"118924814567211009",
+					"199995902742626304",
+					"204427286542417920",
+					"222168467627835392",
+					"271173313575780353",
+					"392141548932038658",
+					"1040735082610167858",
+					"372954403902193689",
+					"1124134606514442300",
+					"585531096071012409"
+				],
+				premium_since: "2022-04-20T21:11:14.016000+00:00",
+				pending: false,
+				nick: "Tap to add a nickname",
+				mute: false,
+				joined_at: "2022-04-20T20:16:02.828000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: "a_4ea72c7b058ad848c9d9d35479fac26e"
+			},
+			id: "1128084851279536279",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "Reply",
+			components: [],
+			channel_id: "112760669178241024",
+			author: {
+				username: "extremity",
+				public_flags: 768,
+				id: "114147806469554185",
+				global_name: "Extremity",
+				discriminator: "0",
+				avatar_decoration: null,
+				avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+			},
+			attachments: [
+				{
+					width: 2048,
+					url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
+					size: 85906,
+					proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
+					id: "1128084851023675515",
+					height: 1536,
+					filename: "RDT_20230704_0936184915846675925224905.jpg",
+					content_type: "image/jpeg"
+				}
+			],
+			guild_id: "112760669178241024"
+		},
+		simple_reply_to_matrix_user: {
+			type: 19,
+			tts: false,
+			timestamp: "2023-07-11T00:19:04.358000+00:00",
+			referenced_message: {
+				webhook_id: "703458020193206272",
+				type: 0,
+				tts: false,
+				timestamp: "2023-07-11T00:18:52.856000+00:00",
+				pinned: false,
+				mentions: [],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1128118177155526666",
+				flags: 0,
+				embeds: [],
+				edited_timestamp: null,
+				content: "so can you reply to my webhook uwu",
+				components: [],
+				channel_id: "112760669178241024",
+				author: {
+					username: "cadence",
+					id: "703458020193206272",
+					discriminator: "0000",
+					bot: true,
+					avatar: "ea5413d310c85eb9edaa9db865e80155"
+				},
+				attachments: [],
+				application_id: "684280192553844747"
+			},
+			pinned: false,
+			nonce: "1128118222315323392",
+			message_reference: {
+				message_id: "1128118177155526666",
+				guild_id: "112760669178241024",
+				channel_id: "112760669178241024"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [
+					"112767366235959296",  "118924814567211009",
+					"204427286542417920",  "199995902742626304",
+					"222168467627835392",  "238028326281805825",
+					"259806643414499328",  "265239342648131584",
+					"271173313575780353",  "287733611912757249",
+					"225744901915148298",  "305775031223320577",
+					"318243902521868288",  "348651574924541953",
+					"349185088157777920",  "378402925128712193",
+					"392141548932038658",  "393912152173576203",
+					"482860581670486028",  "495384759074160642",
+					"638988388740890635",  "373336013109461013",
+					"530220455085473813",  "454567553738473472",
+					"790724320824655873",  "1123518980456452097",
+					"1040735082610167858", "695946570482450442",
+					"1123460940935991296", "849737964090556488"
+				],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2015-11-11T09:55:40.321000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: null
+			},
+			id: "1128118225398407228",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "Reply",
+			components: [],
+			channel_id: "112760669178241024",
+			author: {
+				username: "kumaccino",
+				public_flags: 128,
+				id: "113340068197859328",
+				global_name: "kumaccino",
+				discriminator: "0",
+				avatar_decoration: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39"
+			},
+			attachments: [],
+			guild_id: "112760669178241024"
+		},
+		edit_of_reply_to_skull_webp_attachment_with_content: {
+			type: 19,
+			tts: false,
+			timestamp: "2023-07-10T22:06:27.348000+00:00",
+			referenced_message: {
+				type: 0,
+				tts: false,
+				timestamp: "2023-07-10T22:06:02.805000+00:00",
+				pinned: false,
+				mentions: [],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1128084748338741392",
+				flags: 0,
+				embeds: [],
+				edited_timestamp: null,
+				content: "Image",
+				components: [],
+				channel_id: "112760669178241024",
+				author: {
+					username: "extremity",
+					public_flags: 768,
+					id: "114147806469554185",
+					global_name: "Extremity",
+					discriminator: "0",
+					avatar_decoration: null,
+					avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+				},
+				attachments: [
+					{
+						width: 1200,
+						url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084747910918195/skull.webp",
+						size: 74290,
+						proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1128084747910918195/skull.webp",
+						id: "1128084747910918195",
+						height: 628,
+						filename: "skull.webp",
+						content_type: "image/webp"
+					}
+				]
+			},
+			pinned: false,
+			message_reference: {
+				message_id: "1128084748338741392",
+				guild_id: "112760669178241024",
+				channel_id: "112760669178241024"
+			},
+			mentions: [
+				{
+					username: "extremity",
+					public_flags: 768,
+					member: {
+						roles: [
+							"112767366235959296",
+							"118924814567211009",
+							"199995902742626304",
+							"204427286542417920",
+							"222168467627835392",
+							"271173313575780353",
+							"392141548932038658",
+							"1040735082610167858",
+							"372954403902193689",
+							"1124134606514442300",
+							"585531096071012409"
+						],
+						premium_since: "2022-04-20T21:11:14.016000+00:00",
+						pending: false,
+						nick: "Tap to add a nickname",
+						mute: false,
+						joined_at: "2022-04-20T20:16:02.828000+00:00",
+						flags: 0,
+						deaf: false,
+						communication_disabled_until: null,
+						avatar: "a_4ea72c7b058ad848c9d9d35479fac26e"
+					},
+					id: "114147806469554185",
+					global_name: "Extremity",
+					discriminator: "0",
+					avatar_decoration: null,
+					avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+				}
+			],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [
+					"112767366235959296",
+					"118924814567211009",
+					"199995902742626304",
+					"204427286542417920",
+					"222168467627835392",
+					"271173313575780353",
+					"392141548932038658",
+					"1040735082610167858",
+					"372954403902193689",
+					"1124134606514442300",
+					"585531096071012409"
+				],
+				premium_since: "2022-04-20T21:11:14.016000+00:00",
+				pending: false,
+				nick: "Tap to add a nickname",
+				mute: false,
+				joined_at: "2022-04-20T20:16:02.828000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: "a_4ea72c7b058ad848c9d9d35479fac26e"
+			},
+			id: "1128084851279536279",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: "2023-07-10T22:08:57.442417+00:00",
+			content: "Edit",
+			components: [],
+			channel_id: "112760669178241024",
+			author: {
+				username: "extremity",
+				public_flags: 768,
+				id: "114147806469554185",
+				global_name: "Extremity",
+				discriminator: "0",
+				avatar_decoration: null,
+				avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6"
+			},
+			attachments: [
+				{
+					width: 2048,
+					url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
+					size: 85906,
+					proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
+					id: "1128084851023675515",
+					height: 1536,
+					filename: "RDT_20230704_0936184915846675925224905.jpg",
+					content_type: "image/jpeg"
+				}
+			],
+			guild_id: "112760669178241024"
+		},
 		sticker: {
 			id: "1106366167788044450",
 			type: 0,

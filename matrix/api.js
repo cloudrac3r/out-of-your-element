@@ -67,10 +67,30 @@ async function leaveRoom(roomID, mxid) {
 
 /**
  * @param {string} roomID
+ * @param {string} eventID
+ * @template T
+ */
+async function getEvent(roomID, eventID) {
+   /** @type {Ty.Event.Outer<T>} */
+   const root = await mreq.mreq("GET", `/client/v3/rooms/${roomID}/event/${eventID}`)
+   return root
+}
+
+/**
+ * @param {string} roomID
  * @returns {Promise<Ty.Event.BaseStateEvent[]>}
  */
 function getAllState(roomID) {
    return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state`)
+}
+
+/**
+ * "Any of the AS's users must be in the room. This API is primarily for Application Services and should be faster to respond than /members as it can be implemented more efficiently on the server."
+ * @param {string} roomID
+ * @returns {Promise<{joined: {[mxid: string]: Ty.R.RoomMember}}>}
+ */
+function getJoinedMembers(roomID) {
+   return mreq.mreq("GET", `/client/v3/rooms/${roomID}/joined_members`)
 }
 
 /**
@@ -114,7 +134,9 @@ module.exports.createRoom = createRoom
 module.exports.joinRoom = joinRoom
 module.exports.inviteToRoom = inviteToRoom
 module.exports.leaveRoom = leaveRoom
+module.exports.getEvent = getEvent
 module.exports.getAllState = getAllState
+module.exports.getJoinedMembers = getJoinedMembers
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
 module.exports.profileSetDisplayname = profileSetDisplayname

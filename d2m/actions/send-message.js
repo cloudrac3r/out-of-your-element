@@ -27,7 +27,7 @@ async function sendMessage(message, guild) {
 		await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
 	}
 
-	const events = await messageToEvent.messageToEvent(message, guild)
+	const events = await messageToEvent.messageToEvent(message, guild, api)
 	const eventIDs = []
 	let eventPart = 0 // 0 is primary, 1 is supporting
 	for (const event of events) {

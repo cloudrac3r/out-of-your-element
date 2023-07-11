@@ -81,6 +81,11 @@ namespace R {
 		room_id: string
 	}
 
+	export type RoomMember = {
+		avatar_url: string
+		display_name: string
+	}
+
 	export type FileUploaded = {
 		content_uri: string
 	}
