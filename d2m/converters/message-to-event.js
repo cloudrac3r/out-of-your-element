@@ -51,15 +51,15 @@ async function messageToEvent(message, guild, api) {
 	/**
 	   @type {{room?: boolean, user_ids?: string[]}}
 		We should consider the following scenarios for mentions:
-		1. TODO A discord user rich-replies to a matrix user with a text post
+		1. A discord user rich-replies to a matrix user with a text post
 			+ The matrix user needs to be m.mentioned in the text event
 			+ The matrix user needs to have their name/mxid/link in the text event (notification fallback)
 				- So prepend their `@name:` to the start of the plaintext body
-		2. TODO A discord user rich-replies to a matrix user with an image event only
+		2. A discord user rich-replies to a matrix user with an image event only
 			+ The matrix user needs to be m.mentioned in the image event
-			+ The matrix user needs to have their name/mxid in the image event's body field, alongside the filename (notification fallback)
+			+ TODO The matrix user needs to have their name/mxid in the image event's body field, alongside the filename (notification fallback)
 				- So append their name to the filename body, I guess!!!
-		3. TODO A discord user `@`s a matrix user in the text body of their text box
+		3. A discord user `@`s a matrix user in the text body of their text box
 			+ The matrix user needs to be m.mentioned in the text event
 			+ No change needed to the text event content: it already has their name
 				- So make sure we don't do anything in this case.
