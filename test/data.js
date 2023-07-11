@@ -304,6 +304,37 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		simple_written_at_mention_for_matrix: {
+			id: "1126739682080858234",
+			type: 0,
+			content: "@Cadence, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and @huck",
+			channel_id: "112760669178241024",
+			author: {
+				id: "114147806469554185",
+				username: "extremity",
+				avatar: "6628aaf6b27219c36e2d3b5cfd6d0ee6",
+				discriminator: "0",
+				public_flags: 768,
+				flags: 768,
+				banner: null,
+				accent_color: null,
+				global_name: "Extremity",
+				avatar_decoration: null,
+				display_name: "Extremity",
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-07-07T05:01:14.019000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		simple_reply: {
 			id: "1126604870762369124",
 			type: 19,

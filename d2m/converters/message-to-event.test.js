@@ -215,4 +215,47 @@ test("message2event: simple reply to matrix user", async t => {
 	}])
 })
 
+test("message2event: simple written @mention for matrix user", async t => {
+	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {
+		async getJoinedMembers(roomID) {
+			t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+			return new Promise(resolve => {
+				setTimeout(() => {
+					resolve({
+						joined: {
+							"@cadence:cadence.moe": {
+								display_name: "cadence [they]",
+								avatar_url: "whatever"
+							},
+							"@huckleton:cadence.moe": {
+								display_name: "huck",
+								avatar_url: "whatever"
+							},
+							"@_ooye_botrac4r:cadence.moe": {
+								display_name: "botrac4r",
+								avatar_url: "whatever"
+							},
+							"@_ooye_bot:cadence.moe": {
+								display_name: "Out Of Your Element",
+								avatar_url: "whatever"
+							}
+						}
+					})
+				})
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {
+			user_ids: [
+				"@cadence:cadence.moe",
+				"@huckleton:cadence.moe"
+			]
+		},
+		msgtype: "m.text",
+		body: "@Cadence, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and @huck"
+	}])
+})
+
 // TODO: read "edits of replies" in the spec

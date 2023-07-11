@@ -8,6 +8,9 @@ const passthrough = require("../../passthrough")
 const { sync, db, discord } = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
+const reg = require("../../matrix/read-registration")
+
+const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
 function getDiscordParseCallbacks(message, useHTML) {
 	return {
@@ -69,7 +72,7 @@ async function messageToEvent(message, guild, api) {
 
 	function addMention(mxid) {
 		if (!mentions.user_ids) mentions.user_ids = []
-		mentions.user_ids.push(mxid)
+		if (!mentions.user_ids.includes(mxid)) mentions.user_ids.push(mxid)
 	}
 
 	// Mentions scenarios 1 and 2, part A. i.e. translate relevant message.mentions to m.mentions
@@ -106,11 +109,27 @@ async function messageToEvent(message, guild, api) {
 			discordCallback: getDiscordParseCallbacks(message, true)
 		}, null, null)
 
+		// TODO: add a string return type to my discord-markdown library
 		let body = markdown.toHTML(content, {
 			discordCallback: getDiscordParseCallbacks(message, false),
 			discordOnly: true,
 			escapeHTML: false,
 		}, null, null)
+
+		// Mentions scenario 3: scan the message content for written @mentions of matrix users
+		const matches = [...content.matchAll(/@([a-z0-9._]+)\b/gi)]
+		if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
+			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
+			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
+			const {joined} = await api.getJoinedMembers(roomID)
+			for (const [mxid, member] of Object.entries(joined)) {
+				if (!userRegex.some(rx => mxid.match(rx))) {
+					const localpart = mxid.match(/@([^:]*)/)
+					assert(localpart)
+					if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(member.display_name.toLowerCase())) addMention(mxid)
+				}
+			}
+		}
 
 		// Fallback body/formatted_body for replies
 		if (repliedToEventId) {
