@@ -144,7 +144,9 @@ async function messageToEvent(message, guild, api) {
 				repliedToDisplayName = message.referenced_message?.author.global_name || message.referenced_message?.author.username || "a Discord user"
 				repliedToUserHtml = repliedToDisplayName
 			}
-			const repliedToContent = message.referenced_message?.content || "[Replied-to message content wasn't provided by Discord]"
+			let repliedToContent = message.referenced_message?.content
+			if (repliedToContent == "") repliedToContent = "[Media]"
+			else if (!repliedToContent) repliedToContent = "[Replied-to message content wasn't provided by Discord]"
 			const repliedToHtml = markdown.toHTML(repliedToContent, {
 				discordCallback: getDiscordParseCallbacks(message, true)
 			}, null, null)
