@@ -4,7 +4,6 @@ export type AppServiceRegistrationConfig = {
 	hs_token: string
 	url: string
 	sender_localpart: string
-	namespace_prefix: string
 	namespaces: {
 		users: {
 			exclusive: boolean
@@ -17,6 +16,9 @@ export type AppServiceRegistrationConfig = {
 	}
 	protocols: [string]
 	rate_limited: boolean
+	ooye: {
+		namespace_prefix: string
+	}
 }
 
 export type WebhookCreds = {

@@ -20,7 +20,7 @@ const userToMxid = sync.require("../converters/user-to-mxid")
 async function createSim(user) {
 	// Choose sim name
 	const simName = userToMxid.userToSimName(user)
-	const localpart = reg.namespace_prefix + simName
+	const localpart = reg.ooye.namespace_prefix + simName
 	const mxid = "@" + localpart + ":cadence.moe"
 
 	// Save chosen name in the database forever
