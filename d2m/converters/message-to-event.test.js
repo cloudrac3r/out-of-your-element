@@ -258,4 +258,29 @@ test("message2event: simple written @mention for matrix user", async t => {
 	}])
 })
 
+test("message2event: very large attachment is linked instead of being uploaded", async t => {
+	const events = await messageToEvent({
+		content: "hey",
+		attachments: [{
+			filename: "hey.jpg",
+			url: "https://discord.com/404/hey.jpg",
+			content_type: "application/i-made-it-up",
+			size: 100e6
+		}]
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "hey"
+	}, {
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "📄 Uploaded file: https://discord.com/404/hey.jpg (100 MB)",
+		format: "org.matrix.custom.html",
+		formatted_body: '📄 Uploaded file: <a href="https://discord.com/404/hey.jpg">hey.jpg</a> (100 MB)'
+	}])
+})
+
 // TODO: read "edits of replies" in the spec

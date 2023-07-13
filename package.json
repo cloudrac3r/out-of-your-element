@@ -24,6 +24,7 @@
     "matrix-js-sdk": "^24.1.0",
     "mixin-deep": "^2.0.1",
     "node-fetch": "^2.6.7",
+    "prettier-bytes": "^1.0.4",
     "snowtransfer": "^0.8.0",
     "try-to-catch": "^3.0.1"
   },

@@ -110,7 +110,7 @@ async function sendState(roomID, type, stateKey, content, mxid) {
 }
 
 async function sendEvent(roomID, type, content, mxid) {
-   console.log(`[api] event to ${roomID} as ${mxid || "default sim"}`)
+   console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
    /** @type {Ty.R.EventSent} */
    const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid), content)
    return root.event_id

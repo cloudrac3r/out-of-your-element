@@ -18,6 +18,7 @@ export type AppServiceRegistrationConfig = {
 	rate_limited: boolean
 	ooye: {
 		namespace_prefix: string
+		max_file_size: number
 	}
 }
 

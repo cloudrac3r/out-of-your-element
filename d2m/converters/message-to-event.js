@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const markdown = require("discord-markdown")
+const pb = require("prettier-bytes")
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
@@ -184,8 +185,24 @@ async function messageToEvent(message, guild, api) {
 
 	// Then attachments
 	const attachmentEvents = await Promise.all(message.attachments.map(async attachment => {
-		// TODO: handle large files differently - link them instead of uploading
-		if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
+		const emoji =
+			attachment.content_type?.startsWith("image/jp") ? "📸"
+			: attachment.content_type?.startsWith("image/") ? "🖼️"
+			: attachment.content_type?.startsWith("video/") ? "🎞️"
+			: attachment.content_type?.startsWith("text/") ? "📝"
+			: attachment.content_type?.startsWith("audio/") ? "🎶"
+			: "📄"
+		// for large files, always link them instead of uploading so I don't use up all the space in the content repo
+		if (attachment.size > reg.ooye.max_file_size) {
+			return {
+				$type: "m.room.message",
+				"m.mentions": mentions,
+				msgtype: "m.text",
+				body: `${emoji} Uploaded file: ${attachment.url} (${pb(attachment.size)})`,
+				format: "org.matrix.custom.html",
+				formatted_body: `${emoji} Uploaded file: <a href="${attachment.url}">${attachment.filename}</a> (${pb(attachment.size)})`
+			}
+		} else if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
 			return {
 				$type: "m.room.message",
 				"m.mentions": mentions,
@@ -206,7 +223,7 @@ async function messageToEvent(message, guild, api) {
 				$type: "m.room.message",
 				"m.mentions": mentions,
 				msgtype: "m.text",
-				body: "Unsupported attachment:\n" + JSON.stringify(attachment, null, 2)
+				body: `Unsupported attachment:\n${JSON.stringify(attachment, null, 2)}\n${attachment.url}`
 			}
 		}
 	}))
