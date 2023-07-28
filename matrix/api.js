@@ -15,12 +15,18 @@ const makeTxnId = sync.require("./txnid")
 /**
  * @param {string} p endpoint to access
  * @param {string} [mxid] optional: user to act as, for the ?user_id parameter
+ * @param {{[x: string]: any}} [otherParams] optional: any other query parameters to add
  * @returns {string} the new endpoint
  */
-function path(p, mxid) {
+function path(p, mxid, otherParams = {}) {
    if (!mxid) return p
    const u = new URL(p, "http://localhost")
    u.searchParams.set("user_id", mxid)
+   for (const entry of Object.entries(otherParams)) {
+      if (entry[1] != undefined) {
+         u.searchParams.set(entry[0], entry[1])
+      }
+   }
    return u.pathname + "?" + u.searchParams.toString()
 }
 
@@ -109,10 +115,17 @@ async function sendState(roomID, type, stateKey, content, mxid) {
    return root.event_id
 }
 
-async function sendEvent(roomID, type, content, mxid) {
+/**
+ * @param {string} roomID
+ * @param {string} type
+ * @param {any} content
+ * @param {string} [mxid]
+ * @param {number} [timestamp] timestamp of the newly created event, in unix milliseconds
+ */
+async function sendEvent(roomID, type, content, mxid, timestamp) {
    console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
    /** @type {Ty.R.EventSent} */
-   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid), content)
+   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid, {ts: timestamp}), content)
    return root.event_id
 }
 
