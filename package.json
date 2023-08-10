@@ -31,11 +31,13 @@
   "devDependencies": {
     "@types/node": "^18.16.0",
     "@types/node-fetch": "^2.6.3",
+    "c8": "^8.0.1",
     "cross-env": "^7.0.3",
     "supertape": "^8.3.0",
     "tap-dot": "github:cloudrac3r/tap-dot#223a4e67a6f7daf015506a12a7af74605f06c7f4"
   },
   "scripts": {
-    "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot"
+    "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot",
+    "cover": "c8 --skip-full -r html -r text supertape --no-check-assertions-count --format fail test/test.js"
   }
 }
