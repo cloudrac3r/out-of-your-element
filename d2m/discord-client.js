@@ -14,7 +14,7 @@ class DiscordClient {
 	 * @param {string} discordToken
 	 * @param {boolean} listen whether to set up the event listeners for OOYE to operate
 	 */
-	constructor(discordToken, listen) {
+	constructor(discordToken, listen = true) {
 		this.discordToken = discordToken
 		this.snow = new SnowTransfer(discordToken)
 		this.cloud = new CloudStorm(discordToken, {
@@ -44,7 +44,9 @@ class DiscordClient {
 		this.guilds = new Map()
 		/** @type {Map<string, Array<string>>} */
 		this.guildChannelMap = new Map()
-		this.cloud.on("event", message => discordPackets.onPacket(this, message))
+		if (listen) {
+			this.cloud.on("event", message => discordPackets.onPacket(this, message))
+		}
 		this.cloud.on("error", console.error)
 	}
 }
