@@ -33,6 +33,7 @@
     "@types/node-fetch": "^2.6.3",
     "c8": "^8.0.1",
     "cross-env": "^7.0.3",
+    "discord-api-types": "^0.37.53",
     "supertape": "^8.3.0",
     "tap-dot": "github:cloudrac3r/tap-dot#223a4e67a6f7daf015506a12a7af74605f06c7f4"
   },

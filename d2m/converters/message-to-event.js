@@ -15,6 +15,7 @@ const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
 function getDiscordParseCallbacks(message, useHTML) {
 	return {
+		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
 			const mxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(node.id)
 			const username = message.mentions.find(ment => ment.id === node.id)?.username || node.id
@@ -24,12 +25,22 @@ function getDiscordParseCallbacks(message, useHTML) {
 				return `@${username}:`
 			}
 		},
+		/** @param {{id: string, type: "discordChannel"}} node */
 		channel: node => {
 			const {room_id, name, nick} = db.prepare("SELECT room_id, name, nick FROM channel_room WHERE channel_id = ?").get(node.id)
 			if (room_id && useHTML) {
 				return `<a href="https://matrix.to/#/${room_id}">#${nick || name}</a>`
 			} else {
 				return `#${nick || name}`
+			}
+		},
+		/** @param {{animated: boolean, name: string, id: string, type: "discordEmoji"}} node */
+		emoji: node => {
+			if (useHTML) {
+				// TODO: upload the emoji and actually use the right mxc!!
+				return `<img src="mxc://cadence.moe/${node.id}" data-mx-emoticon alt=":${node.name}:" title=":${node.name}:" height="24">`
+			} else {
+				return `:${node.name}:`
 			}
 		},
 		role: node =>

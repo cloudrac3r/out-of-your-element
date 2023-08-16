@@ -38,6 +38,14 @@ namespace Event {
 		event_id: string
 	}
 
+	export type ReplacementContent<T> = T & {
+		"m.new_content": T
+		"m.relates_to": {
+			rel_type: string // "m.replace"
+			event_id: string
+		}
+	}
+
 	export type BaseStateEvent = {
 		type: string
 		room_id: string

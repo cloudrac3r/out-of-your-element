@@ -59,6 +59,7 @@ async function ensureSim(user) {
 /**
  * Ensure a sim is registered for the user and is joined to the room.
  * @param {import("discord-api-types/v10").APIUser} user
+ * @param {string} roomID
  * @returns mxid
  */
 async function ensureSimJoined(user, roomID) {

@@ -88,7 +88,8 @@ module.exports = {
 			rules_channel_id: null,
 			name: "Psychonauts 3",
 			max_stage_video_channel_users: 300,
-			system_channel_flags: 0|0
+			system_channel_flags: 0|0,
+			safety_alerts_channel_id: null
 		}
 	},
 	member: {
@@ -744,6 +745,128 @@ module.exports = {
 			attachments: [],
 			guild_id: "112760669178241024"
 		},
+		sticker: {
+			id: "1106366167788044450",
+			type: 0,
+			content: "can have attachments too",
+			channel_id: "122155380120748034",
+			author: {
+				id: "113340068197859328",
+				username: "Cookie 🍪",
+				global_name: null,
+				display_name: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "7766",
+				public_flags: 128,
+				avatar_decoration: null
+			},
+			attachments: [{
+				id: "1106366167486038016",
+				filename: "image.png",
+				size: 127373,
+				url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
+				proxy_url: "https://media.discordapp.net/attachments/122155380120748034/1106366167486038016/image.png",
+				width: 333,
+				height: 287,
+				content_type: "image/png"
+			}],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-05-11T23:44:09.690000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			sticker_items: [{
+				id: "1106323941183717586",
+				format_type: 1,
+				name: "pomu puff"
+			}]
+		}
+	},
+	message_update: {
+		bot_response: {
+			attachments: [],
+			author: {
+				avatar: "d14f47194b6ebe4da2e18a56fc6dacfd",
+				avatar_decoration: null,
+				bot: true,
+				discriminator: "9703",
+				global_name: null,
+				id: "771520384671416320",
+				public_flags: 0,
+				username: "Bojack Horseman"
+			},
+			channel_id: "160197704226439168",
+			components: [],
+			content: "<:ae_botrac4r:551636841284108289> @cadence asked ``­``, I respond: Stop drinking paint. (No)\n\nHit <:bn_re:362741439211503616> to reroll.",
+			edited_timestamp: "2023-08-16T03:06:07.128980+00:00",
+			embeds: [],
+			flags: 0,
+			guild_id: "112760669178241024",
+			id: "1141206225632112650",
+			member: {
+				avatar: null,
+				communication_disabled_until: null,
+				deaf: false,
+				flags: 0,
+				joined_at: "2020-10-29T23:55:31.277000+00:00",
+				mute: false,
+				nick: "Olmec",
+				pending: false,
+				premium_since: null,
+				roles: [
+					"112767366235959296",
+					"118924814567211009",
+					"392141548932038658",
+					"1123460940935991296",
+					"326409028601249793",
+					"114526764860047367",
+					"323966487763353610",
+					"1107404526870335629",
+					"1040735082610167858"
+				]
+			},
+			mention_everyone: false,
+			mention_roles: [],
+			mentions: [
+				{
+					avatar: "8757ad3edee9541427edd7f817ae2f5c",
+					avatar_decoration: null,
+					bot: true,
+					discriminator: "8559",
+					global_name: null,
+					id: "353703396483661824",
+					member: {
+						avatar: null,
+						communication_disabled_until: null,
+						deaf: false,
+						flags: 0,
+						joined_at: "2017-11-30T04:27:20.749000+00:00",
+						mute: false,
+						nick: null,
+						pending: false,
+						premium_since: null,
+						roles: [
+							"112767366235959296",
+							"118924814567211009",
+							"289671295359254529",
+							"114526764860047367",
+							"1040735082610167858"
+						]
+					},
+					public_flags: 0,
+					username: "botrac4r"
+				}
+			],
+			pinned: false,
+			timestamp: "2023-08-16T03:06:06.777000+00:00",
+			tts: false,
+			type: 0
+		},
 		edit_of_reply_to_skull_webp_attachment_with_content: {
 			type: 19,
 			tts: false,
@@ -881,47 +1004,6 @@ module.exports = {
 				}
 			],
 			guild_id: "112760669178241024"
-		},
-		sticker: {
-			id: "1106366167788044450",
-			type: 0,
-			content: "can have attachments too",
-			channel_id: "122155380120748034",
-			author: {
-				id: "113340068197859328",
-				username: "Cookie 🍪",
-				global_name: null,
-				display_name: null,
-				avatar: "b48302623a12bc7c59a71328f72ccb39",
-				discriminator: "7766",
-				public_flags: 128,
-				avatar_decoration: null
-			},
-			attachments: [{
-				id: "1106366167486038016",
-				filename: "image.png",
-				size: 127373,
-				url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
-				proxy_url: "https://media.discordapp.net/attachments/122155380120748034/1106366167486038016/image.png",
-				width: 333,
-				height: 287,
-				content_type: "image/png"
-			}],
-			embeds: [],
-			mentions: [],
-			mention_roles: [],
-			pinned: false,
-			mention_everyone: false,
-			tts: false,
-			timestamp: "2023-05-11T23:44:09.690000+00:00",
-			edited_timestamp: null,
-			flags: 0,
-			components: [],
-			sticker_items: [{
-				id: "1106323941183717586",
-				format_type: 1,
-				name: "pomu puff"
-			}]
 		}
 	}
 }
