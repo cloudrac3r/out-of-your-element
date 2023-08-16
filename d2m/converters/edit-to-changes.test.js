@@ -47,9 +47,13 @@ test("edit2changes: edit of reply to skull webp attachment with content", async 
       oldID: "$vgTKOR5ZTYNMKaS7XvgEIDaOWZtVCEyzLLi5Pc5Gz4M",
       new: {
          $type: "m.room.message",
-         // TODO: read "edits of replies" in the spec!!!
          msgtype: "m.text",
-         body: "* Edit",
+         body: "> Extremity: Image\n\n* Edit",
+         format: "org.matrix.custom.html",
+         formatted_body:
+            '<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$oLyUTyZ_7e_SUzGNWZKz880ll9amLZvXGbArJCKai2Q">In reply to</a> Extremity'
+            + '<br>Image</blockquote></mx-reply>'
+            + '* Edit',
          "m.mentions": {},
          "m.new_content": {
             msgtype: "m.text",
@@ -60,7 +64,6 @@ test("edit2changes: edit of reply to skull webp attachment with content", async 
             rel_type: "m.replace",
             event_id: "$vgTKOR5ZTYNMKaS7XvgEIDaOWZtVCEyzLLi5Pc5Gz4M"
          }
-         // TODO: read "edits of replies" in the spec!!!
       }
    }])
 })

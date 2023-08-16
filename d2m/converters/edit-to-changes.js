@@ -29,7 +29,9 @@ async function editToChanges(message, guild) {
 
 	// Figure out what we will be replacing them with
 
-	const newEvents = await messageToEvent.messageToEvent(message, guild, api)
+	const newFallbackContent = await messageToEvent.messageToEvent(message, guild, {includeEditFallbackStar: true}, {api})
+	const newInnerContent = await messageToEvent.messageToEvent(message, guild, {includeReplyFallback: false}, {api})
+	assert.ok(newFallbackContent.length === newInnerContent.length)
 
 	// Match the new events to the old events
 
@@ -47,21 +49,27 @@ async function editToChanges(message, guild) {
 	let eventsToSend = []
 	//  4. Events that are matched and have definitely not changed, so they don't need to be edited or replaced at all. This is represented as nothing.
 
+	function shift() {
+		newFallbackContent.shift()
+		newInnerContent.shift()
+	}
+
 	// For each old event...
-	outer: while (newEvents.length) {
-		const newe = newEvents[0]
+	outer: while (newFallbackContent.length) {
+		const newe = newFallbackContent[0]
 		// Find a new event to pair it with...
 		for (let i = 0; i < oldEventRows.length; i++) {
 			const olde = oldEventRows[i]
-			if (olde.event_type === newe.$type && olde.event_subtype === (newe.msgtype || null)) {
+			if (olde.event_type === newe.$type && olde.event_subtype === (newe.msgtype ?? null)) { // The spec does allow subtypes to change, so I can change this condition later if I want to
 				// Found one!
 				// Set up the pairing
 				eventsToReplace.push({
 					old: olde,
-					new: newe
+					newFallbackContent: newFallbackContent[0],
+					newInnerContent: newInnerContent[0]
 				})
 				// These events have been handled now, so remove them from the source arrays
-				newEvents.shift()
+				shift()
 				oldEventRows.splice(i, 1)
 				// Go all the way back to the start of the next iteration of the outer loop
 				continue outer
@@ -69,7 +77,7 @@ async function editToChanges(message, guild) {
 		}
 		// If we got this far, we could not pair it to an existing event, so it'll have to be a new one
 		eventsToSend.push(newe)
-		newEvents.shift()
+		shift()
 	}
 	// Anything remaining in oldEventRows is present in the old version only and should be redacted.
 	eventsToRedact = oldEventRows
@@ -92,7 +100,7 @@ async function editToChanges(message, guild) {
 
 	// Removing unnecessary properties before returning
 	eventsToRedact = eventsToRedact.map(e => e.event_id)
-	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, new: eventToReplacementEvent(e.old.event_id, e.new)}))
+	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, new: eventToReplacementEvent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
 
 	return {eventsToReplace, eventsToRedact, eventsToSend}
 }
@@ -100,31 +108,26 @@ async function editToChanges(message, guild) {
 /**
  * @template T
  * @param {string} oldID
- * @param {T} content
+ * @param {T} newFallbackContent
+ * @param {T} newInnerContent
  * @returns {import("../../types").Event.ReplacementContent<T>} content
  */
-function eventToReplacementEvent(oldID, content) {
-	const newContent = {
-		...content,
+function eventToReplacementEvent(oldID, newFallbackContent, newInnerContent) {
+	const content = {
+		...newFallbackContent,
 		"m.mentions": {},
 		"m.new_content": {
-			...content
+			...newInnerContent
 		},
 		"m.relates_to": {
 			rel_type: "m.replace",
 			event_id: oldID
 		}
 	}
-	if (typeof newContent.body === "string") {
-		newContent.body = "* " + newContent.body
-	}
-	if (typeof newContent.formatted_body === "string") {
-		newContent.formatted_body = "* " + newContent.formatted_body
-	}
-	delete newContent["m.new_content"]["$type"]
+	delete content["m.new_content"]["$type"]
 	// Client-Server API spec 11.37.3: Any m.relates_to property within m.new_content is ignored.
-	delete newContent["m.new_content"]["m.relates_to"]
-	return newContent
+	delete content["m.new_content"]["m.relates_to"]
+	return content
 }
 
 module.exports.editToChanges = editToChanges

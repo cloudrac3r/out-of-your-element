@@ -30,7 +30,7 @@ function mockGetEvent(t, roomID_in, eventID_in, outer) {
 }
 
 test("message2event: simple plaintext", async t => {
-	const events = await messageToEvent(data.message.simple_plaintext, data.guild.general)
+	const events = await messageToEvent(data.message.simple_plaintext, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -40,7 +40,7 @@ test("message2event: simple plaintext", async t => {
 })
 
 test("message2event: simple user mention", async t => {
-	const events = await messageToEvent(data.message.simple_user_mention, data.guild.general)
+	const events = await messageToEvent(data.message.simple_user_mention, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -52,7 +52,7 @@ test("message2event: simple user mention", async t => {
 })
 
 test("message2event: simple room mention", async t => {
-	const events = await messageToEvent(data.message.simple_room_mention, data.guild.general)
+	const events = await messageToEvent(data.message.simple_room_mention, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -64,7 +64,7 @@ test("message2event: simple room mention", async t => {
 })
 
 test("message2event: simple message link", async t => {
-	const events = await messageToEvent(data.message.simple_message_link, data.guild.general)
+	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -76,7 +76,7 @@ test("message2event: simple message link", async t => {
 })
 
 test("message2event: attachment with no content", async t => {
-	const events = await messageToEvent(data.message.attachment_no_content, data.guild.general)
+	const events = await messageToEvent(data.message.attachment_no_content, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -94,7 +94,7 @@ test("message2event: attachment with no content", async t => {
 })
 
 test("message2event: stickers", async t => {
-	const events = await messageToEvent(data.message.sticker, data.guild.general)
+	const events = await messageToEvent(data.message.sticker, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -127,7 +127,7 @@ test("message2event: stickers", async t => {
 })
 
 test("message2event: skull webp attachment with content", async t => {
-	const events = await messageToEvent(data.message.skull_webp_attachment_with_content, data.guild.general)
+	const events = await messageToEvent(data.message.skull_webp_attachment_with_content, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -150,7 +150,7 @@ test("message2event: skull webp attachment with content", async t => {
 })
 
 test("message2event: reply to skull webp attachment with content", async t => {
-	const events = await messageToEvent(data.message.reply_to_skull_webp_attachment_with_content, data.guild.general)
+	const events = await messageToEvent(data.message.reply_to_skull_webp_attachment_with_content, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.relates_to": {
@@ -183,15 +183,17 @@ test("message2event: reply to skull webp attachment with content", async t => {
 })
 
 test("message2event: simple reply to matrix user", async t => {
-	const events = await messageToEvent(data.message.simple_reply_to_matrix_user, data.guild.general, {
-		getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4", {
-			type: "m.room.message",
-			content: {
-				msgtype: "m.text",
-				body: "so can you reply to my webhook uwu"
-			},
-			sender: "@cadence:cadence.moe"
-		})
+	const events = await messageToEvent(data.message.simple_reply_to_matrix_user, data.guild.general, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4", {
+				type: "m.room.message",
+				content: {
+					msgtype: "m.text",
+					body: "so can you reply to my webhook uwu"
+				},
+				sender: "@cadence:cadence.moe"
+			})
+		}
 	})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
@@ -215,34 +217,66 @@ test("message2event: simple reply to matrix user", async t => {
 	}])
 })
 
+test("message2event: simple reply to matrix user, reply fallbacks disabled", async t => {
+	const events = await messageToEvent(data.message.simple_reply_to_matrix_user, data.guild.general, {includeReplyFallback: false}, {
+		api: {
+			getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4", {
+				type: "m.room.message",
+				content: {
+					msgtype: "m.text",
+					body: "so can you reply to my webhook uwu"
+				},
+				sender: "@cadence:cadence.moe"
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4"
+			}
+		},
+		"m.mentions": {
+			user_ids: [
+				"@cadence:cadence.moe"
+			]
+		},
+		msgtype: "m.text",
+		body: "Reply"
+	}])
+})
+
 test("message2event: simple written @mention for matrix user", async t => {
-	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {
-		async getJoinedMembers(roomID) {
-			t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
-			return new Promise(resolve => {
-				setTimeout(() => {
-					resolve({
-						joined: {
-							"@cadence:cadence.moe": {
-								display_name: "cadence [they]",
-								avatar_url: "whatever"
-							},
-							"@huckleton:cadence.moe": {
-								display_name: "huck",
-								avatar_url: "whatever"
-							},
-							"@_ooye_botrac4r:cadence.moe": {
-								display_name: "botrac4r",
-								avatar_url: "whatever"
-							},
-							"@_ooye_bot:cadence.moe": {
-								display_name: "Out Of Your Element",
-								avatar_url: "whatever"
+	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {}, {
+		api: {
+			async getJoinedMembers(roomID) {
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return new Promise(resolve => {
+					setTimeout(() => {
+						resolve({
+							joined: {
+								"@cadence:cadence.moe": {
+									display_name: "cadence [they]",
+									avatar_url: "whatever"
+								},
+								"@huckleton:cadence.moe": {
+									display_name: "huck",
+									avatar_url: "whatever"
+								},
+								"@_ooye_botrac4r:cadence.moe": {
+									display_name: "botrac4r",
+									avatar_url: "whatever"
+								},
+								"@_ooye_bot:cadence.moe": {
+									display_name: "Out Of Your Element",
+									avatar_url: "whatever"
+								}
 							}
-						}
+						})
 					})
 				})
-			})
+			}
 		}
 	})
 	t.deepEqual(events, [{

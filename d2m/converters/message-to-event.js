@@ -55,9 +55,12 @@ function getDiscordParseCallbacks(message, useHTML) {
 /**
  * @param {import("discord-api-types/v10").APIMessage} message
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {import("../../matrix/api")} api simple-as-nails dependency injection for the matrix API
+ * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean}} options default values:
+ * - includeReplyFallback: true
+ * - includeEditFallbackStar: false
+ * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
-async function messageToEvent(message, guild, api) {
+async function messageToEvent(message, guild, options = {}, di) {
 	const events = []
 
 	/**
@@ -99,7 +102,7 @@ async function messageToEvent(message, guild, api) {
 	}
 	if (repliedToEventOriginallyFromMatrix) {
 		// Need to figure out who sent that event...
-		const event = await api.getEvent(repliedToEventRoomId, repliedToEventId)
+		const event = await di.api.getEvent(repliedToEventRoomId, repliedToEventId)
 		repliedToEventSenderMxid = event.sender
 		// Need to add the sender to m.mentions
 		addMention(repliedToEventSenderMxid)
@@ -133,7 +136,7 @@ async function messageToEvent(message, guild, api) {
 		if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
 			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
 			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
-			const {joined} = await api.getJoinedMembers(roomID)
+			const {joined} = await di.api.getJoinedMembers(roomID)
 			for (const [mxid, member] of Object.entries(joined)) {
 				if (!userRegex.some(rx => mxid.match(rx))) {
 					const localpart = mxid.match(/@([^:]*)/)
@@ -143,8 +146,15 @@ async function messageToEvent(message, guild, api) {
 			}
 		}
 
+		// Star * prefix for fallback edits
+		if (options.includeEditFallbackStar) {
+			body = "* " + body
+			html = "* " + html
+		}
+
 		// Fallback body/formatted_body for replies
-		if (repliedToEventId) {
+		// This branch is optional - do NOT change anything apart from the reply fallback, since it may not be run
+		if (repliedToEventId && options.includeReplyFallback !== false) {
 			let repliedToDisplayName
 			let repliedToUserHtml
 			if (repliedToEventOriginallyFromMatrix && repliedToEventSenderMxid) {
