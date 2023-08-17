@@ -22,7 +22,14 @@ async function editToChanges(message, guild, api) {
 	// Figure out what events we will be replacing
 
 	const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
-	const senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
+	/** @type {string?} */
+	let senderMxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(message.author.id) ?? null
+	if (senderMxid) {
+		const senderIsInRoom = db.prepare("SELECT * FROM sim_member WHERE room_id = ? and mxid = ?").get(roomID, senderMxid)
+		if (!senderIsInRoom) {
+			senderMxid = null // just send as ooye bot
+		}
+	}
 	/** @type {{event_id: string, event_type: string, event_subtype: string?, part: number}[]} */
    const oldEventRows = db.prepare("SELECT event_id, event_type, event_subtype, part FROM event_message WHERE message_id = ?").all(message.id)
 

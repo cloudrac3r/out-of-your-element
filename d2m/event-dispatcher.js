@@ -37,6 +37,13 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageUpdateDispatchData} message
 	 */
 	onMessageUpdate(client, data) {
+		if (data.webhook_id) {
+			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(message.webhook_id)
+			if (row) {
+				// The update was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
+				return
+			}
+		}
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.
 		if (typeof data.content === "string") {

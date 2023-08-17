@@ -788,6 +788,33 @@ module.exports = {
 		}
 	},
 	message_update: {
+		edit_by_webhook: {
+			application_id: "684280192553844747",
+			attachments: [],
+			author: {
+				avatar: null,
+				bot: true,
+				discriminator: "0000",
+				id: "700285844094845050",
+				username: "cadence [they]"
+			},
+			channel_id: "497161350934560778",
+			components: [],
+			content: "test 2",
+			edited_timestamp: "2023-08-17T06:29:34.167314+00:00",
+			embeds: [],
+			flags: 0,
+			guild_id: "497159726455455754",
+			id: "1141619794500649020",
+			mention_everyone: false,
+			mention_roles: [],
+			mentions: [],
+			pinned: false,
+			timestamp: "2023-08-17T06:29:29.279000+00:00",
+			tts: false,
+			type: 0,
+			webhook_id: "700285844094845050"
+		},
 		bot_response: {
 			attachments: [],
 			author: {
