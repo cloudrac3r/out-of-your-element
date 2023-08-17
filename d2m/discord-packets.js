@@ -16,6 +16,7 @@ const utils = {
 		/** @type {typeof import("./event-dispatcher")} */
 		const eventDispatcher = sync.require("./event-dispatcher")
 
+		// Client internals, keep track of the state we need
 		if (message.t === "READY") {
 			if (client.ready) return
 			client.ready = true
@@ -62,16 +63,25 @@ const utils = {
 					}
 				}
 			}
+		}
 
+		// Event dispatcher for OOYE bridge operations
+		try {
+			if (message.t === "MESSAGE_CREATE") {
+				eventDispatcher.onMessageCreate(client, message.d)
 
-		} else if (message.t === "MESSAGE_CREATE") {
-			eventDispatcher.onMessageCreate(client, message.d)
+			} else if (message.t === "MESSAGE_UPDATE") {
+				eventDispatcher.onMessageUpdate(client, message.d)
 
-		} else if (message.t === "MESSAGE_UPDATE") {
-			eventDispatcher.onMessageUpdate(client, message.d)
+			} else if (message.t === "MESSAGE_DELETE") {
+				eventDispatcher.onMessageDelete(client, message.d)
 
-		} else if (message.t === "MESSAGE_REACTION_ADD") {
-			eventDispatcher.onReactionAdd(client, message.d)
+			} else if (message.t === "MESSAGE_REACTION_ADD") {
+				eventDispatcher.onReactionAdd(client, message.d)
+			}
+		} catch (e) {
+			// Let OOYE try to handle errors too
+			eventDispatcher.onError(client, e, message)
 		}
 	}
 }
