@@ -67,6 +67,8 @@ const utils = {
 		} else if (message.t === "MESSAGE_CREATE") {
 			eventDispatcher.onMessageCreate(client, message.d)
 
+		} else if (message.t === "MESSAGE_UPDATE") {
+			eventDispatcher.onMessageUpdate(client, message.d)
 
 		} else if (message.t === "MESSAGE_REACTION_ADD") {
 			eventDispatcher.onReactionAdd(client, message.d)
