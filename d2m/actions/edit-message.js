@@ -14,7 +14,8 @@ const api = sync.require("../../matrix/api")
 async function editMessage(message, guild) {
 	console.log(`*** applying edit for message ${message.id} in channel ${message.channel_id}`)
 	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid} = await editToChanges.editToChanges(message, guild, api)
-	console.log("making these changes:", {eventsToRedact, eventsToReplace, eventsToSend})
+	console.log("making these changes:")
+	console.dir({eventsToRedact, eventsToReplace, eventsToSend}, {depth: null})
 
 	// 1. Replace all the things.
 	for (const {oldID, newContent} of eventsToReplace) {
@@ -34,7 +35,9 @@ async function editMessage(message, guild) {
 	// Not redacting as the last action because the last action is likely to be shown in the room preview in clients, and we don't want it to look like somebody actually deleted a message.
 	for (const eventID of eventsToRedact) {
 		await api.redactEvent(roomID, eventID, senderMxid)
-		// TODO: I should almost certainly remove the redacted event from our database now, shouldn't I? I mean, it's literally not there any more... you can't do anything else with it...
+		// TODO: Reconsider whether it's the right thing to do to delete it from our database? I mean, it's literally not there any more... you can't do anything else with it...
+		// and you definitely want to mark it in *some* way to prevent duplicate redactions...
+		db.prepare("DELETE from event_message WHERE event_id = ?").run(eventID)
 		// TODO: If I just redacted part = 0, I should update one of the other events to make it the new part = 0, right?
 		// TODO: Consider whether this code could be reused between edited messages and deleted messages.
 	}
