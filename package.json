@@ -17,7 +17,7 @@
   "dependencies": {
     "better-sqlite3": "^8.3.0",
     "cloudstorm": "^0.8.0",
-    "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#df495b152fdc48fb22284ecda9a988e6df61bf99",
+    "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#9799e4f79912d07f89a030e479e82fcc1e75bc81",
     "heatsync": "^2.4.1",
     "js-yaml": "^4.1.0",
     "matrix-appservice": "^2.0.0",
