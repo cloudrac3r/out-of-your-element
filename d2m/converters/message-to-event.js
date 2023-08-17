@@ -131,8 +131,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			escapeHTML: false,
 		}, null, null)
 
-		// Mentions scenario 3: scan the message content for written @mentions of matrix users
-		const matches = [...content.matchAll(/@([a-z0-9._]+)\b/gi)]
+		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
+		const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
 		if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
 			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
 			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)

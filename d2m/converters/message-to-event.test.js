@@ -247,10 +247,12 @@ test("message2event: simple reply to matrix user, reply fallbacks disabled", asy
 	}])
 })
 
-test("message2event: simple written @mention for matrix user", async t => {
+test("message2event: simple written @mentions for matrix users", async t => {
+	let called = 0
 	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {}, {
 		api: {
 			async getJoinedMembers(roomID) {
+				called++
 				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
 				return new Promise(resolve => {
 					setTimeout(() => {
@@ -290,6 +292,7 @@ test("message2event: simple written @mention for matrix user", async t => {
 		msgtype: "m.text",
 		body: "@Cadence, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and @huck"
 	}])
+	t.equal(called, 1, "should only look up the member list once")
 })
 
 test("message2event: very large attachment is linked instead of being uploaded", async t => {
