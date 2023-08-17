@@ -43,7 +43,7 @@ async function createSim(user) {
  * Ensure a sim is registered for the user.
  * If there is already a sim, use that one. If there isn't one yet, register a new sim.
  * @param {import("discord-api-types/v10").APIUser} user
- * @returns mxid
+ * @returns {Promise<string>} mxid
  */
 async function ensureSim(user) {
 	let mxid = null
@@ -60,7 +60,7 @@ async function ensureSim(user) {
  * Ensure a sim is registered for the user and is joined to the room.
  * @param {import("discord-api-types/v10").APIUser} user
  * @param {string} roomID
- * @returns mxid
+ * @returns {Promise<string>} mxid
  */
 async function ensureSimJoined(user, roomID) {
 	// Ensure room ID is really an ID, not an alias

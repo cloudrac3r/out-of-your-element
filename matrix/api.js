@@ -14,7 +14,7 @@ const makeTxnId = sync.require("./txnid")
 
 /**
  * @param {string} p endpoint to access
- * @param {string} [mxid] optional: user to act as, for the ?user_id parameter
+ * @param {string?} [mxid] optional: user to act as, for the ?user_id parameter
  * @param {{[x: string]: any}} [otherParams] optional: any other query parameters to add
  * @returns {string} the new endpoint
  */
@@ -119,13 +119,22 @@ async function sendState(roomID, type, stateKey, content, mxid) {
  * @param {string} roomID
  * @param {string} type
  * @param {any} content
- * @param {string} [mxid]
+ * @param {string?} [mxid]
  * @param {number} [timestamp] timestamp of the newly created event, in unix milliseconds
  */
 async function sendEvent(roomID, type, content, mxid, timestamp) {
    console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
    /** @type {Ty.R.EventSent} */
    const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid, {ts: timestamp}), content)
+   return root.event_id
+}
+
+/**
+ * @returns {Promise<string>} room ID
+ */
+async function redactEvent(roomID, eventID, mxid) {
+   /** @type {Ty.R.EventRedacted} */
+   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/redact/${eventID}/${makeTxnId.makeTxnId()}`, mxid))
    return root.event_id
 }
 
@@ -152,5 +161,6 @@ module.exports.getAllState = getAllState
 module.exports.getJoinedMembers = getJoinedMembers
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
+module.exports.redactEvent = redactEvent
 module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl

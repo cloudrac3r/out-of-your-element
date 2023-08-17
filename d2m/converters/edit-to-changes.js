@@ -82,7 +82,7 @@ async function editToChanges(message, guild, api) {
 	eventsToRedact = oldEventRows
 
 	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!
-	// (Consider a MESSAGE_UPDATE for a text+image message - Discord does not allow the image to be changed, but the text might have been.)
+	// (Example: a MESSAGE_UPDATE for a text+image message - Discord does not allow the image to be changed, but the text might have been.)
 	// So we'll remove entries from eventsToReplace that *definitely* cannot have changed. (This is category 4 mentioned above.) Everything remaining *may* have changed.
 	eventsToReplace = eventsToReplace.filter(ev => {
 		// Discord does not allow files, images, attachments, or videos to be edited.
@@ -99,9 +99,9 @@ async function editToChanges(message, guild, api) {
 
 	// Removing unnecessary properties before returning
 	eventsToRedact = eventsToRedact.map(e => e.event_id)
-	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, new: eventToReplacementEvent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
+	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
 
-	return {eventsToReplace, eventsToRedact, eventsToSend, senderMxid}
+	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid}
 }
 
 /**
@@ -111,7 +111,7 @@ async function editToChanges(message, guild, api) {
  * @param {T} newInnerContent
  * @returns {import("../../types").Event.ReplacementContent<T>} content
  */
-function eventToReplacementEvent(oldID, newFallbackContent, newInnerContent) {
+function makeReplacementEventContent(oldID, newFallbackContent, newInnerContent) {
 	const content = {
 		...newFallbackContent,
 		"m.mentions": {},
@@ -130,4 +130,4 @@ function eventToReplacementEvent(oldID, newFallbackContent, newInnerContent) {
 }
 
 module.exports.editToChanges = editToChanges
-module.exports.eventToReplacementEvent = eventToReplacementEvent
+module.exports.makeReplacementEventContent = makeReplacementEventContent

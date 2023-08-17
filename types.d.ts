@@ -112,4 +112,8 @@ namespace R {
 	export type EventSent = {
 		event_id: string
 	}
+
+	export type EventRedacted = {
+		event_id: string
+	}
 }

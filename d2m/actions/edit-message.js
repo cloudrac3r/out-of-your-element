@@ -1,28 +1,54 @@
-async function editMessage() {
-   	// Action time!
+// @ts-check
+
+const passthrough = require("../../passthrough")
+const { sync, db } = passthrough
+/** @type {import("../converters/edit-to-changes")} */
+const editToChanges = sync.require("../converters/edit-to-changes")
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
+
+/**
+ * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
+ * @param {import("discord-api-types/v10").APIGuild} guild
+ */
+async function editMessage(message, guild) {
+	console.log(`*** applying edit for message ${message.id} in channel ${message.channel_id}`)
+	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid} = await editToChanges.editToChanges(message, guild, api)
+	console.log("making these changes:", {eventsToRedact, eventsToReplace, eventsToSend})
 
 	// 1. Replace all the things.
+	for (const {oldID, newContent} of eventsToReplace) {
+		const eventType = newContent.$type
+		/** @type {Pick<typeof newContent, Exclude<keyof newContent, "$type">> & { $type?: string }} */
+		const newContentWithoutType = {...newContent}
+		delete newContentWithoutType.$type
 
-
-	// 2. Redact all the things.
-
-	// 3. Send all the things.
-
-	// old code lies here
-	let eventPart = 0 // TODO: what to do about eventPart when editing? probably just need to make sure that exactly 1 value of '0' remains in the database?
-	for (const event of events) {
-		const eventType = event.$type
-		/** @type {Pick<typeof event, Exclude<keyof event, "$type">> & { $type?: string }} */
-		const eventWithoutType = {...event}
-		delete eventWithoutType.$type
-
-		const eventID = await api.sendEvent(roomID, eventType, event, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, 1)").run(eventID, message.id, message.channel_id, eventPart) // source 1 = discord
-
-		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
-		eventIDs.push(eventID)
+		await api.sendEvent(roomID, eventType, newContentWithoutType, senderMxid)
+		// Ensure the database is up to date.
+		// The columns are event_id, event_type, event_subtype, message_id, channel_id, part, source. Only event_subtype could potentially be changed by a replacement event.
+		const subtype = newContentWithoutType.msgtype ?? null
+		db.prepare("UPDATE event_message SET event_subtype = ? WHERE event_id = ?").run(subtype, oldID)
 	}
 
-	return eventIDs
+	// 2. Redact all the things.
+	// Not redacting as the last action because the last action is likely to be shown in the room preview in clients, and we don't want it to look like somebody actually deleted a message.
+	for (const eventID of eventsToRedact) {
+		await api.redactEvent(roomID, eventID, senderMxid)
+		// TODO: I should almost certainly remove the redacted event from our database now, shouldn't I? I mean, it's literally not there any more... you can't do anything else with it...
+		// TODO: If I just redacted part = 0, I should update one of the other events to make it the new part = 0, right?
+		// TODO: Consider whether this code could be reused between edited messages and deleted messages.
+	}
 
-{eventsToReplace, eventsToRedact, eventsToSend}
+	// 3. Send all the things.
+	for (const content of eventsToSend) {
+		const eventType = content.$type
+		/** @type {Pick<typeof content, Exclude<keyof content, "$type">> & { $type?: string }} */
+		const contentWithoutType = {...content}
+		delete contentWithoutType.$type
+
+		const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, 1, 1)").run(eventID, eventType, content.msgtype || null, message.id, message.channel_id) // part 1 = supporting; source 1 = discord
+	}
+}
+
+module.exports.editMessage = editMessage

@@ -3,6 +3,9 @@ const {sync, db} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
 const sendMessage = sync.require("./actions/send-message")
+/** @type {import("./actions/edit-message")}) */
+const editMessage = sync.require("./actions/edit-message")
+
 /** @type {import("./actions/add-reaction")}) */
 const addReaction = sync.require("./actions/add-reaction")
 
@@ -27,6 +30,25 @@ module.exports = {
 		const guild = client.guilds.get(channel.guild_id)
 		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
 		sendMessage.sendMessage(message, guild)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayMessageUpdateDispatchData} message
+	 */
+	onMessageUpdate(client, data) {
+		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
+		// If the message content is a string then it includes all interesting fields and is meaningful.
+		if (typeof data.content === "string") {
+			/** @type {import("discord-api-types/v10").GatewayMessageCreateDispatchData} */
+			const message = data
+			/** @type {import("discord-api-types/v10").APIGuildChannel} */
+			const channel = client.channels.get(message.channel_id)
+			if (!channel.guild_id) return // Nothing we can do in direct messages.
+			const guild = client.guilds.get(channel.guild_id)
+			if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
+			editMessage.editMessage(message, guild)
+		}
 	},
 
 	/**

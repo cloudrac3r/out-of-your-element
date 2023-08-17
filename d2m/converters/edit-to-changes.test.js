@@ -29,7 +29,7 @@ test("edit2changes: bot response", async t => {
    t.deepEqual(eventsToSend, [])
    t.deepEqual(eventsToReplace, [{
       oldID: "$fdD9OZ55xg3EAsfvLZza5tMhtjUO91Wg3Otuo96TplY",
-      new: {
+      newContent: {
          $type: "m.room.message",
          msgtype: "m.text",
          body: "* :ae_botrac4r: @cadence asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
@@ -82,7 +82,7 @@ test("edit2changes: edit of reply to skull webp attachment with content", async 
    t.deepEqual(eventsToSend, [])
    t.deepEqual(eventsToReplace, [{
       oldID: "$vgTKOR5ZTYNMKaS7XvgEIDaOWZtVCEyzLLi5Pc5Gz4M",
-      new: {
+      newContent: {
          $type: "m.room.message",
          msgtype: "m.text",
          body: "> Extremity: Image\n\n* Edit",
