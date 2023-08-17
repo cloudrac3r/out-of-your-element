@@ -39,6 +39,16 @@ test("message2event: simple plaintext", async t => {
 	}])
 })
 
+test("message2event: simple plaintext with quotes", async t => {
+	const events = await messageToEvent(data.message.simple_plaintext_with_quotes, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: `then he said, "you and her aren't allowed in here!"`
+	}])
+})
+
 test("message2event: simple user mention", async t => {
 	const events = await messageToEvent(data.message.simple_user_mention, data.guild.general, {})
 	t.deepEqual(events, [{
