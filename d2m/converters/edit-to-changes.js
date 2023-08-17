@@ -6,8 +6,6 @@ const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
 /** @type {import("./message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
 /** @type {import("../actions/register-user")} */
 const registerUser = sync.require("../actions/register-user")
 /** @type {import("../actions/create-room")} */
@@ -18,8 +16,9 @@ const createRoom = sync.require("../actions/create-room")
  * IMPORTANT: This may not have all the normal fields! The API documentation doesn't provide possible types, just says it's all optional!
  * Since I don't have a spec, I will have to capture some real traffic and add it as test cases... I hope they don't change anything later...
  * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {import("../../matrix/api")} api simple-as-nails dependency injection for the matrix API
  */
-async function editToChanges(message, guild) {
+async function editToChanges(message, guild, api) {
 	// Figure out what events we will be replacing
 
 	const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
@@ -76,7 +75,7 @@ async function editToChanges(message, guild) {
 			}
 		}
 		// If we got this far, we could not pair it to an existing event, so it'll have to be a new one
-		eventsToSend.push(newe)
+		eventsToSend.push(newInnerContent[0])
 		shift()
 	}
 	// Anything remaining in oldEventRows is present in the old version only and should be redacted.
@@ -102,7 +101,7 @@ async function editToChanges(message, guild) {
 	eventsToRedact = eventsToRedact.map(e => e.event_id)
 	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, new: eventToReplacementEvent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
 
-	return {eventsToReplace, eventsToRedact, eventsToSend}
+	return {eventsToReplace, eventsToRedact, eventsToSend, senderMxid}
 }
 
 /**

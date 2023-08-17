@@ -9,7 +9,7 @@ async function editMessage() {
 	// 3. Send all the things.
 
 	// old code lies here
-	let eventPart = 0 // TODO: what to do about eventPart when editing? probably just need to make sure that exactly 1 value of '1' remains in the database?
+	let eventPart = 0 // TODO: what to do about eventPart when editing? probably just need to make sure that exactly 1 value of '0' remains in the database?
 	for (const event of events) {
 		const eventType = event.$type
 		/** @type {Pick<typeof event, Exclude<keyof event, "$type">> & { $type?: string }} */

@@ -1,12 +1,30 @@
-// @ts-check
-
 const {test} = require("supertape")
 const {editToChanges} = require("./edit-to-changes")
 const data = require("../../test/data")
 const Ty = require("../../types")
 
 test("edit2changes: bot response", async t => {
-   const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.bot_response, data.guild.general)
+   const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.bot_response, data.guild.general, {
+      async getJoinedMembers(roomID) {
+         t.equal(roomID, "!uCtjHhfGlYbVnPVlkG:cadence.moe")
+         return new Promise(resolve => {
+            setTimeout(() => {
+               resolve({
+                  joined: {
+                     "@cadence:cadence.moe": {
+                        display_name: "cadence [they]",
+                        avatar_url: "whatever"
+                     },
+                     "@_ooye_botrac4r:cadence.moe": {
+                        display_name: "botrac4r",
+                        avatar_url: "whatever"
+                     }
+                  }
+               })
+            })
+         })
+      }
+   })
    t.deepEqual(eventsToRedact, [])
    t.deepEqual(eventsToSend, [])
    t.deepEqual(eventsToReplace, [{
@@ -39,8 +57,27 @@ test("edit2changes: bot response", async t => {
    }])
 })
 
+test("edit2changes: remove caption from image", async t => {
+   const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.removed_caption_from_image, data.guild.general, {})
+   t.deepEqual(eventsToRedact, ["$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA"])
+   t.deepEqual(eventsToSend, [])
+   t.deepEqual(eventsToReplace, [])
+})
+
+test("edit2changes: add caption back to that image", async t => {
+   const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.added_caption_to_image, data.guild.general, {})
+   t.deepEqual(eventsToRedact, [])
+   t.deepEqual(eventsToSend, [{
+      $type: "m.room.message",
+      msgtype: "m.text",
+      body: "some text",
+      "m.mentions": {}
+   }])
+   t.deepEqual(eventsToReplace, [])
+})
+
 test("edit2changes: edit of reply to skull webp attachment with content", async t => {
-   const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_of_reply_to_skull_webp_attachment_with_content, data.guild.general)
+   const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_of_reply_to_skull_webp_attachment_with_content, data.guild.general, {})
 	t.deepEqual(eventsToRedact, [])
    t.deepEqual(eventsToSend, [])
    t.deepEqual(eventsToReplace, [{
