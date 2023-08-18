@@ -1,15 +1,21 @@
 // @ts-check
 
+const fs = require("fs")
 const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
 
 const config = require("../config")
 const passthrough = require("../passthrough")
-const db = new sqlite("db/ooye.db")
+const db = new sqlite(":memory:")
+
+db.exec(fs.readFileSync("db/data-for-test.sql", "utf8"))
 
 const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, { config, sync, db })
+
+const file = sync.require("../matrix/file")
+file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 
 require("../matrix/kstate.test")
 require("../matrix/api.test")

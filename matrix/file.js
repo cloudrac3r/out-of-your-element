@@ -40,15 +40,8 @@ async function uploadDiscordFileToMxc(path) {
 
 	// Download from Discord
 	const promise = fetch(url, {}).then(/** @param {import("node-fetch").Response} res */ async res => {
-		const body = res.body
-
 		// Upload to Matrix
-		/** @type {import("../types").R.FileUploaded} */
-		const root = await mreq.mreq("POST", "/media/v3/upload", body, {
-			headers: {
-				"Content-Type": res.headers.get("content-type")
-			}
-		})
+		const root = await module.exports._actuallyUploadDiscordFileToMxc(url, res)
 
 		// Store relationship in database
 		db.prepare("INSERT INTO file (discord_url, mxc_url) VALUES (?, ?)").run(url, root.content_uri)
@@ -59,6 +52,17 @@ async function uploadDiscordFileToMxc(path) {
 	inflight.set(url, promise)
 
 	return promise
+}
+
+async function _actuallyUploadDiscordFileToMxc(url, res) {
+	const body = res.body
+	/** @type {import("../types").R.FileUploaded} */
+	const root = await mreq.mreq("POST", "/media/v3/upload", body, {
+		headers: {
+			"Content-Type": res.headers.get("content-type")
+		}
+	})
+	return root
 }
 
 function guildIcon(guild) {
@@ -102,3 +106,4 @@ module.exports.emoji = emoji
 module.exports.stickerFormat = stickerFormat
 module.exports.sticker = sticker
 module.exports.uploadDiscordFileToMxc = uploadDiscordFileToMxc
+module.exports._actuallyUploadDiscordFileToMxc = _actuallyUploadDiscordFileToMxc
