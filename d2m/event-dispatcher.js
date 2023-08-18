@@ -27,7 +27,7 @@ module.exports = {
 		console.error("hit event-dispatcher's error handler with this exception:")
 		console.error(e) // TODO: also log errors into a file or into the database, maybe use a library for this? or just wing it? definitely need to be able to store the formatted event body to load back in later
 		console.error(`while handling this ${gatewayMessage.t} gateway event:`)
-		console.dir(gatewayMessage.d)
+		console.dir(gatewayMessage.d, {depth: null})
 
 		if (Date.now() - lastReportedEvent > 5000) {
 			lastReportedEvent = Date.now()
@@ -60,7 +60,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
-	onMessageCreate(client, message) {
+	async onMessageCreate(client, message) {
 		if (message.webhook_id) {
 			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(message.webhook_id)
 			if (row) {
@@ -73,14 +73,14 @@ module.exports = {
 		if (!channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
 		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
-		sendMessage.sendMessage(message, guild)
+		await sendMessage.sendMessage(message, guild)
 	},
 
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {import("discord-api-types/v10").GatewayMessageUpdateDispatchData} message
 	 */
-	onMessageUpdate(client, data) {
+	async onMessageUpdate(client, data) {
 		if (data.webhook_id) {
 			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(data.webhook_id)
 			if (row) {
@@ -98,7 +98,7 @@ module.exports = {
 			if (!channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)
 			if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
-			editMessage.editMessage(message, guild)
+			await editMessage.editMessage(message, guild)
 		}
 	},
 
@@ -106,19 +106,19 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
 	 */
-	onReactionAdd(client, data) {
+	async onReactionAdd(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		if (data.emoji.id !== null) return // TODO: image emoji reactions
 		console.log(data)
-		addReaction.addReaction(data)
+		await addReaction.addReaction(data)
 	},
 
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {import("discord-api-types/v10").GatewayMessageDeleteDispatchData} data
 	 */
-	onMessageDelete(client, data) {
+	async onMessageDelete(client, data) {
 		console.log(data)
-		deleteMessage.deleteMessage(data)
+		await deleteMessage.deleteMessage(data)
 	}
 }

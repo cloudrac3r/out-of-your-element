@@ -2,8 +2,6 @@
 
 const passthrough = require("../../passthrough")
 const { sync, db } = passthrough
-/** @type {import("../converters/edit-to-changes")} */
-const editToChanges = sync.require("../converters/edit-to-changes")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 
@@ -12,7 +10,7 @@ const api = sync.require("../../matrix/api")
  */
 async function deleteMessage(data) {
 	/** @type {string?} */
-	const roomID = db.prepare("SELECT channel_id FROM channel_room WHERE channel_id = ?").pluck().get(data.channel_id)
+	const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(data.channel_id)
 	if (!roomID) return
 
 	/** @type {string[]} */
@@ -22,7 +20,6 @@ async function deleteMessage(data) {
 		// Unfortuately, we can't specify a sender to do the redaction as, unless we find out that info via the audit logs
 		await api.redactEvent(roomID, eventID)
 		db.prepare("DELETE from event_message WHERE event_id = ?").run(eventID)
-		// TODO: Consider whether this code could be reused between edited messages and deleted messages.
 	}
 }
 

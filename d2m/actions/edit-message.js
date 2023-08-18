@@ -35,11 +35,8 @@ async function editMessage(message, guild) {
 	// Not redacting as the last action because the last action is likely to be shown in the room preview in clients, and we don't want it to look like somebody actually deleted a message.
 	for (const eventID of eventsToRedact) {
 		await api.redactEvent(roomID, eventID, senderMxid)
-		// TODO: Reconsider whether it's the right thing to do to delete it from our database? I mean, it's literally not there any more... you can't do anything else with it...
-		// and you definitely want to mark it in *some* way to prevent duplicate redactions...
 		db.prepare("DELETE from event_message WHERE event_id = ?").run(eventID)
 		// TODO: If I just redacted part = 0, I should update one of the other events to make it the new part = 0, right?
-		// TODO: Consider whether this code could be reused between edited messages and deleted messages.
 	}
 
 	// 3. Send all the things.

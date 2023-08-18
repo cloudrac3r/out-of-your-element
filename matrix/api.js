@@ -134,7 +134,7 @@ async function sendEvent(roomID, type, content, mxid, timestamp) {
  */
 async function redactEvent(roomID, eventID, mxid) {
    /** @type {Ty.R.EventRedacted} */
-   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/redact/${eventID}/${makeTxnId.makeTxnId()}`, mxid))
+   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/redact/${eventID}/${makeTxnId.makeTxnId()}`, mxid), {})
    return root.event_id
 }
 

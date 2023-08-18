@@ -11,7 +11,7 @@ const utils = {
 	 * @param {import("./discord-client")} client
 	 * @param {import("cloudstorm").IGatewayMessage} message
 	 */
-	onPacket(client, message) {
+	async onPacket(client, message) {
 		// requiring this later so that the client is already constructed by the time event-dispatcher is loaded
 		/** @type {typeof import("./event-dispatcher")} */
 		const eventDispatcher = sync.require("./event-dispatcher")
@@ -68,16 +68,16 @@ const utils = {
 		// Event dispatcher for OOYE bridge operations
 		try {
 			if (message.t === "MESSAGE_CREATE") {
-				eventDispatcher.onMessageCreate(client, message.d)
+				await eventDispatcher.onMessageCreate(client, message.d)
 
 			} else if (message.t === "MESSAGE_UPDATE") {
-				eventDispatcher.onMessageUpdate(client, message.d)
+				await eventDispatcher.onMessageUpdate(client, message.d)
 
 			} else if (message.t === "MESSAGE_DELETE") {
-				eventDispatcher.onMessageDelete(client, message.d)
+				await eventDispatcher.onMessageDelete(client, message.d)
 
 			} else if (message.t === "MESSAGE_REACTION_ADD") {
-				eventDispatcher.onReactionAdd(client, message.d)
+				await eventDispatcher.onReactionAdd(client, message.d)
 			}
 		} catch (e) {
 			// Let OOYE try to handle errors too

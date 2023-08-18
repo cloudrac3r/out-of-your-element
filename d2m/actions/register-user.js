@@ -115,8 +115,14 @@ function calculateProfileEventContentHash(content) {
 }
 
 /**
+ * Sync profile data for a sim user. This function follows the following process:
+ * 1. Join the sim to the room if needed
+ * 2. Make an object of what the new room member state content would be, including uploading the profile picture if it hasn't been done before
+ * 3. Compare against the previously known state content, which is helpfully stored in the database
+ * 4. If the state content has changes, send it to Matrix and update it in the database for next time
  * @param {import("discord-api-types/v10").APIUser} user
  * @param {Omit<import("discord-api-types/v10").APIGuildMember, "user">} member
+ * @returns {Promise<string>} mxid of the updated sim
  */
 async function syncUser(user, member, guildID, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
@@ -128,6 +134,7 @@ async function syncUser(user, member, guildID, roomID) {
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
 		db.prepare("UPDATE sim_member SET profile_event_content_hash = ? WHERE room_id = ? AND mxid = ?").run(profileEventContentHash, roomID, mxid)
 	}
+	return mxid
 }
 
 async function syncAllUsersInRoom(roomID) {

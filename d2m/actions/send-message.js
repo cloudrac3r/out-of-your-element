@@ -23,8 +23,7 @@ async function sendMessage(message, guild) {
 	let senderMxid = null
 	if (!message.webhook_id) {
 		assert(message.member)
-		senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
-		await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
+		senderMxid = await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
 	}
 
 	const events = await messageToEvent.messageToEvent(message, guild, {}, {api})
