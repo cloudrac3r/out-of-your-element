@@ -21,8 +21,8 @@ async function roomToKState(roomID) {
 }
 
 /**
- * @params {string} roomID
- * @params {any} kstate
+ * @param {string} roomID
+ * @param {any} kstate
  */
 function applyKStateDiffToRoom(roomID, kstate) {
 	const events = ks.kstateToState(kstate)
@@ -51,7 +51,7 @@ function convertNameAndTopic(channel, guild, customName) {
 }
 
 /**
- * @param {DiscordTypes.APIGuildTextChannel} channel
+ * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel
  * @param {DiscordTypes.APIGuild} guild
  */
 async function channelToKState(channel, guild) {
@@ -98,21 +98,27 @@ async function channelToKState(channel, guild) {
  * @returns {Promise<string>} room ID
  */
 async function createRoom(channel, guild, spaceID, kstate) {
+	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, null)
 	const roomID = await api.createRoom({
-		name: channel.name,
-		topic: channel.topic || undefined,
+		name: convertedName,
+		topic: convertedTopic,
 		preset: "private_chat",
 		visibility: "private",
 		invite: ["@cadence:cadence.moe"], // TODO
 		initial_state: ks.kstateToState(kstate)
 	})
 
-	db.prepare("INSERT INTO channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, roomID)
+	let threadParent = null
+	if (channel.type === DiscordTypes.ChannelType.PublicThread) {
+		/** @type {DiscordTypes.APIThreadChannel} */ // @ts-ignore
+		const thread = channel
+		threadParent = thread.parent_id
+	}
+
+	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
 
 	// Put the newly created child into the space
-	await api.sendState(spaceID, "m.space.child", roomID, { // TODO: should I deduplicate with the equivalent code from syncRoom?
-		via: ["cadence.moe"] // TODO: use the proper server
-	})
+	_syncSpaceMember(channel, spaceID, roomID)
 
 	return roomID
 }
@@ -156,14 +162,15 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	assert.ok(channel)
 	const guild = channelToGuild(channel)
 
-	/** @type {string?} */
-	const existing = db.prepare("SELECT room_id from channel_room WHERE channel_id = ?").pluck().get(channel.id)
+	/** @type {{room_id: string, thread_parent: string?}} */
+	const existing = db.prepare("SELECT room_id, thread_parent from channel_room WHERE channel_id = ?").get(channelID)
+
 	if (!existing) {
 		const {spaceID, channelKState} = await channelToKState(channel, guild)
 		return createRoom(channel, guild, spaceID, channelKState)
 	} else {
 		if (!shouldActuallySync) {
-			return existing // only need to ensure room exists, and it does. return the room ID
+			return existing.room_id // only need to ensure room exists, and it does. return the room ID
 		}
 
 		console.log(`[room sync] to matrix: ${channel.name}`)
@@ -171,22 +178,39 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		const {spaceID, channelKState} = await channelToKState(channel, guild)
 
 		// sync channel state to room
-		const roomKState = await roomToKState(existing)
+		const roomKState = await roomToKState(existing.room_id)
 		const roomDiff = ks.diffKState(roomKState, channelKState)
-		const roomApply = applyKStateDiffToRoom(existing, roomDiff)
+		const roomApply = applyKStateDiffToRoom(existing.room_id, roomDiff)
 
 		// sync room as space member
-		const spaceKState = await roomToKState(spaceID)
-		const spaceDiff = ks.diffKState(spaceKState, {
-			[`m.space.child/${existing}`]: {
-				via: ["cadence.moe"] // TODO: use the proper server
-			}
-		})
-		const spaceApply = applyKStateDiffToRoom(spaceID, spaceDiff)
+		const spaceApply = _syncSpaceMember(channel, spaceID, existing.room_id)
 		await Promise.all([roomApply, spaceApply])
 
-		return existing
+		return existing.room_id
 	}
+}
+
+/**
+ * @param {DiscordTypes.APIGuildTextChannel} channel
+ * @param {string} spaceID
+ * @param {string} roomID
+ * @returns {Promise<string[]>}
+ */
+async function _syncSpaceMember(channel, spaceID, roomID) {
+	const spaceKState = await roomToKState(spaceID)
+	let spaceEventContent = {}
+	if (
+		channel.type !== DiscordTypes.ChannelType.PrivateThread // private threads do not belong in the space (don't offer people something they can't join)
+		|| channel["thread_metadata"]?.archived // archived threads do not belong in the space (don't offer people conversations that are no longer relevant)
+	) {
+		spaceEventContent = {
+			via: ["cadence.moe"] // TODO: use the proper server
+		}
+	}
+	const spaceDiff = ks.diffKState(spaceKState, {
+		[`m.space.child/${roomID}`]: spaceEventContent
+	})
+	return applyKStateDiffToRoom(spaceID, spaceDiff)
 }
 
 function ensureRoom(channelID) {

@@ -50,10 +50,11 @@ async function withWebhook(channelID, callback) {
 /**
  * @param {string} channelID
  * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}} data
+ * @param {string} [threadID]
  */
-async function sendMessageWithWebhook(channelID, data) {
+async function sendMessageWithWebhook(channelID, data, threadID) {
    const result = await withWebhook(channelID, async webhook => {
-      return discord.snow.webhook.executeWebhook(webhook.id, webhook.token, data, {wait: true, disableEveryone: true})
+      return discord.snow.webhook.executeWebhook(webhook.id, webhook.token, data, {wait: true, thread_id: threadID, disableEveryone: true})
    })
    return result
 }

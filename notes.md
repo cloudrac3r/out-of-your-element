@@ -9,6 +9,13 @@ A database will be used to store the discord id to matrix event id mapping. Tabl
 
 There needs to be a way to easily manually trigger something later. For example, it should be easy to manually retry sending a message, or check all members for changes, etc.
 
+## Current manual process for setting up a server
+
+1. Call createSpace.createSpace(discord.guilds.get(GUILD_ID))
+2. Call createRoom.createAllForGuild(GUILD_ID)
+3. Edit source code of event-dispatcher.js isGuildAllowed() and add the guild ID to the list
+4. If developing, make sure SSH port forward is activated, then wait for events to sync over!
+
 ## Transforming content
 
 1. Upload attachments to mxc if they are small enough.

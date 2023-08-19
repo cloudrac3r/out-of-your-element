@@ -15,6 +15,10 @@ const api = sync.require("../matrix/api")
 
 let lastReportedEvent = 0
 
+function isGuildAllowed(guildID) {
+	return ["112760669178241024", "497159726455455754", "1100319549670301727"].includes(guildID)
+}
+
 // Grab Discord events we care about for the bridge, check them, and pass them on
 
 module.exports = {
@@ -29,31 +33,34 @@ module.exports = {
 		console.error(`while handling this ${gatewayMessage.t} gateway event:`)
 		console.dir(gatewayMessage.d, {depth: null})
 
-		if (Date.now() - lastReportedEvent > 5000) {
-			lastReportedEvent = Date.now()
-			const channelID = gatewayMessage.d.channel_id
-			if (channelID) {
-				const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channelID)
-				let stackLines = e.stack.split("\n")
-				let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
-				if (cloudstormLine !== -1) {
-					stackLines = stackLines.slice(0, cloudstormLine - 2)
-				}
-				api.sendEvent(roomID, "m.room.message", {
-					msgtype: "m.text",
-					body: "\u26a0 Bridged event from Discord not delivered. See formatted content for full details.",
-					format: "org.matrix.custom.html",
-					formatted_body: "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
-						+ `<br>Gateway event: ${gatewayMessage.t}`
-						+ `<pre>${stackLines.join("\n")}</pre>`
-						+ `<details><summary>Original payload</summary>`
-						+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`,
-					"m.mentions": {
-						user_ids: ["@cadence:cadence.moe"]
-					}
-				})
-			}
+		if (Date.now() - lastReportedEvent < 5000) return
+		lastReportedEvent = Date.now()
+
+		const channelID = gatewayMessage.d.channel_id
+		if (!channelID) return
+		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channelID)
+		if (!roomID) return
+
+		let stackLines = e.stack.split("\n")
+		let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
+		if (cloudstormLine !== -1) {
+			stackLines = stackLines.slice(0, cloudstormLine - 2)
 		}
+		api.sendEvent(roomID, "m.room.message", {
+			msgtype: "m.text",
+			body: "\u26a0 Bridged event from Discord not delivered. See formatted content for full details.",
+			format: "org.matrix.custom.html",
+			formatted_body: "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
+				+ `<br>Gateway event: ${gatewayMessage.t}`
+				+ `<br>${e.toString()}`
+				+ `<details><summary>Error trace</summary>`
+				+ `<pre>${stackLines.join("\n")}</pre></details>`
+				+ `<details><summary>Original payload</summary>`
+				+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`,
+			"m.mentions": {
+				user_ids: ["@cadence:cadence.moe"]
+			}
+		})
 	},
 
 	/**
@@ -72,7 +79,7 @@ module.exports = {
 		const channel = client.channels.get(message.channel_id)
 		if (!channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
-		if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
+		if (!isGuildAllowed(guild.id)) return
 		await sendMessage.sendMessage(message, guild)
 	},
 
@@ -97,7 +104,7 @@ module.exports = {
 			const channel = client.channels.get(message.channel_id)
 			if (!channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)
-			if (message.guild_id !== "112760669178241024" && message.guild_id !== "497159726455455754") return // TODO: activate on other servers (requires the space creation flow to be done first)
+			if (!isGuildAllowed(guild.id)) return
 			await editMessage.editMessage(message, guild)
 		}
 	},
@@ -109,7 +116,6 @@ module.exports = {
 	async onReactionAdd(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		if (data.emoji.id !== null) return // TODO: image emoji reactions
-		console.log(data)
 		await addReaction.addReaction(data)
 	},
 
@@ -118,7 +124,6 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageDeleteDispatchData} data
 	 */
 	async onMessageDelete(client, data) {
-		console.log(data)
 		await deleteMessage.deleteMessage(data)
 	}
 }

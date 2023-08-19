@@ -54,10 +54,10 @@ BEGIN TRANSACTION;
 INSERT INTO guild_space (guild_id, space_id) VALUES
 ('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe');
 
-INSERT INTO channel_room (channel_id, room_id, name, nick) VALUES
-('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main'),
-('497161350934560778', '!edUxjVdzgUvXDUIQCK:cadence.moe', 'amanda-spam', NULL),
-('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots');
+INSERT INTO channel_room (channel_id, room_id, name, nick, is_thread) VALUES
+('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, 0),
+('497161350934560778', '!edUxjVdzgUvXDUIQCK:cadence.moe', 'amanda-spam', NULL, 0),
+('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots', 0);
 
 INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),

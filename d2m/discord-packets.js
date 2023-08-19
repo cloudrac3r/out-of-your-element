@@ -35,6 +35,12 @@ const utils = {
 				arr.push(channel.id)
 				client.channels.set(channel.id, channel)
 			}
+			for (const thread of message.d.threads || []) {
+				// @ts-ignore
+				thread.guild_id = message.d.id
+				arr.push(thread.id)
+				client.channels.set(thread.id, thread)
+			}
 
 
 		} else if (message.t === "GUILD_DELETE") {
