@@ -21,7 +21,7 @@ test("event2message: janky test", t => {
 			}
 		}),
 		[{
-			username: "cadence:cadence.moe",
+			username: "cadence",
 			content: "test",
 			avatar_url: undefined
 		}]

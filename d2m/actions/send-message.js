@@ -22,8 +22,11 @@ async function sendMessage(message, guild) {
 
 	let senderMxid = null
 	if (!message.webhook_id) {
-		assert(message.member)
-		senderMxid = await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
+		if (message.member) { // available on a gateway message create event
+			senderMxid = await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
+		} else { // well, good enough...
+			senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
+		}
 	}
 
 	const events = await messageToEvent.messageToEvent(message, guild, {}, {api})
@@ -35,7 +38,7 @@ async function sendMessage(message, guild) {
 		const eventWithoutType = {...event}
 		delete eventWithoutType.$type
 
-		const eventID = await api.sendEvent(roomID, eventType, event, senderMxid)
+		const eventID = await api.sendEvent(roomID, eventType, event, senderMxid, new Date(message.timestamp).getTime())
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, message.channel_id, eventPart) // source 1 = discord
 
 		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting

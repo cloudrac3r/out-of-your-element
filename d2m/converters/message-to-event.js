@@ -108,6 +108,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 		addMention(repliedToEventSenderMxid)
 	}
 
+	let msgtype = "m.text"
+	// Handle message type 4, channel name changed
+	if (message.type === DiscordTypes.MessageType.ChannelNameChange) {
+		msgtype = "m.emote"
+		message.content = "changed the channel name to **" + message.content + "**"
+	}
+
 	// Text content appears first
 	if (message.content) {
 		let content = message.content
@@ -188,7 +195,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const newTextMessageEvent = {
 			$type: "m.room.message",
 			"m.mentions": mentions,
-			msgtype: "m.text",
+			msgtype,
 			body: body
 		}
 
@@ -232,6 +239,22 @@ async function messageToEvent(message, guild, options = {}, di) {
 				external_url: attachment.url,
 				body: attachment.filename,
 				// TODO: filename: attachment.filename and then use body as the caption
+				info: {
+					mimetype: attachment.content_type,
+					w: attachment.width,
+					h: attachment.height,
+					size: attachment.size
+				}
+			}
+		} else if (attachment.content_type?.startsWith("video/") && attachment.width && attachment.height) {
+			return {
+				$type: "m.room.message",
+				"m.mentions": mentions,
+				msgtype: "m.video",
+				url: await file.uploadDiscordFileToMxc(attachment.url),
+				external_url: attachment.url,
+				body: attachment.description || attachment.filename,
+				filename: attachment.filename,
 				info: {
 					mimetype: attachment.content_type,
 					w: attachment.width,

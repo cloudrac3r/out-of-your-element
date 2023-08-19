@@ -41,9 +41,8 @@ async function ensureWebhook(channelID, forceCreate = false) {
 async function withWebhook(channelID, callback) {
 	const webhook = await ensureWebhook(channelID, false)
 	return callback(webhook).catch(e => {
-		console.error(e)
 		// TODO: check if the error was webhook-related and if webhook.created === false, then: const webhook = ensureWebhook(channelID, true); return callback(webhook)
-		throw new Error(e)
+		throw e
 	})
 }
 

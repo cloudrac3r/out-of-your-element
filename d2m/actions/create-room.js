@@ -190,6 +190,33 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	}
 }
 
+async function _unbridgeRoom(channelID) {
+	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
+	const channel = discord.channels.get(channelID)
+	assert.ok(channel)
+	const roomID = db.prepare("SELECT room_id from channel_room WHERE channel_id = ?").pluck().get(channelID)
+	assert.ok(roomID)
+	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(channel.guild_id)
+	assert.ok(spaceID)
+
+	// remove room from being a space member
+	await api.sendState(spaceID, "m.space.child", roomID, {})
+
+	// send a notification in the room
+	await api.sendEvent(roomID, "m.room.message", {
+		msgtype: "m.notice",
+		body: "⚠️ This room was removed from the bridge."
+	})
+
+	// leave room
+	await api.leaveRoom(roomID)
+
+	// delete room from database
+	const {changes} = db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channelID)
+	assert.equal(changes, 1)
+}
+
+
 /**
  * @param {DiscordTypes.APIGuildTextChannel} channel
  * @param {string} spaceID
@@ -237,3 +264,4 @@ module.exports.syncRoom = syncRoom
 module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
 module.exports._convertNameAndTopic = convertNameAndTopic
+module.exports._unbridgeRoom = _unbridgeRoom

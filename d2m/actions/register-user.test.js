@@ -8,7 +8,7 @@ test("member2state: general", async t => {
 		await _memberToStateContent(testData.member.sheep.user, testData.member.sheep, testData.guild.general.id),
 		{
 			avatar_url: "mxc://cadence.moe/rfemHmAtcprjLEiPiEuzPhpl",
-			displayname: "The Expert's Submarine | aprilsong",
+			displayname: "The Expert's Submarine",
 			membership: "join",
 			"moe.cadence.ooye.member": {
 				avatar: "/guilds/112760669178241024/users/134826546694193153/avatars/38dd359aa12bcd52dd3164126c587f8c.png?size=1024"

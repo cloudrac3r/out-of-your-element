@@ -41,6 +41,7 @@ const utils = {
 				arr.push(thread.id)
 				client.channels.set(thread.id, thread)
 			}
+			eventDispatcher.checkMissedMessages(client, message.d)
 
 
 		} else if (message.t === "GUILD_DELETE") {

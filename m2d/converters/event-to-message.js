@@ -30,6 +30,12 @@ function eventToMessage(event) {
 			username: displayName,
 			avatar_url: avatarURL
 		})
+	} else if (event.content.msgtype === "m.emote") {
+		messages.push({
+			content: `*${displayName} ${event.content.body}*`,
+			username: displayName,
+			avatar_url: avatarURL
+		})
 	}
 
 	return messages

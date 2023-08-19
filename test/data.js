@@ -864,7 +864,7 @@ module.exports = {
 			components: [],
 			channel_id: "910283343378120754",
 			author: {
-			  	username: "kumaccino",
+				username: "kumaccino",
 				public_flags: 128,
 				id: "113340068197859328",
 				global_name: "kumaccino",
@@ -874,6 +874,72 @@ module.exports = {
 			},
 			attachments: [],
 			guild_id: "112760669178241024"
+		}
+	},
+	message_with_embeds: {
+		nothing_but_a_field: {
+			guild_id: "497159726455455754",
+			mentions: [],
+			id: "1141934888862351440",
+			type: 20,
+			content: "",
+			channel_id: "497161350934560778",
+			author: {
+				id: "1109360903096369153",
+				username: "Amanda 🎵",
+				avatar: "d56cd1b26e043ae512edae2214962faa",
+				discriminator: "2192",
+				public_flags: 524288,
+				flags: 524288,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					color: 3092790,
+					fields: [
+						{
+							name: "Amanda 🎵#2192 <:online:606664341298872324>\nwillow tree, branch 0",
+							value: "**❯ Uptime:**\n3m 55s\n**❯ Memory:**\n64.45MB",
+							inline: false
+						}
+					]
+				}
+			],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-08-18T03:21:33.629000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "1109360903096369153",
+			interaction: {
+				id: "1141934887608254475",
+				type: 2,
+				name: "stats",
+				user: {
+					id: "320067006521147393",
+					username: "papiophidian",
+					avatar: "47a19b0445069b826e136da4df4259bb",
+					discriminator: "0",
+					public_flags: 4194880,
+					flags: 4194880,
+					banner: null,
+					accent_color: null,
+					global_name: "PapiOphidian",
+					avatar_decoration_data: null,
+					banner_color: null
+				}
+			},
+			webhook_id: "1109360903096369153"
 		}
 	},
 	message_update: {
@@ -1276,6 +1342,39 @@ module.exports = {
 				}
 			],
 			guild_id: "112760669178241024"
+		}
+	},
+	special_message: {
+		thread_name_change: {
+			id: "1142391602799710298",
+			type: 4,
+			content: "worming",
+			channel_id: "1142271000067706880",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-08-19T09:36:22.717000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			position: 12
 		}
 	}
 }

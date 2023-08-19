@@ -330,4 +330,14 @@ test("message2event: very large attachment is linked instead of being uploaded",
 	}])
 })
 
-// TODO: read "edits of replies" in the spec
+test("message2event: type 4 channel name change", async t => {
+	const events = await messageToEvent(data.special_message.thread_name_change, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.emote",
+		body: "changed the channel name to **worming**",
+		format: "org.matrix.custom.html",
+		formatted_body: "changed the channel name to <strong>worming</strong>"
+	}])
+})

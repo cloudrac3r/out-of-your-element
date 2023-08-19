@@ -64,6 +64,42 @@ module.exports = {
 	},
 
 	/**
+	 * When logging back in, check if we missed any conversations in any channels. Bridge up to 49 missed messages per channel.
+	 * If more messages were missed, only the latest missed message will be posted. TODO: Consider bridging more, or post a warning when skipping history?
+	 * This can ONLY detect new messages, not any other kind of event. Any missed edits, deletes, reactions, etc will not be bridged.
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayGuildCreateDispatchData} guild
+	 */
+	async checkMissedMessages(client, guild) {
+		if (guild.unavailable) return
+		const bridgedChannels = db.prepare("SELECT channel_id FROM channel_room").pluck().all()
+		const prepared = db.prepare("SELECT message_id FROM event_message WHERE channel_id = ? AND message_id = ?").pluck()
+		for (const channel of guild.channels.concat(guild.threads)) {
+			if (!bridgedChannels.includes(channel.id)) continue
+			if (!channel.last_message_id) continue
+			const latestWasBridged = prepared.get(channel.id, channel.last_message_id)
+			if (latestWasBridged) continue
+
+			/** More recent messages come first. */
+			console.log(`[check missed messages] in ${channel.id} (${guild.name} / ${channel.name}) because its last message ${channel.last_message_id} is not in the database`)
+			const messages = await client.snow.channel.getChannelMessages(channel.id, {limit: 50})
+			let latestBridgedMessageIndex = messages.findIndex(m => {
+				return prepared.get(channel.id, m.id)
+			})
+			console.log(`[check missed messages] got ${messages.length} messages; last message that IS bridged is at position ${latestBridgedMessageIndex} in the channel`)
+			if (latestBridgedMessageIndex === -1) latestBridgedMessageIndex = 1 // rather than crawling the ENTIRE channel history, let's just bridge the most recent 1 message to make it up to date.
+			for (let i = Math.min(messages.length, latestBridgedMessageIndex)-1; i >= 0; i--) {
+				const simulatedGatewayDispatchData = {
+					guild_id: guild.id,
+					mentions: [],
+					...messages[i]
+				}
+				await module.exports.onMessageCreate(client, simulatedGatewayDispatchData)
+			}
+		}
+	},
+
+	/**
 	 * @param {import("./discord-client")} client
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
@@ -85,7 +121,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageUpdateDispatchData} message
+	 * @param {import("discord-api-types/v10").GatewayMessageUpdateDispatchData} data
 	 */
 	async onMessageUpdate(client, data) {
 		if (data.webhook_id) {
