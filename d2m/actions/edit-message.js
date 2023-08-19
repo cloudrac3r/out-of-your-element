@@ -12,10 +12,7 @@ const api = sync.require("../../matrix/api")
  * @param {import("discord-api-types/v10").APIGuild} guild
  */
 async function editMessage(message, guild) {
-	console.log(`*** applying edit for message ${message.id} in channel ${message.channel_id}`)
 	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid} = await editToChanges.editToChanges(message, guild, api)
-	console.log("making these changes:")
-	console.dir({eventsToRedact, eventsToReplace, eventsToSend}, {depth: null})
 
 	// 1. Replace all the things.
 	for (const {oldID, newContent} of eventsToReplace) {

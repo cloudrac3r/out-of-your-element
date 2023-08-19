@@ -22,7 +22,7 @@ async function addReaction(data) {
    assert.equal(typeof parentID, "string")
 	const roomID = await createRoom.ensureRoom(data.channel_id)
 	const senderMxid = await registerUser.ensureSimJoined(user, roomID)
-	const eventID = api.sendEvent(roomID, "m.reaction", {
+	const eventID = await api.sendEvent(roomID, "m.reaction", {
       "m.relates_to": {
          rel_type: "m.annotation",
          event_id: parentID,
