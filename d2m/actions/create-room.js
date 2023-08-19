@@ -252,8 +252,11 @@ async function createAllForGuild(guildID) {
 	const channelIDs = discord.guildChannelMap.get(guildID)
 	assert.ok(channelIDs)
 	for (const channelID of channelIDs) {
-		if (discord.channels.get(channelID)?.type === DiscordTypes.ChannelType.GuildText) { // TODO: guild sync thread channels and such. maybe make a helper function to check if a given channel is syncable?
-			await syncRoom(channelID).then(r => console.log(`synced ${channelID}:`, r))
+		const allowedTypes = [DiscordTypes.ChannelType.GuildText, DiscordTypes.ChannelType.PublicThread]
+		// @ts-ignore
+		if (allowedTypes.includes(discord.channels.get(channelID)?.type)) {
+			const roomID = await syncRoom(channelID)
+			console.log(`synced ${channelID} <-> ${roomID}`)
 		}
 	}
 }

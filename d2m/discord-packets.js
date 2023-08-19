@@ -44,6 +44,10 @@ const utils = {
 			eventDispatcher.checkMissedMessages(client, message.d)
 
 
+		} else if (message.t === "CHANNEL_UPDATE" || message.t === "THREAD_UPDATE") {
+			client.channels.set(message.d.id, message.d)
+
+
 		} else if (message.t === "GUILD_DELETE") {
 			client.guilds.delete(message.d.id)
 			const channels = client.guildChannelMap.get(message.d.id)
@@ -74,7 +78,13 @@ const utils = {
 
 		// Event dispatcher for OOYE bridge operations
 		try {
-			if (message.t === "MESSAGE_CREATE") {
+			if (message.t === "CHANNEL_UPDATE") {
+				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
+
+			} else if (message.t === "THREAD_UPDATE") {
+				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
+
+			} else if (message.t === "MESSAGE_CREATE") {
 				await eventDispatcher.onMessageCreate(client, message.d)
 
 			} else if (message.t === "MESSAGE_UPDATE") {

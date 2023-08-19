@@ -10,6 +10,8 @@ const editMessage = sync.require("./actions/edit-message")
 const deleteMessage = sync.require("./actions/delete-message")
 /** @type {import("./actions/add-reaction")}) */
 const addReaction = sync.require("./actions/add-reaction")
+/** @type {import("./actions/create-room")}) */
+const createRoom = sync.require("./actions/create-room")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 
@@ -97,6 +99,17 @@ module.exports = {
 				await module.exports.onMessageCreate(client, simulatedGatewayDispatchData)
 			}
 		}
+	},
+
+		/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayChannelUpdateDispatchData} channelOrThread
+	 * @param {boolean} isThread
+	 */
+	async onChannelOrThreadUpdate(client, channelOrThread, isThread) {
+		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").get(channelOrThread.id)
+		if (!roomID) return // No target room to update the data on
+		await createRoom.syncRoom(channelOrThread.id)
 	},
 
 	/**
