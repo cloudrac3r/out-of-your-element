@@ -1,9 +1,10 @@
 // @ts-check
 
-/**
+/*
  * Grab Matrix events we care about, check them, and bridge them.
  */
 
+const util = require("util")
 const Ty = require("../types")
 const {sync, as} = require("../passthrough")
 
@@ -13,21 +14,58 @@ const sendEvent = sync.require("./actions/send-event")
 const addReaction = sync.require("./actions/add-reaction")
 /** @type {import("./converters/utils")} */
 const utils = sync.require("./converters/utils")
+/** @type {import("../matrix/api")}) */
+const api = sync.require("../matrix/api")
 
-sync.addTemporaryListener(as, "type:m.room.message",
+let lastReportedEvent = 0
+
+function guard(type, fn) {
+	return async function(event, ...args) {
+		try {
+			return await fn(event, ...args)
+		} catch (e) {
+			console.error("hit event-dispatcher's error handler with this exception:")
+			console.error(e) // TODO: also log errors into a file or into the database, maybe use a library for this? or just wing it?
+			console.error(`while handling this ${type} gateway event:`)
+			console.dir(event, {depth: null})
+
+			if (Date.now() - lastReportedEvent < 5000) return
+			lastReportedEvent = Date.now()
+
+			let stackLines = e.stack.split("\n")
+			api.sendEvent(event.room_id, "m.room.message", {
+				msgtype: "m.text",
+				body: "\u26a0 Matrix event not delivered to Discord. See formatted content for full details.",
+				format: "org.matrix.custom.html",
+				formatted_body: "\u26a0 <strong>Matrix event not delivered to Discord</strong>"
+					+ `<br>Event type: ${type}`
+					+ `<br>${e.toString()}`
+					+ `<details><summary>Error trace</summary>`
+					+ `<pre>${stackLines.join("\n")}</pre></details>`
+					+ `<details><summary>Original payload</summary>`
+					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details>`,
+				"m.mentions": {
+					user_ids: ["@cadence:cadence.moe"]
+				}
+			})
+		}
+	}
+}
+
+sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Room_Message>} event it is a m.room.message because that's what this listener is filtering for
  */
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const messageResponses = await sendEvent.sendEvent(event)
-})
+}))
 
-sync.addTemporaryListener(as, "type:m.reaction",
+sync.addTemporaryListener(as, "type:m.reaction", guard("m.reaction",
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event it is a m.reaction because that's what this listener is filtering for
  */
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	await addReaction.addReaction(event)
-})
+}))
