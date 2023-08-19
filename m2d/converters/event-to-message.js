@@ -16,11 +16,19 @@ function eventToMessage(event) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]})[]} */
 	const messages = []
 
+	let displayName = event.sender
+	let avatarURL = undefined
+	const match = event.sender.match(/^@(.*?):/)
+	if (match) {
+		displayName = match[1]
+		// TODO: get the media repo domain and the avatar url from the matrix member event
+	}
+
 	if (event.content.msgtype === "m.text") {
 		messages.push({
 			content: event.content.body,
-			username: event.sender.replace(/^@/, ""),
-			avatar_url: undefined, // TODO: provide the URL to the avatar from the homeserver's content repo
+			username: displayName,
+			avatar_url: avatarURL
 		})
 	}
 
