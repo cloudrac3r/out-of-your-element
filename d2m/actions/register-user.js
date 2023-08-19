@@ -85,7 +85,8 @@ async function ensureSimJoined(user, roomID) {
  */
 async function memberToStateContent(user, member, guildID) {
 	let displayname = user.username
-	if (member.nick && member.nick !== displayname) displayname = member.nick + " | " + displayname // prepend nick if present
+	// if (member.nick && member.nick !== displayname) displayname = member.nick + " | " + displayname // prepend nick if present
+	if (member.nick) displayname = member.nick
 
 	const content = {
 		displayname,
