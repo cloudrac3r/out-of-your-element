@@ -101,7 +101,18 @@ module.exports = {
 		}
 	},
 
-		/**
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").APIChannel} thread
+	 */
+	async onThreadCreate(client, thread) {
+		console.log(thread)
+		const parentRoomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").get(thread.parent_id)
+		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
+		await createRoom.syncRoom(thread.id)
+	},
+
+	/**
 	 * @param {import("./discord-client")} client
 	 * @param {import("discord-api-types/v10").GatewayChannelUpdateDispatchData} channelOrThread
 	 * @param {boolean} isThread

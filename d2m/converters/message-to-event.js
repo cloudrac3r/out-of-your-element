@@ -27,11 +27,13 @@ function getDiscordParseCallbacks(message, useHTML) {
 		},
 		/** @param {{id: string, type: "discordChannel"}} node */
 		channel: node => {
-			const {room_id, name, nick} = db.prepare("SELECT room_id, name, nick FROM channel_room WHERE channel_id = ?").get(node.id)
-			if (room_id && useHTML) {
-				return `<a href="https://matrix.to/#/${room_id}">#${nick || name}</a>`
+			const row = db.prepare("SELECT room_id, name, nick FROM channel_room WHERE channel_id = ?").get(node.id)
+			if (!row) {
+				return `<#${node.id}>` // fallback for when this channel is not bridged
+			} else if (useHTML) {
+				return `<a href="https://matrix.to/#/${row.room_id}">#${row.nick || row.name}</a>`
 			} else {
-				return `#${nick || name}`
+				return `#${row.nick || row.name}`
 			}
 		},
 		/** @param {{animated: boolean, name: string, id: string, type: "discordEmoji"}} node */

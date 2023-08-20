@@ -9,6 +9,16 @@ A database will be used to store the discord id to matrix event id mapping. Tabl
 
 There needs to be a way to easily manually trigger something later. For example, it should be easy to manually retry sending a message, or check all members for changes, etc.
 
+## Discord's gateway when a new thread is created from an existing message:
+
+1. Regular MESSAGE_CREATE of the message that it's going to branch off in the future. Example ID -6423
+2. It MESSAGE_UPDATEd the ID -6423 with this whole data: {id:-6423,flags: 32,channel_id:-2084,guild_id:-1727} (ID is the message ID it's branching off, channel ID is the parent channel containing the message ID it's branching off)
+3. It THREAD_CREATEd and gave us a channel object with type 11 (public thread) and parent ID -2084 and ID -6423.
+4. It MESSAGE_CREATEd type 21 with blank content and a message reference pointing towards channel -2084 message -6423. (That's the message it branched from in the parent channel.) This MESSAGE_CREATE got ID -4631 (a new ID). Apart from that it's a regular message object.
+5. Finally, as the first "real" message in that thread (which a user must send to create that thread!) it sent a regular message object with a new message ID and a channel ID of -6423.
+
+When viewing this thread, it shows the message branched from at the top, and then the first "real" message right underneath, as separate groups.
+
 ## Current manual process for setting up a server
 
 1. Call createSpace.createSpace(discord.guilds.get(GUILD_ID))

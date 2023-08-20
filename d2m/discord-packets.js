@@ -44,6 +44,10 @@ const utils = {
 			eventDispatcher.checkMissedMessages(client, message.d)
 
 
+		} else if (message.t === "THREAD_CREATE") {
+			client.channels.set(message.d.id, message.d)
+
+
 		} else if (message.t === "CHANNEL_UPDATE" || message.t === "THREAD_UPDATE") {
 			client.channels.set(message.d.id, message.d)
 
@@ -81,13 +85,19 @@ const utils = {
 			if (message.t === "CHANNEL_UPDATE") {
 				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
 
+			} else if (message.t === "THREAD_CREATE") {
+				console.log(message)
+				// await eventDispatcher.onThreadCreate(client, message.d)
+
 			} else if (message.t === "THREAD_UPDATE") {
 				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
 
 			} else if (message.t === "MESSAGE_CREATE") {
+				console.log(message)
 				await eventDispatcher.onMessageCreate(client, message.d)
 
 			} else if (message.t === "MESSAGE_UPDATE") {
+				console.log(message)
 				await eventDispatcher.onMessageUpdate(client, message.d)
 
 			} else if (message.t === "MESSAGE_DELETE") {
