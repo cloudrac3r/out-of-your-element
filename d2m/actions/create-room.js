@@ -237,8 +237,6 @@ async function _unbridgeRoom(channelID) {
  * @returns {Promise<string[]>}
  */
 async function _syncSpaceMember(channel, spaceID, roomID) {
-	console.error(channel)
-	console.error("syncing space for", roomID)
 	const spaceKState = await roomToKState(spaceID)
 	let spaceEventContent = {}
 	if (
@@ -249,11 +247,9 @@ async function _syncSpaceMember(channel, spaceID, roomID) {
 			via: ["cadence.moe"] // TODO: use the proper server
 		}
 	}
-	console.error(spaceEventContent)
 	const spaceDiff = ks.diffKState(spaceKState, {
 		[`m.space.child/${roomID}`]: spaceEventContent
 	})
-	console.error(spaceDiff)
 	return applyKStateDiffToRoom(spaceID, spaceDiff)
 }
 
