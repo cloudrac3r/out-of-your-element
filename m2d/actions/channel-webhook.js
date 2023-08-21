@@ -52,10 +52,10 @@ async function withWebhook(channelID, callback) {
  * @param {string} [threadID]
  */
 async function sendMessageWithWebhook(channelID, data, threadID) {
-   const result = await withWebhook(channelID, async webhook => {
-      return discord.snow.webhook.executeWebhook(webhook.id, webhook.token, data, {wait: true, thread_id: threadID, disableEveryone: true})
-   })
-   return result
+	const result = await withWebhook(channelID, async webhook => {
+		return discord.snow.webhook.executeWebhook(webhook.id, webhook.token, data, {wait: true, thread_id: threadID, disableEveryone: true})
+	})
+	return result
 }
 
 module.exports.ensureWebhook = ensureWebhook

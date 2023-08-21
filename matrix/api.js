@@ -19,15 +19,15 @@ const makeTxnId = sync.require("./txnid")
  * @returns {string} the new endpoint
  */
 function path(p, mxid, otherParams = {}) {
-   if (!mxid) return p
-   const u = new URL(p, "http://localhost")
-   u.searchParams.set("user_id", mxid)
-   for (const entry of Object.entries(otherParams)) {
-      if (entry[1] != undefined) {
-         u.searchParams.set(entry[0], entry[1])
-      }
-   }
-   return u.pathname + "?" + u.searchParams.toString()
+	if (!mxid) return p
+	const u = new URL(p, "http://localhost")
+	u.searchParams.set("user_id", mxid)
+	for (const entry of Object.entries(otherParams)) {
+		if (entry[1] != undefined) {
+			u.searchParams.set(entry[0], entry[1])
+		}
+	}
+	return u.pathname + "?" + u.searchParams.toString()
 }
 
 /**
@@ -35,40 +35,40 @@ function path(p, mxid, otherParams = {}) {
  * @returns {Promise<Ty.R.Registered>}
  */
 function register(username) {
-   console.log(`[api] register: ${username}`)
-   return mreq.mreq("POST", "/client/v3/register", {
-      type: "m.login.application_service",
-      username
-   })
+	console.log(`[api] register: ${username}`)
+	return mreq.mreq("POST", "/client/v3/register", {
+		type: "m.login.application_service",
+		username
+	})
 }
 
 /**
  * @returns {Promise<string>} room ID
  */
 async function createRoom(content) {
-   console.log(`[api] create room:`, content)
-   /** @type {Ty.R.RoomCreated} */
-   const root = await mreq.mreq("POST", "/client/v3/createRoom", content)
-   return root.room_id
+	console.log(`[api] create room:`, content)
+	/** @type {Ty.R.RoomCreated} */
+	const root = await mreq.mreq("POST", "/client/v3/createRoom", content)
+	return root.room_id
 }
 
 /**
  * @returns {Promise<string>} room ID
  */
 async function joinRoom(roomIDOrAlias, mxid) {
-   /** @type {Ty.R.RoomJoined} */
-   const root = await mreq.mreq("POST", path(`/client/v3/join/${roomIDOrAlias}`, mxid))
-   return root.room_id
+	/** @type {Ty.R.RoomJoined} */
+	const root = await mreq.mreq("POST", path(`/client/v3/join/${roomIDOrAlias}`, mxid))
+	return root.room_id
 }
 
 async function inviteToRoom(roomID, mxidToInvite, mxid) {
-   await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/invite`, mxid), {
-      user_id: mxidToInvite
-   })
+	await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/invite`, mxid), {
+		user_id: mxidToInvite
+	})
 }
 
 async function leaveRoom(roomID, mxid) {
-   await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/leave`, mxid), {})
+	await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/leave`, mxid), {})
 }
 
 /**
@@ -77,9 +77,9 @@ async function leaveRoom(roomID, mxid) {
  * @template T
  */
 async function getEvent(roomID, eventID) {
-   /** @type {Ty.Event.Outer<T>} */
-   const root = await mreq.mreq("GET", `/client/v3/rooms/${roomID}/event/${eventID}`)
-   return root
+	/** @type {Ty.Event.Outer<T>} */
+	const root = await mreq.mreq("GET", `/client/v3/rooms/${roomID}/event/${eventID}`)
+	return root
 }
 
 /**
@@ -87,7 +87,17 @@ async function getEvent(roomID, eventID) {
  * @returns {Promise<Ty.Event.BaseStateEvent[]>}
  */
 function getAllState(roomID) {
-   return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state`)
+	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state`)
+}
+
+/**
+ * @param {string} roomID
+ * @param {string} type
+ * @param {string} key
+ * @returns the *content* of the state event
+ */
+function getStateEvent(roomID, type, key) {
+	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state/${type}/${key}`)
 }
 
 /**
@@ -96,7 +106,7 @@ function getAllState(roomID) {
  * @returns {Promise<{joined: {[mxid: string]: Ty.R.RoomMember}}>}
  */
 function getJoinedMembers(roomID) {
-   return mreq.mreq("GET", `/client/v3/rooms/${roomID}/joined_members`)
+	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/joined_members`)
 }
 
 /**
@@ -107,12 +117,12 @@ function getJoinedMembers(roomID) {
  * @returns {Promise<string>} event ID
  */
 async function sendState(roomID, type, stateKey, content, mxid) {
-   console.log(`[api] state: ${roomID}: ${type}/${stateKey}`)
-   assert.ok(type)
-   assert.ok(typeof stateKey === "string")
-   /** @type {Ty.R.EventSent} */
-   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, mxid), content)
-   return root.event_id
+	console.log(`[api] state: ${roomID}: ${type}/${stateKey}`)
+	assert.ok(type)
+	assert.ok(typeof stateKey === "string")
+	/** @type {Ty.R.EventSent} */
+	const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, mxid), content)
+	return root.event_id
 }
 
 /**
@@ -123,31 +133,51 @@ async function sendState(roomID, type, stateKey, content, mxid) {
  * @param {number} [timestamp] timestamp of the newly created event, in unix milliseconds
  */
 async function sendEvent(roomID, type, content, mxid, timestamp) {
-   console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
-   /** @type {Ty.R.EventSent} */
-   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid, {ts: timestamp}), content)
-   return root.event_id
+	console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
+	/** @type {Ty.R.EventSent} */
+	const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid, {ts: timestamp}), content)
+	return root.event_id
 }
 
 /**
  * @returns {Promise<string>} room ID
  */
 async function redactEvent(roomID, eventID, mxid) {
-   /** @type {Ty.R.EventRedacted} */
-   const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/redact/${eventID}/${makeTxnId.makeTxnId()}`, mxid), {})
-   return root.event_id
+	/** @type {Ty.R.EventRedacted} */
+	const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/redact/${eventID}/${makeTxnId.makeTxnId()}`, mxid), {})
+	return root.event_id
 }
 
 async function profileSetDisplayname(mxid, displayname) {
-   await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/displayname`, mxid), {
-      displayname
-   })
+	await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/displayname`, mxid), {
+		displayname
+	})
 }
 
 async function profileSetAvatarUrl(mxid, avatar_url) {
-   await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/avatar_url`, mxid), {
-      avatar_url
-   })
+	await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/avatar_url`, mxid), {
+		avatar_url
+	})
+}
+
+/**
+ * Set a user's power level within a room.
+ * @param {string} roomID
+ * @param {string} mxid
+ * @param {number} power
+ */
+async function setUserPower(roomID, mxid, power) {
+	// Yes it's this hard https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
+	const powerLevels = await getStateEvent(roomID, "m.room.power_levels", "")
+	const users = powerLevels.users || {}
+	if (power != null) {
+		users[mxid] = power
+	} else {
+		delete users[mxid]
+	}
+	powerLevels.users = users
+	await sendState(roomID, "m.room.power_levels", "", powerLevels)
+	return powerLevels
 }
 
 module.exports.path = path
@@ -164,3 +194,4 @@ module.exports.sendEvent = sendEvent
 module.exports.redactEvent = redactEvent
 module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl
+module.exports.setUserPower = setUserPower

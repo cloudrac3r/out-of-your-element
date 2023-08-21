@@ -15,20 +15,20 @@ const createRoom = sync.require("../actions/create-room")
  * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
  */
 async function addReaction(data) {
-   const user = data.member?.user
-   assert.ok(user && user.username)
-   const parentID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
-   if (!parentID) return // Nothing can be done if the parent message was never bridged.
-   assert.equal(typeof parentID, "string")
+	const user = data.member?.user
+	assert.ok(user && user.username)
+	const parentID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
+	if (!parentID) return // Nothing can be done if the parent message was never bridged.
+	assert.equal(typeof parentID, "string")
 	const roomID = await createRoom.ensureRoom(data.channel_id)
 	const senderMxid = await registerUser.ensureSimJoined(user, roomID)
 	const eventID = await api.sendEvent(roomID, "m.reaction", {
-      "m.relates_to": {
-         rel_type: "m.annotation",
-         event_id: parentID,
-         key: data.emoji.name
-      }
-   }, senderMxid)
+		"m.relates_to": {
+			rel_type: "m.annotation",
+			event_id: parentID,
+			key: data.emoji.name
+		}
+	}, senderMxid)
 	return eventID
 }
 

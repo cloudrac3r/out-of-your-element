@@ -2,22 +2,22 @@ const {kstateToState, stateToKState, diffKState, kstateStripConditionals} = requ
 const {test} = require("supertape")
 
 test("kstate strip: strips false conditions", t => {
-   t.deepEqual(kstateStripConditionals({
-      a: {$if: false, value: 2},
-      b: {value: 4}
-   }), {
-      b: {value: 4}
-   })
+	t.deepEqual(kstateStripConditionals({
+		a: {$if: false, value: 2},
+		b: {value: 4}
+	}), {
+		b: {value: 4}
+	})
 })
 
 test("kstate strip: keeps true conditions while removing $if", t => {
-   t.deepEqual(kstateStripConditionals({
-      a: {$if: true, value: 2},
-      b: {value: 4}
-   }), {
-      a: {value: 2},
-      b: {value: 4}
-   })
+	t.deepEqual(kstateStripConditionals({
+		a: {$if: true, value: 2},
+		b: {value: 4}
+	}), {
+		a: {value: 2},
+		b: {value: 4}
+	})
 })
 
 test("kstate2state: general", t => {

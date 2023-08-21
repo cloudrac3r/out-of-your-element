@@ -12,7 +12,7 @@ const eventToMessage = sync.require("../converters/event-to-message")
 
 /** @param {import("../../types").Event.Outer<any>} event */
 async function sendEvent(event) {
-   // TODO: we just assume the bridge has already been created
+	// TODO: we just assume the bridge has already been created
 	const row = db.prepare("SELECT channel_id, thread_parent FROM channel_room WHERE room_id = ?").get(event.room_id)
 	let channelID = row.channel_id
 	let threadID = undefined
@@ -21,16 +21,16 @@ async function sendEvent(event) {
 		channelID = row.thread_parent // it's the thread's parent... get with the times...
 	}
 
-   // no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
+	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
 	const messages = eventToMessage.eventToMessage(event)
-   assert(Array.isArray(messages)) // sanity
+	assert(Array.isArray(messages)) // sanity
 
-   /** @type {DiscordTypes.APIMessage[]} */
+	/** @type {DiscordTypes.APIMessage[]} */
 	const messageResponses = []
 	let eventPart = 0 // 0 is primary, 1 is supporting
 	for (const message of messages) {
-      const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
+		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content.msgtype || null, messageResponse.id, channelID, eventPart) // source 0 = matrix
 
 		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting?
