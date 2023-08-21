@@ -86,18 +86,16 @@ const utils = {
 				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
 
 			} else if (message.t === "THREAD_CREATE") {
-				console.log(message)
-				// await eventDispatcher.onThreadCreate(client, message.d)
+				// @ts-ignore
+				await eventDispatcher.onThreadCreate(client, message.d)
 
 			} else if (message.t === "THREAD_UPDATE") {
 				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
 
 			} else if (message.t === "MESSAGE_CREATE") {
-				console.log(message)
 				await eventDispatcher.onMessageCreate(client, message.d)
 
 			} else if (message.t === "MESSAGE_UPDATE") {
-				console.log(message)
 				await eventDispatcher.onMessageUpdate(client, message.d)
 
 			} else if (message.t === "MESSAGE_DELETE") {

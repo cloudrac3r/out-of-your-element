@@ -1375,6 +1375,63 @@ module.exports = {
 			flags: 0,
 			components: [],
 			position: 12
+		},
+		updated_to_start_thread_from_here: {
+			t: "MESSAGE_UPDATE",
+			s: 19,
+			op: 0,
+			d: {
+				id: "1143121514925928541",
+				flags: 32,
+				channel_id: "1100319550446252084",
+				guild_id: "1100319549670301727"
+			},
+			shard_id: 0
+		},
+		thread_start_context: {
+			type: 21,
+			tts: false,
+			timestamp: "2023-08-21T09:57:12.558000+00:00",
+			position: 0,
+			pinned: false,
+			message_reference: {
+				message_id: "1143121514925928541",
+				guild_id: "1100319549670301727",
+				channel_id: "1100319550446252084"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [],
+				premium_since: null,
+				pending: false,
+				nick: "worm",
+				mute: false,
+				joined_at: "2023-04-25T07:17:03.696000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: null
+			},
+			id: "1143121620744032327",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "",
+			components: [],
+			channel_id: "1143121514925928541",
+			author: {
+				username: "cadence.worm",
+				public_flags: 0,
+				id: "772659086046658620",
+				global_name: "cadence",
+				discriminator: "0",
+				avatar_decoration_data: null,
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1"
+			},
+			attachments: [],
+			guild_id: "1100319549670301727"
 		}
 	}
 }

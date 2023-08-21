@@ -65,6 +65,29 @@ function getDiscordParseCallbacks(message, useHTML) {
 async function messageToEvent(message, guild, options = {}, di) {
 	const events = []
 
+	if (message.type === DiscordTypes.MessageType.ThreadCreated) {
+		// This is the kind of message that appears when somebody makes a thread which isn't close enough to the message it's based off.
+		// It lacks the lines and the pill, so it looks kind of like a member join message, and it says:
+		// [#] NICKNAME started a thread: __THREAD NAME__. __See all threads__
+		// We're already bridging the THREAD_CREATED gateway event to make a comparable message, so drop this one.
+		return []
+	}
+
+	if (message.type === DiscordTypes.MessageType.ThreadStarterMessage) {
+		// This is the message that appears at the top of a thread when the thread was based off an existing message.
+		// It's just a message reference, no content.
+		const ref = message.message_reference
+		assert(ref)
+		assert(ref.message_id)
+		const row = db.prepare("SELECT room_id, event_id FROM event_message INNER JOIN channel_room USING (channel_id) WHERE channel_id = ? AND message_id = ?").get(ref.channel_id, ref.message_id)
+		if (!row) return []
+		const event = await di.api.getEvent(row.room_id, row.event_id)
+		return [{
+			...event.content,
+			$type: event.type
+		}]
+	}
+
 	/**
 	   @type {{room?: boolean, user_ids?: string[]}}
 		We should consider the following scenarios for mentions:

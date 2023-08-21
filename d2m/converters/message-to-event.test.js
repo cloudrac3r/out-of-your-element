@@ -341,3 +341,25 @@ test("message2event: type 4 channel name change", async t => {
 		formatted_body: "changed the channel name to <strong>worming</strong>"
 	}])
 })
+
+test("message2event: thread start message reference", async t => {
+	const events = await messageToEvent(data.special_message.thread_start_context, data.guild.general, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$FchUVylsOfmmbj-VwEs5Z9kY49_dt2zd0vWfylzy5Yo", {
+				"type": "m.room.message",
+				"sender": "@_ooye_cadence:cadence.moe",
+				"content": {
+					"m.mentions": {},
+					"msgtype": "m.text",
+					"body": "layer 4"
+				}
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "layer 4",
+		"m.mentions": {}
+	}])
+})

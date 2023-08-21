@@ -58,7 +58,8 @@ INSERT INTO guild_space (guild_id, space_id) VALUES
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL),
 ('497161350934560778', '!edUxjVdzgUvXDUIQCK:cadence.moe', 'amanda-spam', NULL, NULL),
-('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL);
+('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL),
+('1100319550446252084', '!PnyBKvUBOhjuCucEfk:cadence.moe', 'worm-farm', NULL, NULL);
 
 INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),
@@ -80,7 +81,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, chan
 ('$51f4yqHinwnSbPEQ9dCgoyy4qiIJSX0QYYVUnvwyTCJ', 'm.room.message', 'm.image', '1141501302736695317', '112760669178241024', 0, 1),
 ('$vgTKOR5ZTYNMKaS7XvgEIDaOWZtVCEyzLLi5Pc5Gz4M', 'm.room.message', 'm.text', '1128084851279536279', '112760669178241024', 0, 1),
 ('$YUJFa5j0ZJe7PUvD2DykRt9g51RoadUEYmuJLdSEbJ0', 'm.room.message', 'm.image', '1128084851279536279', '112760669178241024', 1, 1),
-('$oLyUTyZ_7e_SUzGNWZKz880ll9amLZvXGbArJCKai2Q', 'm.room.message', 'm.text', '1128084748338741392', '112760669178241024', 0, 1);
+('$oLyUTyZ_7e_SUzGNWZKz880ll9amLZvXGbArJCKai2Q', 'm.room.message', 'm.text', '1128084748338741392', '112760669178241024', 0, 1),
+('$FchUVylsOfmmbj-VwEs5Z9kY49_dt2zd0vWfylzy5Yo', 'm.room.message', 'm.text', '1143121514925928541', '1100319550446252084', 0, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),

@@ -70,12 +70,15 @@ async function channelToKState(channel, guild) {
 		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
+	let history_visibility = "invited"
+	if (channel["thread_metadata"]) history_visibility = "world_readable"
+
 	const channelKState = {
 		"m.room.name/": {name: convertedName},
 		"m.room.topic/": {topic: convertedTopic},
 		"m.room.avatar/": avatarEventContent,
 		"m.room.guest_access/": {guest_access: "can_join"},
-		"m.room.history_visibility/": {history_visibility: "invited"},
+		"m.room.history_visibility/": {history_visibility},
 		[`m.space.parent/${spaceID}`]: {
 			via: ["cadence.moe"], // TODO: put the proper server here
 			canonical: true
@@ -234,19 +237,23 @@ async function _unbridgeRoom(channelID) {
  * @returns {Promise<string[]>}
  */
 async function _syncSpaceMember(channel, spaceID, roomID) {
+	console.error(channel)
+	console.error("syncing space for", roomID)
 	const spaceKState = await roomToKState(spaceID)
 	let spaceEventContent = {}
 	if (
 		channel.type !== DiscordTypes.ChannelType.PrivateThread // private threads do not belong in the space (don't offer people something they can't join)
-		|| channel["thread_metadata"]?.archived // archived threads do not belong in the space (don't offer people conversations that are no longer relevant)
+		&& !channel["thread_metadata"]?.archived // archived threads do not belong in the space (don't offer people conversations that are no longer relevant)
 	) {
 		spaceEventContent = {
 			via: ["cadence.moe"] // TODO: use the proper server
 		}
 	}
+	console.error(spaceEventContent)
 	const spaceDiff = ks.diffKState(spaceKState, {
 		[`m.space.child/${roomID}`]: spaceEventContent
 	})
+	console.error(spaceDiff)
 	return applyKStateDiffToRoom(spaceID, spaceDiff)
 }
 

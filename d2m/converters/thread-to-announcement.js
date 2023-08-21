@@ -1,0 +1,46 @@
+// @ts-check
+
+const assert = require("assert")
+
+const passthrough = require("../../passthrough")
+const { discord, sync, db } = passthrough
+/** @type {import("../../matrix/read-registration")} */
+const reg = sync.require("../../matrix/read-registration.js")
+
+const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
+
+/**
+ * @param {string} parentRoomID
+ * @param {string} threadRoomID
+ * @param {string?} creatorMxid
+ * @param {import("discord-api-types/v10").APIThreadChannel} thread
+ * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
+ */
+async function threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thread, di) {
+	/** @type {string?} */
+	const branchedFromEventID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ?").pluck().get(thread.id)
+	/** @type {{"m.mentions"?: any, "m.in_reply_to"?: any}} */
+	const context = {}
+	if (branchedFromEventID) {
+		// Need to figure out who sent that event...
+		const event = await di.api.getEvent(parentRoomID, branchedFromEventID)
+		context["m.relates_to"] = {"m.in_reply_to": {event_id: event.event_id}}
+		if (event.sender && !userRegex.some(rx => event.sender.match(rx))) context["m.mentions"] = {user_ids: [event.sender]}
+	}
+
+	const msgtype = creatorMxid ? "m.emote" : "m.text"
+	const template = creatorMxid ? "started a thread:" : "Thread started:"
+	let body = `${template} ${thread.name} https://matrix.to/#/${threadRoomID}`
+	let html = `${template} <a href="https://matrix.to/#/${threadRoomID}">${thread.name}</a>`
+
+	return {
+		msgtype,
+		body,
+		format: "org.matrix.custom.html",
+		formatted_body: html,
+		"m.mentions": {},
+		...context
+	}
+}
+
+module.exports.threadToAnnouncement = threadToAnnouncement

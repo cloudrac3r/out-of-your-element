@@ -10,6 +10,8 @@ const editMessage = sync.require("./actions/edit-message")
 const deleteMessage = sync.require("./actions/delete-message")
 /** @type {import("./actions/add-reaction")}) */
 const addReaction = sync.require("./actions/add-reaction")
+/** @type {import("./actions/announce-thread")}) */
+const announceThread = sync.require("./actions/announce-thread")
 /** @type {import("./actions/create-room")}) */
 const createRoom = sync.require("./actions/create-room")
 /** @type {import("../matrix/api")}) */
@@ -108,8 +110,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
-		console.log(thread)
-		const parentRoomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").get(thread.parent_id)
+		const parentRoomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(thread.parent_id)
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
