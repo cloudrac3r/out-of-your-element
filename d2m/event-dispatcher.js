@@ -102,14 +102,17 @@ module.exports = {
 	},
 
 	/**
+	 * Announces to the parent room that the thread room has been created.
+	 * See notes.md, "Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement"
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").APIChannel} thread
+	 * @param {import("discord-api-types/v10").APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
 		console.log(thread)
 		const parentRoomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").get(thread.parent_id)
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
-		await createRoom.syncRoom(thread.id)
+		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
+		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
 	},
 
 	/**

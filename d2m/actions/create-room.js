@@ -12,6 +12,9 @@ const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
 
+/** @type {Map<string, Promise<string>>} channel ID -> Promise<room ID> */
+const inflightRoomCreate = new Map()
+
 /**
  * @param {string} roomID
  */
@@ -98,22 +101,19 @@ async function channelToKState(channel, guild) {
  * @returns {Promise<string>} room ID
  */
 async function createRoom(channel, guild, spaceID, kstate) {
+	let threadParent = null
+	if (channel.type === DiscordTypes.ChannelType.PublicThread) threadParent = channel.parent_id
+	const invite = threadParent ? [] : ["@cadence:cadence.moe"] // TODO
+
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, null)
 	const roomID = await api.createRoom({
 		name: convertedName,
 		topic: convertedTopic,
 		preset: "private_chat",
 		visibility: "private",
-		invite: ["@cadence:cadence.moe"], // TODO
+		invite,
 		initial_state: ks.kstateToState(kstate)
 	})
-
-	let threadParent = null
-	if (channel.type === DiscordTypes.ChannelType.PublicThread) {
-		/** @type {DiscordTypes.APIThreadChannel} */ // @ts-ignore
-		const thread = channel
-		threadParent = thread.parent_id
-	}
 
 	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
 
@@ -162,32 +162,42 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	assert.ok(channel)
 	const guild = channelToGuild(channel)
 
+	if (inflightRoomCreate.has(channelID)) {
+		await inflightRoomCreate.get(channelID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
+	}
+
 	/** @type {{room_id: string, thread_parent: string?}} */
 	const existing = db.prepare("SELECT room_id, thread_parent from channel_room WHERE channel_id = ?").get(channelID)
 
 	if (!existing) {
-		const {spaceID, channelKState} = await channelToKState(channel, guild)
-		return createRoom(channel, guild, spaceID, channelKState)
-	} else {
-		if (!shouldActuallySync) {
-			return existing.room_id // only need to ensure room exists, and it does. return the room ID
-		}
-
-		console.log(`[room sync] to matrix: ${channel.name}`)
-
-		const {spaceID, channelKState} = await channelToKState(channel, guild)
-
-		// sync channel state to room
-		const roomKState = await roomToKState(existing.room_id)
-		const roomDiff = ks.diffKState(roomKState, channelKState)
-		const roomApply = applyKStateDiffToRoom(existing.room_id, roomDiff)
-
-		// sync room as space member
-		const spaceApply = _syncSpaceMember(channel, spaceID, existing.room_id)
-		await Promise.all([roomApply, spaceApply])
-
-		return existing.room_id
+		const creation = (async () => {
+			const {spaceID, channelKState} = await channelToKState(channel, guild)
+			const roomID = await createRoom(channel, guild, spaceID, channelKState)
+			inflightRoomCreate.delete(channelID) // OK to release inflight waiters now. they will read the correct `existing` row
+			return roomID
+		})()
+		inflightRoomCreate.set(channelID, creation)
+		return creation // Naturally, the newly created room is already up to date, so we can always skip syncing here.
 	}
+
+	if (!shouldActuallySync) {
+		return existing.room_id // only need to ensure room exists, and it does. return the room ID
+	}
+
+	console.log(`[room sync] to matrix: ${channel.name}`)
+
+	const {spaceID, channelKState} = await channelToKState(channel, guild)
+
+	// sync channel state to room
+	const roomKState = await roomToKState(existing.room_id)
+	const roomDiff = ks.diffKState(roomKState, channelKState)
+	const roomApply = applyKStateDiffToRoom(existing.room_id, roomDiff)
+
+	// sync room as space member
+	const spaceApply = _syncSpaceMember(channel, spaceID, existing.room_id)
+	await Promise.all([roomApply, spaceApply])
+
+	return existing.room_id
 }
 
 async function _unbridgeRoom(channelID) {

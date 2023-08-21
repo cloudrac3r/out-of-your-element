@@ -19,10 +19,48 @@ There needs to be a way to easily manually trigger something later. For example,
 
 When viewing this thread, it shows the message branched from at the top, and then the first "real" message right underneath, as separate groups.
 
+### Problem 1
+
+If THREAD_CREATE creates the matrix room, this will still be in-flight when MESSAGE_CREATE ensures the room exists and creates a room too. There will be two rooms created and the bridge falls over.
+
+#### Possible solution: Ignore THREAD_CREATE
+
+Then the room will be implicitly created by the two MESSAGE_CREATEs, which are in series.
+
+#### Possible solution: Store in-flight room creations ✔️
+
+Then the room will definitely only be created once, and we can still handle both events if we want to do special things for THREAD_CREATE.
+
+#### Possible solution: Don't implicitly create rooms
+
+But then old and current threads would never have their messages bridged unless I manually intervene. Don't like that.
+
+### Problem 2
+
+MESSAGE_UPDATE with flags=32 is telling that message to become an announcement of the new thread's creation, but this happens before THREAD_CREATE. The matrix room won't actually exist when we see MESSAGE_UPDATE, therefore we cannot make the MESSAGE_UPDATE link to the new thread.
+
+#### Possible solution: Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement ✔️
+
+When seeing THREAD_CREATE (if we use solution B above) we could react to it by creating the thread announcement message in the parent channel. This is possible because THREAD_CREATE gives a thread object and that includes the parent channel ID to send the announcement message to.
+
+While the thread announcement message could look more like Discord-side by being an edit of the message it branched off:
+
+> look at my cat
+>
+> Thread started: [#cat thread]
+
+if the thread branched off a matrix user's message then the bridge wouldn't be able to edit it, so this wouldn't work.
+
+Regardless, it would make the most sense to post a new message like this to the parent room:
+
+> > Reply to: look at my cat
+>
+> [me] started a new thread: [#cat thread]
+
 ## Current manual process for setting up a server
 
 1. Call createSpace.createSpace(discord.guilds.get(GUILD_ID))
-2. Call createRoom.createAllForGuild(GUILD_ID)
+2. Call createRoom.createAllForGuild(GUILD_ID) // TODO: Only create rooms that the bridge bot has read permissions in!
 3. Edit source code of event-dispatcher.js isGuildAllowed() and add the guild ID to the list
 4. If developing, make sure SSH port forward is activated, then wait for events to sync over!
 
@@ -101,9 +139,9 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 ## Webhook message sent
 
 - Consider using the _ooye_bot account to send all webhook messages to prevent extraneous joins?
-	- Downside: the profile information from the most recently sent message would stick around in the member list. This is toleable.
+	- Downside: the profile information from the most recently sent message would stick around in the member list. This is tolerable.
 - Otherwise, could use an account per webhook ID, but if webhook IDs are often deleted and re-created, this could still end up leaving too many accounts in the room.
-- The original bridge uses an account per webhook display name, which does the most sense in terms of canonical accounts, but leaves too many accounts in the room.
+- The original bridge uses an account per webhook display name, which makes the most sense in terms of canonical accounts, but leaves too many accounts in the room.
 
 ## Message deleted
 
@@ -113,7 +151,9 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 ## Message edited / embeds added
 
 1. Look up equivalents on matrix.
-2. Replace content on matrix.
+2. Transform content.
+3. Build replacement event with fallbacks.
+4. Send to matrix.
 
 ## Reaction added
 
@@ -148,3 +188,37 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 3. The emojis may now be sent by Matrix users!
 
 TOSPEC: m2d emoji uploads??
+
+## Issues if the bridge database is rolled back
+
+### channel_room table
+
+- Duplicate rooms will be created on matrix.
+
+### sim table
+
+- Sims will already be registered, registration will fail, all events from those sims will fail.
+
+### sim_member table
+
+- Sims won't be invited because they are already joined, all events from those sims will fail.
+
+### guild_space table
+
+- channelToKState will fail, so channel data differences won't be calculated, so channel/thread creation and sync will fail.
+
+### event_message table
+
+- Events referenced by other events will be dropped, for example
+	- edits will be ignored
+	- deletes will be ignored
+	- reactions will be ignored
+	- replies won't generate a reply
+
+### file
+
+- Some files like avatars may be re-uploaded to the matrix content repository, secretly taking more storage space on the server.
+
+### webhook
+
+- Some duplicate webhooks may be created.
