@@ -6,7 +6,7 @@
 
 const util = require("util")
 const Ty = require("../types")
-const {sync, as} = require("../passthrough")
+const {db, sync, as} = require("../passthrough")
 
 /** @type {import("./actions/send-event")} */
 const sendEvent = sync.require("./actions/send-event")
@@ -68,4 +68,15 @@ sync.addTemporaryListener(as, "type:m.reaction", guard("m.reaction",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	await addReaction.addReaction(event)
+}))
+
+sync.addTemporaryListener(as, "type:m.room.avatar", guard("m.room.avatar",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Avatar>} event
+ */
+async event => {
+	if (event.state_key !== "") return
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const url = event.content.url || null
+	db.prepare("UPDATE channel_room SET custom_avatar = ? WHERE room_id = ?").run(url, event.room_id)
 }))

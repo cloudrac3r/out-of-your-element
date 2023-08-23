@@ -42,6 +42,7 @@ function diffKState(actual, target) {
 	const diff = {}
 	// go through each key that it should have
 	for (const key of Object.keys(target)) {
+		if (!key.includes("/")) throw new Error(`target kstate's key "${key}" does not contain a slash separator; if a blank state_key was intended, add a trailing slash to the kstate key.`)
 		if (key in actual) {
 			// diff
 			try {

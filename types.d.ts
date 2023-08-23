@@ -38,6 +38,10 @@ namespace Event {
 		event_id: string
 	}
 
+	export type StateOuter<T> = Outer<T> & {
+		state_key: string
+	}
+
 	export type ReplacementContent<T> = T & {
 		"m.new_content": T
 		"m.relates_to": {
@@ -72,6 +76,11 @@ namespace Event {
 		membership: string
 		display_name?: string
 		avatar_url?: string
+	}
+
+	export type M_Room_Avatar = {
+		discord_path?: string
+		url?: string
 	}
 
 	export type M_Reaction = {

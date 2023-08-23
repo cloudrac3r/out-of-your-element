@@ -61,11 +61,16 @@ async function channelToKState(channel, guild) {
 	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
 	assert.ok(typeof spaceID === "string")
 
-	const customName = db.prepare("SELECT nick FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
+	const row = db.prepare("SELECT nick, custom_avatar FROM channel_room WHERE channel_id = ?").get(channel.id)
+	assert(row)
+	const customName = row.nick
+	const customAvatar = row.custom_avatar
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
 
 	const avatarEventContent = {}
-	if (guild.icon) {
+	if (customAvatar) {
+		avatarEventContent.url = customAvatar
+	} else if (guild.icon) {
 		avatarEventContent.discord_path = file.guildIcon(guild)
 		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
@@ -183,6 +188,8 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		return creation // Naturally, the newly created room is already up to date, so we can always skip syncing here.
 	}
 
+	const roomID = existing.room_id
+
 	if (!shouldActuallySync) {
 		return existing.room_id // only need to ensure room exists, and it does. return the room ID
 	}
@@ -192,15 +199,16 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	const {spaceID, channelKState} = await channelToKState(channel, guild)
 
 	// sync channel state to room
-	const roomKState = await roomToKState(existing.room_id)
+	const roomKState = await roomToKState(roomID)
 	const roomDiff = ks.diffKState(roomKState, channelKState)
-	const roomApply = applyKStateDiffToRoom(existing.room_id, roomDiff)
+	const roomApply = applyKStateDiffToRoom(roomID, roomDiff)
+	db.prepare("UPDATE channel_room SET name = ? WHERE room_id = ?").run(channel.name, roomID)
 
 	// sync room as space member
-	const spaceApply = _syncSpaceMember(channel, spaceID, existing.room_id)
+	const spaceApply = _syncSpaceMember(channel, spaceID, roomID)
 	await Promise.all([roomApply, spaceApply])
 
-	return existing.room_id
+	return roomID
 }
 
 async function _unbridgeRoom(channelID) {
@@ -279,5 +287,7 @@ module.exports.ensureRoom = ensureRoom
 module.exports.syncRoom = syncRoom
 module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
+module.exports.roomToKState = roomToKState
+module.exports.applyKStateDiffToRoom = applyKStateDiffToRoom
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._unbridgeRoom = _unbridgeRoom
