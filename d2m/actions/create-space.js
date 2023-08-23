@@ -4,13 +4,15 @@ const assert = require("assert")
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const { sync, db } = passthrough
+const { discord, sync, db } = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 /** @type {import("./create-room")} */
 const createRoom = sync.require("./create-room")
+/** @type {import("../../matrix/kstate")} */
+const ks = sync.require("../../matrix/kstate")
 
 /**
  * @param {import("discord-api-types/v10").RESTGetAPIGuildResult} guild
@@ -58,7 +60,7 @@ async function guildToKState(guild) {
 		"m.room.name/": {name: guild.name},
 		"m.room.avatar/": avatarEventContent,
 		"m.room.guest_access/": {guest_access: "can_join"}, // guests can join space if other conditions are met
-		"m.room.history_visibility": {history_visibility: "invited"} // any events sent after user was invited are visible
+		"m.room.history_visibility/": {history_visibility: "invited"} // any events sent after user was invited are visible
 	}
 
 	return guildKState
@@ -69,17 +71,26 @@ async function syncSpace(guildID) {
 	const guild = discord.guilds.get(guildID)
 	assert.ok(guild)
 
-	/** @type {{room_id: string, thread_parent: string?}} */
-	const existing = db.prepare("SELECT space_id from guild_space WHERE guild_id = ?").get(guildID)
+	/** @type {string?} */
+	const spaceID = db.prepare("SELECT space_id from guild_space WHERE guild_id = ?").pluck().get(guildID)
 
 	const guildKState = await guildToKState(guild)
 
-	if (!existing) {
+	if (!spaceID) {
 		const spaceID = await createSpace(guild, guildKState)
-		return spaceID
+		return spaceID // Naturally, the newly created space is already up to date, so we can always skip syncing here.
 	}
 
+	console.log(`[space sync] to matrix: ${guild.name}`)
 
+	// sync channel state to room
+	const spaceKState = await createRoom.roomToKState(spaceID)
+	const spaceDiff = ks.diffKState(spaceKState, guildKState)
+	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
 
+	return spaceID
+}
 
 module.exports.createSpace = createSpace
+module.exports.syncSpace = syncSpace
+module.exports.guildToKState = guildToKState
