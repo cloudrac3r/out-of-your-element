@@ -95,6 +95,11 @@ async function channelToKState(channel, guild) {
 				type: "m.room_membership",
 				room_id: spaceID
 			}]
+		},
+		"m.room.power_levels/": {
+			events: {
+				"m.room.avatar": 0
+			}
 		}
 	}
 
@@ -114,20 +119,52 @@ async function createRoom(channel, guild, spaceID, kstate) {
 	if (channel.type === DiscordTypes.ChannelType.PublicThread) threadParent = channel.parent_id
 	const invite = threadParent ? [] : ["@cadence:cadence.moe"] // TODO
 
-	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, null)
-	const roomID = await api.createRoom({
-		name: convertedName,
-		topic: convertedTopic,
-		preset: "private_chat",
-		visibility: "private",
-		invite,
-		initial_state: ks.kstateToState(kstate)
+	const roomID = await postApplyPowerLevels(kstate, async kstate => {
+		const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, null)
+		const roomID = await api.createRoom({
+			name: convertedName,
+			topic: convertedTopic,
+			preset: "private_chat",
+			visibility: "private",
+			invite,
+			initial_state: ks.kstateToState(kstate)
+		})
+
+		db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
+
+		return roomID
 	})
 
-	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
-
-	// Put the newly created child into the space
+	// Put the newly created child into the space, no need to await this
 	_syncSpaceMember(channel, spaceID, roomID)
+
+	return roomID
+}
+
+/**
+ * Handling power levels separately. The spec doesn't specify what happens, Dendrite differs,
+ * and Synapse does an absolutely insane *shallow merge* of what I provide on top of what it creates.
+ * We don't want the `events` key to be overridden completely.
+ * https://github.com/matrix-org/synapse/blob/develop/synapse/handlers/room.py#L1170-L1210
+ * https://github.com/matrix-org/matrix-spec/issues/492
+ * @param {any} kstate
+ * @param {(_: any) => Promise<string>} callback must return room ID
+ * @returns {Promise<string>} room ID
+ */
+async function postApplyPowerLevels(kstate, callback) {
+	const powerLevelContent = kstate["m.room.power_levels/"]
+	const kstateWithoutPowerLevels = {...kstate}
+	delete kstateWithoutPowerLevels["m.room.power_levels/"]
+
+	/** @type {string} */
+	const roomID = await callback(kstateWithoutPowerLevels)
+
+	// Now *really* apply the power level overrides on top of what Synapse *really* set
+	if (powerLevelContent) {
+		const newRoomKState = await roomToKState(roomID)
+		const newRoomPowerLevelsDiff = ks.diffKState(newRoomKState, {"m.room.power_levels/": powerLevelContent})
+		await applyKStateDiffToRoom(roomID, newRoomPowerLevelsDiff)
+	}
 
 	return roomID
 }
@@ -290,5 +327,6 @@ module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
 module.exports.roomToKState = roomToKState
 module.exports.applyKStateDiffToRoom = applyKStateDiffToRoom
+module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._unbridgeRoom = _unbridgeRoom

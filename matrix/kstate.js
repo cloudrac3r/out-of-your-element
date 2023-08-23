@@ -47,10 +47,8 @@ function diffKState(actual, target) {
 
 		if (key === "m.room.power_levels/") {
 			// Special handling for power levels, we want to deep merge the actual and target into the final state.
-			console.log(actual[key])
+			if (!(key in actual)) throw new Error(`want to apply a power levels diff, but original power level data is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
 			const temp = mixin({}, actual[key], target[key])
-			console.log(actual[key])
-			console.log(temp)
 			try {
 				assert.deepEqual(actual[key], temp)
 			} catch (e) {

@@ -27,7 +27,7 @@ module.exports = {
 			"m.room.guest_access/": {guest_access: "can_join"},
 			"m.room.history_visibility/": {history_visibility: "invited"},
 			"m.space.parent/!jjWAGMeQdNrVZSSfvz:cadence.moe": {
-				via: ["cadence.moe"], // TODO: put the proper server here
+				via: ["cadence.moe"],
 				canonical: true
 			},
 			"m.room.join_rules/": {
@@ -40,6 +40,11 @@ module.exports = {
 			"m.room.avatar/": {
 				discord_path: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024",
 				url: "mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF"
+			},
+			"m.room.power_levels/": {
+				events: {
+					"m.room.avatar": 0
+				}
 			}
 		}
 	},

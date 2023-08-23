@@ -21,23 +21,24 @@ const ks = sync.require("../../matrix/kstate")
 async function createSpace(guild, kstate) {
 	const name = kstate["m.room.name/"].name
 	const topic = kstate["m.room.topic/"]?.topic || undefined
-
 	assert(name)
 
-	const roomID = await api.createRoom({
-		name,
-		preset: "private_chat", // cannot join space unless invited
-		visibility: "private",
-		power_level_content_override: {
-			events_default: 100, // space can only be managed by bridge
-			invite: 0 // any existing member can invite others
-		},
-		invite: ["@cadence:cadence.moe"], // TODO
-		topic,
-		creation_content: {
-			type: "m.space"
-		},
-		initial_state: ks.kstateToState(kstate)
+	const roomID = await createRoom.postApplyPowerLevels(kstate, async kstate => {
+		return api.createRoom({
+			name,
+			preset: "private_chat", // cannot join space unless invited
+			visibility: "private",
+			power_level_content_override: {
+				events_default: 100, // space can only be managed by bridge
+				invite: 0 // any existing member can invite others
+			},
+			invite: ["@cadence:cadence.moe"], // TODO
+			topic,
+			creation_content: {
+				type: "m.space"
+			},
+			initial_state: ks.kstateToState(kstate)
+		})
 	})
 	db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, roomID)
 	return roomID
