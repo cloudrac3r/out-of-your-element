@@ -19,6 +19,7 @@ export type AppServiceRegistrationConfig = {
 	ooye: {
 		namespace_prefix: string
 		max_file_size: number
+		server_name: string
 	}
 }
 
@@ -27,7 +28,7 @@ export type WebhookCreds = {
 	token: string
 }
 
-namespace Event {
+export namespace Event {
 	export type Outer<T> = {
 		type: string
 		room_id: string
@@ -92,7 +93,7 @@ namespace Event {
 	}
 }
 
-namespace R {
+export namespace R {
 	export type RoomCreated = {
 		room_id: string
 	}

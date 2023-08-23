@@ -21,7 +21,7 @@ async function createSim(user) {
 	// Choose sim name
 	const simName = userToMxid.userToSimName(user)
 	const localpart = reg.ooye.namespace_prefix + simName
-	const mxid = "@" + localpart + ":cadence.moe"
+	const mxid = `@${localpart}:${reg.ooye.server_name}`
 
 	// Save chosen name in the database forever
 	// Making this database change right away so that in a concurrent registration, the 2nd registration will already have generated a different localpart because it can see this row when it generates

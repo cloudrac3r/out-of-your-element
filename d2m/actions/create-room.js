@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
+const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
@@ -85,7 +86,7 @@ async function channelToKState(channel, guild) {
 		"m.room.guest_access/": {guest_access: "can_join"},
 		"m.room.history_visibility/": {history_visibility},
 		[`m.space.parent/${spaceID}`]: {
-			via: ["cadence.moe"], // TODO: put the proper server here
+			via: [reg.ooye.server_name],
 			canonical: true
 		},
 		"m.room.join_rules/": {
@@ -252,7 +253,7 @@ async function _syncSpaceMember(channel, spaceID, roomID) {
 		&& !channel["thread_metadata"]?.archived // archived threads do not belong in the space (don't offer people conversations that are no longer relevant)
 	) {
 		spaceEventContent = {
-			via: ["cadence.moe"] // TODO: use the proper server
+			via: [reg.ooye.server_name]
 		}
 	}
 	const spaceDiff = ks.diffKState(spaceKState, {

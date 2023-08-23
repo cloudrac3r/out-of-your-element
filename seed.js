@@ -25,8 +25,8 @@ const reg = require("./matrix/read-registration")
 	const avatarUrl = await file.uploadDiscordFileToMxc("https://cadence.moe/friends/out_of_your_element_rev_2.jpg")
 
 	// set profile data on homeserver...
-	await api.profileSetDisplayname(`@${reg.sender_localpart}:cadence.moe`, "Out Of Your Element")
-	await api.profileSetAvatarUrl(`@${reg.sender_localpart}:cadence.moe`, avatarUrl)
+	await api.profileSetDisplayname(`@${reg.sender_localpart}:${reg.ooye.server_name}`, "Out Of Your Element")
+	await api.profileSetAvatarUrl(`@${reg.sender_localpart}:${reg.ooye.server_name}`, avatarUrl)
 
 	// database ddl...
 
