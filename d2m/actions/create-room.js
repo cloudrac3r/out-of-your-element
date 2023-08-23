@@ -63,9 +63,8 @@ async function channelToKState(channel, guild) {
 	assert.ok(typeof spaceID === "string")
 
 	const row = db.prepare("SELECT nick, custom_avatar FROM channel_room WHERE channel_id = ?").get(channel.id)
-	assert(row)
-	const customName = row.nick
-	const customAvatar = row.custom_avatar
+	const customName = row?.nick
+	const customAvatar = row?.custom_avatar
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
 
 	const avatarEventContent = {}
