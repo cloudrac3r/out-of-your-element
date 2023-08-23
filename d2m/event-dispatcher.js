@@ -14,6 +14,8 @@ const addReaction = sync.require("./actions/add-reaction")
 const announceThread = sync.require("./actions/announce-thread")
 /** @type {import("./actions/create-room")}) */
 const createRoom = sync.require("./actions/create-room")
+/** @type {import("./actions/create-space")}) */
+const createSpace = sync.require("./actions/create-space")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 
@@ -114,6 +116,16 @@ module.exports = {
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayGuildUpdateDispatchData} guild
+	 */
+	async onGuildUpdate(client, guild) {
+		const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
+		if (!spaceID) return
+		await createSpace.syncSpace(guild.id)
 	},
 
 	/**

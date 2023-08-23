@@ -82,7 +82,10 @@ const utils = {
 
 		// Event dispatcher for OOYE bridge operations
 		try {
-			if (message.t === "CHANNEL_UPDATE") {
+			if (message.t === "GUILD_UPDATE") {
+				await eventDispatcher.onGuildUpdate(client, message.d)
+
+			} else if (message.t === "CHANNEL_UPDATE") {
 				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
 
 			} else if (message.t === "THREAD_CREATE") {
