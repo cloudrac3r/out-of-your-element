@@ -169,7 +169,7 @@ async function profileSetAvatarUrl(mxid, avatar_url) {
 async function setUserPower(roomID, mxid, power) {
 	assert(roomID[0] === "!")
 	assert(mxid[0] === "@")
-	// Yes it's this hard https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
+	// Yes there's no shortcut https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
 	const powerLevels = await getStateEvent(roomID, "m.room.power_levels", "")
 	const users = powerLevels.users || {}
 	if (power != null) {

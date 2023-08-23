@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS "channel_room" (
 	"name"	TEXT,
 	"nick"	TEXT,
 	"thread_parent"	TEXT,
+	"custom_avatar"	TEXT,
 	PRIMARY KEY("channel_id")
 );
 CREATE TABLE IF NOT EXISTS "event_message" (
@@ -55,11 +56,11 @@ BEGIN TRANSACTION;
 INSERT INTO guild_space (guild_id, space_id) VALUES
 ('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe');
 
-INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES
-('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL),
-('497161350934560778', '!edUxjVdzgUvXDUIQCK:cadence.moe', 'amanda-spam', NULL, NULL),
-('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL),
-('1100319550446252084', '!PnyBKvUBOhjuCucEfk:cadence.moe', 'worm-farm', NULL, NULL);
+INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
+('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),
+('497161350934560778', '!edUxjVdzgUvXDUIQCK:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
+('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
+('1100319550446252084', '!PnyBKvUBOhjuCucEfk:cadence.moe', 'worm-farm', NULL, NULL, NULL);
 
 INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),

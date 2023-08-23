@@ -14,6 +14,7 @@ const mreq = sync.require("./matrix/mreq")
 const api = sync.require("./matrix/api")
 const sendEvent = sync.require("./m2d/actions/send-event")
 const eventDispatcher = sync.require("./d2m/event-dispatcher")
+const ks = sync.require("./matrix/kstate")
 const guildID = "112760669178241024"
 
 const extraContext = {}

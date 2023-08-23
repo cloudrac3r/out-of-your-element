@@ -92,3 +92,57 @@ test("diffKState: detects new properties", t => {
 		}
 	)
 })
+
+test("diffKState: power levels are mixed together", t => {
+	const original = {
+		"m.room.power_levels/": {
+			"ban": 50,
+			"events": {
+				"m.room.name": 100,
+				"m.room.power_levels": 100
+			},
+			"events_default": 0,
+			"invite": 50,
+			"kick": 50,
+			"notifications": {
+				"room": 20
+			},
+			"redact": 50,
+			"state_default": 50,
+			"users": {
+				"@example:localhost": 100
+			},
+			"users_default": 0
+		}
+	}
+	const result = diffKState(original, {
+		"m.room.power_levels/": {
+			"events": {
+				"m.room.avatar": 0
+			}
+		}
+	})
+	t.deepEqual(result, {
+		"m.room.power_levels/": {
+			"ban": 50,
+			"events": {
+				"m.room.name": 100,
+				"m.room.power_levels": 100,
+				"m.room.avatar": 0
+			},
+			"events_default": 0,
+			"invite": 50,
+			"kick": 50,
+			"notifications": {
+				"room": 20
+			},
+			"redact": 50,
+			"state_default": 50,
+			"users": {
+				"@example:localhost": 100
+			},
+			"users_default": 0
+		}
+	})
+	t.notDeepEqual(original, result)
+})

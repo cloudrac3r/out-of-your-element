@@ -1,6 +1,7 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
+const mixin = require("mixin-deep")
 
 /** Mutates the input. */
 function kstateStripConditionals(kstate) {
@@ -43,18 +44,34 @@ function diffKState(actual, target) {
 	// go through each key that it should have
 	for (const key of Object.keys(target)) {
 		if (!key.includes("/")) throw new Error(`target kstate's key "${key}" does not contain a slash separator; if a blank state_key was intended, add a trailing slash to the kstate key.`)
-		if (key in actual) {
+
+		if (key === "m.room.power_levels/") {
+			// Special handling for power levels, we want to deep merge the actual and target into the final state.
+			console.log(actual[key])
+			const temp = mixin({}, actual[key], target[key])
+			console.log(actual[key])
+			console.log(temp)
+			try {
+				assert.deepEqual(actual[key], temp)
+			} catch (e) {
+				// they differ. use the newly prepared object as the diff.
+				diff[key] = temp
+			}
+
+		} else if (key in actual) {
 			// diff
 			try {
 				assert.deepEqual(actual[key], target[key])
 			} catch (e) {
-				// they differ. reassign the target
+				// they differ. use the target as the diff.
 				diff[key] = target[key]
 			}
+
 		} else {
 			// not present, needs to be added
 			diff[key] = target[key]
 		}
+
 		// keys that are missing in "actual" will not be deleted on "target" (no action)
 	}
 	return diff
