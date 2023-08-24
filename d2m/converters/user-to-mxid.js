@@ -39,6 +39,7 @@ function* generateLocalpartAlternatives(preferences) {
 	let i = 2
 	while (true) {
 		yield best + (i++)
+		/* c8 ignore next */
 	}
 }
 
@@ -69,7 +70,7 @@ function userToSimName(user) {
 	for (const suggestion of generateLocalpartAlternatives(preferences)) {
 		if (!matches.includes(suggestion)) return suggestion
 	}
-
+	/* c8 ignore next */
 	throw new Error(`Ran out of suggestions when generating sim name. downcased: "${downcased}"`)
 }
 

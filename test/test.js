@@ -20,6 +20,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 require("../matrix/kstate.test")
 require("../matrix/api.test")
 require("../matrix/read-registration.test")
+require("../matrix/txnid.test")
 require("../d2m/converters/message-to-event.test")
 require("../d2m/converters/message-to-event.embeds.test")
 require("../d2m/converters/edit-to-changes.test")
