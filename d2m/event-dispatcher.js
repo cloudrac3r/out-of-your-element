@@ -18,6 +18,8 @@ const createRoom = sync.require("./actions/create-room")
 const createSpace = sync.require("./actions/create-space")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
+/** @type {import("./discord-command-handler")}) */
+const discordCommandHandler = sync.require("./discord-command-handler")
 
 let lastReportedEvent = 0
 
@@ -156,7 +158,11 @@ module.exports = {
 		if (!channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
 		if (!isGuildAllowed(guild.id)) return
-		await sendMessage.sendMessage(message, guild)
+
+		await Promise.all([
+			sendMessage.sendMessage(message, guild),
+			discordCommandHandler.execute(message, channel, guild)
+		])
 	},
 
 	/**

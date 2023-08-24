@@ -190,6 +190,7 @@ module.exports.inviteToRoom = inviteToRoom
 module.exports.leaveRoom = leaveRoom
 module.exports.getEvent = getEvent
 module.exports.getAllState = getAllState
+module.exports.getStateEvent = getStateEvent
 module.exports.getJoinedMembers = getJoinedMembers
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
