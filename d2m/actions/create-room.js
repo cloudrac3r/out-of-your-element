@@ -118,13 +118,21 @@ async function createRoom(channel, guild, spaceID, kstate) {
 	if (channel.type === DiscordTypes.ChannelType.PublicThread) threadParent = channel.parent_id
 	const invite = threadParent ? [] : ["@cadence:cadence.moe"] // TODO
 
+	// Name and topic can be done earlier in room creation rather than in initial_state
+	// https://spec.matrix.org/latest/client-server-api/#creation
+	const name = kstate["m.room.name/"].name
+	delete kstate["m.room.name/"]
+	assert(name)
+	const topic = kstate["m.room.topic/"].topic
+	delete kstate["m.room.topic/"]
+	assert(topic)
+
 	const roomID = await postApplyPowerLevels(kstate, async kstate => {
-		const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, null)
 		const roomID = await api.createRoom({
-			name: convertedName,
-			topic: convertedTopic,
-			preset: "private_chat",
-			visibility: "private",
+			name,
+			topic,
+			preset: "private_chat", // This is closest to what we want, but properties from kstate override it anyway
+			visibility: "private", // Not shown in the room directory
 			invite,
 			initial_state: ks.kstateToState(kstate)
 		})
