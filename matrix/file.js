@@ -27,15 +27,15 @@ async function uploadDiscordFileToMxc(path) {
 	}
 
 	// Are we uploading this file RIGHT NOW? Return the same inflight promise with the same resolution
-	let existing = inflight.get(url)
-	if (typeof existing === "string") {
-		return existing
+	const existingInflight = inflight.get(url)
+	if (existingInflight) {
+		return existingInflight
 	}
 
 	// Has this file already been uploaded in the past? Grab the existing copy from the database.
-	existing = db.prepare("SELECT mxc_url FROM file WHERE discord_url = ?").pluck().get(url)
-	if (typeof existing === "string") {
-		return existing
+	const existingFromDb = db.prepare("SELECT mxc_url FROM file WHERE discord_url = ?").pluck().get(url)
+	if (typeof existingFromDb === "string") {
+		return existingFromDb
 	}
 
 	// Download from Discord

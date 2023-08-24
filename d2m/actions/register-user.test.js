@@ -3,7 +3,27 @@ const {_memberToStateContent} = require("./register-user")
 const {test} = require("supertape")
 const testData = require("../../test/data")
 
-test("member2state: general", async t => {
+test("member2state: without member nick or avatar", async t => {
+	t.deepEqual(
+		await _memberToStateContent(testData.member.kumaccino.user, testData.member.kumaccino, testData.guild.general.id),
+		{
+			avatar_url: "mxc://cadence.moe/UpAeIqeclhKfeiZNdIWNcXXL",
+			displayname: "kumaccino",
+			membership: "join",
+			"moe.cadence.ooye.member": {
+				avatar: "/avatars/113340068197859328/b48302623a12bc7c59a71328f72ccb39.png?size=1024"
+			},
+			"uk.half-shot.discord.member": {
+				bot: false,
+				displayColor: 10206929,
+				id: "113340068197859328",
+				username: "@kumaccino"
+			}
+		}
+	)
+})
+
+test("member2state: with member nick and avatar", async t => {
 	t.deepEqual(
 		await _memberToStateContent(testData.member.sheep.user, testData.member.sheep, testData.guild.general.id),
 		{
