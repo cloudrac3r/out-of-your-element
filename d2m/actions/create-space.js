@@ -97,7 +97,7 @@ async function syncSpace(guildID) {
 		const roomsWithCustomAvatars = db.prepare("SELECT room_id FROM channel_room WHERE custom_avatar IS NOT NULL").pluck().all()
 
 		const childRooms = ks.kstateToState(spaceKState).filter(({type, state_key, content}) => {
-			return type === "m.space.child" && "via" in content && roomsWithCustomAvatars.includes(state_key)
+			return type === "m.space.child" && "via" in content && !roomsWithCustomAvatars.includes(state_key)
 		}).map(({state_key}) => state_key)
 
 		for (const roomID of childRooms) {
@@ -107,7 +107,6 @@ async function syncSpace(guildID) {
 			}
 		}
 	}
-
 
 	return spaceID
 }
