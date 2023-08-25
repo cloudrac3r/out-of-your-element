@@ -159,10 +159,8 @@ module.exports = {
 		const guild = client.guilds.get(channel.guild_id)
 		if (!isGuildAllowed(guild.id)) return
 
-		await Promise.all([
-			sendMessage.sendMessage(message, guild),
-			discordCommandHandler.execute(message, channel, guild)
-		])
+		await sendMessage.sendMessage(message, guild),
+		await discordCommandHandler.execute(message, channel, guild)
 	},
 
 	/**
