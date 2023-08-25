@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^8.3.0",
+    "chunk-text": "^2.0.1",
     "cloudstorm": "^0.8.0",
     "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#440130ef343c8183a81c7c09809731484aa3a182",
     "heatsync": "^2.4.1",
@@ -26,7 +27,8 @@
     "node-fetch": "^2.6.7",
     "prettier-bytes": "^1.0.4",
     "snowtransfer": "^0.8.0",
-    "try-to-catch": "^3.0.1"
+    "try-to-catch": "^3.0.1",
+    "turndown": "^7.1.2"
   },
   "devDependencies": {
     "@types/node": "^18.16.0",
