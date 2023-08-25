@@ -10,11 +10,11 @@ function sameFirstContentAndWhitespace(t, a, b) {
 	t.equal(a2, b2)
 }
 
-test("event2message: janky test", t => {
+test("event2message: body is used when there is no formatted_body", t => {
 	t.deepEqual(
 		eventToMessage({
 			content: {
-				body: "test",
+				body: "testing plaintext",
 				msgtype: "m.text"
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
@@ -28,7 +28,31 @@ test("event2message: janky test", t => {
 		}),
 		[{
 			username: "cadence",
-			content: "test",
+			content: "testing plaintext",
+			avatar_url: undefined
+		}]
+	)
+})
+
+test("event2message: any markdown in body is escaped", t => {
+	t.deepEqual(
+		eventToMessage({
+			content: {
+				body: "testing **special** ~~things~~ which _should_ *not* `trigger` @any <effects>",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		[{
+			username: "cadence",
+			content: "testing \\*\\*special\\*\\* \\~\\~things\\~\\~ which \\_should\\_ \\*not\\* \\`trigger\\` @any <effects>",
 			avatar_url: undefined
 		}]
 	)
@@ -220,6 +244,33 @@ test("event2message: long messages are split", t => {
 		}]
 	)
 })
+
+test("event2message: code blocks work", t => {
+	t.deepEqual(
+		eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<p>preceding</p>\n<pre><code>code block\n</code></pre>\n<p>following <code>code</code> is inline</p>\n"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		[{
+			username: "cadence",
+			content: "preceding\n\n```\ncode block\n```\n\nfollowing `code` is inline",
+			avatar_url: undefined
+		}]
+	)
+})
+
 
 test("event2message: m.emote markdown syntax is escaped", t => {
 	t.deepEqual(

@@ -10,7 +10,6 @@ const { sync, db, discord } = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 
-// https://github.com/mixmark-io/turndown/blob/97e4535ca76bb2e70d9caa2aa4d4686956b06d44/src/utilities.js#L26C28-L33C2
 const BLOCK_ELEMENTS = [
 	"ADDRESS", "ARTICLE", "ASIDE", "AUDIO", "BLOCKQUOTE", "BODY", "CANVAS",
 	"CENTER", "DD", "DETAILS", "DIR", "DIV", "DL", "DT", "FIELDSET", "FIGCAPTION", "FIGURE",
@@ -21,7 +20,10 @@ const BLOCK_ELEMENTS = [
 ]
 
 const turndownService = new TurndownService({
-	hr: "----"
+	hr: "----",
+	headingStyle: "atx",
+	preformattedCode: true,
+	codeBlockStyle: "fenced"
 })
 
 turndownService.addRule("strikethrough", {
@@ -81,6 +83,10 @@ function eventToMessage(event) {
 
 		// It's optimised for commonmark, we need to replace the space-space-newline with just newline
 		content = content.replace(/  \n/g, "\n")
+	} else {
+		// Looks like we're using the plaintext body!
+		// Markdown needs to be escaped
+		content = content.replace(/([*_~`#])/g, `\\$1`)
 	}
 
 	// Split into 2000 character chunks
