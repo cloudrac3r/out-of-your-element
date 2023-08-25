@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
@@ -84,10 +84,30 @@ async function syncSpace(guildID) {
 
 	console.log(`[space sync] to matrix: ${guild.name}`)
 
-	// sync channel state to room
+	// sync guild state to space
 	const spaceKState = await createRoom.roomToKState(spaceID)
 	const spaceDiff = ks.diffKState(spaceKState, guildKState)
 	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
+
+	// guild icon was changed, so room avatars need to be updated as well as the space ones
+	// doing it this way rather than calling syncRoom for great efficiency gains
+	const newAvatarState = spaceDiff["m.room.avatar/"]
+	if (guild.icon && newAvatarState?.url) {
+		// don't try to update rooms with custom avatars though
+		const roomsWithCustomAvatars = db.prepare("SELECT room_id FROM channel_room WHERE custom_avatar IS NOT NULL").pluck().all()
+
+		const childRooms = ks.kstateToState(spaceKState).filter(({type, state_key, content}) => {
+			return type === "m.space.child" && "via" in content && roomsWithCustomAvatars.includes(state_key)
+		}).map(({state_key}) => state_key)
+
+		for (const roomID of childRooms) {
+			const avatarEventContent = await api.getStateEvent(roomID, "m.room.avatar", "")
+			if (avatarEventContent.url !== newAvatarState.url) {
+				await api.sendState(roomID, "m.room.avatar", "", newAvatarState)
+			}
+		}
+	}
+
 
 	return spaceID
 }

@@ -17,6 +17,7 @@ const ks = sync.require("../../matrix/kstate")
 const inflightRoomCreate = new Map()
 
 /**
+ * Async because it gets all room state from the homeserver.
  * @param {string} roomID
  */
 async function roomToKState(roomID) {
@@ -60,6 +61,7 @@ function convertNameAndTopic(channel, guild, customName) {
 }
 
 /**
+ * Async because it may upload the guild icon to mxc.
  * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel
  * @param {DiscordTypes.APIGuild} guild
  */
@@ -200,10 +202,10 @@ function channelToGuild(channel) {
 	3. Get kstate for channel
 	4. Create room, return new ID
 
-	New combined flow with ensure / sync:
+	Ensure + sync flow:
 	1. Get IDs
 	2. Does room exist?
-	2.5: If room does exist AND don't need to sync: return here
+	2.5: If room does exist AND wasn't asked to sync: return here
 	3. Get kstate for channel
 	4. Create room with kstate if room doesn't exist
 	5. Get and update room state with kstate if room does exist
@@ -246,7 +248,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 	console.log(`[room sync] to matrix: ${channel.name}`)
 
-	const {spaceID, channelKState} = await channelToKState(channel, guild)
+	const {spaceID, channelKState} = await channelToKState(channel, guild) // calling this in both branches because we don't want to calculate this if not syncing
 
 	// sync channel state to room
 	const roomKState = await roomToKState(roomID)
@@ -259,6 +261,16 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	await Promise.all([roomApply, spaceApply])
 
 	return roomID
+}
+
+/** Ensures the room exists. If it doesn't, creates the room with an accurate initial state. */
+function ensureRoom(channelID) {
+	return _syncRoom(channelID, false)
+}
+
+/** Actually syncs. Gets all room state from the homeserver in order to diff, and uploads the icon to mxc if it has changed. */
+function syncRoom(channelID) {
+	return _syncRoom(channelID, true)
 }
 
 async function _unbridgeRoom(channelID) {
@@ -289,6 +301,7 @@ async function _unbridgeRoom(channelID) {
 
 
 /**
+ * Async because it gets all space state from the homeserver, then if necessary sends one state event back.
  * @param {DiscordTypes.APIGuildTextChannel} channel
  * @param {string} spaceID
  * @param {string} roomID
@@ -309,14 +322,6 @@ async function _syncSpaceMember(channel, spaceID, roomID) {
 		[`m.space.child/${roomID}`]: spaceEventContent
 	})
 	return applyKStateDiffToRoom(spaceID, spaceDiff)
-}
-
-function ensureRoom(channelID) {
-	return _syncRoom(channelID, false)
-}
-
-function syncRoom(channelID) {
-	return _syncRoom(channelID, true)
 }
 
 async function createAllForGuild(guildID) {
