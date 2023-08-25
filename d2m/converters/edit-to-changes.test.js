@@ -103,6 +103,32 @@ test("edit2changes: add caption back to that image", async t => {
 	t.deepEqual(eventsToReplace, [])
 })
 
+test("edit2changes: stickers and attachments are not changed, only the content can be edited", async t => {
+	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments, data.guild.general, {})
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToSend, [])
+	t.deepEqual(eventsToReplace, [{
+		oldID: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4",
+		newContent: {
+			$type: "m.room.message",
+			msgtype: "m.text",
+			body: "* only the content can be edited",
+			"m.mentions": {},
+			// *** Replaced With: ***
+			"m.new_content": {
+				msgtype: "m.text",
+				body: "only the content can be edited",
+				"m.mentions": {}
+			},
+			"m.relates_to": {
+				rel_type: "m.replace",
+				event_id: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4"
+			}
+		}
+	}])
+})
+
+
 test("edit2changes: edit of reply to skull webp attachment with content", async t => {
 	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_of_reply_to_skull_webp_attachment_with_content, data.guild.general, {})
 	t.deepEqual(eventsToRedact, [])

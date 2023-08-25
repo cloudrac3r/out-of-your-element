@@ -23,7 +23,7 @@ async function editToChanges(message, guild, api) {
 
 	const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
 	/** @type {string?} */
-	let senderMxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(message.author.id) ?? null
+	let senderMxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(message.author.id) || null
 	if (senderMxid) {
 		const senderIsInRoom = db.prepare("SELECT * FROM sim_member WHERE room_id = ? and mxid = ?").get(roomID, senderMxid)
 		if (!senderIsInRoom) {
@@ -66,7 +66,7 @@ async function editToChanges(message, guild, api) {
 		// Find a new event to pair it with...
 		for (let i = 0; i < oldEventRows.length; i++) {
 			const olde = oldEventRows[i]
-			if (olde.event_type === newe.$type && olde.event_subtype === (newe.msgtype ?? null)) { // The spec does allow subtypes to change, so I can change this condition later if I want to
+			if (olde.event_type === newe.$type && olde.event_subtype === (newe.msgtype || null)) { // The spec does allow subtypes to change, so I can change this condition later if I want to
 				// Found one!
 				// Set up the pairing
 				eventsToReplace.push({

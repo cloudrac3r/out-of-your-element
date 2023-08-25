@@ -24,7 +24,7 @@ async function editMessage(message, guild) {
 		await api.sendEvent(roomID, eventType, newContentWithoutType, senderMxid)
 		// Ensure the database is up to date.
 		// The columns are event_id, event_type, event_subtype, message_id, channel_id, part, source. Only event_subtype could potentially be changed by a replacement event.
-		const subtype = newContentWithoutType.msgtype ?? null
+		const subtype = newContentWithoutType.msgtype || null
 		db.prepare("UPDATE event_message SET event_subtype = ? WHERE event_id = ?").run(subtype, oldID)
 	}
 
