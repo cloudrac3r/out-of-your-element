@@ -36,12 +36,17 @@ function applyKStateDiffToRoom(roomID, kstate) {
 }
 
 /**
- * @param {{id: string, name: string, topic?: string?}} channel
+ * @param {{id: string, name: string, topic?: string?, type: number}} channel
  * @param {{id: string}} guild
  * @param {string?} customName
  */
 function convertNameAndTopic(channel, guild, customName) {
-	const convertedName = customName || channel.name;
+	let channelPrefix =
+		( channel.type === DiscordTypes.ChannelType.PublicThread ? "[⛓️] "
+		: channel.type === DiscordTypes.ChannelType.PrivateThread ? "[🔒⛓️] "
+		: channel.type === DiscordTypes.ChannelType.GuildVoice ? "[🔊] "
+		: "")
+	const chosenName = customName || (channelPrefix + channel.name);
 	const maybeTopicWithPipe = channel.topic ? ` | ${channel.topic}` : '';
 	const maybeTopicWithNewlines = channel.topic ? `${channel.topic}\n\n` : '';
 	const channelIDPart = `Channel ID: ${channel.id}`;
@@ -51,7 +56,7 @@ function convertNameAndTopic(channel, guild, customName) {
 		 ? `#${channel.name}${maybeTopicWithPipe}\n\n${channelIDPart}\n${guildIDPart}`
 		 : `${maybeTopicWithNewlines}${channelIDPart}\n${guildIDPart}`;
 
-	return [convertedName, convertedTopic];
+	return [chosenName, convertedTopic];
 }
 
 /**
