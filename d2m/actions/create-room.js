@@ -283,6 +283,7 @@ async function _unbridgeRoom(channelID) {
 	assert.ok(spaceID)
 
 	// remove room from being a space member
+	await api.sendState(roomID, "m.space.parent", spaceID, {})
 	await api.sendState(spaceID, "m.space.child", roomID, {})
 
 	// send a notification in the room

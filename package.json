@@ -35,7 +35,7 @@
     "cross-env": "^7.0.3",
     "discord-api-types": "^0.37.53",
     "supertape": "^8.3.0",
-    "tap-dot": "github:cloudrac3r/tap-dot#223a4e67a6f7daf015506a12a7af74605f06c7f4"
+    "tap-dot": "github:cloudrac3r/tap-dot#9dd7750ececeae3a96afba91905be812b6b2cc2d"
   },
   "scripts": {
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot",

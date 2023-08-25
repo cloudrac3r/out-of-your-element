@@ -69,8 +69,8 @@ export namespace Event {
 	export type M_Room_Message = {
 		msgtype: "m.text"
 		body: string
-		formatted_body?: "org.matrix.custom.html"
-		format?: string
+		format?: "org.matrix.custom.html"
+		formatted_body?: string
 	}
 
 	export type M_Room_Member = {
