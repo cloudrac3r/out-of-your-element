@@ -21,6 +21,10 @@ const BLOCK_ELEMENTS = [
 	"TFOOT", "TH", "THEAD", "TR", "UL"
 ]
 
+function cleanAttribute (attribute) {
+	return attribute ? attribute.replace(/(\n+\s*)+/g, "\n") : ""
+}
+
 const turndownService = new TurndownService({
 	hr: "----",
 	headingStyle: "atx",
@@ -50,6 +54,27 @@ turndownService.addRule("blockquote", {
 		content = content.replace(/^\n+|\n+$/g, "")
 		content = content.replace(/^/gm, "> ")
 		return content
+	}
+})
+
+turndownService.addRule("inlineLink", {
+	filter: function (node, options) {
+	  return (
+			options.linkStyle === "inlined" &&
+			node.nodeName === "A" &&
+			node.getAttribute("href")
+	  )
+	},
+
+	replacement: function (content, node) {
+		if (node.getAttribute("data-user-id")) return `<@${node.getAttribute("data-user-id")}>`
+		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
+		const href = node.getAttribute("href")
+		let title = cleanAttribute(node.getAttribute("title"))
+		if (title) title = ` "` + title + `"`
+		let brackets = ["", ""]
+		if (href.startsWith("https://matrix.to")) brackets = ["<", ">"]
+		return "[" + content + "](" + brackets[0] + href + title + brackets[1] + ")"
 	}
 })
 
@@ -153,6 +178,21 @@ async function eventToMessage(event, guild, di) {
 			replyLine += contentPreview + "\n"
 		})()
 
+		// Handling mentions of Discord users
+		input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
+			if (!utils.eventSenderIsFromDiscord(mxid)) return whole
+			const userID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(mxid)
+			if (!userID) return whole
+			return `${attributeValue} data-user-id="${userID}">`
+		})
+
+		// Handling mentions of Discord rooms
+		input = input.replace(/("https:\/\/matrix.to\/#\/(![^"]+)")>/g, (whole, attributeValue, roomID) => {
+			const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+			if (!channelID) return whole
+			return `${attributeValue} data-channel-id="${channelID}">`
+		})
+
 		// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
 		input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
 
@@ -174,7 +214,7 @@ async function eventToMessage(event, guild, di) {
 			}
 		})
 
-		// @ts-ignore
+		// @ts-ignore bad type from turndown
 		content = turndownService.turndown(input)
 
 		// It's optimised for commonmark, we need to replace the space-space-newline with just newline
