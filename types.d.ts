@@ -80,7 +80,7 @@ export namespace Event {
 
 	export type M_Room_Member = {
 		membership: string
-		display_name?: string
+		displayname?: string
 		avatar_url?: string
 	}
 

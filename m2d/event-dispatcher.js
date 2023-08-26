@@ -91,3 +91,13 @@ async event => {
 	const name = event.content.name || null
 	db.prepare("UPDATE channel_room SET nick = ? WHERE room_id = ?").run(name, event.room_id)
 }))
+
+sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Member>} event
+ */
+async event => {
+	if (event.state_key[0] !== "@") return
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(event.room_id, event.sender, event.content.displayname || null, event.content.avatar_url || null)
+}))
