@@ -37,6 +37,13 @@ turndownService.addRule("strikethrough", {
 	}
 })
 
+turndownService.addRule("underline", {
+	filter: ["u"],
+	replacement: function (content) {
+		return "__" + content + "__"
+	}
+})
+
 turndownService.addRule("blockquote", {
 	filter: "blockquote",
 	replacement: function (content) {
