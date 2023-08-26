@@ -1,8 +1,32 @@
-// @ts-check
-
 const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
 const data = require("../../test/data")
+
+/**
+ * @param {string} roomID
+ * @param {string} eventID
+ * @returns {(roomID: string, eventID: string) => Promise<Ty.Event.Outer<Ty.Event.M_Room_Message>>}
+ */
+function mockGetEvent(t, roomID_in, eventID_in, outer) {
+	return async function(roomID, eventID) {
+		t.equal(roomID, roomID_in)
+		t.equal(eventID, eventID_in)
+		return new Promise(resolve => {
+			setTimeout(() => {
+				resolve({
+					event_id: eventID_in,
+					room_id: roomID_in,
+					origin_server_ts: 1680000000000,
+					unsigned: {
+						age: 2245,
+						transaction_id: "$local.whatever"
+					},
+					...outer
+				})
+			})
+		})
+	}
+}
 
 function sameFirstContentAndWhitespace(t, a, b) {
 	const a2 = JSON.stringify(a[0].content)
@@ -10,9 +34,9 @@ function sameFirstContentAndWhitespace(t, a, b) {
 	t.equal(a2, b2)
 }
 
-test("event2message: body is used when there is no formatted_body", t => {
+test("event2message: body is used when there is no formatted_body", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				body: "testing plaintext",
 				msgtype: "m.text"
@@ -34,9 +58,9 @@ test("event2message: body is used when there is no formatted_body", t => {
 	)
 })
 
-test("event2message: any markdown in body is escaped", t => {
+test("event2message: any markdown in body is escaped", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				body: "testing **special** ~~things~~ which _should_ *not* `trigger` @any <effects>",
 				msgtype: "m.text"
@@ -58,9 +82,9 @@ test("event2message: any markdown in body is escaped", t => {
 	)
 })
 
-test("event2message: basic html is converted to markdown", t => {
+test("event2message: basic html is converted to markdown", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -84,9 +108,9 @@ test("event2message: basic html is converted to markdown", t => {
 	)
 })
 
-test("event2message: markdown syntax is escaped", t => {
+test("event2message: markdown syntax is escaped", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -110,9 +134,9 @@ test("event2message: markdown syntax is escaped", t => {
 	)
 })
 
-test("event2message: html lines are bridged correctly", t => {
+test("event2message: html lines are bridged correctly", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -136,9 +160,9 @@ test("event2message: html lines are bridged correctly", t => {
 	)
 })
 
-/*test("event2message: whitespace is retained", t => {
+/*test("event2message: whitespace is retained", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -162,10 +186,10 @@ test("event2message: html lines are bridged correctly", t => {
 	)
 })*/
 
-test("event2message: whitespace is collapsed", t => {
+test("event2message: whitespace is collapsed", async t => {
 	sameFirstContentAndWhitespace(
 		t,
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -189,10 +213,10 @@ test("event2message: whitespace is collapsed", t => {
 	)
 })
 
-test("event2message: lists are bridged correctly", t => {
+test("event2message: lists are bridged correctly", async t => {
 	sameFirstContentAndWhitespace(
 		t,
-		eventToMessage({
+		await eventToMessage({
 			"type": "m.room.message",
 			"sender": "@cadence:cadence.moe",
 			"content": {
@@ -217,9 +241,9 @@ test("event2message: lists are bridged correctly", t => {
 	)
 })
 
-test("event2message: long messages are split", t => {
+test("event2message: long messages are split", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				body: ("a".repeat(130) + " ").repeat(19),
 				msgtype: "m.text"
@@ -245,9 +269,9 @@ test("event2message: long messages are split", t => {
 	)
 })
 
-test("event2message: code blocks work", t => {
+test("event2message: code blocks work", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -271,9 +295,9 @@ test("event2message: code blocks work", t => {
 	)
 })
 
-test("event2message: code block contents are formatted correctly and not escaped", t => {
+test("event2message: code block contents are formatted correctly and not escaped", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			"type": "m.room.message",
 			"sender": "@cadence:cadence.moe",
 			"content": {
@@ -298,9 +322,9 @@ test("event2message: code block contents are formatted correctly and not escaped
 	)
 })
 
-test("event2message: quotes have an appropriate amount of whitespace", t => {
+test("event2message: quotes have an appropriate amount of whitespace", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.text",
 				body: "wrong body",
@@ -324,9 +348,9 @@ test("event2message: quotes have an appropriate amount of whitespace", t => {
 	)
 })
 
-test("event2message: m.emote markdown syntax is escaped", t => {
+test("event2message: m.emote markdown syntax is escaped", async t => {
 	t.deepEqual(
-		eventToMessage({
+		await eventToMessage({
 			content: {
 				msgtype: "m.emote",
 				body: "wrong body",
@@ -345,6 +369,139 @@ test("event2message: m.emote markdown syntax is escaped", t => {
 		[{
 			username: "cadence",
 			content: "\\* cadence shows you \\*\\*her\\*\\* **_extreme_** \\\\\\*test\\\\\\* of",
+			avatar_url: undefined
+		}]
+	)
+})
+
+test("event2message: rich reply to a sim user", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe> Slow news day.\n\nTesting this reply, ignore",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>Slow news day.</blockquote></mx-reply>Testing this reply, ignore",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					type: "m.room.message",
+					content: {
+						msgtype: "m.text",
+						body: "Slow news day."
+					},
+					sender: "@_ooye_kyuugryphon:cadence.moe"
+				})
+			}
+		}),
+		[{
+			username: "cadence",
+			content: "<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>: Slow news day.\nTesting this reply, ignore",
+			avatar_url: undefined
+		}]
+	)
+})
+
+test("event2message: rich reply to a matrix user's long message with formatting", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+			  "msgtype": "m.text",
+			  "body": "> <@cadence:cadence.moe> ```\n> i should have a little happy test\n> ```\n> * list **bold** _em_ ~~strike~~\n> # heading 1\n> ## heading 2\n> ### heading 3\n> https://cadence.moe\n> [legit website](https://cadence.moe)\n\nno you can't!!!",
+			  "format": "org.matrix.custom.html",
+			  "formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br><pre><code>i should have a little happy test\n</code></pre>\n<ul>\n<li>list <strong>bold</strong> <em>em</em> ~~strike~~</li>\n</ul>\n<h1>heading 1</h1>\n<h2>heading 2</h2>\n<h3>heading 3</h3>\n<p>https://cadence.moe<br /><a href=\"https://cadence.moe\">legit website</a></p>\n</blockquote></mx-reply><strong>no you can't!!!</strong>",
+			  "m.relates_to": {
+				 "m.in_reply_to": {
+					"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+				 }
+			  }
+			},
+			"origin_server_ts": 1693037401693,
+			"unsigned": {
+			  "age": 381,
+			  "transaction_id": "m1693037401592.521"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		 }, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					"type": "m.room.message",
+					"sender": "@cadence:cadence.moe",
+					"content": {
+						"msgtype": "m.text",
+						"body": "```\ni should have a little happy test\n```\n* list **bold** _em_ ~~strike~~\n# heading 1\n## heading 2\n### heading 3\nhttps://cadence.moe\n[legit website](https://cadence.moe)",
+						"format": "org.matrix.custom.html",
+						"formatted_body": "<pre><code>i should have a little happy test\n</code></pre>\n<ul>\n<li>list <strong>bold</strong> <em>em</em> ~~strike~~</li>\n</ul>\n<h1>heading 1</h1>\n<h2>heading 2</h2>\n<h3>heading 3</h3>\n<p>https://cadence.moe<br><a href=\"https://cadence.moe\">legit website</a></p>\n"
+					}
+				})
+			}
+		}),
+		[{
+			username: "cadence",
+			content: "<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence**: i should have a little...\n**no you can't!!!**",
+			avatar_url: undefined
+		}]
+	)
+})
+
+test("event2message: with layered rich replies, the preview should only be the real text", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@cadence:cadence.moe> two\n\nthree",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!PnyBKvUBOhjuCucEfk:cadence.moe/$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>two</blockquote></mx-reply>three",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				}
+			},
+			event_id: "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		 }, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					"type": "m.room.message",
+					"sender": "@cadence:cadence.moe",
+					"content": {
+						"msgtype": "m.text",
+						"body": "> <@cadence:cadence.moe> one\n\ntwo",
+						"format": "org.matrix.custom.html",
+						"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!PnyBKvUBOhjuCucEfk:cadence.moe/$5UtboIC30EFlAYD_Oh0pSYVW8JqOp6GsDIJZHtT0Wls?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>one</blockquote></mx-reply>two",
+						"m.relates_to": {
+							"m.in_reply_to": {
+								"event_id": "$5UtboIC30EFlAYD_Oh0pSYVW8JqOp6GsDIJZHtT0Wls"
+							}
+						}
+					}
+				})
+			}
+		}),
+		[{
+			username: "cadence",
+			content: "<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence**: two\nthree",
 			avatar_url: undefined
 		}]
 	)

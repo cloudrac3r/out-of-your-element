@@ -26,6 +26,8 @@ const turndownService = new TurndownService({
 	codeBlockStyle: "fenced"
 })
 
+turndownService.remove("mx-reply")
+
 turndownService.addRule("strikethrough", {
 	filter: ["del", "s", "strike"],
 	replacement: function (content) {
@@ -69,13 +71,16 @@ turndownService.addRule("fencedCodeBlock", {
 
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Room_Message>} event
+ * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
-function eventToMessage(event) {
+async function eventToMessage(event, guild, di) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]})[]} */
 	let messages = []
 
 	let displayName = event.sender
 	let avatarURL = undefined
+	let replyLine = ""
 	const match = event.sender.match(/^@(.*?):/)
 	if (match) {
 		displayName = match[1]
@@ -95,7 +100,33 @@ function eventToMessage(event) {
 		// input = input.replace(/ /g, "&nbsp;")
 		// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
 
-		// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this works, so let's just delete those.
+		// Handling replies. We'll look up the data of the replied-to event from the Matrix homeserver.
+		await (async () => {
+			const repliedToEventId = event.content["m.relates_to"]?.["m.in_reply_to"].event_id
+			if (!repliedToEventId) return
+			const repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
+			if (!repliedToEvent) return
+			const row = db.prepare("SELECT channel_id, message_id FROM event_message WHERE event_id = ? ORDER BY part").get(repliedToEventId)
+			if (row) {
+				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
+			} else {
+				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>`
+			}
+			const sender = repliedToEvent.sender
+			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
+			const authorID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(repliedToEvent.sender)
+			if (authorID) {
+				replyLine += `<@${authorID}>: `
+			} else {
+				replyLine += `Ⓜ️**${senderName}**: `
+			}
+			const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
+			const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 24)
+			const contentPreview = contentPreviewChunks.length > 1 ? contentPreviewChunks[0] + "..." : contentPreviewChunks[0]
+			replyLine += contentPreview + "\n"
+		})()
+
+		// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
 		input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
 
 		// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
@@ -126,6 +157,8 @@ function eventToMessage(event) {
 		// Markdown needs to be escaped
 		content = content.replace(/([*_~`#])/g, `\\$1`)
 	}
+
+	content = replyLine + content
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)

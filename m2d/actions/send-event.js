@@ -9,6 +9,8 @@ const {sync, discord, db} = passthrough
 const channelWebhook = sync.require("./channel-webhook")
 /** @type {import("../converters/event-to-message")} */
 const eventToMessage = sync.require("../converters/event-to-message")
+/** @type {import("../../matrix/api")}) */
+const api = sync.require("../../matrix/api")
 
 /** @param {import("../../types").Event.Outer<any>} event */
 async function sendEvent(event) {
@@ -20,10 +22,14 @@ async function sendEvent(event) {
 		threadID = channelID
 		channelID = row.thread_parent // it's the thread's parent... get with the times...
 	}
+	// @ts-ignore
+	const guildID = discord.channels.get(channelID).guild_id
+	const guild = discord.guilds.get(guildID)
+	assert(guild)
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	const messages = eventToMessage.eventToMessage(event)
+	const messages = await eventToMessage.eventToMessage(event, guild, {api})
 	assert(Array.isArray(messages)) // sanity
 
 	/** @type {DiscordTypes.APIMessage[]} */
