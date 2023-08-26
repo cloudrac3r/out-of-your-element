@@ -271,6 +271,58 @@ test("event2message: code blocks work", t => {
 	)
 })
 
+test("event2message: code block contents are formatted correctly and not escaped", t => {
+	t.deepEqual(
+		eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "wrong body",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<pre><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n_input_ = input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n</code></pre>\n<p><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,</code></p>\n"
+			},
+			"origin_server_ts": 1693031482275,
+			"unsigned": {
+				"age": 99,
+				"transaction_id": "m1693031482146.511"
+			},
+			"event_id": "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
+		}),
+		[{
+			username: "cadence",
+			content: "```\ninput = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n_input_ = input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n```\n\n`input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,`",
+			avatar_url: undefined
+		}]
+	)
+})
+
+test("event2message: quotes have an appropriate amount of whitespace", t => {
+	t.deepEqual(
+		eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<blockquote>Chancellor of Germany Angela Merkel, on March 17, 2017: they did not shake hands<br><br><br></blockquote><br>🤨"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		[{
+			username: "cadence",
+			content: "> Chancellor of Germany Angela Merkel, on March 17, 2017: they did not shake hands\n🤨",
+			avatar_url: undefined
+		}]
+	)
+})
 
 test("event2message: m.emote markdown syntax is escaped", t => {
 	t.deepEqual(

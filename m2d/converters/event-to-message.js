@@ -33,6 +33,40 @@ turndownService.addRule("strikethrough", {
 	}
 })
 
+turndownService.addRule("blockquote", {
+	filter: "blockquote",
+	replacement: function (content) {
+		content = content.replace(/^\n+|\n+$/g, "")
+		content = content.replace(/^/gm, "> ")
+		return content
+	}
+})
+
+turndownService.addRule("fencedCodeBlock", {
+	filter: function (node, options) {
+		return (
+			options.codeBlockStyle === "fenced" &&
+			node.nodeName === "PRE" &&
+			node.firstChild &&
+			node.firstChild.nodeName === "CODE"
+		)
+	},
+	replacement: function (content, node, options) {
+		const className = node.firstChild.getAttribute("class") || ""
+		const language = (className.match(/language-(\S+)/) || [null, ""])[1]
+		const code = node.firstChild
+		const visibleCode = code.childNodes.map(c => c.nodeName === "BR" ? "\n" : c.textContent).join("").replace(/\n*$/g, "")
+
+		var fence = "```"
+
+		return (
+			fence + language + "\n" +
+			visibleCode +
+			"\n" + fence
+		)
+	}
+})
+
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Room_Message>} event
  */
@@ -61,9 +95,13 @@ function eventToMessage(event) {
 		// input = input.replace(/ /g, "&nbsp;")
 		// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
 
+		// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this works, so let's just delete those.
+		input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
+
 		// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
 		// But I should not count it if it's between block elements.
 		input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
+			// console.error(beforeContext, beforeTag, afterContext, afterTag)
 			if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
 				return "<br>"
 			}
