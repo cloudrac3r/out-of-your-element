@@ -47,6 +47,13 @@ CREATE TABLE IF NOT EXISTS "event_message" (
 	"source"	INTEGER NOT NULL,
 	PRIMARY KEY("event_id","message_id")
 );
+CREATE TABLE IF NOT EXISTS "member_cache" (
+	"room_id"	TEXT NOT NULL,
+	"mxid"	TEXT NOT NULL,
+	"displayname"	TEXT,
+	"avatar_url"	TEXT,
+	PRIMARY KEY("room_id", "mxid")
+);
 COMMIT;
 
 
@@ -100,5 +107,10 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/guilds/112760669178241024/users/134826546694193153/avatars/38dd359aa12bcd52dd3164126c587f8c.png?size=1024', 'mxc://cadence.moe/rfemHmAtcprjLEiPiEuzPhpl'),
 ('https://cdn.discordapp.com/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024', 'mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF'),
 ('https://cdn.discordapp.com/avatars/113340068197859328/b48302623a12bc7c59a71328f72ccb39.png?size=1024', 'mxc://cadence.moe/UpAeIqeclhKfeiZNdIWNcXXL');
+
+INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
+('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
+('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
+('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
 
 COMMIT;

@@ -51,7 +51,7 @@ test("event2message: body is used when there is no formatted_body", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "testing plaintext",
 			avatar_url: undefined
 		}]
@@ -75,7 +75,7 @@ test("event2message: any markdown in body is escaped", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "testing \\*\\*special\\*\\* \\~\\~things\\~\\~ which \\_should\\_ \\*not\\* \\`trigger\\` @any <effects>",
 			avatar_url: undefined
 		}]
@@ -101,7 +101,7 @@ test("event2message: basic html is converted to markdown", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "this **is** a **_test_** of ~~formatting~~",
 			avatar_url: undefined
 		}]
@@ -127,7 +127,7 @@ test("event2message: markdown syntax is escaped", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "this \\*\\*is\\*\\* an **_extreme_** \\\\\\*test\\\\\\* of",
 			avatar_url: undefined
 		}]
@@ -153,7 +153,7 @@ test("event2message: html lines are bridged correctly", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "paragraph one\nline _two_\nline three\n\nparagraph two\nline _two_\nline three\n\nparagraph three\n\nparagraph four\nline two\nline three\nline four\n\nparagraph five",
 			avatar_url: undefined
 		}]
@@ -179,7 +179,7 @@ test("event2message: html lines are bridged correctly", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "line one: test       test\nline two: **test**       **test**\nline three: **test       test**\nline four: test       test\n       line five",
 			avatar_url: undefined
 		}]
@@ -206,7 +206,7 @@ test("event2message: whitespace is collapsed", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "line one: test test\nline two: **test** **test**\nline three: **test test**\nline four: test test\nline five",
 			avatar_url: undefined
 		}]
@@ -234,7 +234,7 @@ test("event2message: lists are bridged correctly", async t => {
 			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "*   line one\n*   line two\n*   line three\n    *   nested one\n    *   nested two\n*   line four",
 			avatar_url: undefined
 		}]
@@ -258,11 +258,11 @@ test("event2message: long messages are split", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: (("a".repeat(130) + " ").repeat(15)).slice(0, -1),
 			avatar_url: undefined
 		}, {
-			username: "cadence",
+			username: "cadence [they]",
 			content: (("a".repeat(130) + " ").repeat(4)).slice(0, -1),
 			avatar_url: undefined
 		}]
@@ -288,7 +288,7 @@ test("event2message: code blocks work", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "preceding\n\n```\ncode block\n```\n\nfollowing `code` is inline",
 			avatar_url: undefined
 		}]
@@ -315,7 +315,7 @@ test("event2message: code block contents are formatted correctly and not escaped
 			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "```\ninput = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n_input_ = input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n```\n\n`input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,`",
 			avatar_url: undefined
 		}]
@@ -341,7 +341,7 @@ test("event2message: quotes have an appropriate amount of whitespace", async t =
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "> Chancellor of Germany Angela Merkel, on March 17, 2017: they did not shake hands\n🤨",
 			avatar_url: undefined
 		}]
@@ -367,8 +367,8 @@ test("event2message: m.emote markdown syntax is escaped", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
-			content: "\\* cadence shows you \\*\\*her\\*\\* **_extreme_** \\\\\\*test\\\\\\* of",
+			username: "cadence [they]",
+			content: "\\* cadence \\[they\\] shows you \\*\\*her\\*\\* **_extreme_** \\\\\\*test\\\\\\* of",
 			avatar_url: undefined
 		}]
 	)
@@ -410,9 +410,9 @@ test("event2message: rich reply to a sim user", async t => {
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>: Slow news day.\nTesting this reply, ignore",
-			avatar_url: undefined
+			avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
 		}]
 	)
 })
@@ -455,9 +455,9 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence**: i should have a little...\n**no you can't!!!**",
-			avatar_url: undefined
+			avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
 		}]
 	)
 })
@@ -500,9 +500,9 @@ test("event2message: with layered rich replies, the preview should only be the r
 			}
 		}),
 		[{
-			username: "cadence",
+			username: "cadence [they]",
 			content: "<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence**: two\nthree",
-			avatar_url: undefined
+			avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
 		}]
 	)
 })

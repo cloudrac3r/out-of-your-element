@@ -9,6 +9,8 @@ const passthrough = require("../../passthrough")
 const { sync, db, discord } = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
+/** @type {import("../converters/utils")} */
+const utils = sync.require("../converters/utils")
 
 const BLOCK_ELEMENTS = [
 	"ADDRESS", "ARTICLE", "ASIDE", "AUDIO", "BLOCKQUOTE", "BODY", "CANVAS",
@@ -70,6 +72,22 @@ turndownService.addRule("fencedCodeBlock", {
 })
 
 /**
+ * @param {string} roomID
+ * @param {string} mxid
+ * @returns {Promise<{displayname?: string?, avatar_url?: string?}>}
+ */
+async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
+	const row = db.prepare("SELECT displayname, avatar_url FROM member_cache WHERE room_id = ? AND mxid = ?").get(roomID, mxid)
+	if (row) return row
+	return api.getStateEvent(roomID, "m.room.member", mxid).then(event => {
+		db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(roomID, mxid, event?.displayname || null, event?.avatar_url || null)
+		return event
+	}).catch(() => {
+		return {displayname: null, avatar_url: null}
+	})
+}
+
+/**
  * @param {Ty.Event.Outer<Ty.Event.M_Room_Message>} event
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
@@ -81,11 +99,13 @@ async function eventToMessage(event, guild, di) {
 	let displayName = event.sender
 	let avatarURL = undefined
 	let replyLine = ""
+	// Extract a basic display name from the sender
 	const match = event.sender.match(/^@(.*?):/)
-	if (match) {
-		displayName = match[1]
-		// TODO: get the media repo domain and the avatar url from the matrix member event
-	}
+	if (match) displayName = match[1]
+	// Try to extract an accurate display name and avatar URL from the member event
+	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
+	if (member.displayname) displayName = member.displayname
+	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url)
 
 	// Convert content depending on what the message is
 	let content = event.content.body // ultimate fallback
