@@ -21,9 +21,20 @@ async function addReaction(event) {
 	let encoded = encodeURIComponent(emoji)
 	let encodedTrimmed = encoded.replace(/%EF%B8%8F/g, "")
 
-	console.log("add reaction from matrix:", emoji, encoded, encodedTrimmed)
+	// https://github.com/discord/discord-api-docs/issues/2723#issuecomment-807022205 ????????????
 
-	return discord.snow.channel.createReaction(channelID, messageID, encoded)
+	const forceTrimmedList = [
+		"%E2%AD%90" // ⭐
+	]
+
+	let discordPreferredEncoding =
+		( forceTrimmedList.includes(encodedTrimmed) ? encodedTrimmed
+		: encodedTrimmed !== encoded && [...emoji].length === 2 ? encoded
+		: encodedTrimmed)
+
+	console.log("add reaction from matrix:", emoji, encoded, encodedTrimmed, "chosen:", discordPreferredEncoding)
+
+	return discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding)
 }
 
 module.exports.addReaction = addReaction
