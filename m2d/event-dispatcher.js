@@ -80,3 +80,14 @@ async event => {
 	const url = event.content.url || null
 	db.prepare("UPDATE channel_room SET custom_avatar = ? WHERE room_id = ?").run(url, event.room_id)
 }))
+
+sync.addTemporaryListener(as, "type:m.room.name", guard("m.room.name",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Name>} event
+ */
+async event => {
+	if (event.state_key !== "") return
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const name = event.content.name || null
+	db.prepare("UPDATE channel_room SET nick = ? WHERE room_id = ?").run(name, event.room_id)
+}))

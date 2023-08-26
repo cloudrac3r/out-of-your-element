@@ -70,7 +70,12 @@ export namespace Event {
 		msgtype: "m.text" | "m.emote"
 		body: string
 		format?: "org.matrix.custom.html"
-		formatted_body?: string
+		formatted_body?: string,
+		"m.relates_to"?: {
+			"m.in_reply_to": {
+				event_id: string
+			}
+		}
 	}
 
 	export type M_Room_Member = {
@@ -82,6 +87,10 @@ export namespace Event {
 	export type M_Room_Avatar = {
 		discord_path?: string
 		url?: string
+	}
+
+	export type M_Room_Name = {
+		name?: string
 	}
 
 	export type M_Reaction = {
