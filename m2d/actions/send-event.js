@@ -29,13 +29,15 @@ async function sendEvent(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	const messages = await eventToMessage.eventToMessage(event, guild, {api})
-	assert(Array.isArray(messages)) // sanity
+	const {messagesToEdit, messagesToSend, messagesToDelete} = await eventToMessage.eventToMessage(event, guild, {api})
 
 	/** @type {DiscordTypes.APIMessage[]} */
 	const messageResponses = []
 	let eventPart = 0 // 0 is primary, 1 is supporting
-	for (const message of messages) {
+	// for (const message of messagesToEdit) {
+	//	eventPart = 1
+	//	TODO ...
+	for (const message of messagesToSend) {
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content.msgtype || null, messageResponse.id, channelID, eventPart) // source 0 = matrix
 

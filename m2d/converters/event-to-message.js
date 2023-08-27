@@ -130,6 +130,8 @@ async function eventToMessage(event, guild, di) {
 
 	let displayName = event.sender
 	let avatarURL = undefined
+	/** @type {string[]} */
+	let messageIDsToEdit = []
 	let replyLine = ""
 	// Extract a basic display name from the sender
 	const match = event.sender.match(/^@(.*?):/)
@@ -152,9 +154,37 @@ async function eventToMessage(event, guild, di) {
 		// input = input.replace(/ /g, "&nbsp;")
 		// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
 
-		// Handling replies. We'll look up the data of the replied-to event from the Matrix homeserver.
+		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
+		// this event ---is an edit of--> original event ---is a reply to--> past event
 		await (async () => {
-			const repliedToEventId = event.content["m.relates_to"]?.["m.in_reply_to"].event_id
+			if (!event.content["m.new_content"]) return
+			const relatesTo = event.content["m.relates_to"]
+			if (!relatesTo) return
+			// Check if we have a pointer to what was edited
+			const relType = relatesTo.rel_type
+			if (relType !== "m.replace") return
+			const originalEventId = relatesTo.event_id
+			if (!originalEventId) return
+			console.log("a", originalEventId)
+			messageIDsToEdit = db.prepare("SELECT message_id FROM event_message WHERE event_id = ? ORDER BY part").pluck().all(originalEventId)
+			if (!messageIDsToEdit.length) return
+			// Get the original event, then check if it was a reply
+			const originalEvent = await di.api.getEvent(event.room_id, originalEventId)
+			if (!originalEvent) return
+			const repliedToEventId = originalEvent.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
+			if (!repliedToEventId) return
+			console.log("c")
+			// After all that, it's an edit of a reply.
+			// We'll be sneaky and prepare the message data so that everything else can handle it just like original messages.
+			Object.assign(event.content, event.content["m.new_content"])
+			input = event.content.formatted_body || event.content.body
+			relatesTo["m.in_reply_to"] = {event_id: repliedToEventId}
+		})()
+
+		// Handling replies. We'll look up the data of the replied-to event from the Matrix homeserver.
+		// Note that an <mx-reply> element is not guaranteed because this might be m.new_content.
+		await (async () => {
+			const repliedToEventId = event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
 			const repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
 			if (!repliedToEvent) return
@@ -235,7 +265,21 @@ async function eventToMessage(event, guild, di) {
 		avatar_url: avatarURL
 	})))
 
-	return messages
+	const messagesToEdit = []
+	const messagesToSend = []
+	for (let i = 0; i < messages.length; i++) {
+		if (messageIDsToEdit.length) {
+			messagesToEdit.push({id: messageIDsToEdit.shift(), message: messages[i]})
+		} else {
+			messagesToSend.push(messages[i])
+		}
+	}
+
+	return {
+		messagesToEdit,
+		messagesToSend,
+		messagesToDelete: messageIDsToEdit
+	}
 }
 
 module.exports.eventToMessage = eventToMessage

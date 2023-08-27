@@ -75,6 +75,8 @@ export namespace Event {
 			"m.in_reply_to": {
 				event_id: string
 			}
+			rel_type?: "m.replace"
+			event_id?: string
 		}
 	}
 
