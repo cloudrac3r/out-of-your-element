@@ -1,5 +1,27 @@
 # d2m
 
+## Known issues
+
+- m->d attachments do not work
+- m->d edits do not work
+- m->d spoilers do not work
+- d->m support the rest of the attachments by reading the matrix spec instead of the current approach of whitelisting mime types
+- d->m emojis do not work at all (inline chat, single emoji size, reactions, bridged state)
+- m->d code blocks have slightly too much spacing
+- m->d some reactions don't work because of the variation selector
+- <--> check whether I implemented deletions
+- rooms will be set up even if the bridge does not have permission for them, then break when it restarts and tries to reach messages
+	- test private threads as part of this
+	- solution part 1: calculate the permissions to see if the bot should be able to do stuff
+	- solution part 2: attempt a get messages request anyway before bridging a new room, just to make sure!
+	- solution part 3: revisit the permissions to add newly available rooms and to close newly inaccessible rooms
+- consider a way to jump to a timestamp by making up a discord snowflake. practical? helpful?
+- clean up and write documentation to selfhost
+- pluralkit considerations for artemis
+- consider whether to use nested spaces for channel categories and threads
+
+## Mapping
+
 Remember that a discord message may be transformed to multiple matrix messages.
 
 A database will be used to store the discord id to matrix event id mapping. Table columns:

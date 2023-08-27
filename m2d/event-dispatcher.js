@@ -40,10 +40,10 @@ function guard(type, fn) {
 				formatted_body: "\u26a0 <strong>Matrix event not delivered to Discord</strong>"
 					+ `<br>Event type: ${type}`
 					+ `<br>${e.toString()}`
-					+ `<details><summary>Error trace</summary>`
-					+ `<pre>${stackLines.join("\n")}</pre></details>`
-					+ `<details><summary>Original payload</summary>`
-					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details>`,
+					+ `<div><details><summary>Error trace</summary>`
+					+ `<pre>${stackLines.join("\n")}</pre></details></div>`
+					+ `<div><details><summary>Original payload</summary>`
+					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details></div>`,
 				"m.mentions": {
 					user_ids: ["@cadence:cadence.moe"]
 				}

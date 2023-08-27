@@ -173,9 +173,9 @@ async function eventToMessage(event, guild, di) {
 				replyLine += `Ⓜ️**${senderName}**: `
 			}
 			const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
-			const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 24)
+			const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 50)
 			const contentPreview = contentPreviewChunks.length > 1 ? contentPreviewChunks[0] + "..." : contentPreviewChunks[0]
-			replyLine += contentPreview + "\n"
+			replyLine = `> ${replyLine}\n> ${contentPreview}\n`
 		})()
 
 		// Handling mentions of Discord users
