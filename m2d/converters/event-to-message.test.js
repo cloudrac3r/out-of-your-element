@@ -584,7 +584,7 @@ test("event2message: editing a plaintext body message", async t => {
 			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
 		}, data.guild.general, {
 			api: {
-				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
 					sender: "@cadence:cadence.moe",
 					content: {
@@ -601,6 +601,63 @@ test("event2message: editing a plaintext body message", async t => {
 				message: {
 					username: "cadence [they]",
 					content: "well, I guess it's no longer brand new... it's existed for mere seconds...",
+					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+				}
+			}],
+			messagesToSend: []
+		}
+	)
+})
+
+test("event2message: editing a formatted body message", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": " * **well, I guess it's no longer brand new... it's existed for mere seconds...**",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "* <strong>well, I guess it's no longer brand new... it's existed for mere seconds...</strong>",
+				"m.new_content": {
+					"msgtype": "m.text",
+					"body": "**well, I guess it's no longer brand new... it's existed for mere seconds...**",
+					"format": "org.matrix.custom.html",
+					"formatted_body": "<strong>well, I guess it's no longer brand new... it's existed for mere seconds...</strong>"
+				},
+				"m.relates_to": {
+					"rel_type": "m.replace",
+					"event_id": "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs"
+				}
+			},
+			"origin_server_ts": 1693223873912,
+			"unsigned": {
+				"age": 42,
+				"transaction_id": "m1693223873796.842"
+			},
+			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
+			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: "**brand new, never before seen message**",
+						format: "org.matrix.custom.html",
+						formatted_body: "<strong>brand new, never before seen message</strong>"
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [{
+				id: "1145688633186193479",
+				message: {
+					username: "cadence [they]",
+					content: "**well, I guess it's no longer brand new... it's existed for mere seconds...**",
 					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
 				}
 			}],

@@ -34,9 +34,11 @@ async function sendEvent(event) {
 	/** @type {DiscordTypes.APIMessage[]} */
 	const messageResponses = []
 	let eventPart = 0 // 0 is primary, 1 is supporting
-	// for (const message of messagesToEdit) {
-	//	eventPart = 1
-	//	TODO ...
+	for (const data of messagesToEdit) {
+		const messageResponse = await channelWebhook.editMessageWithWebhook(channelID, data.id, data.message, threadID)
+		eventPart = 1
+		messageResponses.push(messageResponse)
+	}
 	for (const message of messagesToSend) {
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
 		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, channelID)

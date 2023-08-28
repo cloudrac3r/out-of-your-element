@@ -141,19 +141,10 @@ async function eventToMessage(event, guild, di) {
 	if (member.displayname) displayName = member.displayname
 	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url)
 
-	// Convert content depending on what the message is
 	let content = event.content.body // ultimate fallback
-	if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
-		let input = event.content.formatted_body
-		if (event.content.msgtype === "m.emote") {
-			input = `* ${displayName} ${input}`
-		}
 
-		// Note: Element's renderers on Web and Android currently collapse whitespace, like the browser does. Turndown also collapses whitespace which is good for me.
-		// If later I'm using a client that doesn't collapse whitespace and I want turndown to follow suit, uncomment the following line of code, and it Just Works:
-		// input = input.replace(/ /g, "&nbsp;")
-		// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
-
+	// Convert content depending on what the message is
+	if (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote") {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
 		// this event ---is an edit of--> original event ---is a reply to--> past event
 		await (async () => {
@@ -167,16 +158,26 @@ async function eventToMessage(event, guild, di) {
 			if (!originalEventId) return
 			messageIDsToEdit = db.prepare("SELECT message_id FROM event_message WHERE event_id = ? ORDER BY part").pluck().all(originalEventId)
 			if (!messageIDsToEdit.length) return
+
+			// Ok, it's an edit.
+			event.content = event.content["m.new_content"]
+
+			// Is it editing a reply? We need special handling if it is.
 			// Get the original event, then check if it was a reply
 			const originalEvent = await di.api.getEvent(event.room_id, originalEventId)
 			if (!originalEvent) return
 			const repliedToEventId = originalEvent.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
+
 			// After all that, it's an edit of a reply.
-			// We'll be sneaky and prepare the message data so that everything else can handle it just like original messages.
-			Object.assign(event.content, event.content["m.new_content"])
-			input = event.content.formatted_body || event.content.body
-			relatesTo["m.in_reply_to"] = {event_id: repliedToEventId}
+			// We'll be sneaky and prepare the message data so that the next steps can handle it just like original messages.
+			Object.assign(event.content, {
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: repliedToEventId
+					}
+				}
+			})
 		})()
 
 		// Handling replies. We'll look up the data of the replied-to event from the Matrix homeserver.
@@ -206,51 +207,69 @@ async function eventToMessage(event, guild, di) {
 			replyLine = `> ${replyLine}\n> ${contentPreview}\n`
 		})()
 
-		// Handling mentions of Discord users
-		input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
-			if (!utils.eventSenderIsFromDiscord(mxid)) return whole
-			const userID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(mxid)
-			if (!userID) return whole
-			return `${attributeValue} data-user-id="${userID}">`
-		})
-
-		// Handling mentions of Discord rooms
-		input = input.replace(/("https:\/\/matrix.to\/#\/(![^"]+)")>/g, (whole, attributeValue, roomID) => {
-			const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
-			if (!channelID) return whole
-			return `${attributeValue} data-channel-id="${channelID}">`
-		})
-
-		// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
-		input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
-
-		// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
-		// But I should not count it if it's between block elements.
-		input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
-			// console.error(beforeContext, beforeTag, afterContext, afterTag)
-			if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
-				return "<br>"
+		if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
+			let input = event.content.formatted_body
+			if (event.content.msgtype === "m.emote") {
+				input = `* ${displayName} ${input}`
 			}
-			beforeContext = beforeContext || ""
-			beforeTag = beforeTag || ""
-			afterContext = afterContext || ""
-			afterTag = afterTag || ""
-			if (!BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
-				return beforeContext + "<br>" + afterContext
-			} else {
-				return whole
+
+			// Handling mentions of Discord users
+			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
+				if (!utils.eventSenderIsFromDiscord(mxid)) return whole
+				const userID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(mxid)
+				if (!userID) return whole
+				return `${attributeValue} data-user-id="${userID}">`
+			})
+
+			// Handling mentions of Discord rooms
+			input = input.replace(/("https:\/\/matrix.to\/#\/(![^"]+)")>/g, (whole, attributeValue, roomID) => {
+				const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+				if (!channelID) return whole
+				return `${attributeValue} data-channel-id="${channelID}">`
+			})
+
+			// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
+			input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
+
+			// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
+			// But I should not count it if it's between block elements.
+			input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
+				// console.error(beforeContext, beforeTag, afterContext, afterTag)
+				if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
+					return "<br>"
+				}
+				beforeContext = beforeContext || ""
+				beforeTag = beforeTag || ""
+				afterContext = afterContext || ""
+				afterTag = afterTag || ""
+				if (!BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
+					return beforeContext + "<br>" + afterContext
+				} else {
+					return whole
+				}
+			})
+
+			// Note: Element's renderers on Web and Android currently collapse whitespace, like the browser does. Turndown also collapses whitespace which is good for me.
+			// If later I'm using a client that doesn't collapse whitespace and I want turndown to follow suit, uncomment the following line of code, and it Just Works:
+			// input = input.replace(/ /g, "&nbsp;")
+			// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
+
+			// @ts-ignore bad type from turndown
+			content = turndownService.turndown(input)
+
+			// It's optimised for commonmark, we need to replace the space-space-newline with just newline
+			content = content.replace(/  \n/g, "\n")
+		} else {
+			// Looks like we're using the plaintext body!
+			content = event.content.body
+
+			if (event.content.msgtype === "m.emote") {
+				content = `* ${displayName} ${content}`
 			}
-		})
 
-		// @ts-ignore bad type from turndown
-		content = turndownService.turndown(input)
-
-		// It's optimised for commonmark, we need to replace the space-space-newline with just newline
-		content = content.replace(/  \n/g, "\n")
-	} else {
-		// Looks like we're using the plaintext body!
-		// Markdown needs to be escaped
-		content = content.replace(/([*_~`#])/g, `\\$1`)
+			// Markdown needs to be escaped
+			content = content.replace(/([*_~`#])/g, `\\$1`)
+		}
 	}
 
 	content = replyLine + content
@@ -266,8 +285,10 @@ async function eventToMessage(event, guild, di) {
 	const messagesToEdit = []
 	const messagesToSend = []
 	for (let i = 0; i < messages.length; i++) {
-		if (messageIDsToEdit.length) {
-			messagesToEdit.push({id: messageIDsToEdit.shift(), message: messages[i]})
+		const next = messageIDsToEdit[0]
+		if (next) {
+			messagesToEdit.push({id: next, message: messages[i]})
+			messageIDsToEdit.shift()
 		} else {
 			messagesToSend.push(messages[i])
 		}

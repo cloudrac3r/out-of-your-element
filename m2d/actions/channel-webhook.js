@@ -58,6 +58,20 @@ async function sendMessageWithWebhook(channelID, data, threadID) {
 	return result
 }
 
+/**
+ * @param {string} channelID
+ * @param {string} messageID
+ * @param {DiscordTypes.RESTPatchAPIWebhookWithTokenMessageJSONBody & {files?: {name: string, file: Buffer}[]}} data
+ * @param {string} [threadID]
+ */
+async function editMessageWithWebhook(channelID, messageID, data, threadID) {
+	const result = await withWebhook(channelID, async webhook => {
+		return discord.snow.webhook.editWebhookMessage(webhook.id, webhook.token, messageID, {...data, thread_id: threadID})
+	})
+	return result
+}
+
 module.exports.ensureWebhook = ensureWebhook
 module.exports.withWebhook = withWebhook
 module.exports.sendMessageWithWebhook = sendMessageWithWebhook
+module.exports.editMessageWithWebhook = editMessageWithWebhook
