@@ -39,6 +39,7 @@ async function sendEvent(event) {
 	//	TODO ...
 	for (const message of messagesToSend) {
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
+		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, channelID)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content.msgtype || null, messageResponse.id, channelID, eventPart) // source 0 = matrix
 
 		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting?

@@ -8,7 +8,8 @@ const config = require("../config")
 const passthrough = require("../passthrough")
 const db = new sqlite(":memory:")
 
-db.exec(fs.readFileSync("db/data-for-test.sql", "utf8"))
+db.exec(fs.readFileSync("db/ooye-schema.sql", "utf8"))
+db.exec(fs.readFileSync("db/ooye-test-data.sql", "utf8"))
 
 const sync = new HeatSync({watchFS: false})
 

@@ -32,6 +32,9 @@ async function sendMessage(message, guild) {
 	const events = await messageToEvent.messageToEvent(message, guild, {}, {api})
 	const eventIDs = []
 	let eventPart = 0 // 0 is primary, 1 is supporting
+	if (events.length) {
+		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+	}
 	for (const event of events) {
 		const eventType = event.$type
 		/** @type {Pick<typeof event, Exclude<keyof event, "$type">> & { $type?: string }} */
@@ -40,7 +43,7 @@ async function sendMessage(message, guild) {
 
 		const useTimestamp = message["backfill"] ? new Date(message.timestamp).getTime() : undefined
 		const eventID = await api.sendEvent(roomID, eventType, eventWithoutType, senderMxid, useTimestamp)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, message.channel_id, eventPart) // source 1 = discord
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, eventPart) // source 1 = discord
 
 		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
 		eventIDs.push(eventID)

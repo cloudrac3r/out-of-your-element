@@ -32,7 +32,7 @@ async function editMessage(message, guild) {
 	// Not redacting as the last action because the last action is likely to be shown in the room preview in clients, and we don't want it to look like somebody actually deleted a message.
 	for (const eventID of eventsToRedact) {
 		await api.redactEvent(roomID, eventID, senderMxid)
-		db.prepare("DELETE from event_message WHERE event_id = ?").run(eventID)
+		db.prepare("DELETE FROM event_message WHERE event_id = ?").run(eventID)
 		// TODO: If I just redacted part = 0, I should update one of the other events to make it the new part = 0, right?
 	}
 
@@ -44,7 +44,7 @@ async function editMessage(message, guild) {
 		delete contentWithoutType.$type
 
 		const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, 1, 1)").run(eventID, eventType, content.msgtype || null, message.id, message.channel_id) // part 1 = supporting; source 1 = discord
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 1, 1)").run(eventID, eventType, content.msgtype || null, message.id) // part 1 = supporting; source 1 = discord
 	}
 }
 

@@ -79,9 +79,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const ref = message.message_reference
 		assert(ref)
 		assert(ref.message_id)
-		const row = db.prepare("SELECT room_id, event_id FROM event_message INNER JOIN channel_room USING (channel_id) WHERE channel_id = ? AND message_id = ?").get(ref.channel_id, ref.message_id)
-		if (!row) return []
-		const event = await di.api.getEvent(row.room_id, row.event_id)
+		const eventID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ?").pluck().get(ref.message_id)
+		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(ref.channel_id)
+		if (!eventID || !roomID) return []
+		const event = await di.api.getEvent(roomID, eventID)
 		return [{
 			...event.content,
 			$type: event.type
@@ -118,7 +119,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Mentions scenarios 1 and 2, part A. i.e. translate relevant message.mentions to m.mentions
 	// (Still need to do scenarios 1 and 2 part B, and scenario 3.)
 	if (message.type === DiscordTypes.MessageType.Reply && message.message_reference?.message_id) {
-		const row = db.prepare("SELECT event_id, room_id, source FROM event_message INNER JOIN channel_room USING (channel_id) WHERE message_id = ? AND part = 0").get(message.message_reference.message_id)
+		const row = db.prepare("SELECT event_id, room_id, source FROM event_message INNER JOIN message_channel USING (message_id) INNER JOIN channel_room USING (channel_id) WHERE message_id = ? AND part = 0").get(message.message_reference.message_id)
 		if (row) {
 			repliedToEventId = row.event_id
 			repliedToEventRoomId = row.room_id
@@ -144,9 +145,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 	if (message.content) {
 		let content = message.content
 		content = content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
-			const row = db.prepare("SELECT room_id, event_id FROM event_message INNER JOIN channel_room USING (channel_id) WHERE channel_id = ? AND message_id = ? AND part = 0").get(channelID, messageID)
-			if (row) {
-				return `https://matrix.to/#/${row.room_id}/${row.event_id}`
+			const eventID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ?").pluck().get(messageID)
+			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channelID)
+			if (eventID && roomID) {
+				return `https://matrix.to/#/${roomID}/${eventID}`
 			} else {
 				return `${whole} [event not found]`
 			}

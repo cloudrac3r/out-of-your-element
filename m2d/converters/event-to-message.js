@@ -188,7 +188,7 @@ async function eventToMessage(event, guild, di) {
 			if (!repliedToEventId) return
 			const repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
 			if (!repliedToEvent) return
-			const row = db.prepare("SELECT channel_id, message_id FROM event_message WHERE event_id = ? ORDER BY part").get(repliedToEventId)
+			const row = db.prepare("SELECT channel_id, message_id FROM event_message INNER JOIN message_channel USING (message_id) WHERE event_id = ? ORDER BY part").get(repliedToEventId)
 			if (row) {
 				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			} else {

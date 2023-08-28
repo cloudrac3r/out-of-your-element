@@ -13,7 +13,7 @@ Object.assign(passthrough, {sync, db})
 const api = require("../matrix/api")
 
 /** @type {{event_id: string, room_id: string, event_type: string}[]} */ // @ts-ignore
-const rows = db.prepare("SELECT event_id, room_id, event_type FROM event_message INNER JOIN channel_room USING (channel_id)").all()
+const rows = db.prepare("SELECT event_id, room_id, event_type FROM event_message INNER JOIN message_channel USING (message_id) INNER JOIN channel_room USING (channel_id)").all()
 
 const preparedUpdate = db.prepare("UPDATE event_message SET event_type = ?, event_subtype = ? WHERE event_id = ?")
 
