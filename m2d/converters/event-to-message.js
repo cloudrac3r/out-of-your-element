@@ -198,9 +198,9 @@ async function eventToMessage(event, guild, di) {
 			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
 			const authorID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(repliedToEvent.sender)
 			if (authorID) {
-				replyLine += `<@${authorID}>: `
+				replyLine += `<@${authorID}>:`
 			} else {
-				replyLine += `Ⓜ️**${senderName}**: `
+				replyLine += `Ⓜ️**${senderName}**:`
 			}
 			const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 			const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 50)
