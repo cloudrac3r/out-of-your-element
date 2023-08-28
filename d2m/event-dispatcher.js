@@ -100,6 +100,7 @@ module.exports = {
 				const simulatedGatewayDispatchData = {
 					guild_id: guild.id,
 					mentions: [],
+					backfill: true,
 					...messages[i]
 				}
 				await module.exports.onMessageCreate(client, simulatedGatewayDispatchData)

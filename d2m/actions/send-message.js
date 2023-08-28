@@ -38,7 +38,8 @@ async function sendMessage(message, guild) {
 		const eventWithoutType = {...event}
 		delete eventWithoutType.$type
 
-		const eventID = await api.sendEvent(roomID, eventType, eventWithoutType, senderMxid, new Date(message.timestamp).getTime())
+		const useTimestamp = message["backfill"] ? new Date(message.timestamp).getTime() : undefined
+		const eventID = await api.sendEvent(roomID, eventType, eventWithoutType, senderMxid, useTimestamp)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, channel_id, part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, message.channel_id, eventPart) // source 1 = discord
 
 		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
