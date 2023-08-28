@@ -44,7 +44,7 @@ async function editMessage(message, guild) {
 		delete contentWithoutType.$type
 
 		const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 1, 1)").run(eventID, eventType, content.msgtype || null, message.id) // part 1 = supporting; source 1 = discord
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, 1, 1)").run(eventID, eventType, content.msgtype || null, message.id) // part 1 = supporting; source 1 = discord
 	}
 }
 

@@ -31,7 +31,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1141501302736695317', '112760669178241024'),
 ('1141619794500649020', '497161350934560778'),
 ('1143121514925928541', '1100319550446252084'),
-('1144865310588014633', '687028734322147344');
+('1144865310588014633', '687028734322147344'),
+('1145688633186193479', '1100319550446252084');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 1),
@@ -48,7 +49,9 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4', 'm.room.message', 'm.text', '1106366167788044450', 0, 1),
 ('$Ijf1MFCD39ktrNHxrA-i2aKoRWNYdAV2ZXYQeiZIgEU', 'm.room.message', 'm.image', '1106366167788044450', 0, 0),
 ('$f9cjKiacXI9qPF_nUAckzbiKnJEi0LM399kOkhdd8f8', 'm.sticker', NULL, '1106366167788044450', 0, 0),
-('$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04', 'm.room.message', 'm.text', '1144865310588014633', 0, 1);
+('$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04', 'm.room.message', 'm.text', '1144865310588014633', 0, 1),
+('$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8', 'm.room.message', 'm.text', '1144874214311067708', 0, 0),
+('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs', 'm.room.message', 'm.text', '1145688633186193479', 0, 0);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
@@ -64,6 +67,7 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
 ('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
-('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
+('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
+('!PnyBKvUBOhjuCucEfk:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
 
 COMMIT;

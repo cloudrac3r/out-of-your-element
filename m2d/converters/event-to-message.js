@@ -165,7 +165,6 @@ async function eventToMessage(event, guild, di) {
 			if (relType !== "m.replace") return
 			const originalEventId = relatesTo.event_id
 			if (!originalEventId) return
-			console.log("a", originalEventId)
 			messageIDsToEdit = db.prepare("SELECT message_id FROM event_message WHERE event_id = ? ORDER BY part").pluck().all(originalEventId)
 			if (!messageIDsToEdit.length) return
 			// Get the original event, then check if it was a reply
@@ -173,7 +172,6 @@ async function eventToMessage(event, guild, di) {
 			if (!originalEvent) return
 			const repliedToEventId = originalEvent.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
-			console.log("c")
 			// After all that, it's an edit of a reply.
 			// We'll be sneaky and prepare the message data so that everything else can handle it just like original messages.
 			Object.assign(event.content, event.content["m.new_content"])

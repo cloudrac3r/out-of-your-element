@@ -475,6 +475,140 @@ test("event2message: rich reply to a sim user", async t => {
 	)
 })
 
+test("event2message: editing a rich reply to a sim user", async t => {
+	const eventsFetched = []
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe> Slow news day.\n\n * Editing this reply, which is also a test",
+				"m.new_content": {
+					"msgtype": "m.text",
+					"body": "Editing this reply, which is also a test",
+					"format": "org.matrix.custom.html",
+					"formatted_body": "Editing this reply, which is also a test"
+				},
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&amp;via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>Slow news day.</blockquote></mx-reply> * Editing this reply, which is also a test",
+				"m.relates_to": {
+					"rel_type": "m.replace",
+					"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8"
+				}
+			},
+			"origin_server_ts": 1693222931237,
+			"unsigned": {
+				"age": 44,
+				"transaction_id": "m1693222931143.837"
+			},
+			"event_id": "$XEgssz13q-a7NLO7UZO2Oepq7tSiDBD7YRfr7Xu_QiA",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: (roomID, eventID) => {
+					if (eventID === "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04") {
+						eventsFetched.push("past")
+						return mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+							type: "m.room.message",
+							content: {
+								msgtype: "m.text",
+								body: "Slow news day."
+							},
+							sender: "@_ooye_kyuugryphon:cadence.moe"
+						})(roomID, eventID)
+					} else if (eventID === "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8") {
+						eventsFetched.push("original")
+						return mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8", {
+							type: "m.room.message",
+							sender: "@cadence:cadence.moe",
+							content: {
+								msgtype: "m.text",
+								body: "> <@_ooye_kyuugryphon:cadence.moe> Slow news day.\n\nTesting this reply, ignore",
+								format: "org.matrix.custom.html",
+								formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>Slow news day.</blockquote></mx-reply>Testing this reply, ignore",
+								"m.relates_to": {
+									"m.in_reply_to": {
+										event_id: "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+									}
+								}
+							}
+						})(roomID, eventID)
+					} else {
+						throw new Error(`This test wasn't meant to fetch event ID: ${eventID}`)
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [{
+				id: "1144874214311067708",
+				message: {
+					username: "cadence [they]",
+					content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+						+ "\n> Slow news day."
+						+ "\nEditing this reply, which is also a test",
+					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+				}
+			}],
+			messagesToSend: []
+		}
+	)
+	t.deepEqual(eventsFetched, ["original", "past"])
+})
+
+test("event2message: editing a plaintext body message", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": " * well, I guess it's no longer brand new... it's existed for mere seconds...",
+				"m.new_content": {
+					"msgtype": "m.text",
+					"body": "well, I guess it's no longer brand new... it's existed for mere seconds..."
+				},
+				"m.relates_to": {
+					"rel_type": "m.replace",
+					"event_id": "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs"
+				}
+			},
+			"origin_server_ts": 1693223873912,
+			"unsigned": {
+				"age": 42,
+				"transaction_id": "m1693223873796.842"
+			},
+			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
+			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: "brand new, never before seen message",
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [{
+				id: "1145688633186193479",
+				message: {
+					username: "cadence [they]",
+					content: "well, I guess it's no longer brand new... it's existed for mere seconds...",
+					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+				}
+			}],
+			messagesToSend: []
+		}
+	)
+})
+
 test("event2message: rich reply to a matrix user's long message with formatting", async t => {
 	t.deepEqual(
 		await eventToMessage({
