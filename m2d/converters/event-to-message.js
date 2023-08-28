@@ -57,6 +57,16 @@ turndownService.addRule("blockquote", {
 	}
 })
 
+turndownService.addRule("spoiler", {
+	filter: function (node, options) {
+		return node.hasAttribute("data-mx-spoiler")
+	},
+
+	replacement: function (content, node) {
+		return "||" + content + "||"
+	}
+})
+
 turndownService.addRule("inlineLink", {
 	filter: function (node, options) {
 	  return (

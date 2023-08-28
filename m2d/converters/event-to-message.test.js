@@ -120,6 +120,36 @@ test("event2message: basic html is converted to markdown", async t => {
 	)
 })
 
+test("event2message: spoilers work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `this <strong>is</strong> a <span data-mx-spoiler><em>test</em></span> of <span data-mx-spoiler="">spoilers</span>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "this **is** a ||_test_|| of ||spoilers||",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: markdown syntax is escaped", async t => {
 	t.deepEqual(
 		await eventToMessage({

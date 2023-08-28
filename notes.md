@@ -3,13 +3,12 @@
 ## Known issues
 
 - m->d attachments do not work
-- m->d edits do not work
-- m->d spoilers do not work
 - d->m support the rest of the attachments by reading the matrix spec instead of the current approach of whitelisting mime types
 - d->m emojis do not work at all (inline chat, single emoji size, reactions, bridged state)
 - m->d code blocks have slightly too much spacing
 - m->d some reactions don't work because of the variation selector
-- <--> check whether I implemented deletions
+- d->m check whether I implemented deletions
+- m->d deletions
 - rooms will be set up even if the bridge does not have permission for them, then break when it restarts and tries to reach messages
 	- test private threads as part of this
 	- solution part 1: calculate the permissions to see if the bot should be able to do stuff
