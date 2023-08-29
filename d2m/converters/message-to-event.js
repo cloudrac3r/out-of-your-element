@@ -265,7 +265,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				url: await file.uploadDiscordFileToMxc(attachment.url),
 				external_url: attachment.url,
 				body: attachment.filename,
-				// TODO: filename: attachment.filename and then use body as the caption
+				filename: attachment.filename,
 				info: {
 					mimetype: attachment.content_type,
 					w: attachment.width,
@@ -312,7 +312,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				url: await file.uploadDiscordFileToMxc(attachment.url),
 				external_url: attachment.url,
 				body: attachment.filename,
-				// TODO: filename: attachment.filename and then use body as the caption
+				filename: attachment.filename,
 				info: {
 					mimetype: attachment.content_type,
 					size: attachment.size
