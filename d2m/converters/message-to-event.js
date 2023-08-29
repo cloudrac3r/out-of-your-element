@@ -289,12 +289,34 @@ async function messageToEvent(message, guild, options = {}, di) {
 					size: attachment.size
 				}
 			}
+		} else if (attachment.content_type?.startsWith("audio/")) {
+			return {
+				$type: "m.room.message",
+				"m.mentions": mentions,
+				msgtype: "m.audio",
+				url: await file.uploadDiscordFileToMxc(attachment.url),
+				external_url: attachment.url,
+				body: attachment.description || attachment.filename,
+				filename: attachment.filename,
+				info: {
+					mimetype: attachment.content_type,
+					size: attachment.size,
+					duration: attachment.duration_secs ? attachment.duration_secs * 1000 : undefined
+				}
+			}
 		} else {
 			return {
 				$type: "m.room.message",
 				"m.mentions": mentions,
-				msgtype: "m.text",
-				body: `Unsupported attachment:\n${JSON.stringify(attachment, null, 2)}\n${attachment.url}`
+				msgtype: "m.file",
+				url: await file.uploadDiscordFileToMxc(attachment.url),
+				external_url: attachment.url,
+				body: attachment.filename,
+				// TODO: filename: attachment.filename and then use body as the caption
+				info: {
+					mimetype: attachment.content_type,
+					size: attachment.size
+				}
 			}
 		}
 	}))

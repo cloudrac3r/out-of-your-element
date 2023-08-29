@@ -3,7 +3,7 @@
 ## Known issues
 
 - m->d attachments do not work
-- d->m support the rest of the attachments by reading the matrix spec instead of the current approach of whitelisting mime types
+- m->d replying to a message that used a blockquote should avoid using the blockquote contents as the preview
 - d->m emojis do not work at all (inline chat, single emoji size, reactions, bridged state)
 - m->d code blocks have slightly too much spacing
 - m->d some reactions don't work because of the variation selector
