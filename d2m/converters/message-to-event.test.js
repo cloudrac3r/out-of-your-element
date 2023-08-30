@@ -94,6 +94,7 @@ test("message2event: attachment with no content", async t => {
 		url: "mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM",
 		body: "image.png",
 		external_url: "https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png",
+		filename: "image.png",
 		info: {
 			mimetype: "image/png",
 			w: 466,
@@ -117,6 +118,7 @@ test("message2event: stickers", async t => {
 		url: "mxc://cadence.moe/ZDCNYnkPszxGKgObUIFmvjus",
 		body: "image.png",
 		external_url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
+		filename: "image.png",
 		info: {
 			mimetype: "image/png",
 			w: 333,
@@ -155,6 +157,7 @@ test("message2event: skull webp attachment with content", async t => {
 			size: 74290
 		},
 		external_url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084747910918195/skull.webp",
+		filename: "skull.webp",
 		url: "mxc://cadence.moe/sDxWmDErBhYBxtDcJQgBETes"
 	}])
 })
@@ -188,6 +191,7 @@ test("message2event: reply to skull webp attachment with content", async t => {
 			size: 85906
 		},
 		external_url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
+		filename: "RDT_20230704_0936184915846675925224905.jpg",
 		url: "mxc://cadence.moe/WlAbFSiNRIHPDEwKdyPeGywa"
 	}])
 })

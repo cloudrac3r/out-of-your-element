@@ -31,7 +31,7 @@ const turndownService = new TurndownService({
 turndownService.remove("mx-reply")
 
 turndownService.addRule("strikethrough", {
-	filter: ["del", "s", "strike"],
+	filter: ["del", "s"],
 	replacement: function (content) {
 		return "~~" + content + "~~"
 	}
@@ -65,11 +65,11 @@ turndownService.addRule("spoiler", {
 
 turndownService.addRule("inlineLink", {
 	filter: function (node, options) {
-	  return (
+		return (
 			options.linkStyle === "inlined" &&
 			node.nodeName === "A" &&
 			node.getAttribute("href")
-	  )
+		)
 	},
 
 	replacement: function (content, node) {
