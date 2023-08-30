@@ -21,10 +21,6 @@ const BLOCK_ELEMENTS = [
 	"TFOOT", "TH", "THEAD", "TR", "UL"
 ]
 
-function cleanAttribute (attribute) {
-	return attribute ? attribute.replace(/(\n+\s*)+/g, "\n") : ""
-}
-
 const turndownService = new TurndownService({
 	hr: "----",
 	headingStyle: "atx",
@@ -80,11 +76,9 @@ turndownService.addRule("inlineLink", {
 		if (node.getAttribute("data-user-id")) return `<@${node.getAttribute("data-user-id")}>`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
-		let title = cleanAttribute(node.getAttribute("title"))
-		if (title) title = ` "` + title + `"`
 		let brackets = ["", ""]
 		if (href.startsWith("https://matrix.to")) brackets = ["<", ">"]
-		return "[" + content + "](" + brackets[0] + href + title + brackets[1] + ")"
+		return "[" + content + "](" + brackets[0] + href + brackets[1] + ")"
 	}
 })
 
@@ -303,6 +297,11 @@ async function eventToMessage(event, guild, di) {
 			messagesToSend.push(messages[i])
 		}
 	}
+
+	// Ensure there is code coverage for adding, editing, and deleting
+	if (messagesToSend.length) void 0
+	if (messagesToEdit.length) void 0
+	if (messageIDsToEdit.length) void 0
 
 	return {
 		messagesToEdit,

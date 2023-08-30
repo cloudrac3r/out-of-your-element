@@ -1,6 +1,8 @@
 const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
 const data = require("../../test/data")
+const {MatrixServerError} = require("../../matrix/mreq")
+const {db} = require("../../passthrough")
 
 /**
  * @param {string} roomID
@@ -97,7 +99,7 @@ test("event2message: basic html is converted to markdown", async t => {
 				msgtype: "m.text",
 				body: "wrong body",
 				format: "org.matrix.custom.html",
-				formatted_body: "this <strong>is</strong> a <strong><em>test</em></strong> of <del>formatting</del>"
+				formatted_body: "this <strong>is</strong> a <em><strong>test</strong> <u>of</u></em> <del>formatting</del>"
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
@@ -113,7 +115,7 @@ test("event2message: basic html is converted to markdown", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "this **is** a **_test_** of ~~formatting~~",
+				content: "this **is** a _**test** __of___ ~~formatting~~",
 				avatar_url: undefined
 			}]
 		}
@@ -426,6 +428,34 @@ test("event2message: quotes have an appropriate amount of whitespace", async t =
 	)
 })
 
+test("event2message: m.emote plaintext works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.emote",
+				body: "tests an m.emote message"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "\\* cadence [they] tests an m.emote message",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: m.emote markdown syntax is escaped", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -628,6 +658,112 @@ test("event2message: editing a plaintext body message", async t => {
 			messagesToDelete: [],
 			messagesToEdit: [{
 				id: "1145688633186193479",
+				message: {
+					username: "cadence [they]",
+					content: "well, I guess it's no longer brand new... it's existed for mere seconds...",
+					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+				}
+			}],
+			messagesToSend: []
+		}
+	)
+})
+
+test("event2message: editing a plaintext message to be longer", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": " * " + "aaaaaaaaa ".repeat(198) + "well, I guess it's no longer brand new... it's existed for mere seconds..." + "aaaaaaaaa ".repeat(20),
+				"m.new_content": {
+					"msgtype": "m.text",
+					"body": "aaaaaaaaa ".repeat(198) + "well, I guess it's no longer brand new... it's existed for mere seconds..." + "aaaaaaaaa ".repeat(20)
+				},
+				"m.relates_to": {
+					"rel_type": "m.replace",
+					"event_id": "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs"
+				}
+			},
+			"origin_server_ts": 1693223873912,
+			"unsigned": {
+				"age": 42,
+				"transaction_id": "m1693223873796.842"
+			},
+			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
+			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: "brand new, never before seen message",
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [{
+				id: "1145688633186193479",
+				message: {
+					content: "aaaaaaaaa ".repeat(198) + "well, I guess it's",
+					username: "cadence [they]",
+					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+				}
+			}],
+			messagesToSend: [{
+				content: "no longer brand new... it's existed for mere seconds..." + ("aaaaaaaaa ".repeat(20)).slice(0, -1),
+				username: "cadence [they]",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
+test("event2message: editing a plaintext message to be shorter", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": " * well, I guess it's no longer brand new... it's existed for mere seconds...",
+				"m.new_content": {
+					"msgtype": "m.text",
+					"body": "well, I guess it's no longer brand new... it's existed for mere seconds..."
+				},
+				"m.relates_to": {
+					"rel_type": "m.replace",
+					"event_id": "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt"
+				}
+			},
+			"origin_server_ts": 1693223873912,
+			"unsigned": {
+				"age": 42,
+				"transaction_id": "m1693223873796.842"
+			},
+			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
+			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: "aaaaaaaaa ".repeat(198) + "well, I guess it's no longer brand new... it's existed for mere seconds..." + "aaaaaaaaa ".repeat(20)
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: ["1145688633186193481"],
+			messagesToEdit: [{
+				id: "1145688633186193480",
 				message: {
 					username: "cadence [they]",
 					content: "well, I guess it's no longer brand new... it's existed for mere seconds...",
@@ -865,7 +1001,7 @@ test("event2message: mentioning bridged rooms works", async t => {
 				msgtype: "m.text",
 				body: "wrong body",
 				format: "org.matrix.custom.html",
-				formatted_body: `I'm just <a href="https://matrix.to/#/@rnl:cadence.moe">▲</a> testing mentions`
+				formatted_body: `I'm just <a href="https://matrix.to/#/!PnyBKvUBOhjuCucEfk:cadence.moe">worm-form</a> testing channel mentions`
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
@@ -881,9 +1017,96 @@ test("event2message: mentioning bridged rooms works", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "I'm just [▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
+				content: "I'm just <#1100319550446252084> testing channel mentions",
 				avatar_url: undefined
 			}]
 		}
 	)
+})
+
+test("event2message: caches the member if the member is not known", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "testing the member state cache",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!should_be_newly_cached:cadence.moe",
+			sender: "@should_be_newly_cached:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				getStateEvent: async (roomID, type, stateKey) => {
+					called++
+					t.equal(roomID, "!should_be_newly_cached:cadence.moe")
+					t.equal(type, "m.room.member")
+					t.equal(stateKey, "@should_be_newly_cached:cadence.moe")
+					return {
+						displayname: "this is the username",
+						avatar_url: undefined
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "this is the username",
+				content: "testing the member state cache",
+				avatar_url: undefined
+			}]
+		}
+	)
+	t.deepEqual(db.prepare("SELECT avatar_url, displayname, mxid FROM member_cache WHERE room_id = '!should_be_newly_cached:cadence.moe'").all(), [
+		{avatar_url: null, displayname: "this is the username", mxid: "@should_be_newly_cached:cadence.moe"}
+	])
+	t.equal(called, 1, "getStateEvent should be called once")
+})
+
+test("event2message: skips caching the member if the member does not exist, somehow", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "should honestly never happen",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!not_real:cadence.moe",
+			sender: "@not_real:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				getStateEvent: async (roomID, type, stateKey) => {
+					called++
+					t.equal(roomID, "!not_real:cadence.moe")
+					t.equal(type, "m.room.member")
+					t.equal(stateKey, "@not_real:cadence.moe")
+					throw new MatrixServerError("State event doesn't exist or something")
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "not_real",
+				content: "should honestly never happen",
+				avatar_url: undefined
+			}]
+		}
+	)
+	t.deepEqual(db.prepare("SELECT avatar_url, displayname, mxid FROM member_cache WHERE room_id = '!not_real:cadence.moe'").all(), [])
+	t.equal(called, 1, "getStateEvent should be called once")
 })
