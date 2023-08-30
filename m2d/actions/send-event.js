@@ -31,20 +31,26 @@ async function sendEvent(event) {
 
 	const {messagesToEdit, messagesToSend, messagesToDelete} = await eventToMessage.eventToMessage(event, guild, {api})
 
+	let eventPart = 0 // 0 is primary, 1 is supporting
+
 	/** @type {DiscordTypes.APIMessage[]} */
 	const messageResponses = []
-	let eventPart = 0 // 0 is primary, 1 is supporting
 	for (const data of messagesToEdit) {
 		const messageResponse = await channelWebhook.editMessageWithWebhook(channelID, data.id, data.message, threadID)
 		eventPart = 1
 		messageResponses.push(messageResponse)
 	}
+
+	for (const id of messagesToDelete) {
+		await channelWebhook.deleteMessageWithWebhook(channelID, id, threadID)
+	}
+
 	for (const message of messagesToSend) {
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
 		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, channelID)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content.msgtype || null, messageResponse.id, eventPart) // source 0 = matrix
 
-		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting?
+		eventPart = 1
 		messageResponses.push(messageResponse)
 	}
 

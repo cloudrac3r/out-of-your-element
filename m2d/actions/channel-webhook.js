@@ -71,7 +71,20 @@ async function editMessageWithWebhook(channelID, messageID, data, threadID) {
 	return result
 }
 
+/**
+ * @param {string} channelID
+ * @param {string} messageID
+ * @param {string} [threadID]
+ */
+async function deleteMessageWithWebhook(channelID, messageID, threadID) {
+	const result = await withWebhook(channelID, async webhook => {
+		return discord.snow.webhook.deleteWebhookMessage(webhook.id, webhook.token, messageID, threadID)
+	})
+	return result
+}
+
 module.exports.ensureWebhook = ensureWebhook
 module.exports.withWebhook = withWebhook
 module.exports.sendMessageWithWebhook = sendMessageWithWebhook
 module.exports.editMessageWithWebhook = editMessageWithWebhook
+module.exports.deleteMessageWithWebhook = deleteMessageWithWebhook
