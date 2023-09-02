@@ -80,6 +80,39 @@ export namespace Event {
 		}
 	}
 
+	export type M_Outer_M_Room_Message = Outer<M_Room_Message> & {type: "m.room.message"}
+
+	export type M_Room_Message_File = {
+		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
+		body: string
+		url: string
+		info?: any
+		"m.relates_to"?: {
+			"m.in_reply_to": {
+				event_id: string
+			}
+			rel_type?: "m.replace"
+			event_id?: string
+		}
+	}
+
+	export type M_Outer_M_Room_Message_File = Outer<M_Room_Message_File> & {type: "m.room.message"}
+
+	export type M_Sticker = {
+		body: string
+		url: string
+		info: {
+			mimetype: string
+			w?: number
+			h?: number
+			size?: number
+			thumbnail_info?: any
+			thumbnail_url?: string
+		}
+	}
+
+	export type M_Outer_M_Sticker = Outer<M_Sticker> & {type: "m.sticker"}
+
 	export type M_Room_Member = {
 		membership: string
 		displayname?: string

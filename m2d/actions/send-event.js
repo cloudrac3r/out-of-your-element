@@ -1,6 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
+const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
 const {sync, discord, db} = passthrough
@@ -12,9 +13,30 @@ const eventToMessage = sync.require("../converters/event-to-message")
 /** @type {import("../../matrix/api")}) */
 const api = sync.require("../../matrix/api")
 
-/** @param {import("../../types").Event.Outer<any>} event */
+/**
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {pendingFiles?: {name: string, url: string}[]}} message
+ * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}>}
+ */
+async function resolvePendingFiles(message) {
+	if (!message.pendingFiles) return message
+	const files = await Promise.all(message.pendingFiles.map(async p => {
+		const file = await fetch(p.url).then(res => res.arrayBuffer()).then(x => Buffer.from(x))
+		return {
+			name: p.name,
+			file
+		}
+	}))
+	const newMessage = {
+		...message,
+		files
+	}
+	delete newMessage.pendingFiles
+	return newMessage
+}
+
+/** @param {Ty.Event.M_Outer_M_Room_Message | Ty.Event.M_Outer_M_Room_Message_File | Ty.Event.M_Outer_M_Sticker} event */
 async function sendEvent(event) {
-	// TODO: we just assume the bridge has already been created
+	// TODO: we just assume the bridge has already been created, is that really ok?
 	const row = db.prepare("SELECT channel_id, thread_parent FROM channel_room WHERE room_id = ?").get(event.room_id)
 	let channelID = row.channel_id
 	let threadID = undefined
@@ -29,7 +51,15 @@ async function sendEvent(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	const {messagesToEdit, messagesToSend, messagesToDelete} = await eventToMessage.eventToMessage(event, guild, {api})
+	let {messagesToEdit, messagesToSend, messagesToDelete} = await eventToMessage.eventToMessage(event, guild, {api})
+
+	messagesToEdit = await Promise.all(messagesToEdit.map(async e => {
+		e.message = await resolvePendingFiles(e.message)
+		return e
+	}))
+	messagesToSend = await Promise.all(messagesToSend.map(message => {
+		return resolvePendingFiles(message)
+	}))
 
 	let eventPart = 0 // 0 is primary, 1 is supporting
 
@@ -48,7 +78,7 @@ async function sendEvent(event) {
 	for (const message of messagesToSend) {
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
 		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, channelID)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content.msgtype || null, messageResponse.id, eventPart) // source 0 = matrix
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content["msgtype"] || null, messageResponse.id, eventPart) // source 0 = matrix
 
 		eventPart = 1
 		messageResponses.push(messageResponse)

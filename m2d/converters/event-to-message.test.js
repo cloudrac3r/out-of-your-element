@@ -1110,3 +1110,107 @@ test("event2message: skips caching the member if the member does not exist, some
 	t.deepEqual(db.prepare("SELECT avatar_url, displayname, mxid FROM member_cache WHERE room_id = '!not_real:cadence.moe'").all(), [])
 	t.equal(called, 1, "getStateEvent should be called once")
 })
+
+test("event2message: text attachments work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			content: {
+				body: "chiki-powerups.txt",
+				info: {
+					size: 971,
+					mimetype: "text/plain"
+				},
+				msgtype: "m.file",
+				url: "mxc://cadence.moe/zyThGlYQxvlvBVbVgKDDbiHH"
+			},
+			sender: "@cadence:cadence.moe",
+			event_id: "$c2WVyP6KcfAqh5imOa8e0xzt2C8JTR-cWbEd3GargEQ",
+			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				attachments: [{id: "0", filename: "chiki-powerups.txt"}],
+				pendingFiles: [{name: "chiki-powerups.txt", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/zyThGlYQxvlvBVbVgKDDbiHH"}]
+			}]
+		}
+	)
+})
+
+test("event2message: image attachments work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "cool cat.png",
+				info: {
+					size: 43170,
+					mimetype: "image/png",
+					w: 480,
+					h: 480,
+					"xyz.amorgan.blurhash": "URTHsVaTpdj2eKZgkkkXp{pHl7feo@lSl9Z$"
+				},
+				msgtype: "m.image",
+				url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"
+			},
+			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
+			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				attachments: [{id: "0", filename: "cool cat.png"}],
+				pendingFiles: [{name: "cool cat.png", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
+			}]
+		}
+	)
+})
+
+test("event2message: stickers work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.sticker",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "get_real2",
+				url: "mxc://cadence.moe/NyMXQFAAdniImbHzsygScbmN",
+				info: {
+					w: 320,
+					h: 298,
+					mimetype: "image/gif",
+					size: 331394,
+					thumbnail_info: {
+						w: 320,
+						h: 298,
+						mimetype: "image/gif",
+						size: 331394
+					},
+					thumbnail_url: "mxc://cadence.moe/NyMXQFAAdniImbHzsygScbmN"
+				}
+			},
+			event_id: "$PdI-KjdQ8Z_Tb4x9_7wKRPZCsrrXym4BXtbAPekypuM",
+			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				attachments: [{id: "0", filename: "get_real2.gif"}],
+				pendingFiles: [{name: "get_real2.gif", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/NyMXQFAAdniImbHzsygScbmN"}]
+			}]
+		}
+	)
+})

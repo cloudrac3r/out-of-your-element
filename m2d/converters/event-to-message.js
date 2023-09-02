@@ -4,6 +4,7 @@ const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 const chunk = require("chunk-text")
 const TurndownService = require("turndown")
+const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
 const { sync, db, discord } = passthrough
@@ -124,7 +125,7 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 }
 
 /**
- * @param {Ty.Event.Outer<Ty.Event.M_Room_Message>} event
+ * @param {Ty.Event.M_Outer_M_Room_Message | Ty.Event.M_Outer_M_Room_Message_File | Ty.Event.M_Outer_M_Sticker} event
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
@@ -143,12 +144,15 @@ async function eventToMessage(event, guild, di) {
 	// Try to extract an accurate display name and avatar URL from the member event
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
-	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url)
+	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url) || undefined
 
 	let content = event.content.body // ultimate fallback
+	const attachments = []
+	/** @type {{name: string, url: string}[]} */
+	const pendingFiles = []
 
 	// Convert content depending on what the message is
-	if (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote") {
+	if (event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")) {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
 		// this event ---is an edit of--> original event ---is a reply to--> past event
 		await (async () => {
@@ -261,7 +265,7 @@ async function eventToMessage(event, guild, di) {
 			// @ts-ignore bad type from turndown
 			content = turndownService.turndown(input)
 
-			// It's optimised for commonmark, we need to replace the space-space-newline with just newline
+			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")
 		} else {
 			// Looks like we're using the plaintext body!
@@ -274,6 +278,23 @@ async function eventToMessage(event, guild, di) {
 			// Markdown needs to be escaped
 			content = content.replace(/([*_~`#])/g, `\\$1`)
 		}
+	} else if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
+		content = ""
+		const filename = event.content.body
+		const url = utils.getPublicUrlForMxc(event.content.url)
+		assert(url)
+		attachments.push({id: "0", filename})
+		pendingFiles.push({name: filename, url})
+	} else if (event.type === "m.sticker") {
+		content = ""
+		let filename = event.content.body
+		if (event.type === "m.sticker" && event.content.info.mimetype.includes("/")) {
+			filename += "." + event.content.info.mimetype.split("/")[1]
+		}
+		const url = utils.getPublicUrlForMxc(event.content.url)
+		assert(url)
+		attachments.push({id: "0", filename})
+		pendingFiles.push({name: filename, url})
 	}
 
 	content = replyLine + content
@@ -285,6 +306,19 @@ async function eventToMessage(event, guild, di) {
 		username: displayName,
 		avatar_url: avatarURL
 	})))
+
+	if (attachments.length) {
+		// If content is empty (should be the case when uploading a file) then chunk-text will create 0 messages.
+		// There needs to be a message to add attachments to.
+		if (!messages.length) messages.push({
+			content,
+			username: displayName,
+			avatar_url: avatarURL
+		})
+		messages[0].attachments = attachments
+		// @ts-ignore these will be converted to real files when the message is about to be sent
+		messages[0].pendingFiles = pendingFiles
+	}
 
 	const messagesToEdit = []
 	const messagesToSend = []
