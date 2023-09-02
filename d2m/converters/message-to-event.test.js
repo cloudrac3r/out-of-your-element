@@ -104,6 +104,18 @@ test("message2event: attachment with no content", async t => {
 	}])
 })
 
+test("message2event: spoiler attachment", async t => {
+	const events = await messageToEvent(data.message.spoiler_attachment, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "📄 Uploaded SPOILER file: https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci (74 KB)",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>📄 Uploaded SPOILER file: <span data-mx-spoiler><a href=\"https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci\">View</a></span> (74 KB)</blockquote>"
+	}])
+})
+
 test("message2event: stickers", async t => {
 	const events = await messageToEvent(data.message.sticker, data.guild.general, {})
 	t.deepEqual(events, [{

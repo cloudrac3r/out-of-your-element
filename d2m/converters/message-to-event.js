@@ -247,8 +247,19 @@ async function messageToEvent(message, guild, options = {}, di) {
 			: attachment.content_type?.startsWith("text/") ? "📝"
 			: attachment.content_type?.startsWith("audio/") ? "🎶"
 			: "📄"
+		// no native media spoilers in Element, so we'll post a link instead, forcing it to not preview using a blockquote
+		if (attachment.filename.startsWith("SPOILER_")) {
+			return {
+				$type: "m.room.message",
+				"m.mentions": mentions,
+				msgtype: "m.text",
+				body: `${emoji} Uploaded SPOILER file: ${attachment.url} (${pb(attachment.size)})`,
+				format: "org.matrix.custom.html",
+				formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <span data-mx-spoiler><a href="${attachment.url}">View</a></span> (${pb(attachment.size)})</blockquote>`
+			}
+		}
 		// for large files, always link them instead of uploading so I don't use up all the space in the content repo
-		if (attachment.size > reg.ooye.max_file_size) {
+		else if (attachment.size > reg.ooye.max_file_size) {
 			return {
 				$type: "m.room.message",
 				"m.mentions": mentions,

@@ -531,6 +531,44 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		spoiler_attachment: {
+			type: 0,
+			tts: false,
+			timestamp: '2023-09-02T09:38:29.480000+00:00',
+			referenced_message: null,
+			pinned: false,
+			nonce: '1147465562901708800',
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			id: '1147465564600676383',
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: '',
+			components: [],
+			channel_id: '1100319550446252084',
+			author: {
+				username: 'cadence.worm',
+				public_flags: 0,
+				id: '772659086046658620',
+				global_name: 'cadence',
+				discriminator: '0',
+				avatar_decoration_data: null,
+				avatar: '4b5c4b28051144e4c111f0113a0f1cf1'
+			},
+			attachments: [
+				{
+					url: 'https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci',
+					size: 73792,
+					proxy_url: 'https://media.discordapp.net/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci',
+					id: '1147465564307079258',
+					flags: 8,
+					filename: 'SPOILER_69-GNDP-CADENCE.nfs.gci'
+				}
+			],
+			guild_id: '1100319549670301727'
+		},
 		skull_webp_attachment_with_content: {
 			type: 0,
 			tts: false,
