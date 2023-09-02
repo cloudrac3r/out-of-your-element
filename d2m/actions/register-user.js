@@ -72,8 +72,16 @@ async function ensureSimJoined(user, roomID) {
 	// Ensure joined
 	const existing = db.prepare("SELECT * FROM sim_member WHERE room_id = ? and mxid = ?").get(roomID, mxid)
 	if (!existing) {
-		await api.inviteToRoom(roomID, mxid)
-		await api.joinRoom(roomID, mxid)
+		try {
+			await api.inviteToRoom(roomID, mxid)
+			await api.joinRoom(roomID, mxid)
+		} catch (e) {
+			if (e.message.includes("is already in the room.")) {
+				// Sweet!
+			} else {
+				throw e
+			}
+		}
 		db.prepare("INSERT INTO sim_member (room_id, mxid) VALUES (?, ?)").run(roomID, mxid)
 	}
 	return mxid

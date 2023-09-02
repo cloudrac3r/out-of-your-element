@@ -171,13 +171,12 @@ async function setUserPower(roomID, mxid, power) {
 	assert(mxid[0] === "@")
 	// Yes there's no shortcut https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
 	const powerLevels = await getStateEvent(roomID, "m.room.power_levels", "")
-	const users = powerLevels.users || {}
+	powerLevels.users = powerLevels.users || {}
 	if (power != null) {
-		users[mxid] = power
+		powerLevels.users[mxid] = power
 	} else {
-		delete users[mxid]
+		delete powerLevels.users[mxid]
 	}
-	powerLevels.users = users
 	await sendState(roomID, "m.room.power_levels", "", powerLevels)
 	return powerLevels
 }
