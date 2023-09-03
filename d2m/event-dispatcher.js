@@ -168,7 +168,6 @@ module.exports = {
 		const channel = client.channels.get(message.channel_id)
 		if (!channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
-		if (!isGuildAllowed(guild.id)) return
 
 		await sendMessage.sendMessage(message, guild),
 		await discordCommandHandler.execute(message, channel, guild)
@@ -195,7 +194,6 @@ module.exports = {
 			const channel = client.channels.get(message.channel_id)
 			if (!channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)
-			if (!isGuildAllowed(guild.id)) return
 			await editMessage.editMessage(message, guild)
 		}
 	},
