@@ -175,7 +175,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 				if (!userRegex.some(rx => mxid.match(rx))) {
 					const localpart = mxid.match(/@([^:]*)/)
 					assert(localpart)
-					if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(member.display_name.toLowerCase())) addMention(mxid)
+					const displayName = member.displayname || localpart[1]
+					if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
 				}
 			}
 		}

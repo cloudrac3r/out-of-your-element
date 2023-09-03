@@ -285,19 +285,19 @@ test("message2event: simple written @mentions for matrix users", async t => {
 						resolve({
 							joined: {
 								"@cadence:cadence.moe": {
-									display_name: "cadence [they]",
+									displayname: "cadence [they]",
 									avatar_url: "whatever"
 								},
 								"@huckleton:cadence.moe": {
-									display_name: "huck",
+									displayname: "huck",
 									avatar_url: "whatever"
 								},
 								"@_ooye_botrac4r:cadence.moe": {
-									display_name: "botrac4r",
+									displayname: "botrac4r",
 									avatar_url: "whatever"
 								},
 								"@_ooye_bot:cadence.moe": {
-									display_name: "Out Of Your Element",
+									displayname: "Out Of Your Element",
 									avatar_url: "whatever"
 								}
 							}

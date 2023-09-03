@@ -184,7 +184,7 @@ export namespace R {
 
 	export type RoomMember = {
 		avatar_url: string
-		display_name: string
+		displayname: string
 	}
 
 	export type FileUploaded = {
