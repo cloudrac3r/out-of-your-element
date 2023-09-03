@@ -12,9 +12,9 @@ const discordPackets = sync.require("./discord-packets")
 class DiscordClient {
 	/**
 	 * @param {string} discordToken
-	 * @param {boolean} listen whether to set up the event listeners for OOYE to operate
+	 * @param {string} listen "full", "half", "no" - whether to set up the event listeners for OOYE to operate
 	 */
-	constructor(discordToken, listen = true) {
+	constructor(discordToken, listen = "full") {
 		this.discordToken = discordToken
 		this.snow = new SnowTransfer(discordToken)
 		this.cloud = new CloudStorm(discordToken, {
@@ -44,8 +44,8 @@ class DiscordClient {
 		this.guilds = new Map()
 		/** @type {Map<string, Array<string>>} */
 		this.guildChannelMap = new Map()
-		if (listen) {
-			this.cloud.on("event", message => discordPackets.onPacket(this, message))
+		if (listen !== "no") {
+			this.cloud.on("event", message => discordPackets.onPacket(this, message, listen))
 		}
 		this.cloud.on("error", console.error)
 	}

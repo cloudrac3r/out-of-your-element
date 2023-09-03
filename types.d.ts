@@ -21,6 +21,10 @@ export type AppServiceRegistrationConfig = {
 		max_file_size: number
 		server_name: string
 	}
+	old_bridge?: {
+		as_token: string
+		database: string
+	}
 }
 
 export type WebhookCreds = {

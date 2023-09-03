@@ -23,10 +23,6 @@ const discordCommandHandler = sync.require("./discord-command-handler")
 
 let lastReportedEvent = 0
 
-function isGuildAllowed(guildID) {
-	return ["112760669178241024", "497159726455455754", "1100319549670301727"].includes(guildID)
-}
-
 // Grab Discord events we care about for the bridge, check them, and pass them on
 
 module.exports = {
@@ -93,12 +89,22 @@ module.exports = {
 			if (latestWasBridged) continue
 
 			/** More recent messages come first. */
-			console.log(`[check missed messages] in ${channel.id} (${guild.name} / ${channel.name}) because its last message ${channel.last_message_id} is not in the database`)
-			const messages = await client.snow.channel.getChannelMessages(channel.id, {limit: 50})
+			// console.log(`[check missed messages] in ${channel.id} (${guild.name} / ${channel.name}) because its last message ${channel.last_message_id} is not in the database`)
+			let messages
+			try {
+				messages = await client.snow.channel.getChannelMessages(channel.id, {limit: 50})
+			} catch (e) {
+				if (e.message === `{"message": "Missing Access", "code": 50001}`) { // pathetic error handling from SnowTransfer
+					console.log(`[check missed messages] no permissions to look back in channel ${channel.name} (${channel.id})`)
+					continue // Sucks.
+				} else {
+					throw e // Sucks more.
+				}
+			}
 			let latestBridgedMessageIndex = messages.findIndex(m => {
 				return prepared.get(m.id)
 			})
-			console.log(`[check missed messages] got ${messages.length} messages; last message that IS bridged is at position ${latestBridgedMessageIndex} in the channel`)
+			// console.log(`[check missed messages] got ${messages.length} messages; last message that IS bridged is at position ${latestBridgedMessageIndex} in the channel`)
 			if (latestBridgedMessageIndex === -1) latestBridgedMessageIndex = 1 // rather than crawling the ENTIRE channel history, let's just bridge the most recent 1 message to make it up to date.
 			for (let i = Math.min(messages.length, latestBridgedMessageIndex)-1; i >= 0; i--) {
 				const simulatedGatewayDispatchData = {

@@ -23,9 +23,9 @@ const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, {config, sync})
 
-const DiscordClient = require("../d2m/discord-client", false)
+const DiscordClient = require("../d2m/discord-client")
 
-const discord = new DiscordClient(config.discordToken, false)
+const discord = new DiscordClient(config.discordToken, "no")
 passthrough.discord = discord
 
 ;(async () => {

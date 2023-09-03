@@ -10,8 +10,9 @@ const utils = {
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {import("cloudstorm").IGatewayMessage} message
+	 * @param {string} listen "full", "half", "no" - whether to set up the event listeners for OOYE to operate
 	 */
-	async onPacket(client, message) {
+	async onPacket(client, message, listen) {
 		// requiring this later so that the client is already constructed by the time event-dispatcher is loaded
 		/** @type {typeof import("./event-dispatcher")} */
 		const eventDispatcher = sync.require("./event-dispatcher")
@@ -41,7 +42,9 @@ const utils = {
 				arr.push(thread.id)
 				client.channels.set(thread.id, thread)
 			}
-			eventDispatcher.checkMissedMessages(client, message.d)
+			if (listen === "full") {
+				eventDispatcher.checkMissedMessages(client, message.d)
+			}
 
 		} else if (message.t === "GUILD_UPDATE") {
 			const guild = client.guilds.get(message.d.id)
@@ -90,35 +93,37 @@ const utils = {
 		}
 
 		// Event dispatcher for OOYE bridge operations
-		try {
-			if (message.t === "GUILD_UPDATE") {
-				await eventDispatcher.onGuildUpdate(client, message.d)
+		if (listen === "full") {
+			try {
+				if (message.t === "GUILD_UPDATE") {
+					await eventDispatcher.onGuildUpdate(client, message.d)
 
-			} else if (message.t === "CHANNEL_UPDATE") {
-				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
+				} else if (message.t === "CHANNEL_UPDATE") {
+					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
 
-			} else if (message.t === "THREAD_CREATE") {
-				// @ts-ignore
-				await eventDispatcher.onThreadCreate(client, message.d)
+				} else if (message.t === "THREAD_CREATE") {
+					// @ts-ignore
+					await eventDispatcher.onThreadCreate(client, message.d)
 
-			} else if (message.t === "THREAD_UPDATE") {
-				await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
+				} else if (message.t === "THREAD_UPDATE") {
+					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
 
-			} else if (message.t === "MESSAGE_CREATE") {
-				await eventDispatcher.onMessageCreate(client, message.d)
+				} else if (message.t === "MESSAGE_CREATE") {
+					await eventDispatcher.onMessageCreate(client, message.d)
 
-			} else if (message.t === "MESSAGE_UPDATE") {
-				await eventDispatcher.onMessageUpdate(client, message.d)
+				} else if (message.t === "MESSAGE_UPDATE") {
+					await eventDispatcher.onMessageUpdate(client, message.d)
 
-			} else if (message.t === "MESSAGE_DELETE") {
-				await eventDispatcher.onMessageDelete(client, message.d)
+				} else if (message.t === "MESSAGE_DELETE") {
+					await eventDispatcher.onMessageDelete(client, message.d)
 
-			} else if (message.t === "MESSAGE_REACTION_ADD") {
-				await eventDispatcher.onReactionAdd(client, message.d)
+				} else if (message.t === "MESSAGE_REACTION_ADD") {
+					await eventDispatcher.onReactionAdd(client, message.d)
+				}
+			} catch (e) {
+				// Let OOYE try to handle errors too
+				eventDispatcher.onError(client, e, message)
 			}
-		} catch (e) {
-			// Let OOYE try to handle errors too
-			eventDispatcher.onError(client, e, message)
 		}
 	}
 }

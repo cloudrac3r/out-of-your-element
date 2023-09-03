@@ -78,7 +78,10 @@ async function syncSpace(guildID) {
 
 	const guildKState = await guildToKState(guild)
 
-	if (!spaceID) return
+	if (!spaceID) {
+		const spaceID = await createSpace(guild, guildKState)
+		return spaceID // Naturally, the newly created space is already up to date, so we can always skip syncing here.
+	}
 
 	console.log(`[space sync] to matrix: ${guild.name}`)
 
@@ -123,7 +126,10 @@ async function syncSpaceFully(guildID) {
 
 	const guildKState = await guildToKState(guild)
 
-	if (!spaceID) return
+	if (!spaceID) {
+		const spaceID = await createSpace(guild, guildKState)
+		return spaceID // Naturally, the newly created space is already up to date, so we can always skip syncing here.
+	}
 
 	console.log(`[space sync] to matrix: ${guild.name}`)
 

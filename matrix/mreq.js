@@ -43,5 +43,24 @@ async function mreq(method, url, body, extra = {}) {
 	return root
 }
 
+/**
+ * JavaScript doesn't have Racket-like parameters with dynamic scoping, so
+ * do NOT do anything else at the same time as this.
+ * @template T
+ * @param {string} token
+ * @param {(...arg: any[]) => Promise<T>} callback
+ * @returns {Promise<T>}
+ */
+async function withAccessToken(token, callback) {
+	const prevToken = reg.as_token
+	reg.as_token = token
+	try {
+		return await callback()
+	} finally {
+		reg.as_token = prevToken
+	}
+}
+
 module.exports.MatrixServerError = MatrixServerError
 module.exports.mreq = mreq
+module.exports.withAccessToken = withAccessToken
