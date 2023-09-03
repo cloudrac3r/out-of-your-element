@@ -535,6 +535,55 @@ test("event2message: rich reply to a sim user", async t => {
 	)
 })
 
+test("event2message: should avoid using blockquote contents as reply preview in rich reply to a sim user", async t => {
+	t.deepEqual(
+		await eventToMessage({
+		type: "m.room.message",
+		sender: "@cadence:cadence.moe",
+		content: {
+			msgtype: "m.text",
+			body: "> <@_ooye_kyuugryphon:cadence.moe> > well, you said this, so...\n> \n> that can't be true! there's no way :o\n\nI agree!",
+			format: "org.matrix.custom.html",
+			formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br><blockquote>well, you said this, so...<br /></blockquote><br />that can't be true! there's no way :o</blockquote></mx-reply>I agree!",
+			"m.relates_to": {
+				"m.in_reply_to": {
+					event_id: "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+				}
+			}
+		},
+		event_id: "$BpGx8_vqHyN6UQDARPDU51ftrlRBhleutRSgpAJJ--g",
+		room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					"type": "m.room.message",
+					"sender": "@_ooye_kyuugryphon:cadence.moe",
+					"content": {
+						"m.mentions": {},
+						"msgtype": "m.text",
+						"body": "> well, you said this, so...\n\nthat can't be true! there's no way :o",
+						"format": "org.matrix.custom.html",
+						"formatted_body": "<blockquote>well, you said this, so...<br></blockquote><br>that can't be true! there's no way :o"
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ "\n> that can't be true! there's no way :o"
+					+ "\nI agree!",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
+
+
 test("event2message: editing a rich reply to a sim user", async t => {
 	const eventsFetched = []
 	t.deepEqual(

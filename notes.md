@@ -2,14 +2,13 @@
 
 ## Known issues
 
-- m->d attachments do not work
-- m->d replying to a message that used a blockquote should avoid using the blockquote contents as the preview
 - d->m emojis do not work at all (inline chat, single emoji size, reactions, bridged state)
+- d->m embeds
 - m->d code blocks have slightly too much spacing
-- m->d some reactions don't work because of the variation selector
 - d->m check whether I implemented deletions
 - m->d deletions
-- rooms will be set up even if the bridge does not have permission for them, then break when it restarts and tries to reach messages
+- removing reactions
+- rooms will be set up even if the bridge does not have permission for the channels, which breaks when it restarts and tries to fetch messages
 	- test private threads as part of this
 	- solution part 1: calculate the permissions to see if the bot should be able to do stuff
 	- solution part 2: attempt a get messages request anyway before bridging a new room, just to make sure!
