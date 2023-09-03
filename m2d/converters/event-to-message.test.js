@@ -1176,6 +1176,60 @@ test("event2message: image attachments work", async t => {
 	)
 })
 
+test("event2message: encrypted image attachments work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				info: {
+					mimetype: "image/png",
+					size: 105691,
+					w: 1192,
+					h: 309,
+					"xyz.amorgan.blurhash": "U17USN~q9FtQ-;Rjxuj[9FIUoMM|-=WB9Ft7"
+				},
+				msgtype: "m.image",
+				body: "image.png",
+				file: {
+					v: "v2",
+					key: {
+						alg: "A256CTR",
+						ext: true,
+						k: "QTo-oMPnN1Rbc7vBFg9WXMgoctscdyxdFEIYm8NYceo",
+						key_ops: ["encrypt", "decrypt"],
+						kty: "oct"
+					},
+					iv: "Va9SHZpIn5kAAAAAAAAAAA",
+					hashes: {
+						sha256: "OUZqZFBcANFt42iAKET9YXfWMCdT0BX7QO0Eyk9q4Js"
+					},
+					url: "mxc://heyquark.com/LOGkUTlVFrqfiExlGZNgCJJX",
+					mimetype: "image/png"
+				}
+			},
+			event_id: "$JNhONhXO-5jrztZz8b7mbTMJasbU78TwQr4tog-3Mnk",
+			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				attachments: [{id: "0", filename: "image.png"}],
+				pendingFiles: [{
+					name: "image.png",
+					url: "https://matrix.cadence.moe/_matrix/media/r0/download/heyquark.com/LOGkUTlVFrqfiExlGZNgCJJX",
+					key: "QTo-oMPnN1Rbc7vBFg9WXMgoctscdyxdFEIYm8NYceo",
+					iv: "Va9SHZpIn5kAAAAAAAAAAA"
+				}]
+			}]
+		}
+	)
+})
+
 test("event2message: stickers work", async t => {
 	t.deepEqual(
 		await eventToMessage({

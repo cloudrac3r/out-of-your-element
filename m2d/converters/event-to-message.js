@@ -125,7 +125,7 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 }
 
 /**
- * @param {Ty.Event.M_Outer_M_Room_Message | Ty.Event.M_Outer_M_Room_Message_File | Ty.Event.M_Outer_M_Sticker} event
+ * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
@@ -148,7 +148,7 @@ async function eventToMessage(event, guild, di) {
 
 	let content = event.content.body // ultimate fallback
 	const attachments = []
-	/** @type {{name: string, url: string}[]} */
+	/** @type {({name: string, url: string} | {name: string, url: string, key: string, iv: string})[]} */
 	const pendingFiles = []
 
 	// Convert content depending on what the message is
@@ -281,10 +281,20 @@ async function eventToMessage(event, guild, di) {
 	} else if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
 		content = ""
 		const filename = event.content.body
-		const url = utils.getPublicUrlForMxc(event.content.url)
-		assert(url)
-		attachments.push({id: "0", filename})
-		pendingFiles.push({name: filename, url})
+		if ("url" in event.content) {
+			// Unencrypted
+			const url = utils.getPublicUrlForMxc(event.content.url)
+			assert(url)
+			attachments.push({id: "0", filename})
+			pendingFiles.push({name: filename, url})
+		} else {
+			// Encrypted
+			const url = utils.getPublicUrlForMxc(event.content.file.url)
+			assert(url)
+			assert.equal(event.content.file.key.alg, "A256CTR")
+			attachments.push({id: "0", filename})
+			pendingFiles.push({name: filename, url, key: event.content.file.key.k, iv: event.content.file.iv})
+		}
 	} else if (event.type === "m.sticker") {
 		content = ""
 		let filename = event.content.body

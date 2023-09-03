@@ -54,7 +54,7 @@ function guard(type, fn) {
 
 sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
 /**
- * @param {Ty.Event.M_Outer_M_Room_Message | Ty.Event.M_Outer_M_Room_Message_File} event it is a m.room.message because that's what this listener is filtering for
+ * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File} event it is a m.room.message because that's what this listener is filtering for
  */
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
@@ -63,7 +63,7 @@ async event => {
 
 sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
 /**
- * @param {Ty.Event.M_Outer_M_Sticker} event it is a m.sticker because that's what this listener is filtering for
+ * @param {Ty.Event.Outer_M_Sticker} event it is a m.sticker because that's what this listener is filtering for
  */
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return

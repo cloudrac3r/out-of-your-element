@@ -80,7 +80,7 @@ export namespace Event {
 		}
 	}
 
-	export type M_Outer_M_Room_Message = Outer<M_Room_Message> & {type: "m.room.message"}
+	export type Outer_M_Room_Message = Outer<M_Room_Message> & {type: "m.room.message"}
 
 	export type M_Room_Message_File = {
 		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
@@ -96,7 +96,39 @@ export namespace Event {
 		}
 	}
 
-	export type M_Outer_M_Room_Message_File = Outer<M_Room_Message_File> & {type: "m.room.message"}
+	export type Outer_M_Room_Message_File = Outer<M_Room_Message_File> & {type: "m.room.message"}
+
+	export type M_Room_Message_Encrypted_File = {
+		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
+		body: string
+		file: {
+			url: string
+			iv: string
+			hashes: {
+				sha256: string
+			}
+			v: "v2"
+			key: {
+				/** :3 */
+				kty: "oct"
+				/** must include at least "encrypt" and "decrypt" */
+				key_ops: string[]
+				alg: "A256CTR"
+				k: string
+				ext: true
+			}
+		},
+		info?: any
+		"m.relates_to"?: {
+			"m.in_reply_to": {
+				event_id: string
+			}
+			rel_type?: "m.replace"
+			event_id?: string
+		}
+	}
+
+	export type Outer_M_Room_Message_Encrypted_File = Outer<M_Room_Message_Encrypted_File> & {type: "m.room.message"}
 
 	export type M_Sticker = {
 		body: string
@@ -111,7 +143,7 @@ export namespace Event {
 		}
 	}
 
-	export type M_Outer_M_Sticker = Outer<M_Sticker> & {type: "m.sticker"}
+	export type Outer_M_Sticker = Outer<M_Sticker> & {type: "m.sticker"}
 
 	export type M_Room_Member = {
 		membership: string
