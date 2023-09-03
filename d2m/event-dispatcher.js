@@ -61,10 +61,14 @@ module.exports = {
 			formatted_body: "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
 				+ `<br>Gateway event: ${gatewayMessage.t}`
 				+ `<br>${e.toString()}`
-				+ `<div><details><summary>Error trace</summary>`
-				+ `<pre>${stackLines.join("\n")}</pre></details></div>`
-				+ `<div><details><summary>Original payload</summary>`
-				+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details></div>`,
+				+ `<br><details><summary>Error trace</summary>`
+				+ `<pre>${stackLines.join("\n")}</pre></details>`
+				+ `<details><summary>Original payload</summary>`
+				+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`,
+			"moe.cadence.ooye.error": {
+				source: "discord",
+				payload: gatewayMessage
+			},
 			"m.mentions": {
 				user_ids: ["@cadence:cadence.moe"]
 			}

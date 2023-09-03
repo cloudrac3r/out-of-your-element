@@ -6,7 +6,7 @@
 
 const util = require("util")
 const Ty = require("../types")
-const {db, sync, as} = require("../passthrough")
+const {discord, db, sync, as} = require("../passthrough")
 
 /** @type {import("./actions/send-event")} */
 const sendEvent = sync.require("./actions/send-event")
@@ -16,6 +16,8 @@ const addReaction = sync.require("./actions/add-reaction")
 const utils = sync.require("./converters/utils")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
+/** @type {import("../matrix/read-registration")}) */
+const reg = sync.require("../matrix/read-registration")
 
 let lastReportedEvent = 0
 
@@ -40,15 +42,30 @@ function guard(type, fn) {
 				formatted_body: "\u26a0 <strong>Matrix event not delivered to Discord</strong>"
 					+ `<br>Event type: ${type}`
 					+ `<br>${e.toString()}`
-					+ `<div><details><summary>Error trace</summary>`
-					+ `<pre>${stackLines.join("\n")}</pre></details></div>`
-					+ `<div><details><summary>Original payload</summary>`
-					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details></div>`,
+					+ `<br><details><summary>Error trace</summary>`
+					+ `<pre>${stackLines.join("\n")}</pre></details>`
+					+ `<details><summary>Original payload</summary>`
+					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details>`,
+				"moe.cadence.ooye.error": {
+					source: "matrix",
+					payload: event
+				},
 				"m.mentions": {
 					user_ids: ["@cadence:cadence.moe"]
 				}
 			})
 		}
+	}
+}
+
+async function retry(roomID, eventID) {
+	const event = await api.getEvent(roomID, eventID)
+	const error = event.content["moe.cadence.ooye.error"]
+	if (event.sender !== `@${reg.sender_localpart}:${reg.ooye.server_name}` || !error) return
+	if (error.source === "matrix") {
+		as.emit("type:" + error.payload.type, error.payload)
+	} else if (error.source === "discord") {
+		discord.cloud.emit("event", error.payload)
 	}
 }
 
@@ -76,7 +93,12 @@ sync.addTemporaryListener(as, "type:m.reaction", guard("m.reaction",
  */
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
-	await addReaction.addReaction(event)
+	if (event.content["m.relates_to"].key === "🔁") {
+		// Try to bridge a failed event again?
+		await retry(event.room_id, event.content["m.relates_to"].event_id)
+	} else {
+		await addReaction.addReaction(event)
+	}
 }))
 
 sync.addTemporaryListener(as, "type:m.room.avatar", guard("m.room.avatar",
