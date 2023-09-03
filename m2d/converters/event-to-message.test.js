@@ -64,11 +64,11 @@ test("event2message: body is used when there is no formatted_body", async t => {
 	)
 })
 
-test("event2message: any markdown in body is escaped", async t => {
+test("event2message: any markdown in body is escaped, except strikethrough", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			content: {
-				body: "testing **special** ~~things~~ which _should_ *not* `trigger` @any <effects>",
+				body: "testing **special** ~~things~~ which _should_ *not* `trigger` @any <effects>, except strikethrough",
 				msgtype: "m.text"
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
@@ -85,7 +85,67 @@ test("event2message: any markdown in body is escaped", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "testing \\*\\*special\\*\\* \\~\\~things\\~\\~ which \\_should\\_ \\*not\\* \\`trigger\\` @any <effects>",
+				content: "testing \\*\\*special\\*\\* ~~things~~ which \\_should\\_ \\*not\\* \\`trigger\\` @any <effects>, except strikethrough",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: links in formatted body are not broken", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "kyuugryphon I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg",
+				format: "org.matrix.custom.html",
+				formatted_body: "<a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">kyuugryphon</a> I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg"
+			},
+			origin_server_ts: 1693739630700,
+			unsigned: {
+				age: 39,
+				transaction_id: "m1693739630587.160"
+			},
+			event_id: "$zANQGOdnHKZj48lrajojsejH86KNYST26imgb2Sw1Jg",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@111604486476181504> I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: links in plaintext body are not broken", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg",
+			},
+			origin_server_ts: 1693739630700,
+			unsigned: {
+				age: 39,
+				transaction_id: "m1693739630587.160"
+			},
+			event_id: "$zANQGOdnHKZj48lrajojsejH86KNYST26imgb2Sw1Jg",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg",
 				avatar_url: undefined
 			}]
 		}
@@ -99,7 +159,7 @@ test("event2message: basic html is converted to markdown", async t => {
 				msgtype: "m.text",
 				body: "wrong body",
 				format: "org.matrix.custom.html",
-				formatted_body: "this <strong>is</strong> a <em><strong>test</strong> <u>of</u></em> <del>formatting</del>"
+				formatted_body: "this <strong>is</strong> a <em><strong>test</strong> <u>of</u></em> <del><em>formatting</em></del>"
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
@@ -115,7 +175,7 @@ test("event2message: basic html is converted to markdown", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "this **is** a _**test** __of___ ~~formatting~~",
+				content: "this **is** a _**test** __of___ ~~_formatting_~~",
 				avatar_url: undefined
 			}]
 		}
@@ -449,7 +509,7 @@ test("event2message: m.emote plaintext works", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "\\* cadence [they] tests an m.emote message",
+				content: "\\* cadence \\[they\\] tests an m.emote message",
 				avatar_url: undefined
 			}]
 		}

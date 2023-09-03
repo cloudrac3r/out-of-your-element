@@ -22,12 +22,47 @@ const BLOCK_ELEMENTS = [
 	"TFOOT", "TH", "THEAD", "TR", "UL"
 ]
 
+/** @type {[RegExp, string][]} */
+const markdownEscapes = [
+	[/\\/g, '\\\\'],
+	[/\*/g, '\\*'],
+	[/^-/g, '\\-'],
+	[/^\+ /g, '\\+ '],
+	[/^(=+)/g, '\\$1'],
+	[/^(#{1,6}) /g, '\\$1 '],
+	[/`/g, '\\`'],
+	[/^~~~/g, '\\~~~'],
+	[/\[/g, '\\['],
+	[/\]/g, '\\]'],
+	[/^>/g, '\\>'],
+	[/_/g, '\\_'],
+	[/^(\d+)\. /g, '$1\\. ']
+ ]
+
 const turndownService = new TurndownService({
 	hr: "----",
 	headingStyle: "atx",
 	preformattedCode: true,
-	codeBlockStyle: "fenced"
+	codeBlockStyle: "fenced",
 })
+
+/**
+ * Markdown characters in the HTML content need to be escaped, though take care not to escape the middle of bare links
+ * @param {string} string
+ */
+// @ts-ignore bad type from turndown
+turndownService.escape = function (string) {
+	const escapedWords = string.split(" ").map(word => {
+		if (word.match(/^https?:\/\//)) {
+			return word
+		} else {
+			return markdownEscapes.reduce(function (accumulator, escape) {
+				return accumulator.replace(escape[0], escape[1])
+		 	}, word)
+		}
+	})
+	return escapedWords.join(" ")
+}
 
 turndownService.remove("mx-reply")
 
@@ -67,7 +102,6 @@ turndownService.addRule("spoiler", {
 turndownService.addRule("inlineLink", {
 	filter: function (node, options) {
 		return (
-			options.linkStyle === "inlined" &&
 			node.nodeName === "A" &&
 			node.getAttribute("href")
 		)
@@ -275,8 +309,9 @@ async function eventToMessage(event, guild, di) {
 				content = `* ${displayName} ${content}`
 			}
 
-			// Markdown needs to be escaped
-			content = content.replace(/([*_~`#])/g, `\\$1`)
+			// Markdown needs to be escaped, though take care not to escape the middle of links
+			// @ts-ignore bad type from turndown
+			content = turndownService.escape(content)
 		}
 	} else if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
 		content = ""
