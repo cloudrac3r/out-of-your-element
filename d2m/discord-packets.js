@@ -43,6 +43,15 @@ const utils = {
 			}
 			eventDispatcher.checkMissedMessages(client, message.d)
 
+		} else if (message.t === "GUILD_UPDATE") {
+			const guild = client.guilds.get(message.d.id)
+			if (guild) {
+				for (const prop of Object.keys(message.d)) {
+					if (!["channels", "threads"].includes(prop)) {
+						guild[prop] = message.d[prop]
+					}
+				}
+			}
 
 		} else if (message.t === "THREAD_CREATE") {
 			client.channels.set(message.d.id, message.d)
