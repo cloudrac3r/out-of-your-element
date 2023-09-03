@@ -82,7 +82,7 @@ async function channelToKState(channel, guild) {
 		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
-	let history_visibility = "invited"
+	let history_visibility = "shared"
 	if (channel["thread_metadata"]) history_visibility = "world_readable"
 
 	const channelKState = {
@@ -106,6 +106,9 @@ async function channelToKState(channel, guild) {
 			events: {
 				"m.room.avatar": 0
 			}
+		},
+		"chat.schildi.hide_ui/read_receipts": {
+			hidden: true
 		}
 	}
 

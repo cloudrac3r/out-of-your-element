@@ -67,6 +67,7 @@ async function guildToKState(guild) {
 	return guildKState
 }
 
+/** Efficiently update space name, space avatar, and child room avatars. */
 async function syncSpace(guildID) {
 	/** @ts-ignore @type {DiscordTypes.APIGuild} */
 	const guild = discord.guilds.get(guildID)
@@ -77,10 +78,7 @@ async function syncSpace(guildID) {
 
 	const guildKState = await guildToKState(guild)
 
-	if (!spaceID) {
-		const spaceID = await createSpace(guild, guildKState)
-		return spaceID // Naturally, the newly created space is already up to date, so we can always skip syncing here.
-	}
+	if (!spaceID) return
 
 	console.log(`[space sync] to matrix: ${guild.name}`)
 
@@ -111,6 +109,43 @@ async function syncSpace(guildID) {
 	return spaceID
 }
 
+/**
+ * Inefficiently force the space and its existing child rooms to be fully updated.
+ * Should not need to be called as part of the bridge's normal operation.
+ */
+async function syncSpaceFully(guildID) {
+	/** @ts-ignore @type {DiscordTypes.APIGuild} */
+	const guild = discord.guilds.get(guildID)
+	assert.ok(guild)
+
+	/** @type {string?} */
+	const spaceID = db.prepare("SELECT space_id from guild_space WHERE guild_id = ?").pluck().get(guildID)
+
+	const guildKState = await guildToKState(guild)
+
+	if (!spaceID) return
+
+	console.log(`[space sync] to matrix: ${guild.name}`)
+
+	// sync guild state to space
+	const spaceKState = await createRoom.roomToKState(spaceID)
+	const spaceDiff = ks.diffKState(spaceKState, guildKState)
+	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
+
+	const childRooms = ks.kstateToState(spaceKState).filter(({type, content}) => {
+		return type === "m.space.child" && "via" in content
+	}).map(({state_key}) => state_key)
+
+	for (const roomID of childRooms) {
+		const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+		if (!channelID) continue
+		await createRoom.syncRoom(channelID)
+	}
+
+	return spaceID
+}
+
 module.exports.createSpace = createSpace
 module.exports.syncSpace = syncSpace
+module.exports.syncSpaceFully = syncSpaceFully
 module.exports.guildToKState = guildToKState
