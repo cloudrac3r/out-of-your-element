@@ -95,6 +95,7 @@ async function channelToKState(channel, guild) {
 			via: [reg.ooye.server_name],
 			canonical: true
 		},
+		/** @type {{join_rule: string, [x: string]: any}} */
 		"m.room.join_rules/": {
 			join_rule: "restricted",
 			allow: [{
@@ -255,6 +256,12 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 	// sync channel state to room
 	const roomKState = await roomToKState(roomID)
+	if (+roomKState["m.room.create/"].room_version <= 8) {
+		// join_rule `restricted` is not available in room version < 8 and not working properly in version == 8
+		// read more: https://spec.matrix.org/v1.8/rooms/v9/
+		// we have to use `public` instead, otherwise the room will be unjoinable.
+		channelKState["m.room.join_rules/"] = {join_rule: "public"}
+	}
 	const roomDiff = ks.diffKState(roomKState, channelKState)
 	const roomApply = applyKStateDiffToRoom(roomID, roomDiff)
 	db.prepare("UPDATE channel_room SET name = ? WHERE room_id = ?").run(channel.name, roomID)
