@@ -54,7 +54,7 @@ const sema = new Semaphore()
 function onPacket(discord, event) {
 	if (event.t === "GUILD_CREATE") {
 		const guild = event.d
-		if (["1100319549670301727", "112760669178241024", "497159726455455754"].includes(guild.id)) return
+		if (!["112760669178241024"].includes(guild.id)) return
 		sema.request(() => migrateGuild(guild))
 	}
 }
@@ -108,8 +108,21 @@ async function migrateGuild(guild) {
 		})
 
 		// Step 4: Add old rooms to new database; they are now also the new rooms
-		db.prepare("REPLACE INTO channel_room (channel_id, room_id, name) VALUES (?, ?, ?)").run(channel.id, row.matrix_id, channel.name)
-		console.log(`-- -- Added to database`)
+		// Make sure it wasn't already set up for the new bridge and bridged somewhere else pre-migration...
+		const preMigrationRow = db.prepare("SELECT room_id, nick, custom_avatar FROM channel_room WHERE channel_id = ?").get(channel.id)
+		if (preMigrationRow) {
+			// Ok, so we're going to delete this row from the database and then add the new proper row.
+			// But we want to copy over any previous custom settings like nick and avatar.
+			// (By the way, thread_parent is always null here because thread rooms would never be migrated because they are not in the old bridge.)
+			db.transaction(() => {
+				db.prepare("DELETE FROM channel_room WHERE channel_id = ?").run(channel.id)
+				db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, custom_avatar) VALUES (?, ?, ?, ?, ?)").run(channel.id, row.matrix_id, channel.name, preMigrationRow.nick, preMigrationRow.custom_avatar)
+				console.log(`-- -- Added to database (transferred properties from previous OOYE room)`)
+			})()
+		} else {
+			db.prepare("REPLACE INTO channel_room (channel_id, room_id, name) VALUES (?, ?, ?)").run(channel.id, row.matrix_id, channel.name)
+			console.log(`-- -- Added to database`)
+		}
 
 		// Step 5: Call syncRoom for each room
 		await createRoom.syncRoom(row.discord_channel)
