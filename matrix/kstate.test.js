@@ -23,7 +23,8 @@ test("kstate strip: keeps true conditions while removing $if", t => {
 test("kstate2state: general", t => {
 	t.deepEqual(kstateToState({
 		"m.room.name/": {name: "test name"},
-		"m.room.member/@cadence:cadence.moe": {membership: "join"}
+		"m.room.member/@cadence:cadence.moe": {membership: "join"},
+		"uk.half-shot.bridge/org.matrix.appservice-irc://irc/epicord.net/#general": {creator: "@cadence:cadence.moe"}
 	}), [
 		{
 			type: "m.room.name",
@@ -37,6 +38,13 @@ test("kstate2state: general", t => {
 			state_key: "@cadence:cadence.moe",
 			content: {
 				membership: "join"
+			}
+		},
+		{
+			type: "uk.half-shot.bridge",
+			state_key: "org.matrix.appservice-irc://irc/epicord.net/#general",
+			content: {
+				creator: "@cadence:cadence.moe"
 			}
 		}
 	])
@@ -57,10 +65,18 @@ test("state2kstate: general", t => {
 			content: {
 				membership: "join"
 			}
+		},
+		{
+			type: "uk.half-shot.bridge",
+			state_key: "org.matrix.appservice-irc://irc/epicord.net/#general",
+			content: {
+				creator: "@cadence:cadence.moe"
+			}
 		}
 	]), {
 		"m.room.name/": {name: "test name"},
-		"m.room.member/@cadence:cadence.moe": {membership: "join"}
+		"m.room.member/@cadence:cadence.moe": {membership: "join"},
+		"uk.half-shot.bridge/org.matrix.appservice-irc://irc/epicord.net/#general": {creator: "@cadence:cadence.moe"}
 	})
 })
 

@@ -121,7 +121,8 @@ async function sendState(roomID, type, stateKey, content, mxid) {
 	assert.ok(type)
 	assert.ok(typeof stateKey === "string")
 	/** @type {Ty.R.EventSent} */
-	const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${stateKey}`, mxid), content)
+	// encodeURIComponent is necessary because state key can contain some special characters like / but you must encode them so they fit in a single component of the URI
+	const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/state/${type}/${encodeURIComponent(stateKey)}`, mxid), content)
 	return root.event_id
 }
 

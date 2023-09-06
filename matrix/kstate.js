@@ -19,9 +19,10 @@ function kstateToState(kstate) {
 	const events = []
 	kstateStripConditionals(kstate)
 	for (const [k, content] of Object.entries(kstate)) {
-		const [type, state_key] = k.split("/")
-		assert.ok(typeof type === "string")
-		assert.ok(typeof state_key === "string")
+		const slashIndex = k.indexOf("/")
+		assert(slashIndex > 0)
+		const type = k.slice(0, slashIndex)
+		const state_key = k.slice(slashIndex + 1)
 		events.push({type, state_key, content})
 	}
 	return events
@@ -43,7 +44,7 @@ function diffKState(actual, target) {
 	const diff = {}
 	// go through each key that it should have
 	for (const key of Object.keys(target)) {
-		if (!key.includes("/")) throw new Error(`target kstate's key "${key}" does not contain a slash separator; if a blank state_key was intended, add a trailing slash to the kstate key.`)
+		if (!key.includes("/")) throw new Error(`target kstate's key "${key}" does not contain a slash separator; if a blank state_key was intended, add a trailing slash to the kstate key.\ncontext: ${JSON.stringify(target)}`)
 
 		if (key === "m.room.power_levels/") {
 			// Special handling for power levels, we want to deep merge the actual and target into the final state.
