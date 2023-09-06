@@ -23,7 +23,6 @@
     "heatsync": "^2.4.1",
     "js-yaml": "^4.1.0",
     "matrix-appservice": "^2.0.0",
-    "matrix-js-sdk": "^24.1.0",
     "mixin-deep": "github:cloudrac3r/mixin-deep#v3.0.0",
     "node-fetch": "^2.6.7",
     "prettier-bytes": "^1.0.4",

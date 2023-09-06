@@ -16,7 +16,7 @@ const DiscordClient = require("./d2m/discord-client")
 const discord = new DiscordClient(config.discordToken, "full")
 passthrough.discord = discord
 
-const as = require("./m2d/appservice")
+const as = require("./matrix/appservice")
 passthrough.as = as
 
 sync.require("./m2d/event-dispatcher")
