@@ -1157,8 +1157,7 @@ test("event2message: caches the member if the member is not known", async t => {
 					t.equal(type, "m.room.member")
 					t.equal(stateKey, "@should_be_newly_cached:cadence.moe")
 					return {
-						displayname: "this is the username",
-						avatar_url: undefined
+						avatar_url: "mxc://cadence.moe/this_is_the_avatar"
 					}
 				}
 			}
@@ -1167,14 +1166,14 @@ test("event2message: caches the member if the member is not known", async t => {
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "this is the username",
+				username: "should_be_newly_cached",
 				content: "testing the member state cache",
-				avatar_url: undefined
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/this_is_the_avatar"
 			}]
 		}
 	)
 	t.deepEqual(db.prepare("SELECT avatar_url, displayname, mxid FROM member_cache WHERE room_id = '!should_be_newly_cached:cadence.moe'").all(), [
-		{avatar_url: null, displayname: "this is the username", mxid: "@should_be_newly_cached:cadence.moe"}
+		{avatar_url: "mxc://cadence.moe/this_is_the_avatar", displayname: null, mxid: "@should_be_newly_cached:cadence.moe"}
 	])
 	t.equal(called, 1, "getStateEvent should be called once")
 })
@@ -1218,6 +1217,79 @@ test("event2message: skips caching the member if the member does not exist, some
 	)
 	t.deepEqual(db.prepare("SELECT avatar_url, displayname, mxid FROM member_cache WHERE room_id = '!not_real:cadence.moe'").all(), [])
 	t.equal(called, 1, "getStateEvent should be called once")
+})
+
+test("event2message: overly long usernames are shifted into the message content", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "testing the member state cache",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!should_be_newly_cached_2:cadence.moe",
+			sender: "@should_be_newly_cached_2:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				getStateEvent: async (roomID, type, stateKey) => {
+					called++
+					t.equal(roomID, "!should_be_newly_cached_2:cadence.moe")
+					t.equal(type, "m.room.member")
+					t.equal(stateKey, "@should_be_newly_cached_2:cadence.moe")
+					return {
+						displayname: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER",
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTAN",
+				content: "**T and I DON'T MATTER**: testing the member state cache",
+				avatar_url: undefined
+			}]
+		}
+	)
+	t.deepEqual(db.prepare("SELECT avatar_url, displayname, mxid FROM member_cache WHERE room_id = '!should_be_newly_cached_2:cadence.moe'").all(), [
+		{avatar_url: null, displayname: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER", mxid: "@should_be_newly_cached_2:cadence.moe"}
+	])
+	t.equal(called, 1, "getStateEvent should be called once")
+})
+
+test("event2message: overly long usernames are not treated specially when the msgtype is m.emote", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "looks at the start of the message",
+				msgtype: "m.emote"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!should_be_newly_cached_2:cadence.moe",
+			sender: "@should_be_newly_cached_2:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTAN",
+				content: "\\* I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER looks at the start of the message",
+				avatar_url: undefined
+			}]
+		}
+	)
 })
 
 test("event2message: text attachments work", async t => {
