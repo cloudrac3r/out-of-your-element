@@ -5,7 +5,6 @@
 - d->m emojis do not work at all (inline chat, single emoji size, reactions, bridged state)
 - d->m embeds
 - m->d code blocks have slightly too much spacing
-- d->m check whether I implemented deletions
 - m->d deletions
 - removing reactions
 - rooms will be set up even if the bridge does not have permission for the channels, which breaks when it restarts and tries to fetch messages
@@ -14,7 +13,6 @@
 	- solution part 2: attempt a get messages request anyway before bridging a new room, just to make sure!
 	- solution part 3: revisit the permissions to add newly available rooms and to close newly inaccessible rooms
 - consider a way to jump to a timestamp by making up a discord snowflake. practical? helpful?
-- clean up and write documentation to selfhost
 - pluralkit considerations for artemis
 - consider whether to use nested spaces for channel categories and threads
 
@@ -28,54 +26,6 @@ A database will be used to store the discord id to matrix event id mapping. Tabl
 - the "type" of the matrix id, used to update things properly next time. for example, whether it is the message text or an attachment. alternatively, whether it is a primary or supporting event for the discord message, primary being message content and supporting being embeds or attachments or etc.
 
 There needs to be a way to easily manually trigger something later. For example, it should be easy to manually retry sending a message, or check all members for changes, etc.
-
-## Discord's gateway when a new thread is created from an existing message:
-
-1. Regular MESSAGE_CREATE of the message that it's going to branch off in the future. Example ID -6423
-2. It MESSAGE_UPDATEd the ID -6423 with this whole data: {id:-6423,flags: 32,channel_id:-2084,guild_id:-1727} (ID is the message ID it's branching off, channel ID is the parent channel containing the message ID it's branching off)
-3. It THREAD_CREATEd and gave us a channel object with type 11 (public thread) and parent ID -2084 and ID -6423.
-4. It MESSAGE_CREATEd type 21 with blank content and a message reference pointing towards channel -2084 message -6423. (That's the message it branched from in the parent channel.) This MESSAGE_CREATE got ID -4631 (a new ID). Apart from that it's a regular message object.
-5. Finally, as the first "real" message in that thread (which a user must send to create that thread!) it sent a regular message object with a new message ID and a channel ID of -6423.
-
-When viewing this thread, it shows the message branched from at the top, and then the first "real" message right underneath, as separate groups.
-
-### Problem 1
-
-If THREAD_CREATE creates the matrix room, this will still be in-flight when MESSAGE_CREATE ensures the room exists and creates a room too. There will be two rooms created and the bridge falls over.
-
-#### Possible solution: Ignore THREAD_CREATE
-
-Then the room will be implicitly created by the two MESSAGE_CREATEs, which are in series.
-
-#### Possible solution: Store in-flight room creations ✔️
-
-Then the room will definitely only be created once, and we can still handle both events if we want to do special things for THREAD_CREATE.
-
-#### Possible solution: Don't implicitly create rooms
-
-But then old and current threads would never have their messages bridged unless I manually intervene. Don't like that.
-
-### Problem 2
-
-MESSAGE_UPDATE with flags=32 is telling that message to become an announcement of the new thread's creation, but this happens before THREAD_CREATE. The matrix room won't actually exist when we see MESSAGE_UPDATE, therefore we cannot make the MESSAGE_UPDATE link to the new thread.
-
-#### Possible solution: Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement ✔️
-
-When seeing THREAD_CREATE (if we use solution B above) we could react to it by creating the thread announcement message in the parent channel. This is possible because THREAD_CREATE gives a thread object and that includes the parent channel ID to send the announcement message to.
-
-While the thread announcement message could look more like Discord-side by being an edit of the message it branched off:
-
-> look at my cat
->
-> Thread started: [#cat thread]
-
-if the thread branched off a matrix user's message then the bridge wouldn't be able to edit it, so this wouldn't work.
-
-Regardless, it would make the most sense to post a new message like this to the parent room:
-
-> > Reply to: look at my cat
->
-> [me] started a new thread: [#cat thread]
 
 ## Current manual process for setting up a server
 
@@ -209,6 +159,8 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 
 TOSPEC: m2d emoji uploads??
 
+# Various considerations
+
 ## Issues if the bridge database is rolled back
 
 ### channel_room table
@@ -242,3 +194,53 @@ TOSPEC: m2d emoji uploads??
 ### webhook
 
 - Some duplicate webhooks may be created.
+
+## Creating and notifying about new threads:
+
+Discord's gateway events when a thread is created off a message:
+
+1. Regular MESSAGE_CREATE of the message that it's going to branch off in the future. Example ID -6423
+2. It MESSAGE_UPDATEd the ID -6423 with this whole data: {id:-6423,flags: 32,channel_id:-2084,guild_id:-1727} (ID is the message ID it's branching off, channel ID is the parent channel containing the message ID it's branching off)
+3. It THREAD_CREATEd and gave us a channel object with type 11 (public thread) and parent ID -2084 and ID -6423.
+4. It MESSAGE_CREATEd type 21 with blank content and a message reference pointing towards channel -2084 message -6423. (That's the message it branched from in the parent channel.) This MESSAGE_CREATE got ID -4631 (a new ID). Apart from that it's a regular message object.
+5. Finally, as the first "real" message in that thread (which a user must send to create that thread!) it sent a regular message object with a new message ID and a channel ID of -6423.
+
+When viewing this thread, it shows the message branched from at the top, and then the first "real" message right underneath, as separate groups.
+
+### Problem 1
+
+If THREAD_CREATE creates the matrix room, this will still be in-flight when MESSAGE_CREATE ensures the room exists and creates a room too. There will be two rooms created and the bridge falls over.
+
+#### Possible solution: Ignore THREAD_CREATE
+
+Then the room will be implicitly created by the two MESSAGE_CREATEs, which are in series.
+
+#### Possible solution: Store in-flight room creations - ✔️ this solution is implemented
+
+Then the room will definitely only be created once, and we can still handle both events if we want to do special things for THREAD_CREATE.
+
+#### Possible solution: Don't implicitly create rooms
+
+But then old and current threads would never have their messages bridged unless I manually intervene. Don't like that.
+
+### Problem 2
+
+MESSAGE_UPDATE with flags=32 is telling that message to become an announcement of the new thread's creation, but this happens before THREAD_CREATE. The matrix room won't actually exist when we see MESSAGE_UPDATE, therefore we cannot make the MESSAGE_UPDATE link to the new thread.
+
+#### Possible solution: Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement - ✔️ this solution is implemented
+
+When seeing THREAD_CREATE (if we use solution B above) we could react to it by creating the thread announcement message in the parent channel. This is possible because THREAD_CREATE gives a thread object and that includes the parent channel ID to send the announcement message to.
+
+While the thread announcement message could look more like Discord-side by being an edit of the message it branched off:
+
+> look at my cat
+>
+> Thread started: [#cat thread]
+
+if the thread branched off a matrix user's message then the bridge wouldn't be able to edit it, so this wouldn't work.
+
+Regardless, it would make the most sense to post a new message like this to the parent room:
+
+> > Reply to: look at my cat
+>
+> [me] started a new thread: [#cat thread]
