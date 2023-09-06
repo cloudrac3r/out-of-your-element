@@ -11,13 +11,23 @@ Modern Matrix-to-Discord appservice bridge.
 
 ## What works?
 
-Most things you'd expect:
+Most features you'd expect in both directions, plus a little extra spice:
 
 * Messages
 * Edits
 * Deletions
+* Text formatting, including spoilers
 * Reactions
+* Mentions
 * Replies
+* Theads
+* Stickers
+* Attachments
+* Spoiler attachments
+* Guild-Space details syncing
+* Channel-Room details syncing
+* Custom room names/avatars can be applied on Matrix-side
+* Larger files from Discord are linked instead of reuploaded to Matrix
 
 ## Caveats
 
