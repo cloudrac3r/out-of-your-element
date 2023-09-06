@@ -20,7 +20,7 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Reactions
 * Mentions
 * Replies
-* Theads
+* Threads
 * Stickers
 * Attachments
 * Spoiler attachments
@@ -33,6 +33,7 @@ Most features you'd expect in both directions, plus a little extra spice:
 
 * Custom emojis don't fully work yet.
 * Embeds don't work yet.
+* This bridge is not designed for puppetting.
 * Some aspects of this bridge are customised for my homeserver. I'm working over time to make it more general. Please please reach out to @cadence:cadence.moe if you would like to run this, and I'll work with you to get it running!
 
 # Development information
@@ -56,15 +57,21 @@ Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed va
 
 If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 username@matrix.cadence.moe`
 
+Run `node scripts/seed.js` to check your setup, then create the database and server state (only need to run this once ever)
+
 Make sure the tests work: `npm t`
 
-I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotations work. I don't know what other editors or language servers support annotations and type inference.
+Start the bridge: `node start.js`
+
+Any files you change will automatically be reloaded, except for `stdin.js` and `d2m/discord-*.js`
+
+I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotation comments work. I don't know which other editors or language servers support annotations and type inference.
 
 ## Repository structure
 
     .
-    * Entrypoint:
-    ├── index.js
+    * Run this to start the bridge:
+    ├── start.js
     * Runtime configuration, like tokens and user info:
     ├── config.js
     ├── registration.yaml
@@ -91,30 +98,30 @@ I recommend developing in Visual Studio Code so that the JSDoc x TypeScript anno
     │   ├── converters
     │   │   └── *.js
     │   └── event-dispatcher.js
-    * We aren't using the matrix-js-sdk, so here's all the stuff we need to call the Matrix CS API:
+    * We aren't using the matrix-js-sdk, so here's all the stuff we need to call the Matrix C-S API:
     ├── matrix
     │   └── *.js
     * Various files you can run once if you need them. Hopefully you won't need them.
     ├── scripts
-    │   └── *.js
-    * First time running a new bridge? Run this file to plant a seed, which will flourish into state for the bridge:
-    ├── seed.js
-    * You are here :)
+    │   ├── *.js
+    │   * First time running a new bridge? Run this file to plant a seed, which will flourish into state for the bridge:
+    │   └── seed.js
+    * You are here! :)
     └── readme.md
 
 ## Dependency justification
 
-(transitive dependency count) dependency name: explanation
+(deduped transitive dependency count) dependency name: explanation
 
-* (0) @chriscdn/promise-semaphore
-* (50) better-sqlite3: SQLite3 is the best database, and this is the best library for it. Really! I love it.
+* (0) @chriscdn/promise-semaphore: It does what I want! I like it!
+* (42) better-sqlite3: SQLite3 is the best database, and this is the best library for it. Really! I love it.
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
 * (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (1) discord-markdown: This is my fork! I make sure it does what I want.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
-* (115) matrix-appservice: I wish it didn't pull in express :(
+* (70) matrix-appservice: I wish it didn't pull in express :(
 * (0) mixin-deep: This is my fork! It fixes a bug in regular mixin-deep.
 * (3) node-fetch@2: I like it and it does what I want.
 * (0) prettier-bytes: It does what I want and has no dependencies.
