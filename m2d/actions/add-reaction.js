@@ -24,6 +24,7 @@ async function addReaction(event) {
 	// https://github.com/discord/discord-api-docs/issues/2723#issuecomment-807022205 ????????????
 
 	const forceTrimmedList = [
+		"%F0%9F%91%8D", // 👍
 		"%E2%AD%90" // ⭐
 	]
 
