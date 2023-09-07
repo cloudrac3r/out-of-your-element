@@ -363,7 +363,7 @@ test("message2event: thread start message reference", async t => {
 		api: {
 			getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$FchUVylsOfmmbj-VwEs5Z9kY49_dt2zd0vWfylzy5Yo", {
 				"type": "m.room.message",
-				"sender": "@_ooye_cadence:cadence.moe",
+				"sender": "@_ooye_kyuugryphon:cadence.moe",
 				"content": {
 					"m.mentions": {},
 					"msgtype": "m.text",

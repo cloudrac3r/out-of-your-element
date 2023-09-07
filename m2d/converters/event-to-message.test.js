@@ -595,6 +595,82 @@ test("event2message: rich reply to a sim user", async t => {
 	)
 })
 
+test("event2message: rich reply to an already-edited message will quote the new message content", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe> this is the new content. heya!\n\nhiiiii....",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$DSQvWxOBB2DYaei6b83-fb33dQGYt5LJd_s8Nl2a43Q?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>this is the new content. heya!</blockquote></mx-reply>hiiiii....",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$DSQvWxOBB2DYaei6b83-fb33dQGYt5LJd_s8Nl2a43Q"
+					}
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$DSQvWxOBB2DYaei6b83-fb33dQGYt5LJd_s8Nl2a43Q", {
+					type: "m.room.message",
+					room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe",
+					sender: "@_ooye_kyuugryphon:cadence.moe",
+					content: {
+						"m.mentions": {},
+						msgtype: "m.text",
+						body: "this is the old content. don't use this!"
+					},
+					unsigned: {
+						"m.relations": {
+							"m.replace": {
+								type: "m.room.message",
+								room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe",
+								sender: "@_ooye_kyuugryphon:cadence.moe",
+								content: {
+									"m.mentions": {},
+									msgtype: "m.text",
+									body: "* this is the new content. heya!",
+									"m.new_content": {
+										"m.mentions": {},
+										msgtype: "m.text",
+										body: "this is the new content. heya!"
+									},
+									"m.relates_to": {
+										rel_type: "m.replace",
+										event_id: "$DSQvWxOBB2DYaei6b83-fb33dQGYt5LJd_s8Nl2a43Q"
+									}
+								},
+								event_id: "$JOrl8ycWpo7NIAxZ4u-VJmANVrZFBF41LXyp30y8VvU",
+								user_id: "@_ooye_kyuugryphon:cadence.moe",
+							}
+						}
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647><@111604486476181504>:"
+					+ "\n> this is the new content. heya!"
+					+ "\nhiiiii....",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
 test("event2message: should avoid using blockquote contents as reply preview in rich reply to a sim user", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -641,8 +717,6 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 		}
 	)
 })
-
-
 
 test("event2message: editing a rich reply to a sim user", async t => {
 	const eventsFetched = []
@@ -947,20 +1021,20 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			"type": "m.room.message",
 			"sender": "@cadence:cadence.moe",
 			"content": {
-			  "msgtype": "m.text",
-			  "body": "> <@cadence:cadence.moe> ```\n> i should have a little happy test\n> ```\n> * list **bold** _em_ ~~strike~~\n> # heading 1\n> ## heading 2\n> ### heading 3\n> https://cadence.moe\n> [legit website](https://cadence.moe)\n\nno you can't!!!",
-			  "format": "org.matrix.custom.html",
-			  "formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br><pre><code>i should have a little happy test\n</code></pre>\n<ul>\n<li>list <strong>bold</strong> <em>em</em> ~~strike~~</li>\n</ul>\n<h1>heading 1</h1>\n<h2>heading 2</h2>\n<h3>heading 3</h3>\n<p>https://cadence.moe<br /><a href=\"https://cadence.moe\">legit website</a></p>\n</blockquote></mx-reply><strong>no you can't!!!</strong>",
-			  "m.relates_to": {
-				 "m.in_reply_to": {
-					"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
-				 }
-			  }
+				"msgtype": "m.text",
+				"body": "> <@cadence:cadence.moe> ```\n> i should have a little happy test\n> ```\n> * list **bold** _em_ ~~strike~~\n> # heading 1\n> ## heading 2\n> ### heading 3\n> https://cadence.moe\n> [legit website](https://cadence.moe)\n\nno you can't!!!",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br><pre><code>i should have a little happy test\n</code></pre>\n<ul>\n<li>list <strong>bold</strong> <em>em</em> ~~strike~~</li>\n</ul>\n<h1>heading 1</h1>\n<h2>heading 2</h2>\n<h3>heading 3</h3>\n<p>https://cadence.moe<br /><a href=\"https://cadence.moe\">legit website</a></p>\n</blockquote></mx-reply><strong>no you can't!!!</strong>",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				}
 			},
 			"origin_server_ts": 1693037401693,
 			"unsigned": {
-			  "age": 381,
-			  "transaction_id": "m1693037401592.521"
+				"age": 381,
+				"transaction_id": "m1693037401592.521"
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
@@ -998,20 +1072,20 @@ test("event2message: rich reply to an image", async t => {
 			"type": "m.room.message",
 			"sender": "@cadence:cadence.moe",
 			"content": {
-			  "msgtype": "m.text",
-			  "body": "> <@cadence:cadence.moe> sent an image.\n\nCaught in 8K UHD VR QLED Epic Edition",
-			  "format": "org.matrix.custom.html",
-			  "formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>sent an image.</blockquote></mx-reply>Caught in 8K UHD VR QLED Epic Edition",
-			  "m.relates_to": {
-				 "m.in_reply_to": {
-					"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
-				 }
-			  }
+				"msgtype": "m.text",
+				"body": "> <@cadence:cadence.moe> sent an image.\n\nCaught in 8K UHD VR QLED Epic Edition",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>sent an image.</blockquote></mx-reply>Caught in 8K UHD VR QLED Epic Edition",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				}
 			},
 			"origin_server_ts": 1693037401693,
 			"unsigned": {
-			  "age": 381,
-			  "transaction_id": "m1693037401592.521"
+				"age": 381,
+				"transaction_id": "m1693037401592.521"
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
@@ -1044,6 +1118,58 @@ test("event2message: rich reply to an image", async t => {
 				username: "cadence [they]",
 				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504> 🖼️"
 					+ "\nCaught in 8K UHD VR QLED Epic Edition",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
+test("event2message: rich reply to a spoiler should ensure the spoiler is hidden", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@cadence:cadence.moe> ||zoe kills a 5 letter noun at the end. don't tell anybody|| cw crossword spoilers you'll never believe\n\nomg NO WAY!!",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br><span data-mx-spoiler=\"\">zoe kills a 5 letter noun at the end. don't tell anybody</span> cw crossword spoilers you'll never believe</blockquote></mx-reply>omg NO WAY!!",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				}
+			},
+			"origin_server_ts": 1693037401693,
+			"unsigned": {
+				"age": 381,
+				"transaction_id": "m1693037401592.521"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		 }, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					type: "m.room.message",
+					sender: "@_ooye_kyuugryphon:cadence.moe",
+					content: {
+						"m.mentions": {},
+						msgtype: "m.text",
+						body: "||zoe kills a 5 letter noun at the end. don't tell anybody|| cw crossword spoilers you'll never believe",
+						format: "org.matrix.custom.html",
+						formatted_body: `<span data-mx-spoiler="">zoe kills a 5 letter noun at the end. don't tell anybody</span> cw crossword spoilers you'll never believe`
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ "\n> [spoiler] cw crossword spoilers you'll never..."
+					+ "\nomg NO WAY!!",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
 			}]
 		}

@@ -227,7 +227,7 @@ async function eventToMessage(event, guild, di) {
 		await (async () => {
 			const repliedToEventId = event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
-			const repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
+			let repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
 			if (!repliedToEvent) return
 			const row = db.prepare("SELECT channel_id, message_id FROM event_message INNER JOIN message_channel USING (message_id) WHERE event_id = ? ORDER BY part").get(repliedToEventId)
 			if (row) {
@@ -243,6 +243,11 @@ async function eventToMessage(event, guild, di) {
 			} else {
 				replyLine += `Ⓜ️**${senderName}**`
 			}
+			// If the event has been edited, the homeserver will include the relation in `unsigned`.
+			if (repliedToEvent.unsigned?.["m.relations"]?.["m.replace"]?.content?.["m.new_content"]) {
+				repliedToEvent = repliedToEvent.unsigned["m.relations"]["m.replace"] // Note: this changes which event_id is in repliedToEvent.
+				repliedToEvent.content = repliedToEvent.content["m.new_content"]
+			}
 			let contentPreview
 			const fileReplyContentAlternative =
 				( repliedToEvent.content.msgtype === "m.image" ? "🖼️"
@@ -254,7 +259,12 @@ async function eventToMessage(event, guild, di) {
 				contentPreview = " " + fileReplyContentAlternative
 			} else {
 				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
-				const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/.*?<\/blockquote>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 50)
+				const contentPreviewChunks = chunk(
+					repliedToContent.replace(/.*<\/mx-reply>/, "") // Remove everything before replies, so just use the actual message body
+					.replace(/.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
+					.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
+					.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
+					.replace(/<[^>]+>/g, ""), 50) // Completely strip all other formatting.
 				contentPreview = ":\n> "
 				contentPreview += contentPreviewChunks.length > 1 ? contentPreviewChunks[0] + "..." : contentPreviewChunks[0]
 			}
