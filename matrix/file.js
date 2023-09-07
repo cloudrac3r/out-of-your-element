@@ -99,6 +99,7 @@ function sticker(sticker) {
 	return `/stickers/${sticker.id}.${ext}`
 }
 
+module.exports.DISCORD_IMAGES_BASE = DISCORD_IMAGES_BASE
 module.exports.guildIcon = guildIcon
 module.exports.userAvatar = userAvatar
 module.exports.memberAvatar = memberAvatar

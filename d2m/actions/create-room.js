@@ -110,6 +110,23 @@ async function channelToKState(channel, guild) {
 		},
 		"chat.schildi.hide_ui/read_receipts": {
 			hidden: true
+		},
+		[`uk.half-shot.bridge/moe.cadence.ooye://discord/${guild.id}/${channel.id}`]: {
+			bridgebot: `@${reg.sender_localpart}:${reg.ooye.server_name}`,
+			protocol: {
+				id: "discord",
+				displayname: "Discord"
+			},
+			network: {
+				id: guild.id,
+				displayname: guild.name,
+				avatar_url: file.DISCORD_IMAGES_BASE + file.guildIcon(guild)
+			},
+			channel: {
+				id: channel.id,
+				displayname: channel.name,
+				external_url: `https://discord.com/channels/${guild.id}/${channel.id}`
+			}
 		}
 	}
 
@@ -294,6 +311,9 @@ async function _unbridgeRoom(channelID) {
 	// remove room from being a space member
 	await api.sendState(roomID, "m.space.parent", spaceID, {})
 	await api.sendState(spaceID, "m.space.child", roomID, {})
+
+	// remove declaration that the room is bridged
+	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${channel.guild_id}/${channel.id}`, {})
 
 	// send a notification in the room
 	await api.sendEvent(roomID, "m.room.message", {
