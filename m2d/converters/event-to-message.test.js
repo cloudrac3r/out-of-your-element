@@ -992,6 +992,64 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 	)
 })
 
+test("event2message: rich reply to an image", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+			  "msgtype": "m.text",
+			  "body": "> <@cadence:cadence.moe> sent an image.\n\nCaught in 8K UHD VR QLED Epic Edition",
+			  "format": "org.matrix.custom.html",
+			  "formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>sent an image.</blockquote></mx-reply>Caught in 8K UHD VR QLED Epic Edition",
+			  "m.relates_to": {
+				 "m.in_reply_to": {
+					"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+				 }
+			  }
+			},
+			"origin_server_ts": 1693037401693,
+			"unsigned": {
+			  "age": 381,
+			  "transaction_id": "m1693037401592.521"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		 }, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					type: "m.room.message",
+					sender: "@_ooye_kyuugryphon:cadence.moe",
+					content: {
+						"m.mentions": {},
+						msgtype: "m.image",
+						url: "mxc://cadence.moe/ABfYgGdcIECnraZLGpRnoArG",
+						external_url: "https://cdn.discordapp.com/attachments/1100319550446252084/1149300251648339998/arcafeappx2.png",
+						body: "arcafeappx2.png",
+						filename: "arcafeappx2.png",
+						info: {
+							mimetype: "image/png",
+							w: 512,
+							h: 512,
+							size: 43990
+						}
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504> 🖼️"
+					+ "\nCaught in 8K UHD VR QLED Epic Edition",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
 test("event2message: with layered rich replies, the preview should only be the real text", async t => {
 	t.deepEqual(
 		await eventToMessage({

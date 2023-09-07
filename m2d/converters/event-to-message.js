@@ -239,14 +239,26 @@ async function eventToMessage(event, guild, di) {
 			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
 			const authorID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(repliedToEvent.sender)
 			if (authorID) {
-				replyLine += `<@${authorID}>:`
+				replyLine += `<@${authorID}>`
 			} else {
-				replyLine += `Ⓜ️**${senderName}**:`
+				replyLine += `Ⓜ️**${senderName}**`
 			}
-			const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
-			const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/.*?<\/blockquote>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 50)
-			const contentPreview = contentPreviewChunks.length > 1 ? contentPreviewChunks[0] + "..." : contentPreviewChunks[0]
-			replyLine = `> ${replyLine}\n> ${contentPreview}\n`
+			let contentPreview
+			const fileReplyContentAlternative =
+				( repliedToEvent.content.msgtype === "m.image" ? "🖼️"
+				: repliedToEvent.content.msgtype === "m.video" ? "🎞️"
+				: repliedToEvent.content.msgtype === "m.audio" ? "🎶"
+				: repliedToEvent.content.msgtype === "m.file" ? "📄"
+				: null)
+			if (fileReplyContentAlternative) {
+				contentPreview = " " + fileReplyContentAlternative
+			} else {
+				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
+				const contentPreviewChunks = chunk(repliedToContent.replace(/.*<\/mx-reply>/, "").replace(/.*?<\/blockquote>/, "").replace(/(?:\n|<br>)+/g, " ").replace(/<[^>]+>/g, ""), 50)
+				contentPreview = ":\n> "
+				contentPreview += contentPreviewChunks.length > 1 ? contentPreviewChunks[0] + "..." : contentPreviewChunks[0]
+			}
+			replyLine = `> ${replyLine}${contentPreview}\n`
 		})()
 
 		if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
