@@ -145,7 +145,11 @@ async function syncSpaceFully(guildID) {
 	for (const roomID of childRooms) {
 		const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
 		if (!channelID) continue
-		await createRoom.syncRoom(channelID)
+		if (discord.channels.has(channelID)) {
+			await createRoom.syncRoom(channelID)
+		} else {
+			await createRoom.unbridgeDeletedChannel(channelID, guildID)
+		}
 	}
 
 	return spaceID

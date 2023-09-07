@@ -303,9 +303,13 @@ async function _unbridgeRoom(channelID) {
 	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	assert.ok(channel)
+	return unbridgeDeletedChannel(channel.id, channel.guild_id)
+}
+
+async function unbridgeDeletedChannel(channelID, guildID) {
 	const roomID = db.prepare("SELECT room_id from channel_room WHERE channel_id = ?").pluck().get(channelID)
 	assert.ok(roomID)
-	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(channel.guild_id)
+	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guildID)
 	assert.ok(spaceID)
 
 	// remove room from being a space member
@@ -313,7 +317,7 @@ async function _unbridgeRoom(channelID) {
 	await api.sendState(spaceID, "m.space.child", roomID, {})
 
 	// remove declaration that the room is bridged
-	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${channel.guild_id}/${channel.id}`, {})
+	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${guildID}/${channelID}`, {})
 
 	// send a notification in the room
 	await api.sendEvent(roomID, "m.room.message", {
@@ -328,7 +332,6 @@ async function _unbridgeRoom(channelID) {
 	const {changes} = db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channelID)
 	assert.equal(changes, 1)
 }
-
 
 /**
  * Async because it gets all space state from the homeserver, then if necessary sends one state event back.
@@ -377,3 +380,4 @@ module.exports.applyKStateDiffToRoom = applyKStateDiffToRoom
 module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._unbridgeRoom = _unbridgeRoom
+module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
