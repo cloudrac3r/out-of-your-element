@@ -58,4 +58,9 @@ CREATE TABLE IF NOT EXISTS "event_message" (
 	"source"	INTEGER NOT NULL,
 	PRIMARY KEY("message_id","event_id")
 ) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS "lottie" (
+	"id"	TEXT NOT NULL,
+	"mxc"	TEXT NOT NULL,
+	PRIMARY KEY("id")
+) WITHOUT ROWID;
 COMMIT;
