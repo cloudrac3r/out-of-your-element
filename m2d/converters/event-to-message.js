@@ -157,6 +157,7 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 		return {displayname: null, avatar_url: null}
 	})
 }
+
 /**
  * Splits a display name into one chunk containing <=80 characters, and another chunk containing the rest of the characters. Splits on
  * whitespace if possible.
@@ -165,7 +166,7 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
  * can be prepended to the message content as-is.
  * @summary Splits too-long Matrix names into a display name chunk and a message content chunk.
  * @param  {string} displayName - The Matrix side display name to chop up.
- * @returns {[string, string]} The afformentioned chunks in their respective order.
+ * @returns {[string, string]} [shortened display name, display name runoff]
  */
 function splitDisplayName(displayName) {
 	/** @type {string[]} */
@@ -174,13 +175,10 @@ function splitDisplayName(displayName) {
 	if (displayNameChunks.length === 1) {
 		return [displayName, ""]
 	} else {
-		/** @type {string} */
 		const displayNamePreRunoff = displayNameChunks[0]
-		// displayNameRunoff is a substring rather than a concatenation of the rest of the chunks in order to preserve whatever whitespace
-		// it was broken on.
-		/** @type {string} */
-		const displayNameRunoff = `**${displayName.substring(displayNamePreRunoff.length + 1)}**\n`
-		
+		// displayNameRunoff is a slice of the original rather than a concatenation of the rest of the chunks in order to preserve whatever whitespace it was broken on.
+		const displayNameRunoff = `**${displayName.slice(displayNamePreRunoff.length + 1)}**\n`
+
 		return [displayNamePreRunoff, displayNameRunoff]
 	}
 }
@@ -206,11 +204,9 @@ async function eventToMessage(event, guild, di) {
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
 	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url) || undefined
-	// If the display name is too long to be put into the webhook (>80 characters), put the excess characters into displayNameRunoff, later to
-	// be put at the top of the message
-	/** @type {string} */
-	let displayNameShortened, displayNameRunoff
-	[displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
+	// If the display name is too long to be put into the webhook (80 characters is the maximum),
+	// put the excess characters into displayNameRunoff, later to be put at the top of the message
+	let [displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
 	// If the message type is m.emote, the full name is already included at the start of the message, so remove any runoff
 	if (event.type === "m.room.message" && event.content.msgtype === "m.emote") {
 		displayNameRunoff = ""
@@ -294,7 +290,7 @@ async function eventToMessage(event, guild, di) {
 			if (fileReplyContentAlternative) {
 				contentPreview = " " + fileReplyContentAlternative
 			} else {
-			const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
+				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 				const contentPreviewChunks = chunk(
 					repliedToContent.replace(/.*<\/mx-reply>/, "") // Remove everything before replies, so just use the actual message body
 					.replace(/.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
