@@ -87,7 +87,7 @@ function emoji(emojiID, animated) {
 const stickerFormat = new Map([
 	[1, {label: "PNG", ext: "png", mime: "image/png"}],
 	[2, {label: "APNG", ext: "png", mime: "image/apng"}],
-	[3, {label: "LOTTIE", ext: "json", mime: null}],
+	[3, {label: "LOTTIE", ext: "json", mime: "lottie"}],
 	[4, {label: "GIF", ext: "gif", mime: "image/gif"}]
 ])
 

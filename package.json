@@ -25,6 +25,7 @@
     "matrix-appservice": "^2.0.0",
     "mixin-deep": "github:cloudrac3r/mixin-deep#v3.0.0",
     "node-fetch": "^2.6.7",
+    "pngjs": "^7.0.0",
     "prettier-bytes": "^1.0.4",
     "snowtransfer": "^0.8.0",
     "try-to-catch": "^3.0.1",

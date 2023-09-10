@@ -9,6 +9,8 @@ const passthrough = require("../../passthrough")
 const { sync, db, discord } = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
+/** @type {import("./lottie")} */
+const lottie = sync.require("./lottie")
 const reg = require("../../matrix/read-registration")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
@@ -338,7 +340,25 @@ async function messageToEvent(message, guild, options = {}, di) {
 	if (message.sticker_items) {
 		const stickerEvents = await Promise.all(message.sticker_items.map(async stickerItem => {
 			const format = file.stickerFormat.get(stickerItem.format_type)
-			if (format?.mime) {
+			if (format?.mime === "lottie") {
+				try {
+					const {mxc, info} = await lottie.convert(stickerItem)
+					return {
+						$type: "m.sticker",
+						"m.mentions": mentions,
+						body: stickerItem.name,
+						info,
+						url: mxc
+					}
+				} catch (e) {
+					return {
+						$type: "m.room.message",
+						"m.mentions": mentions,
+						msgtype: "m.notice",
+						body: `Failed to convert Lottie sticker:\n${e.toString()}\n${e.stack}`
+					}
+				}
+			} else if (format?.mime) {
 				let body = stickerItem.name
 				const sticker = guild.stickers.find(sticker => sticker.id === stickerItem.id)
 				if (sticker && sticker.description) body += ` - ${sticker.description}`
@@ -351,13 +371,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 					},
 					url: await file.uploadDiscordFileToMxc(file.sticker(stickerItem))
 				}
-			} else {
-				return {
-					$type: "m.room.message",
-					"m.mentions": mentions,
-					msgtype: "m.text",
-					body: "Unsupported sticker format. Name: " + stickerItem.name
-				}
+			}
+			return {
+				$type: "m.room.message",
+				"m.mentions": mentions,
+				msgtype: "m.notice",
+				body: `Unsupported sticker format ${format?.mime}. Name: ${stickerItem.name}`
 			}
 		}))
 		events.push(...stickerEvents)
