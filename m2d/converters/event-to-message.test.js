@@ -1436,8 +1436,8 @@ test("event2message: overly long usernames are shifted into the message content"
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTAN",
-				content: "**T and I DON'T MATTER**: testing the member state cache",
+				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS",
+				content: "**IMPORTANT and I DON'T MATTER**\ntesting the member state cache",
 				avatar_url: undefined
 			}]
 		}
@@ -1468,7 +1468,7 @@ test("event2message: overly long usernames are not treated specially when the ms
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTAN",
+				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS",
 				content: "\\* I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER looks at the start of the message",
 				avatar_url: undefined
 			}]

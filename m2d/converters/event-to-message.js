@@ -157,6 +157,33 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 		return {displayname: null, avatar_url: null}
 	})
 }
+/**
+ * Splits a display name into one chunk containing <=80 characters, and another chunk containing the rest of the characters. Splits on
+ * whitespace if possible.
+ * These chunks, respectively, go in the display name, and at the top of the message.
+ * If the second part isn't empty, it'll also contain boldening markdown and a line break at the end, so that regardless of its value it
+ * can be prepended to the message content as-is.
+ * @summary Splits too-long Matrix names into a display name chunk and a message content chunk.
+ * @param  {string} displayName - The Matrix side display name to chop up.
+ * @returns {[string, string]} The afformentioned chunks in their respective order.
+ */
+function splitDisplayName(displayName) {
+	/** @type {string[]} */
+	let displayNameChunks = chunk(displayName, 80)
+
+	if (displayNameChunks.length === 1) {
+		return [displayName, ""]
+	} else {
+		/** @type {string} */
+		const displayNamePreRunoff = displayNameChunks[0]
+		// displayNameRunoff is a substring rather than a concatenation of the rest of the chunks in order to preserve whatever whitespace
+		// it was broken on.
+		/** @type {string} */
+		const displayNameRunoff = `**${displayName.substring(displayNamePreRunoff.length + 1)}**\n`
+		
+		return [displayNamePreRunoff, displayNameRunoff]
+	}
+}
 
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
@@ -179,6 +206,15 @@ async function eventToMessage(event, guild, di) {
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
 	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url) || undefined
+	// If the display name is too long to be put into the webhook (>80 characters), put the excess characters into displayNameRunoff, later to
+	// be put at the top of the message
+	/** @type {string} */
+	let displayNameShortened, displayNameRunoff
+	[displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
+	// If the message type is m.emote, the full name is already included at the start of the message, so remove any runoff
+	if (event.type === "m.room.message" && event.content.msgtype === "m.emote") {
+		displayNameRunoff = ""
+	}
 
 	let content = event.content.body // ultimate fallback
 	const attachments = []
@@ -258,7 +294,7 @@ async function eventToMessage(event, guild, di) {
 			if (fileReplyContentAlternative) {
 				contentPreview = " " + fileReplyContentAlternative
 			} else {
-				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
+			const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 				const contentPreviewChunks = chunk(
 					repliedToContent.replace(/.*<\/mx-reply>/, "") // Remove everything before replies, so just use the actual message body
 					.replace(/.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
@@ -364,13 +400,13 @@ async function eventToMessage(event, guild, di) {
 		pendingFiles.push({name: filename, url})
 	}
 
-	content = replyLine + content
+	content = displayNameRunoff + replyLine + content
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
 	messages = messages.concat(chunks.map(content => ({
 		content,
-		username: displayName,
+		username: displayNameShortened,
 		avatar_url: avatarURL
 	})))
 
@@ -379,7 +415,7 @@ async function eventToMessage(event, guild, di) {
 		// There needs to be a message to add attachments to.
 		if (!messages.length) messages.push({
 			content,
-			username: displayName,
+			username: displayNameShortened,
 			avatar_url: avatarURL
 		})
 		messages[0].attachments = attachments
