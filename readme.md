@@ -8,6 +8,8 @@ Modern Matrix-to-Discord appservice bridge.
 * Reliable: Any errors on either side are notified on Matrix and can be retried.
 * Tested: A test suite and code coverage make sure all the core logic works.
 * Simple development: No build step (it's JavaScript, not TypeScript), minimal/lightweight dependencies, and abstraction only where necessary so that less background knowledge is required. No need to learn about Intents or library functions.
+* No locking algorithm: Other bridges use a locking algorithm which is a source of frequent bugs. This bridge avoids the need for one.
+* Latest API: Being on the latest Discord API version lets it access all features, without the risk of deprecated API versions being removed.
 
 ## What works?
 
@@ -40,8 +42,8 @@ Most features you'd expect in both directions, plus a little extra spice:
 
 ## You will need
 
+* Administrative access to a homeserver
 * Discord bot
-* Access to the homeserver's configuration
 * (For now) Help and support from @cadence:cadence.moe. Message me and tell me you're interested in OOYE!
 * The L1 and L2 emojis
 
