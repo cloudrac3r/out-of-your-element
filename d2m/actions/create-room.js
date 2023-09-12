@@ -12,6 +12,8 @@ const file = sync.require("../../matrix/file")
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
+/** @type {import("./create-space")}) */
+const createSpace = sync.require("./create-space") // watch out for the require loop
 
 /** @type {Map<string, Promise<string>>} channel ID -> Promise<room ID> */
 const inflightRoomCreate = new Map()
@@ -61,12 +63,12 @@ function convertNameAndTopic(channel, guild, customName) {
 }
 
 /**
- * Async because it may upload the guild icon to mxc.
+ * Async because it may create the guild and/or upload the guild icon to mxc.
  * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel
  * @param {DiscordTypes.APIGuild} guild
  */
 async function channelToKState(channel, guild) {
-	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
+	const spaceID = await createSpace.ensureSpace(guild.id)
 	assert.ok(typeof spaceID === "string")
 
 	const row = db.prepare("SELECT nick, custom_avatar FROM channel_room WHERE channel_id = ?").get(channel.id)

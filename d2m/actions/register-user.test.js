@@ -1,4 +1,3 @@
-const {channelToKState} = require("./create-room")
 const {_memberToStateContent} = require("./register-user")
 const {test} = require("supertape")
 const testData = require("../../test/data")

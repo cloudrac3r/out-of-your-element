@@ -15,6 +15,9 @@ const createRoom = sync.require("./create-room")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
 
+/** @type {Map<string, Promise<string>>} guild ID -> Promise<space ID> */
+const inflightSpaceCreate = new Map()
+
 /**
  * @param {import("discord-api-types/v10").RESTGetAPIGuildResult} guild
  * @param {any} kstate
@@ -68,23 +71,42 @@ async function guildToKState(guild) {
 	return guildKState
 }
 
-/** Efficiently update space name, space avatar, and child room avatars. */
-async function syncSpace(guildID) {
+/**
+ * @param {string} guildID
+ * @param {boolean} shouldActuallySync false if just need to ensure nspace exists (which is a quick database check),
+ *                                     true if also want to efficiently sync space name, space avatar, and child room avatars
+ * @returns {Promise<string>} room ID
+ */
+async function _syncSpace(guildID, shouldActuallySync) {
 	/** @ts-ignore @type {DiscordTypes.APIGuild} */
 	const guild = discord.guilds.get(guildID)
 	assert.ok(guild)
 
+	if (inflightSpaceCreate.has(guildID)) {
+		await inflightSpaceCreate.get(guildID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
+	}
+
 	/** @type {string?} */
 	const spaceID = db.prepare("SELECT space_id from guild_space WHERE guild_id = ?").pluck().get(guildID)
 
-	const guildKState = await guildToKState(guild)
-
 	if (!spaceID) {
-		const spaceID = await createSpace(guild, guildKState)
-		return spaceID // Naturally, the newly created space is already up to date, so we can always skip syncing here.
+		const creation = (async () => {
+			const guildKState = await guildToKState(guild)
+			const spaceID = await createSpace(guild, guildKState)
+			inflightSpaceCreate.delete(guildID)
+			return spaceID
+		})()
+		inflightSpaceCreate.set(guildID, creation)
+		return creation // Naturally, the newly created space is already up to date, so we can always skip syncing here.
+	}
+
+	if (!shouldActuallySync) {
+		return spaceID // only need to ensure space exists, and it does. return the space ID
 	}
 
 	console.log(`[space sync] to matrix: ${guild.name}`)
+
+	const guildKState = await guildToKState(guild) // calling this in both branches because we don't want to calculate this if not syncing
 
 	// sync guild state to space
 	const spaceKState = await createRoom.roomToKState(spaceID)
@@ -111,6 +133,16 @@ async function syncSpace(guildID) {
 	}
 
 	return spaceID
+}
+
+/** Ensures the space exists. If it doesn't, creates the space with an accurate initial state. */
+function ensureSpace(guildID) {
+	return _syncSpace(guildID, false)
+}
+
+/** Actually syncs. Efficiently updates the space name, space avatar, and child room avatars. */
+function syncSpace(guildID) {
+	return _syncSpace(guildID, true)
 }
 
 /**
@@ -157,6 +189,7 @@ async function syncSpaceFully(guildID) {
 }
 
 module.exports.createSpace = createSpace
+module.exports.ensureSpace = ensureSpace
 module.exports.syncSpace = syncSpace
 module.exports.syncSpaceFully = syncSpaceFully
 module.exports.guildToKState = guildToKState
