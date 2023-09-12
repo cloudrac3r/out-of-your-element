@@ -25,6 +25,9 @@ const utils = require("../m2d/converters/utils")
 	assert(reg.sender_localpart.startsWith(reg.ooye.namespace_prefix))
 	assert(utils.eventSenderIsFromDiscord(mxid))
 
+	// database ddl...
+	db.exec(fs.readFileSync("db/ooye-schema.sql", "utf8"))
+
 	// ensure homeserver well-known is valid and returns reg.ooye.server_name...
 
 	// upload initial images...
@@ -33,9 +36,6 @@ const utils = require("../m2d/converters/utils")
 	// set profile data on homeserver...
 	await api.profileSetDisplayname(mxid, "Out Of Your Element")
 	await api.profileSetAvatarUrl(mxid, avatarUrl)
-
-	// database ddl...
-	db.exec(fs.readFileSync("db/ooye-schema.sql", "utf8"))
 
 	// add initial rows to database, like adding the bot to sim...
 	db.prepare("INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run("0", reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), reg.sender_localpart, mxid)
