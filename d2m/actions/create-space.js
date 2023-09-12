@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
+const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
@@ -32,7 +33,7 @@ async function createSpace(guild, kstate) {
 				events_default: 100, // space can only be managed by bridge
 				invite: 0 // any existing member can invite others
 			},
-			invite: [],
+			invite: reg.ooye.invite,
 			topic,
 			creation_content: {
 				type: "m.space"
