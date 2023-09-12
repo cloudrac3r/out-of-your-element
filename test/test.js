@@ -8,6 +8,9 @@ const config = require("../config")
 const passthrough = require("../passthrough")
 const db = new sqlite(":memory:")
 
+const reg = require("../matrix/read-registration")
+reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
+
 db.exec(fs.readFileSync("db/ooye-schema.sql", "utf8"))
 db.exec(fs.readFileSync("db/ooye-test-data.sql", "utf8"))
 
