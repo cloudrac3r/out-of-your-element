@@ -22,8 +22,10 @@ const utils = require("../m2d/converters/utils")
 	const mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
 	// ensure registration is correctly set...
-	assert(reg.sender_localpart.startsWith(reg.ooye.namespace_prefix))
-	assert(utils.eventSenderIsFromDiscord(mxid))
+	assert(reg.sender_localpart.startsWith(reg.ooye.namespace_prefix)) // appservice's localpart must be in the namespace it controls
+	assert(utils.eventSenderIsFromDiscord(mxid)) // appservice's mxid must be in the namespace it controls
+	assert(reg.ooye.server_origin.match(/^https?:\/\//)) // must start with http or https
+	assert.notEqual(reg.ooye.server_origin.slice(-1), "/") // must not end in slash
 
 	// database ddl...
 	db.exec(fs.readFileSync("db/ooye-schema.sql", "utf8"))

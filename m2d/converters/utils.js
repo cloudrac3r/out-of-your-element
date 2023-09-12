@@ -25,7 +25,7 @@ function eventSenderIsFromDiscord(sender) {
  */
 function getPublicUrlForMxc(mxc) {
 	const avatarURLParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
-	if (avatarURLParts) return `https://matrix.cadence.moe/_matrix/media/r0/download/${avatarURLParts[1]}/${avatarURLParts[2]}`
+	if (avatarURLParts) return `${reg.ooye.server_origin}/_matrix/media/r0/download/${avatarURLParts[1]}/${avatarURLParts[2]}`
 	else return null
 }
 

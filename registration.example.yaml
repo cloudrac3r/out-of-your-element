@@ -17,3 +17,4 @@ ooye:
   namespace_prefix: _ooye_
   max_file_size: 5000000
   server_name: [the part after the colon in your matrix id, like cadence.moe]
+  server_origin: [the full protocol and domain of your actual matrix server's location, with no trailing slash, like https://matrix.cadence.moe]

@@ -3,6 +3,8 @@
 const assert = require("assert").strict
 const util = require("util")
 const DiscordTypes = require("discord-api-types/v10")
+const reg = require("../matrix/read-registration")
+
 const {discord, sync, db} = require("../passthrough")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
@@ -86,7 +88,7 @@ const commands = [{
 			const avatarEvent = await api.getStateEvent(roomID, "m.room.avatar", "")
 			const avatarURLParts = avatarEvent?.url.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
 			let currentAvatarMessage =
-				( avatarURLParts ? `Current room-specific avatar: https://matrix.cadence.moe/_matrix/media/r0/download/${avatarURLParts[1]}/${avatarURLParts[2]}`
+				( avatarURLParts ? `Current room-specific avatar: ${reg.ooye.server_origin}/_matrix/media/r0/download/${avatarURLParts[1]}/${avatarURLParts[2]}`
 				: "No avatar. Now's your time to strike. Use `//icon` again with a link or upload to set the room-specific avatar.")
 
 			// Next potential avatar

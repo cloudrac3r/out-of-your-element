@@ -51,15 +51,15 @@ Most features you'd expect in both directions, plus a little extra spice:
 
 Node.js version 18 or later is required: https://nodejs.org/en/download/releases (the matrix-appservice dependency demands 18)
 
-Install dependencies: `npm install --save-dev`
+Install dependencies: `npm install --save-dev` (only need --save-dev if you will run the automated tests)
 
 Copy `config.example.js` to `config.js` and fill in Discord token.
 
-Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. Register it in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
+Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
 
-If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 username@matrix.cadence.moe`
+If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 me@matrix.cadence.moe`
 
-Run `node scripts/seed.js` to check your setup, then create the database and server state (only need to run this once ever)
+Run `node scripts/seed.js` to check your setup, create the database and server state (only need to run this once ever)
 
 Make sure the tests work: `npm t`
 
