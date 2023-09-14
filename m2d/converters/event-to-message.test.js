@@ -1227,6 +1227,64 @@ test("event2message: with layered rich replies, the preview should only be the r
 	)
 })
 
+test("event2message: raw mentioning discord users in plaintext body works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "<@114147806469554185> what do you think?"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@114147806469554185> what do you think?",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: raw mentioning discord users in formatted body works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `&lt;@114147806469554185&gt; what do you think?`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@114147806469554185> what do you think?",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: mentioning discord users works", async t => {
 	t.deepEqual(
 		await eventToMessage({

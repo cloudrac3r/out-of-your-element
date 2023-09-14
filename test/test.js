@@ -18,6 +18,10 @@ const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, { config, sync, db })
 
+const orm = sync.require("../db/orm")
+passthrough.from = orm.from
+passthrough.select = orm.select
+
 const file = sync.require("../matrix/file")
 file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 

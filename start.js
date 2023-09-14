@@ -19,6 +19,10 @@ passthrough.discord = discord
 const as = require("./matrix/appservice")
 passthrough.as = as
 
+const orm = sync.require("./db/orm")
+passthrough.from = orm.from
+passthrough.select = orm.select
+
 sync.require("./m2d/event-dispatcher")
 
 discord.snow.requestHandler.on("requestError", data => {

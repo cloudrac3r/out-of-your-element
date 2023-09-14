@@ -6,7 +6,7 @@ const pb = require("prettier-bytes")
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const { sync, db, discord } = passthrough
+const {sync, db, discord, select, from} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 /** @type {import("./lottie")} */
@@ -19,7 +19,7 @@ function getDiscordParseCallbacks(message, useHTML) {
 	return {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
-			const mxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(node.id)
+			const mxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(node.id)
 			const username = message.mentions.find(ment => ment.id === node.id)?.username || node.id
 			if (mxid && useHTML) {
 				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
@@ -29,7 +29,7 @@ function getDiscordParseCallbacks(message, useHTML) {
 		},
 		/** @param {{id: string, type: "discordChannel"}} node */
 		channel: node => {
-			const row = db.prepare("SELECT room_id, name, nick FROM channel_room WHERE channel_id = ?").get(node.id)
+			const row = select("channel_room", ["room_id", "name", "nick"], "WHERE channel_id = ?").get(node.id)
 			if (!row) {
 				return `<#${node.id}>` // fallback for when this channel is not bridged
 			} else if (useHTML) {
@@ -81,8 +81,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const ref = message.message_reference
 		assert(ref)
 		assert(ref.message_id)
-		const eventID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ?").pluck().get(ref.message_id)
-		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(ref.channel_id)
+		const eventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(ref.message_id)
+		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(ref.channel_id)
 		if (!eventID || !roomID) return []
 		const event = await di.api.getEvent(roomID, eventID)
 		return [{
@@ -108,10 +108,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 				- So make sure we don't do anything in this case.
 	*/
 	const mentions = {}
-	let repliedToEventId = null
-	let repliedToEventRoomId = null
+	let repliedToEventRow = null
 	let repliedToEventSenderMxid = null
-	let repliedToEventOriginallyFromMatrix = false
 
 	function addMention(mxid) {
 		if (!mentions.user_ids) mentions.user_ids = []
@@ -121,16 +119,14 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Mentions scenarios 1 and 2, part A. i.e. translate relevant message.mentions to m.mentions
 	// (Still need to do scenarios 1 and 2 part B, and scenario 3.)
 	if (message.type === DiscordTypes.MessageType.Reply && message.message_reference?.message_id) {
-		const row = db.prepare("SELECT event_id, room_id, source FROM event_message INNER JOIN message_channel USING (message_id) INNER JOIN channel_room USING (channel_id) WHERE message_id = ? AND part = 0").get(message.message_reference.message_id)
+		const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id").select("event_id", "room_id", "source").and("WHERE message_id = ? AND part = 0").get(message.message_reference.message_id)
 		if (row) {
-			repliedToEventId = row.event_id
-			repliedToEventRoomId = row.room_id
-			repliedToEventOriginallyFromMatrix = row.source === 0 // source 0 = matrix
+			repliedToEventRow = row
 		}
 	}
-	if (repliedToEventOriginallyFromMatrix) {
+	if (repliedToEventRow && repliedToEventRow.source === 0) { // reply was originally from Matrix
 		// Need to figure out who sent that event...
-		const event = await di.api.getEvent(repliedToEventRoomId, repliedToEventId)
+		const event = await di.api.getEvent(repliedToEventRow.room_id, repliedToEventRow.event_id)
 		repliedToEventSenderMxid = event.sender
 		// Need to add the sender to m.mentions
 		addMention(repliedToEventSenderMxid)
@@ -147,8 +143,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 	if (message.content) {
 		let content = message.content
 		content = content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
-			const eventID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ?").pluck().get(messageID)
-			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channelID)
+			const eventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(messageID)
+			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
 			if (eventID && roomID) {
 				return `https://matrix.to/#/${roomID}/${eventID}`
 			} else {
@@ -171,7 +167,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
 		if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
 			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
-			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
+			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
+			assert(roomID)
 			const {joined} = await di.api.getJoinedMembers(roomID)
 			for (const [mxid, member] of Object.entries(joined)) {
 				if (!userRegex.some(rx => mxid.match(rx))) {
@@ -191,10 +188,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Fallback body/formatted_body for replies
 		// This branch is optional - do NOT change anything apart from the reply fallback, since it may not be run
-		if (repliedToEventId && options.includeReplyFallback !== false) {
+		if (repliedToEventRow && options.includeReplyFallback !== false) {
 			let repliedToDisplayName
 			let repliedToUserHtml
-			if (repliedToEventOriginallyFromMatrix && repliedToEventSenderMxid) {
+			if (repliedToEventRow?.source === 0 && repliedToEventSenderMxid) {
 				const match = repliedToEventSenderMxid.match(/^@([^:]*)/)
 				assert(match)
 				repliedToDisplayName = match[1] || "a Matrix user" // grab the localpart as the display name, whatever
@@ -214,7 +211,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				discordOnly: true,
 				escapeHTML: false,
 			}, null, null)
-			html = `<mx-reply><blockquote><a href="https://matrix.to/#/${repliedToEventRoomId}/${repliedToEventId}">In reply to</a> ${repliedToUserHtml}`
+			html = `<mx-reply><blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
 				+ `<br>${repliedToHtml}</blockquote></mx-reply>`
 				+ html
 			body = (`${repliedToDisplayName}: ` // scenario 1 part B for mentions
@@ -383,11 +380,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Rich replies
-	if (repliedToEventId) {
+	if (repliedToEventRow) {
 		Object.assign(events[0], {
 			"m.relates_to": {
 				"m.in_reply_to": {
-					event_id: repliedToEventId
+					event_id: repliedToEventRow.event_id
 				}
 			}
 		})
