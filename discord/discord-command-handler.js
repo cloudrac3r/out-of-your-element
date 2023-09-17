@@ -10,6 +10,8 @@ const {discord, sync, db} = require("../passthrough")
 const api = sync.require("../matrix/api")
 /** @type {import("../matrix/file")} */
 const file = sync.require("../matrix/file")
+/** @type {import("./utils")} */
+const utils = sync.require("./utils")
 
 const PREFIX = "//"
 
@@ -121,9 +123,75 @@ const commands = [{
 	aliases: ["invite"],
 	execute: replyctx(
 		async (message, channel, guild, ctx) => {
-			return discord.snow.channel.createMessage(channel.id, {
+			// Check guild is bridged
+			const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
+			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
+			if (!spaceID || !roomID) return discord.snow.channel.createMessage(channel.id, {
 				...ctx,
-				content: "This command isn't implemented yet."
+				content: "This server isn't bridged to Matrix, so you can't invite Matrix users."
+			})
+
+			// Check CREATE_INSTANT_INVITE permission
+			assert(message.member)
+			const guildPermissions = utils.getPermissions(message.member.roles, guild.roles)
+			if (!(guildPermissions & BigInt(1))) {
+				return discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: "You don't have permission to invite people to this Discord server."
+				})
+			}
+
+			// Get named MXID
+			const mxid = message.content.match(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/)?.[0]
+			if (!mxid) return discord.snow.channel.createMessage(channel.id, {
+				...ctx,
+				content: "You have to say the Matrix ID of the person you want to invite. Matrix IDs look like this: `@username:example.org`"
+			})
+
+			// Check for existing invite to the space
+			let spaceMember
+			try {
+				spaceMember = await api.getStateEvent(spaceID, "m.room.member", mxid)
+			} catch (e) {}
+			if (spaceMember && spaceMember.membership === "invite") {
+				return discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: `\`${mxid}\` already has an invite, which they haven't accepted yet.`
+				})
+			}
+
+			// Invite Matrix user if not in space
+			if (!spaceMember || spaceMember.membership !== "join") {
+				await api.inviteToRoom(spaceID, mxid)
+				return discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: `You invited \`${mxid}\` to the server.`
+				})
+			}
+
+			// The Matrix user *is* in the space, maybe we want to invite them to this channel?
+			let roomMember
+			try {
+				roomMember = await api.getStateEvent(roomID, "m.room.member", mxid)
+			} catch (e) {}
+			if (!roomMember || (roomMember.membership !== "join" && roomMember.membership !== "invite")) {
+				const sent = await discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: `\`${mxid}\` is already in this server. Would you like to additionally invite them to this specific channel?\nHit ✅ to make it happen.`
+				})
+				return addButton(channel.id, sent.id, "✅", message.author.id).then(async data => {
+					await api.inviteToRoom(roomID, mxid)
+					await discord.snow.channel.createMessage(channel.id, {
+						...ctx,
+						content: `You invited \`${mxid}\` to the channel.`
+					})
+				})
+			}
+
+			// The Matrix user *is* in the space and in the channel.
+			await discord.snow.channel.createMessage(channel.id, {
+				...ctx,
+				content: `\`${mxid}\` is already in this server and this channel.`
 			})
 		}
 	)

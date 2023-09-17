@@ -18,8 +18,8 @@ const createRoom = sync.require("./actions/create-room")
 const createSpace = sync.require("./actions/create-space")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
-/** @type {import("./discord-command-handler")}) */
-const discordCommandHandler = sync.require("./discord-command-handler")
+/** @type {import("../discord/discord-command-handler")}) */
+const discordCommandHandler = sync.require("../discord/discord-command-handler")
 
 let lastReportedEvent = 0
 
