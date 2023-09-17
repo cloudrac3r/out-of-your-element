@@ -149,6 +149,19 @@ async function redactEvent(roomID, eventID, mxid) {
 	return root.event_id
 }
 
+/**
+ * @param {string} roomID
+ * @param {boolean} isTyping
+ * @param {string} mxid
+ * @param {number} [duration] milliseconds
+ */
+async function sendTyping(roomID, isTyping, mxid, duration) {
+	await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/typing/${mxid}`, mxid), {
+		typing: isTyping,
+		duration
+	})
+}
+
 async function profileSetDisplayname(mxid, displayname) {
 	await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/displayname`, mxid), {
 		displayname
@@ -195,6 +208,7 @@ module.exports.getJoinedMembers = getJoinedMembers
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
 module.exports.redactEvent = redactEvent
+module.exports.sendTyping = sendTyping
 module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl
 module.exports.setUserPower = setUserPower

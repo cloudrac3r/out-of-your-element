@@ -117,6 +117,9 @@ const utils = {
 				} else if (message.t === "MESSAGE_DELETE") {
 					await eventDispatcher.onMessageDelete(client, message.d)
 
+				} else if (message.t === "TYPING_START") {
+					await eventDispatcher.onTypingStart(client, message.d)
+
 				} else if (message.t === "MESSAGE_REACTION_ADD") {
 					await eventDispatcher.onReactionAdd(client, message.d)
 				}

@@ -215,5 +215,20 @@ module.exports = {
 	 */
 	async onMessageDelete(client, data) {
 		await deleteMessage.deleteMessage(data)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayTypingStartDispatchData} data
+	 */
+	async onTypingStart(client, data) {
+		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(data.channel_id)
+		if (!roomID) return
+		const mxid = db.prepare("SELECT mxid FROM sim INNER JOIN sim_member USING (mxid) WHERE discord_id = ? AND room_id = ?").pluck().get(data.user_id, roomID)
+		if (!mxid) return
+		// Each Discord user triggers the notification every 8 seconds as long as they remain typing.
+		// Discord does not send typing stopped events, so typing only stops if the timeout is reached or if the user sends their message.
+		// (We have to manually stop typing on Matrix-side when the message is sent. This is part of the send action.)
+		await api.sendTyping(roomID, true, mxid, 10000)
 	}
 }

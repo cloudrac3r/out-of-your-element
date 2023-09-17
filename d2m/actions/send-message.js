@@ -34,6 +34,7 @@ async function sendMessage(message, guild) {
 	let eventPart = 0 // 0 is primary, 1 is supporting
 	if (events.length) {
 		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+		if (senderMxid) api.sendTyping(roomID, false, senderMxid)
 	}
 	for (const event of events) {
 		const eventType = event.$type
