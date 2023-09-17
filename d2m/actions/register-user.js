@@ -82,7 +82,7 @@ async function ensureSimJoined(user, roomID) {
 				throw e
 			}
 		}
-		db.prepare("INSERT INTO sim_member (room_id, mxid) VALUES (?, ?)").run(roomID, mxid)
+		db.prepare("INSERT OR IGNORE INTO sim_member (room_id, mxid) VALUES (?, ?)").run(roomID, mxid)
 	}
 	return mxid
 }
