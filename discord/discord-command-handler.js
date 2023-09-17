@@ -141,6 +141,12 @@ const commands = [{
 				})
 			}
 
+			// Guard against accidental mentions instead of the MXID
+			if (message.content.match(/<[@#:].*>/)) return discord.snow.channel.createMessage(channel.id, {
+				...ctx,
+				content: "You have to say the Matrix ID of the person you want to invite, but you mentioned a Discord user in your message.\nOne way to fix this is by writing `` ` `` backticks `` ` `` around the Matrix ID."
+			})
+
 			// Get named MXID
 			const mxid = message.content.match(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/)?.[0]
 			if (!mxid) return discord.snow.channel.createMessage(channel.id, {
