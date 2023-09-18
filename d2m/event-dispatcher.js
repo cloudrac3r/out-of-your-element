@@ -37,6 +37,8 @@ module.exports = {
 		console.error(`while handling this ${gatewayMessage.t} gateway event:`)
 		console.dir(gatewayMessage.d, {depth: null})
 
+		if (gatewayMessage.t === "TYPING_START") return
+
 		if (Date.now() - lastReportedEvent < 5000) return
 		lastReportedEvent = Date.now()
 
@@ -81,7 +83,7 @@ module.exports = {
 	async checkMissedMessages(client, guild) {
 		if (guild.unavailable) return
 		const bridgedChannels = select("channel_room", "channel_id").pluck().all()
-		const prepared = select("event_message", "1", "WHERE message_id = ?").pluck()
+		const prepared = select("event_message", "event_id", "WHERE message_id = ?").pluck()
 		for (const channel of guild.channels.concat(guild.threads)) {
 			if (!bridgedChannels.includes(channel.id)) continue
 			if (!channel.last_message_id) continue
@@ -158,7 +160,7 @@ module.exports = {
 	 */
 	async onMessageCreate(client, message) {
 		if (message.webhook_id) {
-			const row = select("webhook", "1", "WHERE webhook_id = ?").pluck().get(message.webhook_id)
+			const row = select("webhook", "webhook_id", "WHERE webhook_id = ?").pluck().get(message.webhook_id)
 			if (row) {
 				// The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 				return
@@ -230,5 +232,15 @@ module.exports = {
 		// Discord does not send typing stopped events, so typing only stops if the timeout is reached or if the user sends their message.
 		// (We have to manually stop typing on Matrix-side when the message is sent. This is part of the send action.)
 		await api.sendTyping(roomID, true, mxid, 10000)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData | import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} data
+	 */
+	async onExpressionsUpdate(client, data) {
+		const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
+		if (!spaceID) return
+		await createSpace.syncSpaceExpressions(spaceID, data)
 	}
 }
