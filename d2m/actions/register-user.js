@@ -4,7 +4,7 @@ const assert = require("assert")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const {discord, sync, db, select} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
@@ -47,7 +47,7 @@ async function createSim(user) {
  */
 async function ensureSim(user) {
 	let mxid = null
-	const existing = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(user.id)
+	const existing = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(user.id)
 	if (existing) {
 		mxid = existing
 	} else {
@@ -70,7 +70,7 @@ async function ensureSimJoined(user, roomID) {
 	const mxid = await ensureSim(user)
 
 	// Ensure joined
-	const existing = db.prepare("SELECT * FROM sim_member WHERE room_id = ? and mxid = ?").get(roomID, mxid)
+	const existing = select("sim_member", "mxid", "WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
 	if (!existing) {
 		try {
 			await api.inviteToRoom(roomID, mxid)
@@ -137,7 +137,7 @@ async function syncUser(user, member, guildID, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guildID)
 	const profileEventContentHash = calculateProfileEventContentHash(content)
-	const existingHash = db.prepare("SELECT profile_event_content_hash FROM sim_member WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
+	const existingHash = select("sim_member", "profile_event_content_hash", "WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
 	// only do the actual sync if the hash has changed since we last looked
 	if (existingHash !== profileEventContentHash) {
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
@@ -147,17 +147,18 @@ async function syncUser(user, member, guildID, roomID) {
 }
 
 async function syncAllUsersInRoom(roomID) {
-	const mxids = db.prepare("SELECT mxid FROM sim_member WHERE room_id = ?").pluck().all(roomID)
+	const mxids = select("sim_member", "mxid", "WHERE room_id = ?").pluck().all(roomID)
 
-	const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+	const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(roomID)
 	assert.ok(typeof channelID === "string")
+
 	/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	const guildID = channel.guild_id
 	assert.ok(typeof guildID === "string")
 
 	for (const mxid of mxids) {
-		const userID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(mxid)
+		const userID = select("sim", "discord_id", "WHERE mxid = ?").pluck().get(mxid)
 		assert.ok(typeof userID === "string")
 
 		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIGuildMember>} */

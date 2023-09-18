@@ -3,7 +3,7 @@
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
-const {discord, db} = passthrough
+const {discord, db, select} = passthrough
 
 /**
  * Look in the database to find webhook credentials for a channel.
@@ -14,10 +14,13 @@ const {discord, db} = passthrough
  */
 async function ensureWebhook(channelID, forceCreate = false) {
 	if (!forceCreate) {
-		/** @type {{id: string, token: string} | null} */
-		const row = db.prepare("SELECT webhook_id as id, webhook_token as token FROM webhook WHERE channel_id = ?").get(channelID)
+		const row = select("webhook", ["webhook_id", "webhook_token"], "WHERE channel_id = ?").get(channelID)
 		if (row) {
-			return {created: false, ...row}
+			return {
+				id: row.webhook_id,
+				token: row.webhook_token,
+				created: false
+			}
 		}
 	}
 

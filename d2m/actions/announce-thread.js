@@ -3,7 +3,7 @@
 const assert = require("assert")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const {discord, sync, db, select} = passthrough
 /** @type {import("../converters/thread-to-announcement")} */
 const threadToAnnouncement = sync.require("../converters/thread-to-announcement")
 /** @type {import("../../matrix/api")} */
@@ -15,8 +15,7 @@ const api = sync.require("../../matrix/api")
  * @param {import("discord-api-types/v10").APIThreadChannel} thread
  */
 async function announceThread(parentRoomID, threadRoomID, thread) {
-   /** @type {string?} */
-   const creatorMxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(thread.owner_id)
+	const creatorMxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(thread.owner_id)
 
    const content = await threadToAnnouncement.threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thread, {api})
 

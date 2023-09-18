@@ -5,7 +5,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const {discord, sync, db, select} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 /** @type {import("../../matrix/api")} */
@@ -41,7 +41,7 @@ function applyKStateDiffToRoom(roomID, kstate) {
 /**
  * @param {{id: string, name: string, topic?: string?, type: number}} channel
  * @param {{id: string}} guild
- * @param {string?} customName
+ * @param {string | null | undefined} customName
  */
 function convertNameAndTopic(channel, guild, customName) {
 	let channelPrefix =
@@ -71,7 +71,7 @@ async function channelToKState(channel, guild) {
 	const spaceID = await createSpace.ensureSpace(guild.id)
 	assert.ok(typeof spaceID === "string")
 
-	const row = db.prepare("SELECT nick, custom_avatar FROM channel_room WHERE channel_id = ?").get(channel.id)
+	const row = select("channel_room", ["nick", "custom_avatar"], "WHERE channel_id = ?").get(channel.id)
 	const customName = row?.nick
 	const customAvatar = row?.custom_avatar
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
@@ -248,8 +248,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		await inflightRoomCreate.get(channelID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	/** @type {{room_id: string, thread_parent: string?}} */
-	const existing = db.prepare("SELECT room_id, thread_parent from channel_room WHERE channel_id = ?").get(channelID)
+	const existing = select("channel_room", ["room_id", "thread_parent"], "WHERE channel_id = ?").get(channelID)
 
 	if (!existing) {
 		const creation = (async () => {
@@ -309,9 +308,9 @@ async function _unbridgeRoom(channelID) {
 }
 
 async function unbridgeDeletedChannel(channelID, guildID) {
-	const roomID = db.prepare("SELECT room_id from channel_room WHERE channel_id = ?").pluck().get(channelID)
+	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
 	assert.ok(roomID)
-	const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guildID)
+	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guildID)
 	assert.ok(spaceID)
 
 	// remove room from being a space member

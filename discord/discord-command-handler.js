@@ -5,7 +5,7 @@ const util = require("util")
 const DiscordTypes = require("discord-api-types/v10")
 const reg = require("../matrix/read-registration")
 
-const {discord, sync, db} = require("../passthrough")
+const {discord, sync, db, select} = require("../passthrough")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 /** @type {import("../matrix/file")} */
@@ -80,7 +80,7 @@ const commands = [{
 	execute: replyctx(
 		async (message, channel, guild, ctx) => {
 			// Guard
-			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
+			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channel.id)
 			if (!roomID) return discord.snow.channel.createMessage(channel.id, {
 				...ctx,
 				content: "This channel isn't bridged to the other side."
@@ -124,8 +124,8 @@ const commands = [{
 	execute: replyctx(
 		async (message, channel, guild, ctx) => {
 			// Check guild is bridged
-			const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
-			const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channel.id)
+			const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
+			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channel.id)
 			if (!spaceID || !roomID) return discord.snow.channel.createMessage(channel.id, {
 				...ctx,
 				content: "This server isn't bridged to Matrix, so you can't invite Matrix users."

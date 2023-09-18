@@ -3,7 +3,7 @@
 const assert = require("assert")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const {discord, sync, db, select} = passthrough
 /** @type {import("./message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
 /** @type {import("../actions/register-user")} */
@@ -21,17 +21,15 @@ const createRoom = sync.require("../actions/create-room")
 async function editToChanges(message, guild, api) {
 	// Figure out what events we will be replacing
 
-	const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(message.channel_id)
-	/** @type {string?} */
-	let senderMxid = db.prepare("SELECT mxid FROM sim WHERE discord_id = ?").pluck().get(message.author.id) || null
+	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
+	let senderMxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(message.author.id) || null
 	if (senderMxid) {
-		const senderIsInRoom = db.prepare("SELECT * FROM sim_member WHERE room_id = ? and mxid = ?").get(roomID, senderMxid)
+		const senderIsInRoom = select("sim_member", "mxid", "WHERE room_id = ? AND mxid = ?").get(roomID, senderMxid)
 		if (!senderIsInRoom) {
 			senderMxid = null // just send as ooye bot
 		}
 	}
-	/** @type {{event_id: string, event_type: string, event_subtype: string?, part: number}[]} */
-   const oldEventRows = db.prepare("SELECT event_id, event_type, event_subtype, part FROM event_message WHERE message_id = ?").all(message.id)
+	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part"], "WHERE message_id = ?").all(message.id)
 
 	// Figure out what we will be replacing them with
 

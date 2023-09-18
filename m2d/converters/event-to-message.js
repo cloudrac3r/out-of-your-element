@@ -7,7 +7,7 @@ const TurndownService = require("turndown")
 const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
-const { sync, db, discord } = passthrough
+const {sync, db, discord, select, from} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 /** @type {import("../converters/utils")} */
@@ -148,7 +148,7 @@ turndownService.addRule("fencedCodeBlock", {
  * @returns {Promise<{displayname?: string?, avatar_url?: string?}>}
  */
 async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
-	const row = db.prepare("SELECT displayname, avatar_url FROM member_cache WHERE room_id = ? AND mxid = ?").get(roomID, mxid)
+	const row = select("member_cache", ["displayname", "avatar_url"], "WHERE room_id = ? AND mxid = ?").get(roomID, mxid)
 	if (row) return row
 	return api.getStateEvent(roomID, "m.room.member", mxid).then(event => {
 		db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(roomID, mxid, event?.displayname || null, event?.avatar_url || null)
@@ -230,7 +230,7 @@ async function eventToMessage(event, guild, di) {
 			if (relType !== "m.replace") return
 			const originalEventId = relatesTo.event_id
 			if (!originalEventId) return
-			messageIDsToEdit = db.prepare("SELECT message_id FROM event_message WHERE event_id = ? ORDER BY part").pluck().all(originalEventId)
+			messageIDsToEdit = select("event_message", "message_id", "WHERE event_id = ? ORDER BY part").pluck().all(originalEventId)
 			if (!messageIDsToEdit.length) return
 
 			// Ok, it's an edit.
@@ -261,7 +261,7 @@ async function eventToMessage(event, guild, di) {
 			if (!repliedToEventId) return
 			let repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
 			if (!repliedToEvent) return
-			const row = db.prepare("SELECT channel_id, message_id FROM event_message INNER JOIN message_channel USING (message_id) WHERE event_id = ? ORDER BY part").get(repliedToEventId)
+			const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").and("WHERE event_id = ? ORDER BY part").get(repliedToEventId)
 			if (row) {
 				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			} else {
@@ -269,7 +269,7 @@ async function eventToMessage(event, guild, di) {
 			}
 			const sender = repliedToEvent.sender
 			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
-			const authorID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(repliedToEvent.sender)
+			const authorID = select("sim", "discord_id", "WHERE mxid = ?").pluck().get(repliedToEvent.sender)
 			if (authorID) {
 				replyLine += `<@${authorID}>`
 			} else {
@@ -312,14 +312,14 @@ async function eventToMessage(event, guild, di) {
 			// Handling mentions of Discord users
 			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
 				if (!utils.eventSenderIsFromDiscord(mxid)) return whole
-				const userID = db.prepare("SELECT discord_id FROM sim WHERE mxid = ?").pluck().get(mxid)
+				const userID = select("sim", "discord_id", "WHERE mxid = ?").pluck().get(mxid)
 				if (!userID) return whole
 				return `${attributeValue} data-user-id="${userID}">`
 			})
 
 			// Handling mentions of Discord rooms
 			input = input.replace(/("https:\/\/matrix.to\/#\/(![^"]+)")>/g, (whole, attributeValue, roomID) => {
-				const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+				const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(roomID)
 				if (!channelID) return whole
 				return `${attributeValue} data-channel-id="${channelID}">`
 			})

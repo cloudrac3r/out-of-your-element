@@ -1,9 +1,9 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const {discord, sync, db, select} = passthrough
 /** @type {import("../../matrix/read-registration")} */
 const reg = sync.require("../../matrix/read-registration.js")
 
@@ -17,8 +17,7 @@ const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
 async function threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thread, di) {
-	/** @type {string?} */
-	const branchedFromEventID = db.prepare("SELECT event_id FROM event_message WHERE message_id = ?").pluck().get(thread.id)
+	const branchedFromEventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(thread.id)
 	/** @type {{"m.mentions"?: any, "m.in_reply_to"?: any}} */
 	const context = {}
 	if (branchedFromEventID) {

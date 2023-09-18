@@ -27,6 +27,11 @@ export type Models = {
 		space_id: string
 	}
 
+	lottie: {
+		id: string
+		mxc: string
+	}
+
 	member_cache: {
 		room_id: string
 		mxid: string
@@ -49,7 +54,7 @@ export type Models = {
 	sim_member: {
 		mxid: string
 		room_id: string
-		profile_event_content_hash: string
+		profile_event_content_hash: any
 	}
 
 	webhook: {

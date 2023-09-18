@@ -7,7 +7,7 @@ const {promisify} = require("util")
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
-const {sync, discord, db} = passthrough
+const {sync, discord, db, select} = passthrough
 
 /** @type {import("./channel-webhook")} */
 const channelWebhook = sync.require("./channel-webhook")
@@ -53,7 +53,8 @@ async function resolvePendingFiles(message) {
 /** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker} event */
 async function sendEvent(event) {
 	// TODO: we just assume the bridge has already been created, is that really ok?
-	const row = db.prepare("SELECT channel_id, thread_parent FROM channel_room WHERE room_id = ?").get(event.room_id)
+	const row = select("channel_room", ["channel_id", "thread_parent"], "WHERE room_id = ?").get(event.room_id)
+	assert(row)
 	let channelID = row.channel_id
 	let threadID = undefined
 	if (row.thread_parent) {

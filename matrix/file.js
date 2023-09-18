@@ -3,7 +3,7 @@
 const fetch = require("node-fetch").default
 
 const passthrough = require("../passthrough")
-const { sync, db } = passthrough
+const {sync, db, select} = passthrough
 /** @type {import("./mreq")} */
 const mreq = sync.require("./mreq")
 
@@ -33,7 +33,7 @@ async function uploadDiscordFileToMxc(path) {
 	}
 
 	// Has this file already been uploaded in the past? Grab the existing copy from the database.
-	const existingFromDb = db.prepare("SELECT mxc_url FROM file WHERE discord_url = ?").pluck().get(url)
+	const existingFromDb = select("file", "mxc_url", "WHERE discord_url = ?").pluck().get(url)
 	if (typeof existingFromDb === "string") {
 		return existingFromDb
 	}

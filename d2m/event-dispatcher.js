@@ -1,6 +1,6 @@
 const assert = require("assert").strict
 const util = require("util")
-const {sync, db} = require("../passthrough")
+const {sync, db, select, from} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
 const sendMessage = sync.require("./actions/send-message")
@@ -42,7 +42,7 @@ module.exports = {
 
 		const channelID = gatewayMessage.d.channel_id
 		if (!channelID) return
-		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(channelID)
+		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
 		if (!roomID) return
 
 		let stackLines = e.stack.split("\n")
@@ -80,8 +80,8 @@ module.exports = {
 	 */
 	async checkMissedMessages(client, guild) {
 		if (guild.unavailable) return
-		const bridgedChannels = db.prepare("SELECT channel_id FROM channel_room").pluck().all()
-		const prepared = db.prepare("SELECT 1 FROM event_message WHERE message_id = ?").pluck()
+		const bridgedChannels = select("channel_room", "channel_id").pluck().all()
+		const prepared = select("event_message", "1", "WHERE message_id = ?").pluck()
 		for (const channel of guild.channels.concat(guild.threads)) {
 			if (!bridgedChannels.includes(channel.id)) continue
 			if (!channel.last_message_id) continue
@@ -125,7 +125,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
-		const parentRoomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(thread.parent_id)
+		const parentRoomID = select("channel_room", "room_id", "WHERE channel_room = ?").pluck().get(thread.parent_id)
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
@@ -136,7 +136,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayGuildUpdateDispatchData} guild
 	 */
 	async onGuildUpdate(client, guild) {
-		const spaceID = db.prepare("SELECT space_id FROM guild_space WHERE guild_id = ?").pluck().get(guild.id)
+		const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
 		if (!spaceID) return
 		await createSpace.syncSpace(guild.id)
 	},
@@ -147,7 +147,7 @@ module.exports = {
 	 * @param {boolean} isThread
 	 */
 	async onChannelOrThreadUpdate(client, channelOrThread, isThread) {
-		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").get(channelOrThread.id)
+		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelOrThread.id)
 		if (!roomID) return // No target room to update the data on
 		await createRoom.syncRoom(channelOrThread.id)
 	},
@@ -158,7 +158,7 @@ module.exports = {
 	 */
 	async onMessageCreate(client, message) {
 		if (message.webhook_id) {
-			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(message.webhook_id)
+			const row = select("webhook", "1", "WHERE webhook_id = ?").pluck().get(message.webhook_id)
 			if (row) {
 				// The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 				return
@@ -179,7 +179,7 @@ module.exports = {
 	 */
 	async onMessageUpdate(client, data) {
 		if (data.webhook_id) {
-			const row = db.prepare("SELECT webhook_id FROM webhook WHERE webhook_id = ?").pluck().get(data.webhook_id)
+			const row = select("webhook", "1", "WHERE webhook_id = ?").pluck().get(message.webhook_id)
 			if (row) {
 				// The update was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 				return
@@ -222,9 +222,9 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayTypingStartDispatchData} data
 	 */
 	async onTypingStart(client, data) {
-		const roomID = db.prepare("SELECT room_id FROM channel_room WHERE channel_id = ?").pluck().get(data.channel_id)
+		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(data.channel_id)
 		if (!roomID) return
-		const mxid = db.prepare("SELECT mxid FROM sim INNER JOIN sim_member USING (mxid) WHERE discord_id = ? AND room_id = ?").pluck().get(data.user_id, roomID)
+		const mxid = from("sim").join("sim_member", "mxid").and("WHERE discord_id = ? AND room_id = ?").pluck("mxid").get(data.user_id, roomID)
 		if (!mxid) return
 		// Each Discord user triggers the notification every 8 seconds as long as they remain typing.
 		// Discord does not send typing stopped events, so typing only stops if the timeout is reached or if the user sends their message.

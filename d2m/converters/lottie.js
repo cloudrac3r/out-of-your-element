@@ -6,7 +6,7 @@ const assert = require("assert").strict
 const {PNG} = require("pngjs")
 
 const passthrough = require("../../passthrough")
-const { sync, db, discord } = passthrough
+const {sync, db, discord, select} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 //** @type {import("../../matrix/mreq")} */
@@ -38,7 +38,7 @@ const Rlottie = (async () => {
  * @returns {Promise<{mxc: string, info: typeof INFO}>}
  */
 async function convert(stickerItem) {
-	const existingMxc = db.prepare("SELECT mxc FROM lottie WHERE id = ?").pluck().get(stickerItem.id)
+	const existingMxc = select("lottie", "mxc", "WHERE id = ?").pluck().get(stickerItem.id)
 	if (existingMxc) return {mxc: existingMxc, info: INFO}
 	const r = await Rlottie
 	const res = await fetch(file.DISCORD_IMAGES_BASE + file.sticker(stickerItem))

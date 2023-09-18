@@ -5,7 +5,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const {discord, sync, db, select} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
@@ -86,8 +86,7 @@ async function _syncSpace(guildID, shouldActuallySync) {
 		await inflightSpaceCreate.get(guildID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	/** @type {string?} */
-	const spaceID = db.prepare("SELECT space_id from guild_space WHERE guild_id = ?").pluck().get(guildID)
+	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guildID)
 
 	if (!spaceID) {
 		const creation = (async () => {
@@ -118,7 +117,7 @@ async function _syncSpace(guildID, shouldActuallySync) {
 	const newAvatarState = spaceDiff["m.room.avatar/"]
 	if (guild.icon && newAvatarState?.url) {
 		// don't try to update rooms with custom avatars though
-		const roomsWithCustomAvatars = db.prepare("SELECT room_id FROM channel_room WHERE custom_avatar IS NOT NULL").pluck().all()
+		const roomsWithCustomAvatars = select("channel_room", "room_id", "WHERE custom_avatar IS NOT NULL").pluck().all()
 
 		const childRooms = ks.kstateToState(spaceKState).filter(({type, state_key, content}) => {
 			return type === "m.space.child" && "via" in content && !roomsWithCustomAvatars.includes(state_key)
@@ -154,8 +153,7 @@ async function syncSpaceFully(guildID) {
 	const guild = discord.guilds.get(guildID)
 	assert.ok(guild)
 
-	/** @type {string?} */
-	const spaceID = db.prepare("SELECT space_id from guild_space WHERE guild_id = ?").pluck().get(guildID)
+	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guildID)
 
 	const guildKState = await guildToKState(guild)
 
@@ -176,7 +174,7 @@ async function syncSpaceFully(guildID) {
 	}).map(({state_key}) => state_key)
 
 	for (const roomID of childRooms) {
-		const channelID = db.prepare("SELECT channel_id FROM channel_room WHERE room_id = ?").pluck().get(roomID)
+		const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(roomID)
 		if (!channelID) continue
 		if (discord.channels.has(channelID)) {
 			await createRoom.syncRoom(channelID)
