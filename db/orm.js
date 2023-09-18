@@ -32,6 +32,7 @@ class From {
 		this.sql = ""
 		this.cols = []
 		this.using = []
+		this.isPluck = false
 	}
 
 	/**
@@ -69,6 +70,7 @@ class From {
 		const r = this
 		r.constructor = Pluck
 		r.cols = [col]
+		r.isPluck = true
 		return r
 	}
 
@@ -89,7 +91,8 @@ class From {
 		}
 		sql += this.sql
 		/** @type {U.Prepared<Pick<U.Merge<U.Models[Table]>, Col>>} */
-		const prepared = db.prepare(sql)
+		let prepared = db.prepare(sql)
+		if (this.isPluck) prepared = prepared.pluck()
 		return prepared
 	}
 

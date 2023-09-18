@@ -25,6 +25,7 @@ passthrough.select = orm.select
 const file = sync.require("../matrix/file")
 file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 
+require("../db/orm.test")
 require("../matrix/kstate.test")
 require("../matrix/api.test")
 require("../matrix/read-registration.test")
