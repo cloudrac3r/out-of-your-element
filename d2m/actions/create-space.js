@@ -12,6 +12,8 @@ const api = sync.require("../../matrix/api")
 const file = sync.require("../../matrix/file")
 /** @type {import("./create-room")} */
 const createRoom = sync.require("./create-room")
+/** @type {import("../converters/expression")} */
+const expression = sync.require("../converters/expression")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
 
@@ -186,8 +188,29 @@ async function syncSpaceFully(guildID) {
 	return spaceID
 }
 
+/**
+ * @param {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData | import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} data
+ */
+async function syncSpaceExpressions(data) {
+	// No need for kstate here. Each of these maps to a single state event, which will always overwrite what was there before. I can just send the state event.
+
+	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(data.guild_id)
+	if (!spaceID) return
+
+	if ("emojis" in data && data.emojis.length) {
+		const content = await expression.emojisToState(data.emojis)
+		api.sendState(spaceID, "im.ponies.room_emotes", "moe.cadence.ooye.pack.emojis", content)
+	}
+
+	if ("stickers" in data && data.stickers.length) {
+		const content = await expression.stickersToState(data.stickers)
+		api.sendState(spaceID, "im.ponies.room_emotes", "moe.cadence.ooye.pack.stickers", content)
+	}
+}
+
 module.exports.createSpace = createSpace
 module.exports.ensureSpace = ensureSpace
 module.exports.syncSpace = syncSpace
 module.exports.syncSpaceFully = syncSpaceFully
 module.exports.guildToKState = guildToKState
+module.exports.syncSpaceExpressions = syncSpaceExpressions

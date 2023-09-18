@@ -239,8 +239,6 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData | import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} data
 	 */
 	async onExpressionsUpdate(client, data) {
-		const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
-		if (!spaceID) return
-		await createSpace.syncSpaceExpressions(spaceID, data)
+		await createSpace.syncSpaceExpressions(data)
 	}
 }

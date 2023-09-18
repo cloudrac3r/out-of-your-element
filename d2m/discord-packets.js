@@ -56,6 +56,18 @@ const utils = {
 				}
 			}
 
+		} else if (message.t === "GUILD_EMOJIS_UPDATE") {
+			const guild = client.guilds.get(message.d.guild_id)
+			if (guild) {
+				guild.emojis = message.d.emojis
+			}
+
+		} else if (message.t === "GUILD_STICKERS_UPDATE") {
+			const guild = client.guilds.get(message.d.guild_id)
+			if (guild) {
+				guild.stickers = message.d.stickers
+			}
+
 		} else if (message.t === "THREAD_CREATE") {
 			client.channels.set(message.d.id, message.d)
 
@@ -97,6 +109,9 @@ const utils = {
 			try {
 				if (message.t === "GUILD_UPDATE") {
 					await eventDispatcher.onGuildUpdate(client, message.d)
+
+				} else if (message.t === "GUILD_EMOJIS_UPDATE" || message.t === "GUILD_STICKERS_UPDATE") {
+					await eventDispatcher.onExpressionsUpdate(client, message.d)
 
 				} else if (message.t === "CHANNEL_UPDATE") {
 					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
