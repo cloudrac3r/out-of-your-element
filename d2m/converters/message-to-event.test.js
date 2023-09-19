@@ -379,3 +379,27 @@ test("message2event: thread start message reference", async t => {
 		"m.mentions": {}
 	}])
 })
+
+test("message2event: single large bridged emoji", async t => {
+	const events = await messageToEvent(data.message.single_emoji, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: ":hippo:",
+		format: "org.matrix.custom.html",
+		formatted_body: '<img data-mx-emoticon height="32" src="mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC" title=":hippo:" alt=":hippo:">'
+	}])
+})
+
+test("message2event: mid-message small bridged emoji", async t => {
+	const events = await messageToEvent(data.message.surrounded_emoji, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "h is for :hippo:!",
+		format: "org.matrix.custom.html",
+		formatted_body: 'h is for <img data-mx-emoticon height="32" src="mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC" title=":hippo:" alt=":hippo:">!'
+	}])
+})

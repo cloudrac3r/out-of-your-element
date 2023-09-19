@@ -62,6 +62,12 @@ export type Models = {
 		webhook_id: string
 		webhook_token: string
 	}
+
+	emoji: {
+		emoji_id: string
+		animated: number
+		mxc_url: string
+	}
 }
 
 export type Prepared<Row> = {

@@ -41,8 +41,12 @@ function getDiscordParseCallbacks(message, useHTML) {
 		/** @param {{animated: boolean, name: string, id: string, type: "discordEmoji"}} node */
 		emoji: node => {
 			if (useHTML) {
-				// TODO: upload the emoji and actually use the right mxc!!
-				return `<img src="mxc://cadence.moe/${node.id}" data-mx-emoticon alt=":${node.name}:" title=":${node.name}:" height="24">`
+				const mxc = select("emoji", "mxc_url", "WHERE emoji_id = ?").pluck().get(node.id)
+				if (mxc) {
+					return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
+				} else {
+					return `<img src="mxc://cadence.moe/${node.id}" data-mx-emoticon alt=":${node.name}:" title=":${node.name}:" height="24">`
+				}
 			} else {
 				return `:${node.name}:`
 			}
