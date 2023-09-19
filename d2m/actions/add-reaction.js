@@ -34,7 +34,7 @@ async function addReaction(data) {
 		} else {
 			// The custom emoji is not registered. We will register it and then add it.
 			const mxc = await file.uploadDiscordFileToMxc(file.emoji(data.emoji.id, data.emoji.animated))
-			db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(data.emoji.id, data.emoji.name, data.emoji.animated, mxc)
+			db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(data.emoji.id, data.emoji.name, +!!data.emoji.animated, mxc)
 			key = mxc
 			// TODO: what happens if the matrix user also tries adding this reaction? the bridge bot isn't able to use that emoji...
 		}
