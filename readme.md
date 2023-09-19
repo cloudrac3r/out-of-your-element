@@ -28,12 +28,13 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Spoiler attachments
 * Guild-Space details syncing
 * Channel-Room details syncing
+* Custom emoji list syncing
+* Custom emojis in messages
 * Custom room names/avatars can be applied on Matrix-side
 * Larger files from Discord are linked instead of reuploaded to Matrix
 
 ## Caveats
 
-* Custom emojis don't fully work yet.
 * Embeds don't work yet.
 * This bridge is not designed for puppetting.
 * Some aspects of this bridge are customised for my homeserver. I'm working over time to make it more general. Please please reach out to @cadence:cadence.moe if you would like to run this, and I'll work with you to get it running!
