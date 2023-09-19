@@ -117,6 +117,28 @@ turndownService.addRule("inlineLink", {
 	}
 })
 
+turndownService.addRule("emoji", {
+	filter: function (node, options) {
+		if (node.nodeName !== "IMG" || !node.hasAttribute("data-mx-emoticon") || !node.getAttribute("src")) return false
+		const row = select("emoji", ["emoji_id", "animated"], "WHERE mxc_url = ?").get(node.getAttribute("src"))
+		if (!row) return false
+		node.setAttribute("data-emoji-id", row.emoji_id)
+		node.setAttribute("data-emoji-animated-char", row.animated ? "a" : "")
+		return true
+	},
+
+	replacement: function (content, node) {
+		/** @type {string} */
+		const id = node.getAttribute("data-emoji-id")
+		/** @type {string} */
+		const animatedChar = node.getAttribute("data-emoji-animated-char")
+		/** @type {string} */
+		const title = node.getAttribute("title") || "__"
+		const name = title.replace(/^:|:$/g, "")
+		return `<${animatedChar}:${name}:${id}>`
+	}
+})
+
 turndownService.addRule("fencedCodeBlock", {
 	filter: function (node, options) {
 		return (

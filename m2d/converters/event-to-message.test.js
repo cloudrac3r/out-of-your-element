@@ -1692,3 +1692,55 @@ test("event2message: stickers work", async t => {
 		}
 	)
 })
+
+test("event2message: static emojis work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: ":hippo:",
+				format: "org.matrix.custom.html",
+				formatted_body: '<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC\" title=\":hippo:\" alt=\":hippo:\">'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<:hippo:230201364309868544>",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: animated emojis work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: ":hippo:",
+				format: "org.matrix.custom.html",
+				formatted_body: '<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc\" title=\":hipposcope:\" alt=\":hipposcope:\">'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<a:hipposcope:393635038903926784>",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
