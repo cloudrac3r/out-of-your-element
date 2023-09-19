@@ -10,6 +10,8 @@ const api = sync.require("../../matrix/api")
 const registerUser = sync.require("./register-user")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
+/** @type {import("../../matrix/file")} */
+const file = sync.require("../../matrix/file")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
@@ -25,13 +27,16 @@ async function addReaction(data) {
 	let key
 	if (data.emoji.id) {
 		// Custom emoji
-		const mxc = select("emoji", "mxc_url", "WHERE emoji_id = ?").pluck().get(data.emoji.id)
+		const mxc = select("emoji", "mxc_url", "WHERE id = ?").pluck().get(data.emoji.id)
 		if (mxc) {
 			// The custom emoji is registered and we should send it
 			key = mxc
 		} else {
-			// The custom emoji is not registered. We *could* register it right now and it would work, but for now I'm just going to send the name. It's whatever. TODO change this probably.
-			key = "<" + data.emoji.name + ">"
+			// The custom emoji is not registered. We will register it and then add it.
+			const mxc = await file.uploadDiscordFileToMxc(file.emoji(data.emoji.id, data.emoji.animated))
+			db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(data.emoji.id, data.emoji.name, data.emoji.animated, mxc)
+			key = mxc
+			// TODO: what happens if the matrix user also tries adding this reaction? the bridge bot isn't able to use that emoji...
 		}
 	} else {
 		// Default emoji

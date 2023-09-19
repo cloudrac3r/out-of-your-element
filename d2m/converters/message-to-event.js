@@ -41,7 +41,8 @@ function getDiscordParseCallbacks(message, useHTML) {
 		/** @param {{animated: boolean, name: string, id: string, type: "discordEmoji"}} node */
 		emoji: node => {
 			if (useHTML) {
-				const mxc = select("emoji", "mxc_url", "WHERE emoji_id = ?").pluck().get(node.id)
+				const mxc = select("emoji", "mxc_url", "WHERE id = ?").pluck().get(node.id)
+				// TODO: upload and register the emoji so it can be added no matter what
 				if (mxc) {
 					return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
 				} else {

@@ -64,9 +64,10 @@ CREATE TABLE IF NOT EXISTS "lottie" (
 	PRIMARY KEY("id")
 ) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS "emoji" (
-	"emoji_id"	TEXT NOT NULL,
+	"id"	TEXT NOT NULL,
+	"name"	TEXT NOT NULL,
 	"animated"	INTEGER NOT NULL,
 	"mxc_url"	TEXT NOT NULL,
-	PRIMARY KEY("emoji_id")
+	PRIMARY KEY("id")
 ) WITHOUT ROWID;
 COMMIT;

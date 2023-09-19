@@ -70,9 +70,9 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/emojis/230201364309868544.png', 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),
 ('https://cdn.discordapp.com/emojis/393635038903926784.gif', 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc');
 
-INSERT INTO emoji (emoji_id, animated, mxc_url) VALUES
-('230201364309868544', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),
-('393635038903926784', 1, 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc');
+INSERT INTO emoji (id, name, animated, mxc_url) VALUES
+('230201364309868544', 'hippo', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),
+('393635038903926784', 'hipposcope', 1, 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc');
 
 INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),

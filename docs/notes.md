@@ -159,8 +159,8 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 
 ```
 pragma case_sensitive_like = 1;
-insert into emoji select replace(substr(discord_url, 35), ".gif", "") as emoji_id, 1 as animated, mxc_url from file where discord_url like 'https://cdn.discordapp.com/emojis/%.gif';
-insert into emoji select replace(substr(discord_url, 35), ".png", "") as emoji_id, 0 as animated, mxc_url from file where discord_url like 'https://cdn.discordapp.com/emojis/%.png';
+insert into emoji select replace(substr(discord_url, 35), ".gif", "") as id, 1 as animated, mxc_url from file where discord_url like 'https://cdn.discordapp.com/emojis/%.gif';
+insert into emoji select replace(substr(discord_url, 35), ".png", "") as id, 0 as animated, mxc_url from file where discord_url like 'https://cdn.discordapp.com/emojis/%.png';
 ```
 
 # Various considerations

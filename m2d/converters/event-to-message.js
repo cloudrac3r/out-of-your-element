@@ -120,9 +120,25 @@ turndownService.addRule("inlineLink", {
 turndownService.addRule("emoji", {
 	filter: function (node, options) {
 		if (node.nodeName !== "IMG" || !node.hasAttribute("data-mx-emoticon") || !node.getAttribute("src")) return false
-		const row = select("emoji", ["emoji_id", "animated"], "WHERE mxc_url = ?").get(node.getAttribute("src"))
+		let row = select("emoji", ["id", "name", "animated"], "WHERE mxc_url = ?").get(node.getAttribute("src"))
+		if (!row) {
+			// We don't know what this is... but maybe we can guess based on the name?
+			const guessedName = node.getAttribute("title")?.replace?.(/^:|:$/g, "")
+			if (!guessedName) return false
+			for (const guild of discord.guilds.values()) {
+				/** @type {{name: string, id: string, animated: number}[]} */
+				// @ts-ignore
+				const emojis = guild.emojis
+				const match = emojis.find(e => e.name === guessedName) || emojis.find(e => e.name?.toLowerCase() === guessedName.toLowerCase())
+				if (match) {
+					row = match
+					break
+				}
+			}
+		}
 		if (!row) return false
-		node.setAttribute("data-emoji-id", row.emoji_id)
+		node.setAttribute("data-emoji-id", row.id)
+		node.setAttribute("data-emoji-name", row.name)
 		node.setAttribute("data-emoji-animated-char", row.animated ? "a" : "")
 		return true
 	},
@@ -133,8 +149,7 @@ turndownService.addRule("emoji", {
 		/** @type {string} */
 		const animatedChar = node.getAttribute("data-emoji-animated-char")
 		/** @type {string} */
-		const title = node.getAttribute("title") || "__"
-		const name = title.replace(/^:|:$/g, "")
+		const name = node.getAttribute("data-emoji-name")
 		return `<${animatedChar}:${name}:${id}>`
 	}
 })
