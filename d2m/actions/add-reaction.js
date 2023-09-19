@@ -17,7 +17,7 @@ const createRoom = sync.require("../actions/create-room")
 async function addReaction(data) {
 	const user = data.member?.user
 	assert.ok(user && user.username)
-	const parentID = select("event_message", "event_id", "WHERE message = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
+	const parentID = select("event_message", "event_id", "WHERE message_id = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
 	if (!parentID) return // Nothing can be done if the parent message was never bridged.
 	assert.equal(typeof parentID, "string")
 	const roomID = await createRoom.ensureRoom(data.channel_id)

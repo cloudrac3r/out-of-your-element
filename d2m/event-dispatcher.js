@@ -181,7 +181,7 @@ module.exports = {
 	 */
 	async onMessageUpdate(client, data) {
 		if (data.webhook_id) {
-			const row = select("webhook", "1", "WHERE webhook_id = ?").pluck().get(message.webhook_id)
+			const row = select("webhook", "webhook_id", "WHERE webhook_id = ?").pluck().get(data.webhook_id)
 			if (row) {
 				// The update was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 				return
