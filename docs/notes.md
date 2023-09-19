@@ -157,7 +157,11 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 2. Create or replace state event for the bridged pack. (Can just use key "ooye" and display name "Discord", or something, for this pack.)
 3. The emojis may now be sent by Matrix users!
 
-TOSPEC: m2d emoji uploads??
+```
+pragma case_sensitive_like = 1;
+insert into emoji select replace(substr(discord_url, 35), ".gif", "") as emoji_id, 1 as animated, mxc_url from file where discord_url like 'https://cdn.discordapp.com/emojis/%.gif';
+insert into emoji select replace(substr(discord_url, 35), ".png", "") as emoji_id, 0 as animated, mxc_url from file where discord_url like 'https://cdn.discordapp.com/emojis/%.png';
+```
 
 # Various considerations
 
@@ -170,10 +174,6 @@ TOSPEC: m2d emoji uploads??
 ### sim table
 
 - Sims will already be registered, registration will fail, all events from those sims will fail.
-
-### sim_member table
-
-- Sims won't be invited because they are already joined, all events from those sims will fail.
 
 ### guild_space table
 
@@ -194,6 +194,10 @@ TOSPEC: m2d emoji uploads??
 ### webhook
 
 - Some duplicate webhooks may be created.
+
+### sim_member table
+
+- Some sims will try to re-join the room, which is slow the first time.
 
 ## Creating and notifying about new threads:
 

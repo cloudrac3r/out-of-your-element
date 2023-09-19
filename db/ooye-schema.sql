@@ -1,14 +1,14 @@
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "sim" (
-	"discord_id"	TEXT NOT NULL UNIQUE,
+	"discord_id"	TEXT NOT NULL,
 	"sim_name"	TEXT NOT NULL UNIQUE,
-	"localpart"	TEXT NOT NULL UNIQUE,
-	"mxid"	TEXT NOT NULL UNIQUE,
+	"localpart"	TEXT NOT NULL,
+	"mxid"	TEXT NOT NULL,
 	PRIMARY KEY("discord_id")
 );
 CREATE TABLE IF NOT EXISTS "webhook" (
-	"channel_id"	TEXT NOT NULL UNIQUE,
-	"webhook_id"	TEXT NOT NULL UNIQUE,
+	"channel_id"	TEXT NOT NULL,
+	"webhook_id"	TEXT NOT NULL,
 	"webhook_token"	TEXT NOT NULL,
 	PRIMARY KEY("channel_id")
 );
@@ -62,5 +62,11 @@ CREATE TABLE IF NOT EXISTS "lottie" (
 	"id"	TEXT NOT NULL,
 	"mxc"	TEXT NOT NULL,
 	PRIMARY KEY("id")
+) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS "emoji" (
+	"emoji_id"	TEXT NOT NULL,
+	"animated"	INTEGER NOT NULL,
+	"mxc_url"	TEXT NOT NULL,
+	PRIMARY KEY("emoji_id")
 ) WITHOUT ROWID;
 COMMIT;
