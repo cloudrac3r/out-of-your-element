@@ -207,7 +207,6 @@ module.exports = {
 	async onReactionAdd(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		discordCommandHandler.onReactionAdd(data)
-		if (data.emoji.id !== null) return // TODO: image emoji reactions
 		await addReaction.addReaction(data)
 	},
 

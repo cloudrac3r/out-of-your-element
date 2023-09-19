@@ -17,16 +17,34 @@ const createRoom = sync.require("../actions/create-room")
 async function addReaction(data) {
 	const user = data.member?.user
 	assert.ok(user && user.username)
+
 	const parentID = select("event_message", "event_id", "WHERE message_id = ? AND part = 0").pluck().get(data.message_id) // 0 = primary
 	if (!parentID) return // Nothing can be done if the parent message was never bridged.
 	assert.equal(typeof parentID, "string")
+
+	let key
+	if (data.emoji.id) {
+		// Custom emoji
+		const mxc = select("emoji", "mxc_url", "WHERE emoji_id = ?").pluck().get(data.emoji.id)
+		if (mxc) {
+			// The custom emoji is registered and we should send it
+			key = mxc
+		} else {
+			// The custom emoji is not registered. We *could* register it right now and it would work, but for now I'm just going to send the name. It's whatever. TODO change this probably.
+			key = "<" + data.emoji.name + ">"
+		}
+	} else {
+		// Default emoji
+		key = data.emoji.name
+	}
+
 	const roomID = await createRoom.ensureRoom(data.channel_id)
 	const senderMxid = await registerUser.ensureSimJoined(user, roomID)
 	const eventID = await api.sendEvent(roomID, "m.reaction", {
 		"m.relates_to": {
 			rel_type: "m.annotation",
 			event_id: parentID,
-			key: data.emoji.name
+			key
 		}
 	}, senderMxid)
 	return eventID
