@@ -68,7 +68,7 @@ function convertNameAndTopic(channel, guild, customName) {
  * @param {DiscordTypes.APIGuild} guild
  */
 async function channelToKState(channel, guild) {
-	const spaceID = await createSpace.ensureSpace(guild.id)
+	const spaceID = await createSpace.ensureSpace(guild)
 	assert.ok(typeof spaceID === "string")
 
 	const row = select("channel_room", ["nick", "custom_avatar"], "WHERE channel_id = ?").get(channel.id)

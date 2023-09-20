@@ -140,7 +140,7 @@ module.exports = {
 	async onGuildUpdate(client, guild) {
 		const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
 		if (!spaceID) return
-		await createSpace.syncSpace(guild.id)
+		await createSpace.syncSpace(guild)
 	},
 
 	/**

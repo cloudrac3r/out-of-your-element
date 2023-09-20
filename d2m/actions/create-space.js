@@ -74,30 +74,28 @@ async function guildToKState(guild) {
 }
 
 /**
- * @param {string} guildID
+ * @param {DiscordTypes.APIGuild} guild
  * @param {boolean} shouldActuallySync false if just need to ensure nspace exists (which is a quick database check),
  *                                     true if also want to efficiently sync space name, space avatar, and child room avatars
  * @returns {Promise<string>} room ID
  */
-async function _syncSpace(guildID, shouldActuallySync) {
-	/** @ts-ignore @type {DiscordTypes.APIGuild} */
-	const guild = discord.guilds.get(guildID)
+async function _syncSpace(guild, shouldActuallySync) {
 	assert.ok(guild)
 
-	if (inflightSpaceCreate.has(guildID)) {
-		await inflightSpaceCreate.get(guildID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
+	if (inflightSpaceCreate.has(guild.id)) {
+		await inflightSpaceCreate.get(guild.id) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guildID)
+	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
 
 	if (!spaceID) {
 		const creation = (async () => {
 			const guildKState = await guildToKState(guild)
 			const spaceID = await createSpace(guild, guildKState)
-			inflightSpaceCreate.delete(guildID)
+			inflightSpaceCreate.delete(guild.id)
 			return spaceID
 		})()
-		inflightSpaceCreate.set(guildID, creation)
+		inflightSpaceCreate.set(guild.id, creation)
 		return creation // Naturally, the newly created space is already up to date, so we can always skip syncing here.
 	}
 
@@ -136,14 +134,20 @@ async function _syncSpace(guildID, shouldActuallySync) {
 	return spaceID
 }
 
-/** Ensures the space exists. If it doesn't, creates the space with an accurate initial state. */
-function ensureSpace(guildID) {
-	return _syncSpace(guildID, false)
+/**
+ * Ensures the space exists. If it doesn't, creates the space with an accurate initial state.
+ * @param {DiscordTypes.APIGuild} guild
+ */
+function ensureSpace(guild) {
+	return _syncSpace(guild, false)
 }
 
-/** Actually syncs. Efficiently updates the space name, space avatar, and child room avatars. */
-function syncSpace(guildID) {
-	return _syncSpace(guildID, true)
+/**
+ * Actually syncs. Efficiently updates the space name, space avatar, and child room avatars.
+ * @param {DiscordTypes.APIGuild} guild
+ */
+function syncSpace(guild) {
+	return _syncSpace(guild, true)
 }
 
 /**

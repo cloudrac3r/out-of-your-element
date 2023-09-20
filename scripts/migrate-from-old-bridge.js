@@ -66,7 +66,7 @@ async function migrateGuild(guild) {
 	console.log(`START MIGRATION of ${guild.name} (${guild.id})`)
 
 	// Step 1: Create a new space for the guild (createSpace)
-	const spaceID = await createSpace.syncSpace(guild.id)
+	const spaceID = await createSpace.syncSpace(guild)
 
 	let oldRooms = oldDB.prepare("SELECT matrix_id, discord_guild, discord_channel FROM room_entries INNER JOIN remote_room_data ON remote_id = room_id WHERE discord_guild = ?").all(guild.id)
 	const migrated = db.prepare("SELECT discord_channel FROM migration WHERE migrated = 1").pluck().all()
@@ -132,6 +132,6 @@ async function migrateGuild(guild) {
 	}
 
 	// Step 5: Call syncSpace to make sure everything is up to date
-	await createSpace.syncSpace(guild.id)
+	await createSpace.syncSpace(guild)
 	console.log(`Finished migrating ${guild.name} to Out Of Your Element`)
 }
