@@ -60,7 +60,7 @@ test("edit2changes: bot response", async t => {
 			msgtype: "m.text",
 			body: "* :ae_botrac4r: @cadence asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
 			format: "org.matrix.custom.html",
-			formatted_body: '* <img src="mxc://cadence.moe/551636841284108289" data-mx-emoticon alt=":ae_botrac4r:" title=":ae_botrac4r:" height="24"> @cadence asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img src="mxc://cadence.moe/362741439211503616" data-mx-emoticon alt=":bn_re:" title=":bn_re:" height="24"> to reroll.',
+			formatted_body: '* <img data-mx-emoticon height="32" src="mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs" title=":ae_botrac4r:" alt=":ae_botrac4r:"> @cadence asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img data-mx-emoticon height="32" src="mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT" title=":bn_re:" alt=":bn_re:"> to reroll.',
 			"m.mentions": {
 				// Client-Server API spec 11.37.7: Copy Discord's behaviour by not re-notifying anyone that an *edit occurred*
 			},
@@ -69,7 +69,7 @@ test("edit2changes: bot response", async t => {
 				msgtype: "m.text",
 				body: ":ae_botrac4r: @cadence asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
 				format: "org.matrix.custom.html",
-				formatted_body: '<img src="mxc://cadence.moe/551636841284108289" data-mx-emoticon alt=":ae_botrac4r:" title=":ae_botrac4r:" height="24"> @cadence asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img src="mxc://cadence.moe/362741439211503616" data-mx-emoticon alt=":bn_re:" title=":bn_re:" height="24"> to reroll.',
+				formatted_body: '<img data-mx-emoticon height="32" src="mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs" title=":ae_botrac4r:" alt=":ae_botrac4r:"> @cadence asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img data-mx-emoticon height="32" src="mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT" title=":bn_re:" alt=":bn_re:"> to reroll.',
 				"m.mentions": {
 					// Client-Server API spec 11.37.7: This should contain the mentions for the final version of the event
 					"user_ids": ["@cadence:cadence.moe"]
