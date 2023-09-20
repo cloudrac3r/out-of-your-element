@@ -119,7 +119,7 @@ async function memberToStateContent(user, member, guildID) {
 	return content
 }
 
-function calculateProfileEventContentHash(content) {
+function hashProfileContent(content) {
 	return `${content.displayname}\u0000${content.avatar_url}`
 }
 
@@ -136,12 +136,12 @@ function calculateProfileEventContentHash(content) {
 async function syncUser(user, member, guildID, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guildID)
-	const profileEventContentHash = calculateProfileEventContentHash(content)
+	const currentHash = hashProfileContent(content)
 	const existingHash = select("sim_member", "profile_event_content_hash", "WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
 	// only do the actual sync if the hash has changed since we last looked
-	if (existingHash !== profileEventContentHash) {
+	if (existingHash !== currentHash) {
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
-		db.prepare("UPDATE sim_member SET profile_event_content_hash = ? WHERE room_id = ? AND mxid = ?").run(profileEventContentHash, roomID, mxid)
+		db.prepare("UPDATE sim_member SET profile_event_content_hash = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}
 	return mxid
 }
