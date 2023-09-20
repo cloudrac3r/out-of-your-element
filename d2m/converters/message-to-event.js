@@ -156,11 +156,30 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		})
 
+		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
+		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
+		const emojiMatches = [...content.matchAll(/<(a?):([^:>]{2,20}):([0-9]+)>/g)]
+		const emojiDownloads = []
+		for (const match of emojiMatches) {
+			const id = match[3]
+			const name = match[2]
+			const animated = +!!match[1]
+			const row = select("emoji", "id", "WHERE id = ?").pluck().get(id)
+			if (!row) {
+				// The custom emoji is not registered. We will register it and then add it.
+				emojiDownloads.push(
+					file.uploadDiscordFileToMxc(file.emoji(id, animated)).then(mxc => {
+						db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(id, name, animated, mxc)
+					})
+				)
+			}
+		}
+		await Promise.all(emojiDownloads)
+
 		let html = markdown.toHTML(content, {
 			discordCallback: getDiscordParseCallbacks(message, true)
 		}, null, null)
 
-		// TODO: add a string return type to my discord-markdown library
 		let body = markdown.toHTML(content, {
 			discordCallback: getDiscordParseCallbacks(message, false),
 			discordOnly: true,
@@ -208,26 +227,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 				}
 			}
 		}
-
-		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
-		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
-		const emojiMatches = [...content.matchAll(/<(a?):([^:>]{2,20}):([0-9]+)>/g)]
-		const emojiDownloads = []
-		for (const match of emojiMatches) {
-			const id = match[3]
-			const name = match[2]
-			const animated = +!!match[1]
-			const row = select("emoji", "id", "WHERE id = ?").pluck().get(id)
-			if (!row) {
-				// The custom emoji is not registered. We will register it and then add it.
-				emojiDownloads.push(
-					file.uploadDiscordFileToMxc(file.emoji(id, animated)).then(mxc => {
-						db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(id, name, animated, mxc)
-					})
-				)
-			}
-		}
-		await Promise.all(emojiDownloads)
 
 		// Star * prefix for fallback edits
 		if (options.includeEditFallbackStar) {
