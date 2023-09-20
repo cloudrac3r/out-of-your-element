@@ -167,6 +167,31 @@ async function messageToEvent(message, guild, options = {}, di) {
 			escapeHTML: false,
 		}, null, null)
 
+		for (const embed of message.embeds || []) {
+			// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
+			let repParagraphs = []
+			if (embed.author?.name) repParagraphs.push(`**${embed.author.name}**`)
+			if (embed.title && embed.url) repParagraphs.push(`[**${embed.title}**](${embed.url})`)
+			else if (embed.title) repParagraphs.push(`**${embed.title}**`)
+			else if (embed.url) repParagraphs.push(`**${embed.url}**`)
+			if (embed.description) repParagraphs.push(embed.description)
+			for (const field of embed.fields || []) {
+				repParagraphs.push(`**${field.name}**\n${field.value}`)
+			}
+			if (embed.footer?.text) repParagraphs.push(embed.footer.text)
+			const repContent = repParagraphs.join("\n\n")
+
+			html += "<blockquote>" + markdown.toHTML(repContent, {
+				discordCallback: getDiscordParseCallbacks(message, true)
+			}, null, null) + "</blockquote>"
+
+			body += "\n\n" + markdown.toHTML(repContent, {
+				discordCallback: getDiscordParseCallbacks(message, false),
+				discordOnly: true,
+				escapeHTML: false
+			}, null, null)
+		}
+
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 		const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
 		if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
