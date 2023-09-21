@@ -122,6 +122,7 @@ I recommend developing in Visual Studio Code so that the JSDoc x TypeScript anno
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
 * (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (1) discord-markdown: This is my fork! I make sure it does what I want.
+* (0) giframe: This is my fork! It should do what I want.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
 * (70) matrix-appservice: I wish it didn't pull in express :(

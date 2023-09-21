@@ -20,6 +20,7 @@
     "chunk-text": "^2.0.1",
     "cloudstorm": "^0.8.0",
     "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#440130ef343c8183a81c7c09809731484aa3a182",
+    "giframe": "github:cloudrac3r/giframe#v0.3.0",
     "heatsync": "^2.4.1",
     "js-yaml": "^4.1.0",
     "matrix-appservice": "^2.0.0",
