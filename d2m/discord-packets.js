@@ -68,6 +68,24 @@ const utils = {
 				guild.stickers = message.d.stickers
 			}
 
+		} else if (message.t === "GUILD_ROLE_CREATE" || message.t === "GUILD_ROLE_UPDATE" || message.t === "GUILD_ROLE_DELETE") {
+			const guild = client.guilds.get(message.d.guild_id)
+			/** Delete this in case of UPDATE or DELETE */
+			const targetID = "role_id" in message.d ? message.d.role_id : message.d.role.id
+			/** Add this in case of CREATE or UPDATE */
+			const newRoles = []
+			if ("role" in message.d) newRoles.push(message.d.role)
+			if (guild) {
+				const targetIndex = guild.roles.findIndex(r => r.id === targetID)
+				if (targetIndex !== -1) {
+					// Role already exists. Delete it and maybe replace it.
+					guild.roles.splice(targetIndex, 1, ...newRoles)
+				} else {
+					// Role doesn't already exist.
+					guild.roles.push(...newRoles)
+				}
+			}
+
 		} else if (message.t === "THREAD_CREATE") {
 			client.channels.set(message.d.id, message.d)
 

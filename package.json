@@ -30,7 +30,8 @@
     "prettier-bytes": "^1.0.4",
     "snowtransfer": "^0.8.0",
     "try-to-catch": "^3.0.1",
-    "turndown": "^7.1.2"
+    "turndown": "^7.1.2",
+    "xxhash-wasm": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "^18.16.0",

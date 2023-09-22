@@ -5,6 +5,7 @@ Modern Matrix-to-Discord appservice bridge.
 ## Why a new bridge?
 
 * Modern: Supports new Discord features like replies, threads and stickers, and new Matrix features like edits, spaces and space membership.
+* Efficient: Special attention has been given to memory usage, database indexes, disk footprint, runtime algorithms, and queries to the homeserver.
 * Reliable: Any errors on either side are notified on Matrix and can be retried.
 * Tested: A test suite and code coverage make sure all the core logic works.
 * Simple development: No build step (it's JavaScript, not TypeScript), minimal/lightweight dependencies, and abstraction only where necessary so that less background knowledge is required. No need to learn about Intents or library functions.
@@ -38,6 +39,14 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Embeds don't work yet.
 * This bridge is not designed for puppetting.
 * Some aspects of this bridge are customised for my homeserver. I'm working over time to make it more general. Please please reach out to @cadence:cadence.moe if you would like to run this, and I'll work with you to get it running!
+
+## Efficiency details
+
+Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
+
+The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. On my personal instance of OOYE, every 100,000 messages sent require only 17.7 MB of storage space in the SQLite database.
+
+Only necessary data and columns are queried from the database. We only contact the homeserver API if the database doesn't contain what we need.
 
 # Development information
 

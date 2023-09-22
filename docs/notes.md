@@ -125,13 +125,31 @@ Can use custom transaction ID (?) to send the original timestamps to Matrix. See
 3. Build replacement event with fallbacks.
 4. Send to matrix.
 
-## Reaction added
+## Reaction added/removed/emoji removed/all removed
 
-1. Add reaction on matrix.
+m->d reactions will have to be sent as the bridge bot since webhooks cannot add reactions. This also means Discord users can't tell who reacted. We will have to tolerate this.
 
-## Reaction removed
+Database storage requirements for each kind of event:
 
-1. Remove reaction on matrix. Just redact the event.
+**Added**
+
+N/A
+
+**Removed d->m**
+
+Need to know the event ID of the reaction event so we can redact it. We can look it up with `/v1/rooms/!x/relations/$x/m.annotation`. (If the message was edited, use its original event ID in the query.) This gets all event details for all reactions from the homeserver.
+
+If it is a custom emoji, we will need to use the existing `emoji` table to resolve the emoji ID to the key.
+
+Then we can pick the one to redact based on the `key` and `sender` and redact it.
+
+This also works for _remove emoji_ and _remove all_.
+
+**Removed m->d**
+
+Need to know the discord ID of the message that was reacted to. If we know the event ID of what was reacted to, we can look up the Discord ID in the usual database. Unfortunately, after a reaction has been redacted, it's already too late to look up which event it was redacted from.
+
+So we do need a database table. It will only hold reactions that were sent by Matrix users and were successfully bridged. It will associate the reaction event ID with the Discord message ID it was reacted on (skipping the middleman).
 
 ## Member data changed
 
