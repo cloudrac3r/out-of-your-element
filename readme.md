@@ -38,7 +38,6 @@ Most features you'd expect in both directions, plus a little extra spice:
 
 * Embeds don't work yet.
 * This bridge is not designed for puppetting.
-* Some aspects of this bridge are customised for my homeserver. I'm working over time to make it more general. Please please reach out to @cadence:cadence.moe if you would like to run this, and I'll work with you to get it running!
 
 ## Efficiency details
 
@@ -48,36 +47,38 @@ The bridge uses a small SQLite database to store relationships like which Discor
 
 Only necessary data and columns are queried from the database. We only contact the homeserver API if the database doesn't contain what we need.
 
-# Development information
+# Setup
 
-## You will need
+If you get stuck, you're welcome to message @cadence:cadence.moe to ask for help setting up OOYE!
+
+You'll need:
 
 * Administrative access to a homeserver
 * Discord bot
-* (For now) Help and support from @cadence:cadence.moe. Message me and tell me you're interested in OOYE!
-* The L1 and L2 emojis
+* Custom emojis named `L1` and `L2` for replies sent to Discord (TODO: provide)
 
-## Initial setup
+Follow these steps:
 
-Node.js version 18 or later is required: https://nodejs.org/en/download/releases (the matrix-appservice dependency demands 18)
+1. [Get Node.js version 18 or later](https://nodejs.org/en/download/releases) (the version is required by the matrix-appservice dependency)
 
-Install dependencies: `npm install --save-dev` (only need --save-dev if you will run the automated tests)
+2. Install dependencies: `npm install --save-dev` (omit --save-dev if you will not run the automated tests)
 
-Copy `config.example.js` to `config.js` and fill in Discord token.
+3. Copy `config.example.js` to `config.js` and fill in Discord token.
 
-Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
+4. Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
 
-If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 me@matrix.cadence.moe`
+5. Run `node scripts/seed.js` to check your setup, create the database and server state (only need to run this once ever)
 
-Run `node scripts/seed.js` to check your setup, create the database and server state (only need to run this once ever)
+6. Make sure the tests work by running `npm t`
 
-Make sure the tests work: `npm t`
+7. Start the bridge: `node start.js`
 
-Start the bridge: `node start.js`
+# Development information
 
-Any files you change will automatically be reloaded, except for `stdin.js` and `d2m/discord-*.js`
-
-I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotation comments work. I don't know which other editors or language servers support annotations and type inference.
+* Be sure to install dependencies with `--save-dev` so you can run the tests.
+* Any files you change will automatically be reloaded, except for `stdin.js` and `d2m/discord-*.js`.
+* If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 me@matrix.cadence.moe`
+* I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotation comments work. I don't know which other editors or language servers support annotations and type inference.
 
 ## Repository structure
 
