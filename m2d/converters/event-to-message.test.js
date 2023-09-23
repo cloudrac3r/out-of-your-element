@@ -4,6 +4,14 @@ const data = require("../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {db, select} = require("../../passthrough")
 
+function slow() {
+	if (process.argv.includes("--slow")) {
+		return test
+	} else {
+		return test.skip
+	}
+}
+
 /**
  * @param {string} roomID
  * @param {string} eventID
@@ -1743,4 +1751,82 @@ test("event2message: animated emojis work", async t => {
 			}]
 		}
 	)
+})
+
+test("event2message: unknown emojis in the middle are linked", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'a <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy\" title=\":ms_robot_grin:\" alt=\":ms_robot_grin:\"> b'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "a [:ms_robot_grin:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy) b",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+slow()("event2message: unknown emoji in the end is reuploaded as a sprite sheet", async t => {
+	const messages = await eventToMessage({
+		type: "m.room.message",
+		sender: "@cadence:cadence.moe",
+		content: {
+			msgtype: "m.text",
+			body: "wrong body",
+			format: "org.matrix.custom.html",
+			formatted_body: 'a b <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy\" title=\":ms_robot_grin:\" alt=\":ms_robot_grin:\">'
+		},
+		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+	})
+	const testResult = {
+		content: messages.messagesToSend[0].content,
+		fileName: messages.messagesToSend[0].pendingFiles[0].name,
+		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
+	}
+	t.deepEqual(testResult, {
+		content: "a b",
+		fileName: "emojis.png",
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALkklEQVR4nM1ZeWyUxxV/azAGwn0JMJUppPhce++1Oc1i"
+	})
+})
+
+slow()("event2message: known and unknown emojis in the end are reuploaded as a sprite sheet", async t => {
+	t.comment("SKIPPED")
+	const messages = await eventToMessage({
+		type: "m.room.message",
+		sender: "@cadence:cadence.moe",
+		content: {
+			msgtype: "m.text",
+			body: "wrong body",
+			format: "org.matrix.custom.html",
+			formatted_body: 'known unknown: <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC\" title=\":hippo:\" alt=\":hippo:\"> <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/wcouHVjbKJJYajkhJLsyeJAA\" title=\":ms_robot_dress:\" alt=\":ms_robot_dress:\"> and known unknown: <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc\" title=\":hipposcope:\" alt=\":hipposcope:\"> <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HYcztccFIPgevDvoaWNsEtGJ\" title=\":ms_robot_cat:\" alt=\":ms_robot_cat:\">'
+		},
+		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+	})
+	const testResult = {
+		content: messages.messagesToSend[0].content,
+		fileName: messages.messagesToSend[0].pendingFiles[0].name,
+		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
+	}
+	require("fs").writeFileSync("/tmp/emojis.png", messages.messagesToSend[0].pendingFiles[0].buffer)
+	t.deepEqual(testResult, {
+		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
+		fileName: "emojis.png",
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAT5UlEQVR4nOVbCXSVRZauR9gMsoYlvKwvARKSkPUlJOyL"
+	})
 })

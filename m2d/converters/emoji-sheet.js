@@ -1,0 +1,95 @@
+// @ts-check
+
+const assert = require("assert").strict
+const {pipeline} = require("stream").promises
+const sharp = require("sharp")
+const {GIFrame} = require("giframe")
+const utils = require("./utils")
+const fetch = require("node-fetch").default
+const streamMimeType = require("stream-mime-type")
+
+const SIZE = 48
+const RESULT_WIDTH = 400
+const IMAGES_ACROSS = Math.floor(RESULT_WIDTH / SIZE)
+
+/**
+ * Composite a bunch of Matrix emojis into a kind of spritesheet image to upload to Discord.
+ * @param {string[]} mxcs mxc URLs, in order
+ * @returns {Promise<Buffer>} PNG image
+ */
+async function compositeMatrixEmojis(mxcs) {
+	let buffers = await Promise.all(mxcs.map(async mxc => {
+		const abortController = new AbortController()
+
+		try {
+			const url = utils.getPublicUrlForMxc(mxc)
+			assert(url)
+
+			/** @type {import("node-fetch").Response} res */
+			// If it turns out to be a GIF, we want to abandon the connection without downloading the whole thing.
+			// If we were using connection pooling, we would be forced to download the entire GIF.
+			// So we set no agent to ensure we are not connection pooling.
+			// @ts-ignore the signal is slightly different from the type it wants (still works fine)
+			const res = await fetch(url, {agent: false, signal: abortController.signal})
+			const {stream, mime} = await streamMimeType.getMimeType(res.body)
+
+			if (mime === "image/png" || mime === "image/jpeg" || mime === "image/webp") {
+				/** @type {{info: sharp.OutputInfo, buffer: Buffer}} */
+				const result = await new Promise((resolve, reject) => {
+					const transformer = sharp()
+						.resize(SIZE, SIZE, {fit: "contain"})
+						.png({compressionLevel: 0})
+						.toBuffer((err, buffer, info) => {
+							if (err) return reject(err)
+							resolve({info, buffer})
+						})
+					pipeline(
+						stream,
+						transformer
+					)
+				})
+				return result.buffer
+
+			} else if (mime === "image/gif") {
+				const giframe = new GIFrame(0)
+				stream.on("data", chunk => {
+					giframe.feed(chunk)
+				})
+				const frame = await giframe.getFrame()
+
+				const buffer = await sharp(frame.pixels, {raw: {width: frame.width, height: frame.height, channels: 4}})
+					.resize(SIZE, SIZE, {fit: "contain", background: {r: 0, g: 0, b: 0, alpha: 0}})
+					.png({compressionLevel: 0})
+					.toBuffer({resolveWithObject: true})
+				return buffer.data
+
+			} else {
+				// unsupported mime type
+				console.error(`I don't know what a ${mime} emoji is.`)
+				return null
+			}
+		} finally {
+			abortController.abort()
+		}
+	}))
+
+	const totalWidth = Math.min(buffers.length, IMAGES_ACROSS) * SIZE
+	const imagesDown = Math.ceil(buffers.length / IMAGES_ACROSS)
+	const totalHeight = imagesDown * SIZE
+	const comp = []
+	let left = 0, top = 0
+	for (const buffer of buffers) {
+		if (Buffer.isBuffer(buffer)) {
+			comp.push({left, top, input: buffer})
+			;(left += SIZE) + SIZE > RESULT_WIDTH && (left = 0, top += SIZE)
+		}
+	}
+
+	const output = await sharp({create: {width: totalWidth, height: totalHeight, channels: 4, background: {r: 0, g: 0, b: 0, alpha: 0}}})
+		.composite(comp)
+		.png()
+		.toBuffer({resolveWithObject: true})
+	return output.data
+}
+
+module.exports.compositeMatrixEmojis = compositeMatrixEmojis

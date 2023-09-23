@@ -17,13 +17,19 @@ const eventToMessage = sync.require("../converters/event-to-message")
 const api = sync.require("../../matrix/api")
 
 /**
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string})[]}} message
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[], pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]}} message
  * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}>}
  */
 async function resolvePendingFiles(message) {
 	if (!message.pendingFiles) return message
 	const files = await Promise.all(message.pendingFiles.map(async p => {
 		let fileBuffer
+		if ("buffer" in p) {
+			return {
+				name: p.name,
+				file: p.buffer
+			}
+		}
 		if ("key" in p) {
 			// Encrypted
 			const d = crypto.createDecipheriv("aes-256-ctr", Buffer.from(p.key, "base64url"), Buffer.from(p.iv, "base64url"))
@@ -44,7 +50,7 @@ async function resolvePendingFiles(message) {
 	}))
 	const newMessage = {
 		...message,
-		files
+		files: files.concat(message.files || [])
 	}
 	delete newMessage.pendingFiles
 	return newMessage

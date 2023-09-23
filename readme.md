@@ -139,5 +139,6 @@ I recommend developing in Visual Studio Code so that the JSDoc x TypeScript anno
 * (3) node-fetch@2: I like it and it does what I want.
 * (0) pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
 * (0) prettier-bytes: It does what I want and has no dependencies.
+* (51) sharp: Jimp has fewer dependencies, but sharp is faster.
 * (0) try-to-catch: Not strictly necessary, but it does what I want and has no dependencies.
 * (1) turndown: I need an HTML-to-Markdown converter and this one looked suitable enough. It has some bugs that I've worked around, so I might switch away from it later.

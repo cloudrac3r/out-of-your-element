@@ -12,6 +12,8 @@ const {sync, db, discord, select, from} = passthrough
 const file = sync.require("../../matrix/file")
 /** @type {import("../converters/utils")} */
 const utils = sync.require("../converters/utils")
+/** @type {import("./emoji-sheet")} */
+const emojiSheet = sync.require("./emoji-sheet")
 
 const BLOCK_ELEMENTS = [
 	"ADDRESS", "ARTICLE", "ASIDE", "AUDIO", "BLOCKQUOTE", "BODY", "CANVAS",
@@ -117,15 +119,21 @@ turndownService.addRule("inlineLink", {
 	}
 })
 
+/** @type {string[]} SPRITE SHEET EMOJIS FEATURE: mxc urls for the currently processing message */
+let endOfMessageEmojis = []
 turndownService.addRule("emoji", {
 	filter: function (node, options) {
-		if (node.nodeName !== "IMG" || !node.hasAttribute("data-mx-emoticon") || !node.getAttribute("src")) return false
-		let row = select("emoji", ["id", "name", "animated"], "WHERE mxc_url = ?").get(node.getAttribute("src"))
+		if (node.nodeName !== "IMG" || !node.hasAttribute("data-mx-emoticon") || !node.getAttribute("src") || !node.getAttribute("title")) return false
+		return true
+	},
+
+	replacement: function (content, node) {
+		const mxcUrl = node.getAttribute("src")
+		let row = select("emoji", ["id", "name", "animated"], "WHERE mxc_url = ?").get(mxcUrl)
 		if (!row) {
 			// We don't know what this is... but maybe we can guess based on the name?
-			const guessedName = node.getAttribute("title")?.replace?.(/^:|:$/g, "")
-			if (!guessedName) return false
-			for (const guild of discord.guilds.values()) {
+			const guessedName = node.getAttribute("title").replace(/^:|:$/g, "")
+			for (const guild of discord?.guilds.values() || []) {
 				/** @type {{name: string, id: string, animated: number}[]} */
 				// @ts-ignore
 				const emojis = guild.emojis
@@ -136,21 +144,18 @@ turndownService.addRule("emoji", {
 				}
 			}
 		}
-		if (!row) return false
-		node.setAttribute("data-emoji-id", row.id)
-		node.setAttribute("data-emoji-name", row.name)
-		node.setAttribute("data-emoji-animated-char", row.animated ? "a" : "")
-		return true
-	},
-
-	replacement: function (content, node) {
-		/** @type {string} */
-		const id = node.getAttribute("data-emoji-id")
-		/** @type {string} */
-		const animatedChar = node.getAttribute("data-emoji-animated-char")
-		/** @type {string} */
-		const name = node.getAttribute("data-emoji-name")
-		return `<${animatedChar}:${name}:${id}>`
+		if (row) {
+			const animatedChar = row.animated ? "a" : ""
+			return `<${animatedChar}:${row.name}:${row.id}>`
+		} else {
+			if (endOfMessageEmojis.includes(mxcUrl)) {
+				// After control returns to the main converter, it will rewind over this, delete this section, and upload the emojis as a sprite sheet.
+				return `<::>`
+			} else {
+				// This emoji is not at the end of the message, it is in the middle. We don't upload middle emojis as a sprite sheet.
+				return `[${node.getAttribute("title")}](${utils.getPublicUrlForMxc(mxcUrl)})`
+			}
+		}
 	}
 })
 
@@ -221,6 +226,29 @@ function splitDisplayName(displayName) {
 }
 
 /**
+ * At the time of this executing, we know what the end of message emojis are, and we know that at least one of them is unknown.
+ * This function will strip them from the content and generate the correct pending file of the sprite sheet.
+ * @param {string} content
+ * @param {{id: string, name: string}[]} attachments
+ * @param {({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} pendingFiles
+ */
+async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles) {
+	if (!content.includes("<::>")) return content // No unknown emojis, nothing to do
+	// Remove known and unknown emojis from the end of the message
+	const r = /<a?:[a-zA-Z0-9_-]*:[0-9]*>\s*$/
+	while (content.match(r)) {
+		content = content.replace(r, "")
+	}
+	// Create a sprite sheet of known and unknown emojis from the end of the message
+	const buffer = await emojiSheet.compositeMatrixEmojis(endOfMessageEmojis)
+	// Attach it
+	const name = "emojis.png"
+	attachments.push({id: "0", name})
+	pendingFiles.push({name, buffer})
+	return content
+}
+
+/**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
@@ -251,7 +279,7 @@ async function eventToMessage(event, guild, di) {
 
 	let content = event.content.body // ultimate fallback
 	const attachments = []
-	/** @type {({name: string, url: string} | {name: string, url: string, key: string, iv: string})[]} */
+	/** @type {({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} */
 	const pendingFiles = []
 
 	// Convert content depending on what the message is
@@ -387,11 +415,27 @@ async function eventToMessage(event, guild, di) {
 			// input = input.replace(/ /g, "&nbsp;")
 			// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
 
+			// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
+			// First we need to determine which emojis are at the end.
+			endOfMessageEmojis = []
+			let match
+			let last = input.length
+			while ((match = input.slice(0, last).match(/<img [^>]*>\s*$/))) {
+				if (!match[0].includes("data-mx-emoticon")) break
+				const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
+				if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])
+				if (typeof match.index !== "number") break
+				last = match.index
+			}
+
 			// @ts-ignore bad type from turndown
 			content = turndownService.turndown(input)
 
 			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")
+
+			// SPRITE SHEET EMOJIS FEATURE:
+			content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
 		} else {
 			// Looks like we're using the plaintext body!
 			content = event.content.body
