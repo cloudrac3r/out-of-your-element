@@ -107,7 +107,7 @@ Follow these steps:
     ├── m2d
     │   * Execute actions through the whole flow, like sending a Matrix message to Discord:
     │   ├── actions
-    │   │   ├── *.js
+    │   │   └── *.js
     │   ├── converters
     │   │   └── *.js
     │   └── event-dispatcher.js

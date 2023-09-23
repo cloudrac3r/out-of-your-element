@@ -1823,7 +1823,6 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
 		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
 	}
-	require("fs").writeFileSync("/tmp/emojis.png", messages.messagesToSend[0].pendingFiles[0].buffer)
 	t.deepEqual(testResult, {
 		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
 		fileName: "emojis.png",
