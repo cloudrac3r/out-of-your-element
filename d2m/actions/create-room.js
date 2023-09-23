@@ -122,7 +122,7 @@ async function channelToKState(channel, guild) {
 			network: {
 				id: guild.id,
 				displayname: guild.name,
-				avatar_url: file.DISCORD_IMAGES_BASE + file.guildIcon(guild)
+				avatar_url: await file.uploadDiscordFileToMxc(file.guildIcon(guild))
 			},
 			channel: {
 				id: channel.id,

@@ -46,7 +46,24 @@ module.exports = {
 					"m.room.avatar": 0
 				}
 			},
-			"chat.schildi.hide_ui/read_receipts": {hidden: true}
+			"chat.schildi.hide_ui/read_receipts": {hidden: true},
+			"uk.half-shot.bridge/moe.cadence.ooye://discord/112760669178241024/112760669178241024": {
+				bridgebot: "@_ooye_bot:cadence.moe",
+				protocol: {
+					id: "discord",
+					displayname: "Discord"
+				},
+				network: {
+					id: "112760669178241024",
+					displayname: "Psychonauts 3",
+					avatar_url: "mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF"
+				},
+				channel: {
+					id: "112760669178241024",
+					displayname: "collective-unconscious",
+					external_url: "https://discord.com/channels/112760669178241024/112760669178241024"
+				}
+			}
 		}
 	},
 	guild: {
