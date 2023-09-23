@@ -134,7 +134,9 @@ async function sendState(roomID, type, stateKey, content, mxid) {
  * @param {number} [timestamp] timestamp of the newly created event, in unix milliseconds
  */
 async function sendEvent(roomID, type, content, mxid, timestamp) {
-	console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
+	if (!["m.room.message", "m.reaction", "m.sticker"].includes(type)) {
+		console.log(`[api] event ${type} to ${roomID} as ${mxid || "default sim"}`)
+	}
 	/** @type {Ty.R.EventSent} */
 	const root = await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/send/${type}/${makeTxnId.makeTxnId()}`, mxid, {ts: timestamp}), content)
 	return root.event_id
