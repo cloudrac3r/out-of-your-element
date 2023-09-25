@@ -70,4 +70,10 @@ CREATE TABLE IF NOT EXISTS "emoji" (
 	"mxc_url"	TEXT NOT NULL,
 	PRIMARY KEY("id")
 ) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS "reaction" (
+	"hashed_event_id"	INTEGER NOT NULL,
+	"message_id"	TEXT NOT NULL,
+	"encoded_emoji"	TEXT NOT NULL,
+	PRIMARY KEY ("hashed_event_id")
+) WITHOUT ROWID;
 COMMIT;

@@ -5,6 +5,8 @@ const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
+/** @type {import("../converters/utils")} */
+const utils = sync.require("../converters/utils")
 
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event
@@ -48,7 +50,9 @@ async function addReaction(event) {
 		console.log("add reaction from matrix:", emoji, encoded, encodedTrimmed, "chosen:", discordPreferredEncoding)
 	}
 
-	return discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding) // acting as the discord bot itself
+	await discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding) // acting as the discord bot itself
+
+	db.prepare("REPLACE INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES (?, ?, ?)").run(utils.getEventIDHash(event.event_id), messageID, discordPreferredEncoding)
 }
 
 module.exports.addReaction = addReaction

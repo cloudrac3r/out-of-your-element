@@ -69,6 +69,12 @@ export type Models = {
 		animated: number
 		mxc_url: string
 	}
+
+	reaction: {
+		hashed_event_id: number
+		message_id: string
+		encoded_emoji: string
+	}
 }
 
 export type Prepared<Row> = {

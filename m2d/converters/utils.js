@@ -38,7 +38,7 @@ function getPublicUrlForMxc(mxc) {
 /**
  * Event IDs are really big and have more entropy than we need.
  * If we want to store the event ID in the database, we can store a more compact version by hashing it with this.
- * Choosing a 64-bit non-cryptographic hash as only a 32-bit hash will see birthday collisions unreasonably frequently: https://en.wikipedia.org/wiki/Birthday_attack#Mathematics
+ * I choose a 64-bit non-cryptographic hash as only a 32-bit hash will see birthday collisions unreasonably frequently: https://en.wikipedia.org/wiki/Birthday_attack#Mathematics
  * xxhash outputs an unsigned 64-bit integer.
  * Converting to a signed 64-bit integer with no bit loss so that it can be stored in an SQLite integer field as-is: https://www.sqlite.org/fileformat2.html#record_format
  * This should give very efficient storage with sufficient entropy.

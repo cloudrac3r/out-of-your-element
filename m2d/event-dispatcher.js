@@ -12,6 +12,8 @@ const {discord, db, sync, as} = require("../passthrough")
 const sendEvent = sync.require("./actions/send-event")
 /** @type {import("./actions/add-reaction")} */
 const addReaction = sync.require("./actions/add-reaction")
+/** @type {import("./actions/redact")} */
+const redact = sync.require("./actions/redact")
 /** @type {import("./converters/utils")} */
 const utils = sync.require("./converters/utils")
 /** @type {import("../matrix/api")}) */
@@ -99,6 +101,15 @@ async event => {
 	} else {
 		await addReaction.addReaction(event)
 	}
+}))
+
+sync.addTemporaryListener(as, "type:m.room.redaction", guard("m.room.redaction",
+/**
+ * @param {Ty.Event.Outer_M_Room_Redaction} event it is a m.room.redaction because that's what this listener is filtering for
+ */
+async event => {
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	await redact.handle(event)
 }))
 
 sync.addTemporaryListener(as, "type:m.room.avatar", guard("m.room.avatar",

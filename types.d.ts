@@ -173,6 +173,12 @@ export namespace Event {
 			key: string // the unicode emoji, mxc uri, or reaction text
 		}
 	}
+
+	export type Outer_M_Room_Redaction = Outer<{
+		reason?: string
+	}> & {
+		redacts: string
+	}
 }
 
 export namespace R {
