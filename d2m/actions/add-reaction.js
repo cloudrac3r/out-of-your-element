@@ -26,6 +26,7 @@ async function addReaction(data) {
 	assert.equal(typeof parentID, "string")
 
 	const key = await emojiToKey.emojiToKey(data.emoji)
+	const shortcode = key.startsWith("mxc://") ? `:${data.emoji.name}:` : undefined
 
 	const roomID = await createRoom.ensureRoom(data.channel_id)
 	const senderMxid = await registerUser.ensureSimJoined(user, roomID)
@@ -35,7 +36,7 @@ async function addReaction(data) {
 			event_id: parentID,
 			key
 		},
-		shortcode: `:${data.emoji.name}:`
+		shortcode
 	}, senderMxid)
 	return eventID
 }
