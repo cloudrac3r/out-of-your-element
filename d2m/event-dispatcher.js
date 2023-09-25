@@ -214,11 +214,26 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
+	 * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveDispatchData} data
 	 */
 	async onReactionRemove(client, data) {
-		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		await removeReaction.removeReaction(data)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveEmojiDispatchData} data
+	 */
+	async onReactionEmojiRemove(client, data) {
+		await removeReaction.removeEmojiReaction(data)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveAllDispatchData} data
+	 */
+	async onRemoveAllReactions(client, data) {
+		await removeReaction.removeAllReactions(data)
 	},
 
 	/**

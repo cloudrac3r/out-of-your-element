@@ -7,6 +7,8 @@ const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
 /** @type {import("../converters/utils")} */
 const utils = sync.require("../converters/utils")
+/** @type {import("../converters/emoji")} */
+const emoji = sync.require("../converters/emoji")
 
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event
@@ -17,41 +19,9 @@ async function addReaction(event) {
 	const messageID = select("event_message", "message_id", "WHERE event_id = ? AND part = 0").pluck().get(event.content["m.relates_to"].event_id) // 0 = primary
 	if (!messageID) return // Nothing can be done if the parent message was never bridged.
 
-	const emoji = event.content["m.relates_to"].key // TODO: handle custom text or emoji reactions
-	let discordPreferredEncoding
-	if (emoji.startsWith("mxc://")) {
-		// Custom emoji
-		let row = select("emoji", ["id", "name"], "WHERE mxc_url = ?").get(emoji)
-		if (!row && event.content.shortcode) {
-			// Use the name to try to find a known emoji with the same name.
-			const name = event.content.shortcode.replace(/^:|:$/g, "")
-			row = select("emoji", ["id", "name"], "WHERE name = ?").get(name)
-		}
-		if (!row) {
-			// We don't have this emoji and there's no realistic way to just-in-time upload a new emoji somewhere.
-			// Sucks!
-			return
-		}
-		// Cool, we got an exact or a candidate emoji.
-		discordPreferredEncoding = encodeURIComponent(`${row.name}:${row.id}`)
-	} else {
-		// Default emoji
-		// https://github.com/discord/discord-api-docs/issues/2723#issuecomment-807022205 ????????????
-		const encoded = encodeURIComponent(emoji)
-		const encodedTrimmed = encoded.replace(/%EF%B8%8F/g, "")
-
-		const forceTrimmedList = [
-			"%F0%9F%91%8D", // 👍
-			"%E2%AD%90" // ⭐
-		]
-
-		discordPreferredEncoding =
-			( forceTrimmedList.includes(encodedTrimmed) ? encodedTrimmed
-			: encodedTrimmed !== encoded && [...emoji].length === 2 ? encoded
-			: encodedTrimmed)
-
-		console.log("add reaction from matrix:", emoji, encoded, encodedTrimmed, "chosen:", discordPreferredEncoding)
-	}
+	const key = event.content["m.relates_to"].key // TODO: handle custom text or emoji reactions
+	const discordPreferredEncoding = emoji.encodeEmoji(key, event.content.shortcode)
+	if (!discordPreferredEncoding) return
 
 	await discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding) // acting as the discord bot itself
 
