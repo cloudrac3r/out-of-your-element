@@ -215,3 +215,9 @@ export namespace R {
 		event_id: string
 	}
 }
+
+export type Pagination<T> {
+	chunk: T[]
+	next_batch?: string
+	prev_match?: string
+}

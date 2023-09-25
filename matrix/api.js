@@ -1,7 +1,7 @@
 // @ts-check
 
 const Ty = require("../types")
-const assert = require("assert")
+const assert = require("assert").strict
 
 const passthrough = require("../passthrough")
 const { discord, sync, db } = passthrough
@@ -111,6 +111,18 @@ function getJoinedMembers(roomID) {
 
 /**
  * @param {string} roomID
+ * @param {string} eventID
+ * @param {string?} [relType]
+ * @returns {Promise<Ty.Pagination<Ty.Event.Outer<any>>>}
+ */
+function getRelations(roomID, eventID, relType) {
+	let path = `/client/v1/rooms/${roomID}/relations/${eventID}`
+	if (relType) path += `/${relType}`
+	return mreq.mreq("GET", path)
+}
+
+/**
+ * @param {string} roomID
  * @param {string} type
  * @param {string} stateKey
  * @param {string} [mxid]
@@ -207,6 +219,7 @@ module.exports.getEvent = getEvent
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
 module.exports.getJoinedMembers = getJoinedMembers
+module.exports.getRelations = getRelations
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
 module.exports.redactEvent = redactEvent
