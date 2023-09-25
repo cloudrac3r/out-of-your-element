@@ -155,7 +155,10 @@ async function sendEvent(roomID, type, content, mxid, timestamp) {
 }
 
 /**
- * @returns {Promise<string>} room ID
+ * @param {string} roomID
+ * @param {string} eventID
+ * @param {string?} [mxid]
+ * @returns {Promise<string>} event ID
  */
 async function redactEvent(roomID, eventID, mxid) {
 	/** @type {Ty.R.EventRedacted} */

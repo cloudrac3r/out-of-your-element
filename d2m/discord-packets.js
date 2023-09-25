@@ -155,6 +155,9 @@ const utils = {
 
 				} else if (message.t === "MESSAGE_REACTION_ADD") {
 					await eventDispatcher.onReactionAdd(client, message.d)
+
+				} else if (message.t === "MESSAGE_REACTION_REMOVE") {
+					await eventDispatcher.onReactionRemove(client, message.d)
 				}
 			} catch (e) {
 				// Let OOYE try to handle errors too

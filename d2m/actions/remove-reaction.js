@@ -7,12 +7,8 @@ const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
-/** @type {import("./register-user")} */
-const registerUser = sync.require("./register-user")
-/** @type {import("../actions/create-room")} */
-const createRoom = sync.require("../actions/create-room")
-/** @type {import("../../matrix/file")} */
-const file = sync.require("../../matrix/file")
+/** @type {import("../converters/emoji-to-key")} */
+const emojiToKey = sync.require("../converters/emoji-to-key")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveDispatchData} data
@@ -27,10 +23,11 @@ async function removeReaction(data) {
 
 	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
 	const relations = await api.getRelations(roomID, eventIDForMessage, "m.annotation")
-	const eventIDForReaction = relations.chunk.find(e => e.sender === mxid && e.content["m.relates_to"].key === data.emoji) // TODO: get the key from the emoji
+	const key = await emojiToKey.emojiToKey(data.emoji)
+	const eventIDForReaction = relations.chunk.find(e => e.sender === mxid && e.content["m.relates_to"].key === key)
 	if (!eventIDForReaction) return
 
-	await api.redactEvent(roomID, eventIDForReaction, mxid)
+	await api.redactEvent(roomID, eventIDForReaction.event_id, mxid)
 }
 
 module.exports.removeReaction = removeReaction

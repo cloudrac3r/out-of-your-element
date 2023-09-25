@@ -24,7 +24,8 @@ async function removeReaction(event) {
 	const hash = utils.getEventIDHash(event.redacts)
 	const row = from("reaction").join("message_channel", "message_id").select("channel_id", "message_id", "encoded_emoji").and("WHERE hashed_event_id = ?").get(hash)
 	if (!row) return
-	return discord.snow.channel.deleteReactionSelf(row.channel_id, row.message_id, row.encoded_emoji)
+	await discord.snow.channel.deleteReactionSelf(row.channel_id, row.message_id, row.encoded_emoji)
+	db.prepare("DELETE FROM reaction WHERE hashed_event_id = ?").run(hash)
 }
 
 /**

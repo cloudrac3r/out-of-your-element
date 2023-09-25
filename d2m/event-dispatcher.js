@@ -10,6 +10,8 @@ const editMessage = sync.require("./actions/edit-message")
 const deleteMessage = sync.require("./actions/delete-message")
 /** @type {import("./actions/add-reaction")}) */
 const addReaction = sync.require("./actions/add-reaction")
+/** @type {import("./actions/remove-reaction")}) */
+const removeReaction = sync.require("./actions/remove-reaction")
 /** @type {import("./actions/announce-thread")}) */
 const announceThread = sync.require("./actions/announce-thread")
 /** @type {import("./actions/create-room")}) */
@@ -208,6 +210,15 @@ module.exports = {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		discordCommandHandler.onReactionAdd(data)
 		await addReaction.addReaction(data)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
+	 */
+	async onReactionRemove(client, data) {
+		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
+		await removeReaction.removeReaction(data)
 	},
 
 	/**
