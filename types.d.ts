@@ -171,7 +171,8 @@ export namespace Event {
 			rel_type: "m.annotation"
 			event_id: string // the event that was reacted to
 			key: string // the unicode emoji, mxc uri, or reaction text
-		}
+		},
+		"shortcode"?: string // starts and ends with colons
 	}
 
 	export type Outer_M_Room_Redaction = Outer<{

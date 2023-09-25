@@ -21,16 +21,19 @@ async function addReaction(event) {
 	let discordPreferredEncoding
 	if (emoji.startsWith("mxc://")) {
 		// Custom emoji
-		const row = select("emoji", ["id", "name"], "WHERE mxc_url = ?").get(emoji)
-		if (row) {
-			// Great, we know exactly what this emoji is!
-			discordPreferredEncoding = encodeURIComponent(`${row.name}:${row.id}`)
-		} else {
+		let row = select("emoji", ["id", "name"], "WHERE mxc_url = ?").get(emoji)
+		if (!row && event.content.shortcode) {
+			// Use the name to try to find a known emoji with the same name.
+			const name = event.content.shortcode.replace(/^:|:$/g, "")
+			row = select("emoji", ["id", "name"], "WHERE name = ?").get(name)
+		}
+		if (!row) {
 			// We don't have this emoji and there's no realistic way to just-in-time upload a new emoji somewhere.
-			// We can't try using a known emoji with the same name because we don't even know what the name is. We only have the mxc url.
 			// Sucks!
 			return
 		}
+		// Cool, we got an exact or a candidate emoji.
+		discordPreferredEncoding = encodeURIComponent(`${row.name}:${row.id}`)
 	} else {
 		// Default emoji
 		// https://github.com/discord/discord-api-docs/issues/2723#issuecomment-807022205 ????????????

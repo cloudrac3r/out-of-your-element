@@ -50,7 +50,8 @@ async function addReaction(data) {
 			rel_type: "m.annotation",
 			event_id: parentID,
 			key
-		}
+		},
+		shortcode: `:${data.emoji.name}:`
 	}, senderMxid)
 	return eventID
 }
