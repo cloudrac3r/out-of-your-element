@@ -63,7 +63,7 @@ async function stickersToState(stickers) {
 			if (sticker && sticker.description) body += ` - ${sticker.description}`
 			if (!body) body = undefined
 
-			let shortcode = sticker.name.toLowerCase().replace(/[^a-zA-Z0-9-_]/g, "-").replace(/^-|-$/g, "").replace(/--+/g, "-")
+			let shortcode = sticker.name.toLowerCase().replace(/[^a-zA-Z0-9_-]/g, "-").replace(/^-|-$/g, "").replace(/--+/g, "-")
 			while (shortcodes.includes(shortcode)) shortcode = shortcode + "~"
 			shortcodes.push(shortcode)
 

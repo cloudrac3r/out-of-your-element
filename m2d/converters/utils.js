@@ -8,6 +8,15 @@ let hasher = null
 // @ts-ignore
 require("xxhash-wasm")().then(h => hasher = h)
 
+const BLOCK_ELEMENTS = [
+	"ADDRESS", "ARTICLE", "ASIDE", "AUDIO", "BLOCKQUOTE", "BODY", "CANVAS",
+	"CENTER", "DD", "DETAILS", "DIR", "DIV", "DL", "DT", "FIELDSET", "FIGCAPTION", "FIGURE",
+	"FOOTER", "FORM", "FRAMESET", "H1", "H2", "H3", "H4", "H5", "H6", "HEADER",
+	"HGROUP", "HR", "HTML", "ISINDEX", "LI", "MAIN", "MENU", "NAV", "NOFRAMES",
+	"NOSCRIPT", "OL", "OUTPUT", "P", "PRE", "SECTION", "SUMMARY", "TABLE", "TBODY", "TD",
+	"TFOOT", "TH", "THEAD", "TR", "UL"
+]
+
 /**
  * Determine whether an event is the bridged representation of a discord message.
  * Such messages shouldn't be bridged again.
@@ -54,6 +63,7 @@ function getEventIDHash(eventID) {
 	return signedHash
 }
 
+module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash

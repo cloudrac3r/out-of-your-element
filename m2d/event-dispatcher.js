@@ -14,6 +14,8 @@ const sendEvent = sync.require("./actions/send-event")
 const addReaction = sync.require("./actions/add-reaction")
 /** @type {import("./actions/redact")} */
 const redact = sync.require("./actions/redact")
+/** @type {import("../matrix/matrix-command-handler")} */
+const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
 /** @type {import("./converters/utils")} */
 const utils = sync.require("./converters/utils")
 /** @type {import("../matrix/api")}) */
@@ -78,6 +80,10 @@ sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const messageResponses = await sendEvent.sendEvent(event)
+	if (event.type === "m.room.message" && event.content.msgtype === "m.text") {
+		// @ts-ignore
+		await matrixCommandHandler.execute(event)
+	}
 }))
 
 sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
@@ -99,6 +105,7 @@ async event => {
 		// Try to bridge a failed event again?
 		await retry(event.room_id, event.content["m.relates_to"].event_id)
 	} else {
+		matrixCommandHandler.onReactionAdd(event)
 		await addReaction.addReaction(event)
 	}
 }))

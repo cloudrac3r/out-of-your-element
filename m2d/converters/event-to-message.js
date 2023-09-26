@@ -15,15 +15,6 @@ const utils = sync.require("../converters/utils")
 /** @type {import("./emoji-sheet")} */
 const emojiSheet = sync.require("./emoji-sheet")
 
-const BLOCK_ELEMENTS = [
-	"ADDRESS", "ARTICLE", "ASIDE", "AUDIO", "BLOCKQUOTE", "BODY", "CANVAS",
-	"CENTER", "DD", "DETAILS", "DIR", "DIV", "DL", "DT", "FIELDSET", "FIGCAPTION", "FIGURE",
-	"FOOTER", "FORM", "FRAMESET", "H1", "H2", "H3", "H4", "H5", "H6", "HEADER",
-	"HGROUP", "HR", "HTML", "ISINDEX", "LI", "MAIN", "MENU", "NAV", "NOFRAMES",
-	"NOSCRIPT", "OL", "OUTPUT", "P", "PRE", "SECTION", "SUMMARY", "TABLE", "TBODY", "TD",
-	"TFOOT", "TH", "THEAD", "TR", "UL"
-]
-
 /** @type {[RegExp, string][]} */
 const markdownEscapes = [
 	[/\\/g, '\\\\'],
@@ -235,7 +226,7 @@ function splitDisplayName(displayName) {
 async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles) {
 	if (!content.includes("<::>")) return content // No unknown emojis, nothing to do
 	// Remove known and unknown emojis from the end of the message
-	const r = /<a?:[a-zA-Z0-9_-]*:[0-9]*>\s*$/
+	const r = /<a?:[a-zA-Z0-9_]*:[0-9]*>\s*$/
 	while (content.match(r)) {
 		content = content.replace(r, "")
 	}
@@ -403,7 +394,7 @@ async function eventToMessage(event, guild, di) {
 				beforeTag = beforeTag || ""
 				afterContext = afterContext || ""
 				afterTag = afterTag || ""
-				if (!BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
+				if (!utils.BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !utils.BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
 					return beforeContext + "<br>" + afterContext
 				} else {
 					return whole
