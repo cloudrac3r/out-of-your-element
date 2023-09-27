@@ -12,6 +12,9 @@ const api = sync.require("./api")
 const mxUtils = sync.require("../m2d/converters/utils")
 /** @type {import("../discord/utils")} */
 const dUtils = sync.require("../discord/utils")
+/** @type {import("./kstate")} */
+const ks = sync.require("./kstate")
+const reg = require("./read-registration")
 
 const PREFIXES = ["//", "/"]
 
@@ -69,6 +72,7 @@ function onReactionAdd(event) {
 /**
  * @callback CommandExecute
  * @param {Ty.Event.Outer_M_Room_Message} event
+ * @param {string} realBody
  * @param {any} [ctx]
  */
 
@@ -81,13 +85,13 @@ function onReactionAdd(event) {
 /** @param {CommandExecute} execute */
 function replyctx(execute) {
 	/** @type {CommandExecute} */
-	return function(event, ctx = {}) {
+	return function(event, realBody, ctx = {}) {
 		ctx["m.relates_to"] = {
 			"m.in_reply_to": {
 				event_id: event.event_id
 			}
 		}
-		return execute(event, ctx)
+		return execute(event, realBody, ctx)
 	}
 }
 
@@ -106,7 +110,7 @@ class MatrixStringBuilder {
 	 */
 	add(body, formattedBody, condition = true) {
 		if (condition) {
-			if (!formattedBody) formattedBody = body
+			if (formattedBody == undefined) formattedBody = body
 			this.body += body
 			this.formattedBody += formattedBody
 		}
@@ -120,7 +124,7 @@ class MatrixStringBuilder {
 	 */
 	addLine(body, formattedBody, condition = true) {
 		if (condition) {
-			if (!formattedBody) formattedBody = body
+			if (formattedBody == undefined) formattedBody = body
 			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n"
 			this.body += body
 			const match = this.formattedBody.match(/<\/?([a-zA-Z]+[a-zA-Z0-9]*)[^>]*>\s*$/)
@@ -144,13 +148,14 @@ class MatrixStringBuilder {
 const commands = [{
 	aliases: ["emoji"],
 	execute: replyctx(
-		async (event, ctx) => {
+		async (event, realBody, ctx) => {
 			// Guard
 			/** @type {string} */ // @ts-ignore
 			const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(event.room_id)
 			const guildID = discord.channels.get(channelID)?.["guild_id"]
 			let matrixOnlyReason = null
 			const matrixOnlyConclusion = "So the emoji will be uploaded on Matrix-side only. It will still be usable over the bridge, but may have degraded functionality."
+			// Check if we can/should upload to Discord, for various causes
 			if (!guildID) {
 				matrixOnlyReason = "NOT_BRIDGED"
 			} else {
@@ -164,47 +169,68 @@ const commands = [{
 					matrixOnlyReason = "USER_PERMISSIONS"
 				}
 			}
-
-			const nameMatch = event.content.body.match(/:([a-zA-Z0-9_]{2,}):/)
-			if (!nameMatch) {
-				return api.sendEvent(event.room_id, "m.room.message", {
-					...ctx,
-					msgtype: "m.text",
-					body: "Not sure what you want to call this emoji. Try writing a new :name: in colons. The name can have letters, numbers, and underscores."
-				})
-			}
-			const name = nameMatch[1]
-
-			let mxc
-			const mxcMatch = event.content.body.match(/(mxc:\/\/.*?)\b/)
-			if (mxcMatch) {
-				mxc = mxcMatch[1]
-			}
-			if (!mxc && event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id) {
-				const repliedToEventID = event.content["m.relates_to"]["m.in_reply_to"].event_id
-				const repliedToEvent = await api.getEvent(event.room_id, repliedToEventID)
-				if (repliedToEvent.type === "m.room.message" && repliedToEvent.content.msgtype === "m.image" && repliedToEvent.content.url) {
-					mxc = repliedToEvent.content.url
+			if (matrixOnlyReason) {
+				// If uploading to Matrix, check if we have permission
+				const state = await api.getAllState(event.room_id)
+				const kstate = ks.stateToKState(state)
+				const powerLevels = kstate["m.room.power_levels/"]
+				const required = powerLevels.events["im.ponies.room_emotes"] ?? powerLevels.state_default ?? 50
+				const have = powerLevels.users[`@${reg.sender_localpart}:${reg.ooye.server_name}`] ?? powerLevels.users_default ?? 0
+				if (have < required) {
+					return api.sendEvent(event.room_id, "m.room.message", {
+						...ctx,
+						msgtype: "m.text",
+						body: "I don't have sufficient permissions in this Matrix room to edit emojis."
+					})
 				}
 			}
-			if (!mxc) {
+
+			/** @type {{url: string, name: string}[]} */
+			const toUpload = []
+			const nameMatch = realBody.match(/:([a-zA-Z0-9_]{2,}):/)
+			const mxcMatch = realBody.match(/(mxc:\/\/.*?)\b/)
+			if (event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id) {
+				const repliedToEventID = event.content["m.relates_to"]["m.in_reply_to"].event_id
+				const repliedToEvent = await api.getEvent(event.room_id, repliedToEventID)
+				if (nameMatch && repliedToEvent.type === "m.room.message" && repliedToEvent.content.msgtype === "m.image" && repliedToEvent.content.url) {
+					toUpload.push({url: repliedToEvent.content.url, name: nameMatch[1]})
+				} else if (repliedToEvent.type === "m.room.message" && repliedToEvent.content.msgtype === "m.text" && "formatted_body" in repliedToEvent.content) {
+					const namePrefixMatch = realBody.match(/:([a-zA-Z0-9_]{2,})(?:\b|:)/)
+					const imgMatches = [...repliedToEvent.content.formatted_body.matchAll(/<img [^>]*>/g)]
+					for (const match of imgMatches) {
+						const e = match[0]
+						const url = e.match(/src="([^"]*)"/)?.[1]
+						let name = e.match(/title=":?([^":]*):?"/)?.[1]
+						if (!url || !name) continue
+						if (namePrefixMatch) name = namePrefixMatch[1] + name
+						toUpload.push({url, name})
+					}
+				}
+			}
+			if (!toUpload.length && mxcMatch && nameMatch) {
+				toUpload.push({url: mxcMatch[1], name: nameMatch[1]})
+			}
+			if (!toUpload.length) {
 				return api.sendEvent(event.room_id, "m.room.message", {
 					...ctx,
 					msgtype: "m.text",
-					body: "Not sure what image you wanted to add. Try replying to an uploaded image when you use the command, or write an mxc:// URL in your message."
+					body: "Not sure what image you wanted to add. Try replying to an uploaded image when you use the command, or write an mxc:// URL in your message. You should specify the new name :like_this:."
 				})
 			}
 
+			const b = new MatrixStringBuilder()
+				.addLine("## Emoji preview", "<h2>Emoji preview</h2>")
+				.addLine(`Ⓜ️ This room isn't bridged to Discord. ${matrixOnlyConclusion}`, `Ⓜ️ <em>This room isn't bridged to Discord. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "NOT_BRIDGED")
+				.addLine(`Ⓜ️ *Discord ran out of space for emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>Discord ran out of space for emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
+				.addLine(`Ⓜ️ *If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
+				.addLine("[Preview not available in plain text.]", "Preview:")
+			for (const e of toUpload) {
+				b.add("", `<img data-mx-emoticon height="48" src="${e.url}" title=":${e.name}:" alt=":${e.name}:">`)
+			}
+			b.addLine("Hit ✅ to add it.")
 			const sent = await api.sendEvent(event.room_id, "m.room.message", {
 				...ctx,
-				...new MatrixStringBuilder()
-					.addLine("## Emoji preview", "<h2>Emoji preview</h2>")
-					.addLine(`Ⓜ️ This room isn't bridged to Discord. ${matrixOnlyConclusion}`, `Ⓜ️ <em>This room isn't bridged to Discord. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "NOT_BRIDGED")
-					.addLine(`Ⓜ️ *Discord ran out of space for emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>Discord ran out of space for emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
-					.addLine(`Ⓜ️ *If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
-					.addLine("[Preview not available in plain text.]", `Preview: <img data-mx-emoticon height="48" src="${mxc} title=":${name}:" alt=":${name}:">`)
-					.addLine("Hit ✅ to add it.")
-					.get()
+				...b.get()
 			})
 			addButton(event.room_id, sent, "✅", event.sender).then(async () => {
 				if (matrixOnlyReason) {
@@ -223,30 +249,36 @@ const commands = [{
 						}
 					}
 					if (!("images" in pack)) pack.images = {}
-					pack.images[name] = {
-						url: mxc // Directly use the same file that the Matrix user uploaded. Don't need to worry about dimensions/filesize because clients already request their preferred resized version from the homeserver.
+					const b = new MatrixStringBuilder()
+						.addLine(`Created ${toUpload.length} emojis`, "")
+					for (const e of toUpload) {
+						pack.images[e.name] = {
+							url: e.url // Directly use the same file that the Matrix user uploaded. Don't need to worry about dimensions/filesize because clients already request their preferred resized version from the homeserver.
+						}
+						b.add("", `<img data-mx-emoticon height="48" src="${e.url}" title=":${e.name}:" alt=":${e.name}:">`)
 					}
+					await api.sendState(event.room_id, type, key, pack)
 					api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
-						...new MatrixStringBuilder()
-							.addLine(`Created :${name}:`, `<img data-mx-emoticon height="48" src="${mxc}" title=":${name}:" alt=":${name}:">`)
-							.get()
+						...b.get()
 					})
 				} else {
 					// Upload it to Discord and have the bridge sync it back to Matrix again
-					const publicUrl = mxUtils.getPublicUrlForMxc(mxc)
-					// @ts-ignore
-					const resizeInput = await fetch(publicUrl, {agent: false}).then(res => res.arrayBuffer())
-					const resizeOutput = await sharp(resizeInput)
-						.resize(EMOJI_SIZE, EMOJI_SIZE, {fit: "inside", withoutEnlargement: true, background: {r: 0, g: 0, b: 0, alpha: 0}})
-						.png()
-						.toBuffer({resolveWithObject: true})
-					console.log(`uploading emoji ${resizeOutput.data.length} bytes to :${name}:`)
-					const emoji = await discord.snow.guildAssets.createEmoji(guildID, {name, image: "data:image/png;base64," + resizeOutput.data.toString("base64")})
+					for (const e of toUpload) {
+						const publicUrl = mxUtils.getPublicUrlForMxc(e.url)
+						// @ts-ignore
+						const resizeInput = await fetch(publicUrl, {agent: false}).then(res => res.arrayBuffer())
+						const resizeOutput = await sharp(resizeInput)
+							.resize(EMOJI_SIZE, EMOJI_SIZE, {fit: "inside", withoutEnlargement: true, background: {r: 0, g: 0, b: 0, alpha: 0}})
+							.png()
+							.toBuffer({resolveWithObject: true})
+						console.log(`uploading emoji ${resizeOutput.data.length} bytes to :${e.name}:`)
+						const emoji = await discord.snow.guildAssets.createEmoji(guildID, {name: e.name, image: "data:image/png;base64," + resizeOutput.data.toString("base64")})
+					}
 					api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
 						msgtype: "m.text",
-						body: `Created :${name}:`
+						body: `Created ${toUpload.length} emojis`
 					})
 				}
 			})
@@ -276,7 +308,7 @@ async function execute(event) {
 	const command = commands.find(c => c.aliases.includes(commandName))
 	if (!command) return
 
-	await command.execute(event)
+	await command.execute(event, realBody)
 }
 
 module.exports.execute = execute
