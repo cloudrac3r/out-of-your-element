@@ -202,27 +202,45 @@ const commands = [{
 					.addLine(`Ⓜ️ This room isn't bridged to Discord. ${matrixOnlyConclusion}`, `Ⓜ️ <em>This room isn't bridged to Discord. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "NOT_BRIDGED")
 					.addLine(`Ⓜ️ *Discord ran out of space for emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>Discord ran out of space for emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
 					.addLine(`Ⓜ️ *If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
-					.addLine("[Preview not available in plain text.]", `Preview: <img data-mx-emoticon height="48" src="${mxc}">`)
+					.addLine("[Preview not available in plain text.]", `Preview: <img data-mx-emoticon height="48" src="${mxc} title=":${name}:" alt=":${name}:">`)
 					.addLine("Hit ✅ to add it.")
 					.get()
 			})
 			addButton(event.room_id, sent, "✅", event.sender).then(async () => {
-				const publicUrl = mxUtils.getPublicUrlForMxc(mxc)
-				// @ts-ignore
-				const resizeInput = await fetch(publicUrl, {agent: false}).then(res => res.arrayBuffer())
-				const resizeOutput = await sharp(resizeInput)
-					.resize(EMOJI_SIZE, EMOJI_SIZE, {fit: "inside", withoutEnlargement: true, background: {r: 0, g: 0, b: 0, alpha: 0}})
-					.png()
-					.toBuffer({resolveWithObject: true})
 				if (matrixOnlyReason) {
-					// Edit some state keys
+					// Edit some state
+					const type = "im.ponies.room_emotes"
+					const key = "moe.cadence.ooye.pack.matrix"
+					let pack
+					try {
+						pack = await api.getStateEvent(event.room_id, type, key)
+					} catch (e) {
+						pack = {
+							pack: {
+								display_name: "Non-Discord Emojis",
+								usage: ["emoticon", "sticker"]
+							}
+						}
+					}
+					if (!("images" in pack)) pack.images = {}
+					pack.images[name] = {
+						url: mxc // Directly use the same file that the Matrix user uploaded. Don't need to worry about dimensions/filesize because clients already request their preferred resized version from the homeserver.
+					}
 					api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
-						msgtype: "m.text",
-						body: "Sorry, adding Matrix-only emojis not supported yet!!"
+						...new MatrixStringBuilder()
+							.addLine(`Created :${name}:`, `<img data-mx-emoticon height="48" src="${mxc}" title=":${name}:" alt=":${name}:">`)
+							.get()
 					})
 				} else {
 					// Upload it to Discord and have the bridge sync it back to Matrix again
+					const publicUrl = mxUtils.getPublicUrlForMxc(mxc)
+					// @ts-ignore
+					const resizeInput = await fetch(publicUrl, {agent: false}).then(res => res.arrayBuffer())
+					const resizeOutput = await sharp(resizeInput)
+						.resize(EMOJI_SIZE, EMOJI_SIZE, {fit: "inside", withoutEnlargement: true, background: {r: 0, g: 0, b: 0, alpha: 0}})
+						.png()
+						.toBuffer({resolveWithObject: true})
 					console.log(`uploading emoji ${resizeOutput.data.length} bytes to :${name}:`)
 					const emoji = await discord.snow.guildAssets.createEmoji(guildID, {name, image: "data:image/png;base64," + resizeOutput.data.toString("base64")})
 					api.sendEvent(event.room_id, "m.room.message", {
