@@ -58,9 +58,8 @@ async function resolvePendingFiles(message) {
 
 /** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker} event */
 async function sendEvent(event) {
-	// TODO: we just assume the bridge has already been created, is that really ok?
 	const row = select("channel_room", ["channel_id", "thread_parent"], "WHERE room_id = ?").get(event.room_id)
-	assert(row)
+	if (!row) return // allow the bot to exist in unbridged rooms, just don't do anything with it
 	let channelID = row.channel_id
 	let threadID = undefined
 	if (row.thread_parent) {
