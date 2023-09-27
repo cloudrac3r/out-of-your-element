@@ -403,3 +403,18 @@ test("message2event: mid-message small bridged emoji", async t => {
 		formatted_body: 'h is for <img data-mx-emoticon height="32" src="mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC" title=":hippo:" alt=":hippo:">!'
 	}])
 })
+
+test("message2event: emoji triple long name", async t => {
+	const events = await messageToEvent(data.message.emoji_triple_long_name, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: ":brillillillilliant_move::brillillillilliant_move::brillillillilliant_move:",
+		format: "org.matrix.custom.html",
+		formatted_body:
+			  '<img data-mx-emoticon height="32" src="mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik" title=":brillillillilliant_move:" alt=":brillillillilliant_move:">'
+			+ '<img data-mx-emoticon height="32" src="mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik" title=":brillillillilliant_move:" alt=":brillillillilliant_move:">'
+			+ '<img data-mx-emoticon height="32" src="mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik" title=":brillillillilliant_move:" alt=":brillillillilliant_move:">'
+	}])
+})

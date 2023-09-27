@@ -1038,6 +1038,36 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		emoji_triple_long_name: {
+			id: "1156394116540805170",
+			type: 0,
+			content: "<:brillillillilliant_move:975572106295259148><:brillillillilliant_move:975572106295259148><:brillillillilliant_move:975572106295259148>",
+			channel_id: "112760669178241024",
+			author: {
+				id: "111604486476181504",
+				username: "kyuugryphon",
+				avatar: "e4ce31267ca524d19be80e684d4cafa1",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "KyuuGryphon",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-09-27T00:57:22.147000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		}
 	},
 	message_with_embeds: {
 		nothing_but_a_field: {
