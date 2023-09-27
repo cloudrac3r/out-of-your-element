@@ -37,7 +37,7 @@ async function compositeMatrixEmojis(mxcs) {
 				/** @type {{info: sharp.OutputInfo, buffer: Buffer}} */
 				const result = await new Promise((resolve, reject) => {
 					const transformer = sharp()
-						.resize(SIZE, SIZE, {fit: "contain"})
+						.resize(SIZE, SIZE, {fit: "contain", background: {r: 0, g: 0, b: 0, alpha: 0}})
 						.png({compressionLevel: 0})
 						.toBuffer((err, buffer, info) => {
 							if (err) return reject(err)
