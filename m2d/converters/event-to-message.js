@@ -120,32 +120,31 @@ turndownService.addRule("emoji", {
 
 	replacement: function (content, node) {
 		const mxcUrl = node.getAttribute("src")
-		let row = select("emoji", ["id", "name", "animated"], "WHERE mxc_url = ?").get(mxcUrl)
-		if (!row) {
-			// We don't know what this is... but maybe we can guess based on the name?
-			const guessedName = node.getAttribute("title").replace(/^:|:$/g, "")
-			for (const guild of discord?.guilds.values() || []) {
-				/** @type {{name: string, id: string, animated: number}[]} */
-				// @ts-ignore
-				const emojis = guild.emojis
-				const match = emojis.find(e => e.name === guessedName) || emojis.find(e => e.name?.toLowerCase() === guessedName.toLowerCase())
-				if (match) {
-					row = match
-					break
-				}
+		// Get the known emoji from the database. (We may not be able to actually use this if it was from another server.)
+		const row = select("emoji", ["id", "name", "animated"], "WHERE mxc_url = ?").get(mxcUrl)
+		// Also guess a suitable emoji based on the ID (if available) or name
+		let guess = null
+		const guessedName = node.getAttribute("title").replace(/^:|:$/g, "")
+		for (const guild of discord?.guilds.values() || []) {
+			/** @type {{name: string, id: string, animated: number}[]} */
+			// @ts-ignore
+			const emojis = guild.emojis
+			const match = emojis.find(e => e.id === row?.id) || emojis.find(e => e.name === guessedName) || emojis.find(e => e.name?.toLowerCase() === guessedName.toLowerCase())
+			if (match) {
+				guess = match
+				break
 			}
 		}
-		if (row) {
-			const animatedChar = row.animated ? "a" : ""
-			return `<${animatedChar}:${row.name}:${row.id}>`
+		if (guess) {
+			// We know an emoji, and we can use it
+			const animatedChar = guess.animated ? "a" : ""
+			return `<${animatedChar}:${guess.name}:${guess.id}>`
+		} else if (endOfMessageEmojis.includes(mxcUrl)) {
+			// We can't locate or use a suitable emoji. After control returns, it will rewind over this, delete this section, and upload the emojis as a sprite sheet.
+			return `<::>`
 		} else {
-			if (endOfMessageEmojis.includes(mxcUrl)) {
-				// After control returns to the main converter, it will rewind over this, delete this section, and upload the emojis as a sprite sheet.
-				return `<::>`
-			} else {
-				// This emoji is not at the end of the message, it is in the middle. We don't upload middle emojis as a sprite sheet.
-				return `[${node.getAttribute("title")}](${utils.getPublicUrlForMxc(mxcUrl)})`
-			}
+			// We prefer not to upload this as a sprite sheet because the emoji is not at the end of the message, it is in the middle.
+			return `[${node.getAttribute("title")}](${utils.getPublicUrlForMxc(mxcUrl)})`
 		}
 	}
 })

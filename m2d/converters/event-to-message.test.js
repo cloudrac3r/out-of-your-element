@@ -1805,7 +1805,6 @@ slow()("event2message: unknown emoji in the end is reuploaded as a sprite sheet"
 })
 
 slow()("event2message: known and unknown emojis in the end are reuploaded as a sprite sheet", async t => {
-	t.comment("SKIPPED")
 	const messages = await eventToMessage({
 		type: "m.room.message",
 		sender: "@cadence:cadence.moe",
@@ -1827,5 +1826,30 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
 		fileName: "emojis.png",
 		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAT5UlEQVR4nOVbCXSVRZauR9gMsoYlvKwvARKSkPUlJOyL"
+	})
+})
+
+slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet", async t => {
+	const messages = await eventToMessage({
+		type: "m.room.message",
+		sender: "@cadence:cadence.moe",
+		content: {
+			msgtype: "m.text",
+			body: "testing :chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black:",
+			format: "org.matrix.custom.html",
+			formatted_body: "testing <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\">"
+		},
+		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
+		room_id: "!maggESguZBqGBZtSnr:cadence.moe"
+	})
+	const testResult = {
+		content: messages.messagesToSend[0].content,
+		fileName: messages.messagesToSend[0].pendingFiles[0].name,
+		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
+	}
+	t.deepEqual(testResult, {
+		content: "testing",
+		fileName: "emojis.png",
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAASAAAAAwCAYAAACxIqevAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAgAElEQVR4nOV9B1xUV9r3JMbEGBQLbRodhukDg2jWZP02"
 	})
 })
