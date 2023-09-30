@@ -457,12 +457,19 @@ async function eventToMessage(event, guild, di) {
 		}
 	} else if (event.type === "m.sticker") {
 		content = ""
-		let filename = event.content.body
-		if (event.type === "m.sticker" && event.content.info.mimetype.includes("/")) {
-			filename += "." + event.content.info.mimetype.split("/")[1]
-		}
 		const url = utils.getPublicUrlForMxc(event.content.url)
 		assert(url)
+		let filename = event.content.body
+		if (event.type === "m.sticker") {
+			let mimetype
+			if (event.content.info?.mimetype?.includes("/")) {
+				mimetype = event.content.info.mimetype
+			} else {
+				const res = await fetch(url, {method: "HEAD"})
+				mimetype = res.headers.get("content-type") || "image/webp"
+			}
+			filename += "." + mimetype.split("/")[1]
+		}
 		attachments.push({id: "0", filename})
 		pendingFiles.push({name: filename, url})
 	}

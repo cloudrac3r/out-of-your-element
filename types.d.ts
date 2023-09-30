@@ -139,8 +139,8 @@ export namespace Event {
 	export type M_Sticker = {
 		body: string
 		url: string
-		info: {
-			mimetype: string
+		info?: {
+			mimetype?: string
 			w?: number
 			h?: number
 			size?: number
@@ -217,7 +217,7 @@ export namespace R {
 	}
 }
 
-export type Pagination<T> {
+export type Pagination<T> = {
 	chunk: T[]
 	next_batch?: string
 	prev_match?: string
