@@ -17,7 +17,7 @@ INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
 ('114147806469554185', 'extremity', '_ooye_extremity', '@_ooye_extremity:cadence.moe'),
 ('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe');;
 
-INSERT INTO sim_member (mxid, room_id, profile_event_content_hash) VALUES
+INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!uCtjHhfGlYbVnPVlkG:cadence.moe', NULL);
 
 INSERT INTO message_channel (message_id, channel_id) VALUES

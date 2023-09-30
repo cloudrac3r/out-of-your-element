@@ -20,7 +20,7 @@ const newAT = reg.as_token
 const oldDB = new sqlite(reg.old_bridge.database)
 const db = new sqlite("db/ooye.db")
 
-db.exec(`CREATE TABLE IF NOT EXISTS migration (
+db.exec(`CREATE TABLE IF NOT EXISTS half_shot_migration (
 	discord_channel	TEXT NOT NULL,
 	migrated	INTEGER NOT NULL,
 	PRIMARY KEY("discord_channel")
@@ -69,7 +69,7 @@ async function migrateGuild(guild) {
 	const spaceID = await createSpace.syncSpace(guild)
 
 	let oldRooms = oldDB.prepare("SELECT matrix_id, discord_guild, discord_channel FROM room_entries INNER JOIN remote_room_data ON remote_id = room_id WHERE discord_guild = ?").all(guild.id)
-	const migrated = db.prepare("SELECT discord_channel FROM migration WHERE migrated = 1").pluck().all()
+	const migrated = db.prepare("SELECT discord_channel FROM half_shot_migration WHERE migrated = 1").pluck().all()
 	oldRooms = oldRooms.filter(row => discord.channels.has(row.discord_channel) && !migrated.includes(row.discord_channel))
 	console.log("Found these rooms which can be migrated:")
 	console.log(oldRooms)
@@ -128,7 +128,7 @@ async function migrateGuild(guild) {
 		await createRoom.syncRoom(row.discord_channel)
 		console.log(`-- -- Finished syncing`)
 
-		db.prepare("INSERT INTO migration (discord_channel, migrated) VALUES (?, 1)").run(channel.id)
+		db.prepare("INSERT INTO half_shot_migration (discord_channel, migrated) VALUES (?, 1)").run(channel.id)
 	}
 
 	// Step 5: Call syncSpace to make sure everything is up to date

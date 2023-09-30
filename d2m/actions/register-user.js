@@ -11,6 +11,10 @@ const api = sync.require("../../matrix/api")
 const file = sync.require("../../matrix/file")
 /** @type {import("../converters/user-to-mxid")} */
 const userToMxid = sync.require("../converters/user-to-mxid")
+/** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
+let hasher = null
+// @ts-ignore
+require("xxhash-wasm")().then(h => hasher = h)
 
 /**
  * A sim is an account that is being simulated by the bridge to copy events from the other side.
@@ -120,7 +124,9 @@ async function memberToStateContent(user, member, guildID) {
 }
 
 function hashProfileContent(content) {
-	return `${content.displayname}\u0000${content.avatar_url}`
+	const unsignedHash = hasher.h64(`${content.displayname}\u0000${content.avatar_url}`)
+	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
+	return signedHash
 }
 
 /**
@@ -137,11 +143,11 @@ async function syncUser(user, member, guildID, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guildID)
 	const currentHash = hashProfileContent(content)
-	const existingHash = select("sim_member", "profile_event_content_hash", "WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
+	const existingHash = select("sim_member", "hashed_profile_content", "WHERE room_id = ? AND mxid = ?").safeIntegers().pluck().get(roomID, mxid)
 	// only do the actual sync if the hash has changed since we last looked
 	if (existingHash !== currentHash) {
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
-		db.prepare("UPDATE sim_member SET profile_event_content_hash = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
+		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}
 	return mxid
 }

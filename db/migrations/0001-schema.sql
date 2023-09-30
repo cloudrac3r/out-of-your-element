@@ -1,3 +1,5 @@
+BEGIN TRANSACTION;
+
 CREATE TABLE IF NOT EXISTS "sim" (
 	"discord_id"	TEXT NOT NULL,
 	"sim_name"	TEXT NOT NULL UNIQUE,
@@ -86,3 +88,5 @@ CREATE TABLE IF NOT EXISTS "reaction" (
 	"encoded_emoji"	TEXT NOT NULL,
 	PRIMARY KEY ("hashed_event_id")
 ) WITHOUT ROWID;
+
+COMMIT;

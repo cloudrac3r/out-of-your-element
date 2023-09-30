@@ -54,7 +54,7 @@ export type Models = {
 	sim_member: {
 		mxid: string
 		room_id: string
-		profile_event_content_hash: any
+		hashed_profile_content: number
 	}
 
 	webhook: {
@@ -79,8 +79,9 @@ export type Models = {
 
 export type Prepared<Row> = {
 	pluck: () => Prepared<Row[keyof Row]>
+	safeIntegers: () => Prepared<{[K in keyof Row]: Row[K] extends number ? BigInt : Row[K]}>
 	all: (..._: any[]) => Row[]
-	get: (..._: any[]) => Row?
+	get: (..._: any[]) => Row | null
 }
 
 export type AllKeys<U> = U extends any ? keyof U : never

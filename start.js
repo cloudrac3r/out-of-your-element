@@ -1,6 +1,7 @@
 // @ts-check
 
 const sqlite = require("better-sqlite3")
+const migrate = require("./db/migrate")
 const HeatSync = require("heatsync")
 
 const config = require("./config")
@@ -30,6 +31,7 @@ discord.snow.requestHandler.on("requestError", data => {
 })
 
 ;(async () => {
+	await migrate.migrate(db)
 	await discord.cloud.connect()
 	console.log("Discord gateway started")
 

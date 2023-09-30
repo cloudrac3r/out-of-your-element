@@ -93,7 +93,28 @@ module.exports = {
 			afk_timeout: 300,
 			id: "112760669178241024",
 			icon: "a_f83622e09ead74f0c5c527fe241f8f8c",
-			emojis: [],
+			emojis: [
+				{
+					version: 0,
+					roles: [],
+					require_colons: true,
+					name: "hippo",
+					managed: false,
+					id: "230201364309868544",
+					available: true,
+					animated: false
+				},
+				{
+					version: 0,
+					roles: [],
+					require_colons: true,
+					name: "hipposcope",
+					managed: false,
+					id: "393635038903926784",
+					available: true,
+					animated: true
+				}
+			],
 			premium_subscription_count: 14,
 			roles: [],
 			discovery_splash: null,
@@ -1133,6 +1154,139 @@ module.exports = {
 				}
 			},
 			webhook_id: "1109360903096369153"
+		},
+		reply_with_only_embed: {
+			type: 19,
+			tts: false,
+			timestamp: "2023-09-29T20:44:42.606000+00:00",
+			referenced_message: {
+				type: 19,
+				tts: false,
+				timestamp: "2023-09-29T20:44:42.204000+00:00",
+				pinned: false,
+				message_reference: {
+					message_id: "1157413453921787924",
+					guild_id: "1150201337112449045",
+					channel_id: "1150208267285434429"
+				},
+				mentions: [
+					{
+						username: "goat_six",
+						public_flags: 64,
+						id: "334539029879980040",
+						global_name: "GoatSixx",
+						discriminator: "0",
+						avatar_decoration_data: null,
+						avatar: "fd87e077c6ebe4239ce573bae083ed66"
+					}
+				],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1157417694728044624",
+				flags: 0,
+				embeds: [
+					{
+						url: "https://twitter.com/dynastic/status/1707484191963648161",
+						type: "rich",
+						timestamp: "2023-09-28T19:55:29.543000+00:00",
+						reference_id: "1157417694728044624",
+						footer: {
+							text: "Twitter",
+							proxy_icon_url: "https://images-ext-1.discordapp.net/external/bXJWV2Y_F3XSra_kEqIYXAAsI3m1meckfLhYuWzxIfI/https/abs.twimg.com/icons/apple-touch-icon-192x192.png",
+							icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png"
+						},
+						fields: [
+							{ value: "119", name: "Retweets", inline: true },
+							{ value: "5581", name: "Likes", inline: true }
+						],
+						description: "does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?",
+						color: 1942002,
+						author: {
+							url: "https://twitter.com/dynastic",
+							proxy_icon_url: "https://images-ext-2.discordapp.net/external/06UZNFT37nepFbzmK2FN4q-9DO_UeSaOaZQICSiMexU/https/pbs.twimg.com/profile_images/1682417899162730499/q7dQMwLq_400x400.jpg",
+							name: "dynastic (@dynastic)",
+							icon_url: "https://pbs.twimg.com/profile_images/1682417899162730499/q7dQMwLq_400x400.jpg"
+						}
+					}
+				],
+				edited_timestamp: null,
+				content: "https://twitter.com/dynastic/status/1707484191963648161",
+				components: [],
+				channel_id: "1150208267285434429",
+				author: {
+					username: "pokemongod",
+					public_flags: 0,
+					id: "66255093481082800",
+					global_name: "PokemonGod",
+					discriminator: "0",
+					avatar_decoration_data: null,
+					avatar: "0cab06c4256499749cbdd4561c629f84"
+				},
+				attachments: []
+			},
+			pinned: false,
+			message_reference: {
+				message_id: "1157417694728044624",
+				guild_id: "1150201337112449045",
+				channel_id: "1150208267285434429"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [ "1153875112832008212" ],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2023-09-20T02:07:44.874994+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: null
+			},
+			id: "1157417696414150778",
+			flags: 0,
+			embeds: [
+				{
+					url: "https://twitter.com/i/status/1707484191963648161",
+					type: "rich",
+					timestamp: "2023-09-28T19:55:29+00:00",
+					footer: {
+						text: "Twitter",
+						proxy_icon_url: "https://images-ext-1.discordapp.net/external/bXJWV2Y_F3XSra_kEqIYXAAsI3m1meckfLhYuWzxIfI/https/abs.twimg.com/icons/apple-touch-icon-192x192.png",
+						icon_url: "https://abs.twimg.com/icons/apple-touch-icon-192x192.png"
+					},
+					fields: [
+						{ value: "119", name: "Retweets", inline: true },
+						{ value: "5581", name: "Likes", inline: true }
+					],
+					description: "does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?",
+					color: 1942002,
+					author: {
+						url: "https://twitter.com/i/user/719631291747078145",
+						proxy_icon_url: "https://images-ext-1.discordapp.net/external/6LgXrIifZ-MhwPPiwqAomgoy93d932jZiJqLCAf79Fw/https/pbs.twimg.com/profile_images/1682417899162730499/q7dQMwLq_normal.jpg",
+						name: "dynastic (@dynastic)",
+						icon_url: "https://pbs.twimg.com/profile_images/1682417899162730499/q7dQMwLq_normal.jpg"
+					}
+				}
+			],
+			edited_timestamp: null,
+			content: "",
+			components: [],
+			channel_id: "1150208267285434429",
+			author: {
+				username: "Twitter Video Embeds",
+				public_flags: 65536,
+				id: "842601826674540574",
+				global_name: null,
+				discriminator: "4945",
+				bot: true,
+				avatar_decoration_data: null,
+				avatar: "6ed5bf10f953b22d47893b4655705b30"
+			},
+			attachments: [],
+			guild_id: "1150201337112449045"
 		}
 	},
 	message_update: {
