@@ -175,7 +175,7 @@ async function redactEvent(roomID, eventID, mxid) {
 async function sendTyping(roomID, isTyping, mxid, duration) {
 	await mreq.mreq("PUT", path(`/client/v3/rooms/${roomID}/typing/${mxid}`, mxid), {
 		typing: isTyping,
-		duration
+		timeout: duration
 	})
 }
 
