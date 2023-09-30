@@ -14,6 +14,13 @@ const IMAGE_SIZE = 1024
 const inflight = new Map()
 
 /**
+ * @param {string} url
+ */
+function _removeExpiryParams(url) {
+	return url.replace(/\?(?:(?:ex|is|sg|hm)=[a-f0-9]+&?)*$/, "")
+}
+
+/**
  * @param {string} path
  */
 async function uploadDiscordFileToMxc(path) {
@@ -26,14 +33,17 @@ async function uploadDiscordFileToMxc(path) {
 		url = DISCORD_IMAGES_BASE + path
 	}
 
+	// Discord attachment content is always the same no matter what their ?ex parameter is.
+	const urlNoExpiry = _removeExpiryParams(url)
+
 	// Are we uploading this file RIGHT NOW? Return the same inflight promise with the same resolution
-	const existingInflight = inflight.get(url)
+	const existingInflight = inflight.get(urlNoExpiry)
 	if (existingInflight) {
 		return existingInflight
 	}
 
 	// Has this file already been uploaded in the past? Grab the existing copy from the database.
-	const existingFromDb = select("file", "mxc_url", "WHERE discord_url = ?").pluck().get(url)
+	const existingFromDb = select("file", "mxc_url", "WHERE discord_url = ?").pluck().get(urlNoExpiry)
 	if (typeof existingFromDb === "string") {
 		return existingFromDb
 	}
@@ -41,15 +51,15 @@ async function uploadDiscordFileToMxc(path) {
 	// Download from Discord
 	const promise = fetch(url, {}).then(/** @param {import("node-fetch").Response} res */ async res => {
 		// Upload to Matrix
-		const root = await module.exports._actuallyUploadDiscordFileToMxc(url, res)
+		const root = await module.exports._actuallyUploadDiscordFileToMxc(urlNoExpiry, res)
 
 		// Store relationship in database
-		db.prepare("INSERT INTO file (discord_url, mxc_url) VALUES (?, ?)").run(url, root.content_uri)
-		inflight.delete(url)
+		db.prepare("INSERT INTO file (discord_url, mxc_url) VALUES (?, ?)").run(urlNoExpiry, root.content_uri)
+		inflight.delete(urlNoExpiry)
 
 		return root.content_uri
 	})
-	inflight.set(url, promise)
+	inflight.set(urlNoExpiry, promise)
 
 	return promise
 }
@@ -108,3 +118,4 @@ module.exports.stickerFormat = stickerFormat
 module.exports.sticker = sticker
 module.exports.uploadDiscordFileToMxc = uploadDiscordFileToMxc
 module.exports._actuallyUploadDiscordFileToMxc = _actuallyUploadDiscordFileToMxc
+module.exports._removeExpiryParams = _removeExpiryParams
