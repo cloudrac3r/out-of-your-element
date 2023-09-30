@@ -129,7 +129,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
-		const parentRoomID = select("channel_room", "room_id", "WHERE channel_room = ?").pluck().get(thread.parent_id)
+		const parentRoomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(thread.parent_id)
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
