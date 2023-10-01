@@ -1167,7 +1167,7 @@ module.exports = {
 				message_reference: {
 					message_id: "1157413453921787924",
 					guild_id: "1150201337112449045",
-					channel_id: "1150208267285434429"
+					channel_id: "1100319550446252084"
 				},
 				mentions: [
 					{
@@ -1212,7 +1212,7 @@ module.exports = {
 				edited_timestamp: null,
 				content: "https://twitter.com/dynastic/status/1707484191963648161",
 				components: [],
-				channel_id: "1150208267285434429",
+				channel_id: "1100319550446252084",
 				author: {
 					username: "pokemongod",
 					public_flags: 0,
@@ -1228,7 +1228,7 @@ module.exports = {
 			message_reference: {
 				message_id: "1157417694728044624",
 				guild_id: "1150201337112449045",
-				channel_id: "1150208267285434429"
+				channel_id: "1100319550446252084"
 			},
 			mentions: [],
 			mention_roles: [],
@@ -1274,7 +1274,7 @@ module.exports = {
 			edited_timestamp: null,
 			content: "",
 			components: [],
-			channel_id: "1150208267285434429",
+			channel_id: "1100319550446252084",
 			author: {
 				username: "Twitter Video Embeds",
 				public_flags: 65536,
@@ -1287,6 +1287,58 @@ module.exports = {
 			},
 			attachments: [],
 			guild_id: "1150201337112449045"
+		},
+		image_embed_and_attachment: {
+			id: "1157854642810654821",
+			type: 0,
+			content: "https://tootsuite.net/Warp-Gate2.gif\ntanget: @ monster spawner",
+			channel_id: "112760669178241024",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "0",
+				public_flags: 128,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [
+				{
+					id: "1157854643037163610",
+					filename: "Screenshot_20231001_034036.jpg",
+					size: 51981,
+					url: "https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg?ex=651a1faa&is=6518ce2a&hm=eb5ca80a3fa7add8765bf404aea2028a28a2341e4a62435986bcdcf058da82f3&",
+					proxy_url: "https://media.discordapp.net/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg?ex=651a1faa&is=6518ce2a&hm=eb5ca80a3fa7add8765bf404aea2028a28a2341e4a62435986bcdcf058da82f3&",
+					width: 1080,
+					height: 1170,
+					content_type: "image/jpeg"
+				}
+			],
+			embeds: [
+				{
+					type: "image",
+					url: "https://tootsuite.net/Warp-Gate2.gif",
+					thumbnail: {
+						url: "https://tootsuite.net/Warp-Gate2.gif",
+						proxy_url: "https://images-ext-1.discordapp.net/external/Sy1ETGflxjW3iklbLgxP-Me2BXD7pMsAX2XrJ7ttaS4/https/tootsuite.net/Warp-Gate2.gif",
+						width: 258,
+						height: 213
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-10-01T01:40:58.745000+00:00",
+			edited_timestamp: "2023-10-01T01:42:05.631000+00:00",
+			flags: 0,
+			components: []
 		}
 	},
 	message_update: {

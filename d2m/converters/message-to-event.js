@@ -136,16 +136,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		addMention(repliedToEventSenderMxid)
 	}
 
-	let msgtype = "m.text"
-	// Handle message type 4, channel name changed
-	if (message.type === DiscordTypes.MessageType.ChannelNameChange) {
-		msgtype = "m.emote"
-		message.content = "changed the channel name to **" + message.content + "**"
-	}
-
-	// Text content appears first
-	if (message.content) {
-		let content = message.content
+	async function addTextEvent(content, msgtype, {scanMentions}) {
 		content = content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
 			const eventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(messageID)
 			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
@@ -186,44 +177,21 @@ async function messageToEvent(message, guild, options = {}, di) {
 			escapeHTML: false,
 		}, null, null)
 
-		for (const embed of message.embeds || []) {
-			// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
-			let repParagraphs = []
-			if (embed.author?.name) repParagraphs.push(`**${embed.author.name}**`)
-			if (embed.title && embed.url) repParagraphs.push(`[**${embed.title}**](${embed.url})`)
-			else if (embed.title) repParagraphs.push(`**${embed.title}**`)
-			else if (embed.url) repParagraphs.push(`**${embed.url}**`)
-			if (embed.description) repParagraphs.push(embed.description)
-			for (const field of embed.fields || []) {
-				repParagraphs.push(`**${field.name}**\n${field.value}`)
-			}
-			if (embed.footer?.text) repParagraphs.push(embed.footer.text)
-			const repContent = repParagraphs.join("\n\n")
-
-			html += "<blockquote>" + markdown.toHTML(repContent, {
-				discordCallback: getDiscordParseCallbacks(message, true)
-			}, null, null) + "</blockquote>"
-
-			body += "\n\n" + markdown.toHTML(repContent, {
-				discordCallback: getDiscordParseCallbacks(message, false),
-				discordOnly: true,
-				escapeHTML: false
-			}, null, null)
-		}
-
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
-		const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
-		if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
-			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
-			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
-			assert(roomID)
-			const {joined} = await di.api.getJoinedMembers(roomID)
-			for (const [mxid, member] of Object.entries(joined)) {
-				if (!userRegex.some(rx => mxid.match(rx))) {
-					const localpart = mxid.match(/@([^:]*)/)
-					assert(localpart)
-					const displayName = member.displayname || localpart[1]
-					if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
+		if (scanMentions) {
+			const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
+			if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
+				const writtenMentionsText = matches.map(m => m[1].toLowerCase())
+				const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
+				assert(roomID)
+				const {joined} = await di.api.getJoinedMembers(roomID)
+				for (const [mxid, member] of Object.entries(joined)) {
+					if (!userRegex.some(rx => mxid.match(rx))) {
+						const localpart = mxid.match(/@([^:]*)/)
+						assert(localpart)
+						const displayName = member.displayname || localpart[1]
+						if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
+					}
 				}
 			}
 		}
@@ -284,6 +252,19 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 
 		events.push(newTextMessageEvent)
+	}
+
+
+	let msgtype = "m.text"
+	// Handle message type 4, channel name changed
+	if (message.type === DiscordTypes.MessageType.ChannelNameChange) {
+		msgtype = "m.emote"
+		message.content = "changed the channel name to **" + message.content + "**"
+	}
+
+	// Text content appears first
+	if (message.content) {
+		await addTextEvent(message.content, msgtype, {scanMentions: true})
 	}
 
 	// Then attachments
@@ -380,6 +361,39 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 	}))
 	events.push(...attachmentEvents)
+
+	// Then embeds
+	for (const embed of message.embeds || []) {
+		if (embed.type === "image") {
+			continue // Matrix already does a fine enough job of providing image embeds.
+		}
+
+		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
+		let repParagraphs = []
+		const makeUrlTitle = (text, url) =>
+			( text && url ? `[**${text}**](${url})`
+			: text ? `**${text}**`
+			: url ? `**${url}**`
+			: "")
+
+		let authorNameText = embed.author?.name || ""
+		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // not using the real image
+		let authorTitle = makeUrlTitle(authorNameText, embed.author?.url)
+		if (authorTitle) repParagraphs.push(authorTitle)
+
+		let title = makeUrlTitle(embed.title, embed.url)
+		if (title) repParagraphs.push(title)
+
+		if (embed.description) repParagraphs.push(embed.description)
+		for (const field of embed.fields || []) {
+			repParagraphs.push(`**${field.name}**\n${field.value}`)
+		}
+		if (embed.footer?.text) repParagraphs.push(`— ${embed.footer.text}`)
+		const repContent = repParagraphs.join("\n\n")
+
+		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
+		await addTextEvent(repContent, "m.notice", {scanMentions: false})
+	}
 
 	// Then stickers
 	if (message.sticker_items) {
