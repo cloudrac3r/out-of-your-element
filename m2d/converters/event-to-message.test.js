@@ -726,6 +726,91 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 	)
 })
 
+test("event2message: should include a reply preview when message ends with a blockquote", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@_ooye_cookie:cadence.moe> https://tootsuite.net/Warp-Gate2.gif\n> tanget: @ monster spawner\n> \n> **https://tootsuite.net/Warp-Gate2.gif**\n\naichmophobia",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$uXM2I6w-XMtim14-OSZ_8Z2uQ6MDAZLT37eYIiEU6KQ?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_cookie:cadence.moe\">@_ooye_cookie:cadence.moe</a><br><a href=\"https://tootsuite.net/Warp-Gate2.gif\">https://tootsuite.net/Warp-Gate2.gif</a><br />tanget: @ monster spawner<blockquote><strong><a href=\"https://tootsuite.net/Warp-Gate2.gif\">https://tootsuite.net/Warp-Gate2.gif</a></strong></blockquote></blockquote></mx-reply>aichmophobia",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$uXM2I6w-XMtim14-OSZ_8Z2uQ6MDAZLT37eYIiEU6KQ"
+					}
+				}
+			},
+			event_id: "$n6sg1X9rLeMzCYufJTRvaLzFeLQ-oEXjCWkHtRxcem4",
+			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$uXM2I6w-XMtim14-OSZ_8Z2uQ6MDAZLT37eYIiEU6KQ", {
+					type: 'm.room.message',
+					sender: '@_ooye_cookie:cadence.moe',
+					content: {
+						'm.mentions': {},
+						msgtype: 'm.text',
+						body: 'https://tootsuite.net/Warp-Gate2.gif\n' +
+						'\n' +
+						'**https://tootsuite.net/Warp-Gate2.gif**',
+						format: 'org.matrix.custom.html',
+						formatted_body: '<a href="https://tootsuite.net/Warp-Gate2.gif">https://tootsuite.net/Warp-Gate2.gif</a><blockquote><strong><a href="https://tootsuite.net/Warp-Gate2.gif">https://tootsuite.net/Warp-Gate2.gif</a></strong></blockquote>'
+					},
+					unsigned: {
+						'm.relations': {
+							'm.replace': {
+								type: 'm.room.message',
+								room_id: '!fGgIymcYWOqjbSRUdV:cadence.moe',
+								sender: '@_ooye_cookie:cadence.moe',
+								content: {
+									'm.mentions': {},
+									msgtype: 'm.text',
+									body: '* https://tootsuite.net/Warp-Gate2.gif\n' +
+									'tanget: @ monster spawner\n' +
+									'\n' +
+									'**https://tootsuite.net/Warp-Gate2.gif**',
+									format: 'org.matrix.custom.html',
+									formatted_body: '* <a href="https://tootsuite.net/Warp-Gate2.gif">https://tootsuite.net/Warp-Gate2.gif</a><br>tanget: @ monster spawner<blockquote><strong><a href="https://tootsuite.net/Warp-Gate2.gif">https://tootsuite.net/Warp-Gate2.gif</a></strong></blockquote>',
+									'm.new_content': {
+										'm.mentions': {},
+										msgtype: 'm.text',
+										body: 'https://tootsuite.net/Warp-Gate2.gif\n' +
+										'tanget: @ monster spawner\n' +
+										'\n' +
+										'**https://tootsuite.net/Warp-Gate2.gif**',
+										format: 'org.matrix.custom.html',
+										formatted_body: '<a href="https://tootsuite.net/Warp-Gate2.gif">https://tootsuite.net/Warp-Gate2.gif</a><br>tanget: @ monster spawner<blockquote><strong><a href="https://tootsuite.net/Warp-Gate2.gif">https://tootsuite.net/Warp-Gate2.gif</a></strong></blockquote>'
+									},
+									'm.relates_to': {
+										rel_type: 'm.replace',
+										event_id: '$uXM2I6w-XMtim14-OSZ_8Z2uQ6MDAZLT37eYIiEU6KQ'
+									}
+								},
+								event_id: '$onCj1MucuYz6-dFr30jcnnjSEDq50ouyEbRId1wtAa8',
+								user_id: '@_ooye_cookie:cadence.moe',
+							}
+						}
+					},
+					user_id: '@_ooye_cookie:cadence.moe',
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**_ooye_cookie**:"
+					+ "\n> https://tootsuite.net/Warp-Gate2.gif tanget: @..."
+					+ "\naichmophobia",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
 test("event2message: editing a rich reply to a sim user", async t => {
 	const eventsFetched = []
 	t.deepEqual(

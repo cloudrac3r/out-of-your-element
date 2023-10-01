@@ -348,7 +348,7 @@ async function eventToMessage(event, guild, di) {
 				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 				const contentPreviewChunks = chunk(
 					repliedToContent.replace(/.*<\/mx-reply>/, "") // Remove everything before replies, so just use the actual message body
-					.replace(/.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
+					.replace(/<blockquote>.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
 					.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
 					.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
 					.replace(/<[^>]+>/g, ""), 50) // Completely strip all other formatting.
