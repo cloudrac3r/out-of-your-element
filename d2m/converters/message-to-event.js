@@ -384,6 +384,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 		let title = makeUrlTitle(embed.title, embed.url)
 		if (title) repParagraphs.push(title)
 
+		if (embed.image?.url) repParagraphs.push(`📸 ${embed.image.url}`)
+		if (embed.video?.url) repParagraphs.push(`🎞️ ${embed.video.url}`)
+
 		if (embed.description) repParagraphs.push(embed.description)
 		for (const field of embed.fields || []) {
 			repParagraphs.push(`**${field.name}**\n${field.value}`)
