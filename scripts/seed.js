@@ -8,6 +8,7 @@ const HeatSync = require("heatsync")
 const config = require("../config")
 const passthrough = require("../passthrough")
 const db = new sqlite("db/ooye.db")
+const migrate = require("../db/migrate")
 
 const sync = new HeatSync({watchFS: false})
 
@@ -28,7 +29,7 @@ const utils = require("../m2d/converters/utils")
 	assert.notEqual(reg.ooye.server_origin.slice(-1), "/") // must not end in slash
 
 	// database ddl...
-	db.exec(fs.readFileSync("db/ooye-schema.sql", "utf8"))
+	await migrate.migrate(db)
 
 	// ensure homeserver well-known is valid and returns reg.ooye.server_name...
 
