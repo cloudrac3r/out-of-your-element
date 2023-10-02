@@ -74,6 +74,10 @@ Discord's stickers appear as stickers on Matrix. This works for all default and 
 
 Matrix stickers appear as file uploads on Discord with no animation issues.
 
+## Extra-Long Names
+
+Discord display names for normal users are limited to 32 characters. For webhooks (Matrix users are bridged as webhooks) you get up to 80 characters. This bridge takes it a step further by shifting the rest of your name to the start of the message if you go over the limit. Name away!
+
 ## Catch-up
 
 If the bridge software was restarted, it will attempt to catch up on messages missed while it was offline.
