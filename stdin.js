@@ -2,9 +2,10 @@
 
 const repl = require("repl")
 const util = require("util")
+const {addbot} = require("./addbot")
 
 const passthrough = require("./passthrough")
-const { discord, config, sync, db } = passthrough
+const {discord, config, sync, db} = passthrough
 
 const data = sync.require("./test/data")
 const createSpace = sync.require("./d2m/actions/create-space")
@@ -39,6 +40,7 @@ setImmediate(() => { // assign after since old extraContext data will get remove
 async function customEval(input, _context, _filename, callback) {
 	let depth = 0
 	if (input === "exit\n") return process.exit()
+	if (input === "addbot\n") return callback(null, addbot())
 	if (input.startsWith(":")) {
 		const depthOverwrite = input.split(" ")[0]
 		depth = +depthOverwrite.slice(1)

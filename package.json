@@ -45,6 +45,7 @@
     "tap-dot": "github:cloudrac3r/tap-dot#9dd7750ececeae3a96afba91905be812b6b2cc2d"
   },
   "scripts": {
+    "addbot": "node addbot.js",
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot",
     "test-slow": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js -- --slow | tap-dot",
     "cover": "c8 --skip-full -r html -r text supertape --no-check-assertions-count --format fail test/test.js"

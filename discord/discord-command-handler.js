@@ -4,6 +4,7 @@ const assert = require("assert").strict
 const util = require("util")
 const DiscordTypes = require("discord-api-types/v10")
 const reg = require("../matrix/read-registration")
+const {addbot} = require("../addbot")
 
 const {discord, sync, db, select} = require("../passthrough")
 /** @type {import("../matrix/api")}) */
@@ -198,6 +199,16 @@ const commands = [{
 			await discord.snow.channel.createMessage(channel.id, {
 				...ctx,
 				content: `\`${mxid}\` is already in this server and this channel.`
+			})
+		}
+	)
+}, {
+	aliases: ["addbot"],
+	execute: replyctx(
+		async (message, channel, guild, ctx) => {
+			return discord.snow.channel.createMessage(channel.id, {
+				...ctx,
+				content: addbot()
 			})
 		}
 	)

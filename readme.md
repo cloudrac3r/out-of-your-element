@@ -73,6 +73,13 @@ Follow these steps:
 
 7. Start the bridge: `node start.js`
 
+8. Add the bot to a server - use any *one* of the following commands for an invite link:
+	* (in the REPL) `addbot`
+	* (in a chat) `//addbot`
+	* $ `node addbot.js`
+	* $ `npm run addbot`
+	* $ `./addbot.sh`
+
 # Development information
 
 * Be sure to install dependencies with `--save-dev` so you can run the tests.
