@@ -35,14 +35,14 @@ test("message2event embeds: nothing but a field", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.notice",
-		body: "**Amanda 🎵#2192 :online:"
-			+ "\nwillow tree, branch 0**"
-			+ "\n**❯ Uptime:**\n3m 55s\n**❯ Memory:**\n64.45MB",
+		body: "> **Amanda 🎵#2192 :online:"
+			+ "\n> willow tree, branch 0**"
+			+ "\n> **❯ Uptime:**\n> 3m 55s\n> **❯ Memory:**\n> 64.45MB",
 		format: "org.matrix.custom.html",
-		formatted_body: '<strong>Amanda 🎵#2192 <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ\" title=\":online:\" alt=\":online:\">'
+		formatted_body: '<blockquote><strong>Amanda 🎵#2192 <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ\" title=\":online:\" alt=\":online:\">'
 			+ '<br>willow tree, branch 0</strong>'
 			+ '<br><strong>❯ Uptime:</strong><br>3m 55s'
-			+ '<br><strong>❯ Memory:</strong><br>64.45MB'
+			+ '<br><strong>❯ Memory:</strong><br>64.45MB</blockquote>'
 	}])
 })
 
@@ -52,19 +52,19 @@ test("message2event embeds: reply with just an embed", async t => {
 		$type: "m.room.message",
 		msgtype: "m.notice",
 		"m.mentions": {},
-		body: "[**⏺️ dynastic (@dynastic)**](https://twitter.com/i/user/719631291747078145)"
-			+ "\n\n**https://twitter.com/i/status/1707484191963648161**"
-			+ "\n\ndoes anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
-			+ "\n\n**Retweets**"
-			+ "\n119"
-			+ "\n\n**Likes**"
-			+ "\n5581"
-			+ "\n\n— Twitter",
+		body: "> [**⏺️ dynastic (@dynastic)**](https://twitter.com/i/user/719631291747078145)"
+			+ "\n> \n> **https://twitter.com/i/status/1707484191963648161**"
+			+ "\n> \n> does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
+			+ "\n> \n> **Retweets**"
+			+ "\n> 119"
+			+ "\n> \n> **Likes**"
+			+ "\n> 5581"
+			+ "\n> \n> — Twitter",
 		format: "org.matrix.custom.html",
-		formatted_body: '<a href="https://twitter.com/i/user/719631291747078145"><strong>⏺️ dynastic (@dynastic)</strong></a>'
+		formatted_body: '<blockquote><a href="https://twitter.com/i/user/719631291747078145"><strong>⏺️ dynastic (@dynastic)</strong></a>'
 			+ '<br><br><strong><a href="https://twitter.com/i/status/1707484191963648161">https://twitter.com/i/status/1707484191963648161</a></strong>'
 			+ '<br><br>does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?'
-			+ '<br><br><strong>Retweets</strong><br>119<br><br><strong>Likes</strong><br>5581<br><br>— Twitter'
+			+ '<br><br><strong>Retweets</strong><br>119<br><br><strong>Likes</strong><br>5581<br><br>— Twitter</blockquote>'
 	}])
 })
 

@@ -390,9 +390,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 		if (embed.footer?.text) repParagraphs.push(`— ${embed.footer.text}`)
 		const repContent = repParagraphs.join("\n\n")
+		const repContentQuoted = repContent.split("\n").map(l => "> " + l).join("\n")
 
 		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
-		await addTextEvent(repContent, "m.notice", {scanMentions: false})
+		await addTextEvent(repContentQuoted, "m.notice", {scanMentions: false})
 	}
 
 	// Then stickers
