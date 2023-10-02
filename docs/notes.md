@@ -2,11 +2,7 @@
 
 ## Known issues
 
-- d->m emojis do not work at all (inline chat, single emoji size, reactions, bridged state)
-- d->m embeds
 - m->d code blocks have slightly too much spacing
-- m->d deletions
-- removing reactions
 - rooms will be set up even if the bridge does not have permission for the channels, which breaks when it restarts and tries to fetch messages
 	- test private threads as part of this
 	- solution part 1: calculate the permissions to see if the bot should be able to do stuff

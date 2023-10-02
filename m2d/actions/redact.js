@@ -12,9 +12,10 @@ const utils = sync.require("../converters/utils")
  * @param {Ty.Event.Outer_M_Room_Redaction} event
  */
 async function deleteMessage(event) {
-	const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").and("WHERE event_id = ?").get(event.event_id)
-	if (!row) return
-	return discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
+	const rows = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").and("WHERE event_id = ?").all(event.redacts)
+	for (const row of rows) {
+		discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
+	}
 }
 
 /**
