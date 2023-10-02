@@ -13,7 +13,7 @@
     "bridge"
   ],
   "author": "Cadence, PapiOphidian",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@chriscdn/promise-semaphore": "^2.0.1",
     "better-sqlite3": "^8.3.0",
