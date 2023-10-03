@@ -27,6 +27,7 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Stickers (all formats: PNG, APNG, GIF, and Lottie)
 * Attachments
 * Spoiler attachments
+* Embeds
 * Guild-Space details syncing
 * Channel-Room details syncing
 * Custom emoji list syncing
@@ -34,9 +35,10 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Custom room names/avatars can be applied on Matrix-side
 * Larger files from Discord are linked instead of reuploaded to Matrix
 
+For more information about features, [see the user guide.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/user-guide.md)
+
 ## Caveats
 
-* Embeds don't work yet.
 * This bridge is not designed for puppetting.
 
 ## Efficiency details
