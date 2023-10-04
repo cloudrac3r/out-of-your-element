@@ -32,7 +32,7 @@ test("edit2changes: edit by webhook", async t => {
 test("edit2changes: bot response", async t => {
 	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.bot_response, data.guild.general, {
 		async getJoinedMembers(roomID) {
-			t.equal(roomID, "!uCtjHhfGlYbVnPVlkG:cadence.moe")
+			t.equal(roomID, "!hYnGGlPHlbujVVfktC:cadence.moe")
 			return new Promise(resolve => {
 				setTimeout(() => {
 					resolve({

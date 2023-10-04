@@ -917,10 +917,10 @@ test("event2message: editing a plaintext body message", async t => {
 				"transaction_id": "m1693223873796.842"
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
-			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}, data.guild.general, {
 			api: {
-				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
 					sender: "@cadence:cadence.moe",
 					content: {
@@ -968,10 +968,10 @@ test("event2message: editing a plaintext message to be longer", async t => {
 				"transaction_id": "m1693223873796.842"
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
-			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}, data.guild.general, {
 			api: {
-				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
 					sender: "@cadence:cadence.moe",
 					content: {
@@ -1023,10 +1023,10 @@ test("event2message: editing a plaintext message to be shorter", async t => {
 				"transaction_id": "m1693223873796.842"
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
-			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}, data.guild.general, {
 			api: {
-				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt", {
+				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt", {
 					type: "m.room.message",
 					sender: "@cadence:cadence.moe",
 					content: {
@@ -1078,10 +1078,10 @@ test("event2message: editing a formatted body message", async t => {
 				"transaction_id": "m1693223873796.842"
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
-			"room_id": "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}, data.guild.general, {
 			api: {
-				getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
 					sender: "@cadence:cadence.moe",
 					content: {
@@ -1278,7 +1278,7 @@ test("event2message: with layered rich replies, the preview should only be the r
 				msgtype: "m.text",
 				body: "> <@cadence:cadence.moe> two\n\nthree",
 				format: "org.matrix.custom.html",
-				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!PnyBKvUBOhjuCucEfk:cadence.moe/$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>two</blockquote></mx-reply>three",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>two</blockquote></mx-reply>three",
 				"m.relates_to": {
 					"m.in_reply_to": {
 						event_id: "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
@@ -1296,7 +1296,7 @@ test("event2message: with layered rich replies, the preview should only be the r
 						"msgtype": "m.text",
 						"body": "> <@cadence:cadence.moe> one\n\ntwo",
 						"format": "org.matrix.custom.html",
-						"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!PnyBKvUBOhjuCucEfk:cadence.moe/$5UtboIC30EFlAYD_Oh0pSYVW8JqOp6GsDIJZHtT0Wls?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>one</blockquote></mx-reply>two",
+						"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$5UtboIC30EFlAYD_Oh0pSYVW8JqOp6GsDIJZHtT0Wls?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>one</blockquote></mx-reply>two",
 						"m.relates_to": {
 							"m.in_reply_to": {
 								"event_id": "$5UtboIC30EFlAYD_Oh0pSYVW8JqOp6GsDIJZHtT0Wls"
@@ -1445,7 +1445,7 @@ test("event2message: mentioning bridged rooms works", async t => {
 				msgtype: "m.text",
 				body: "wrong body",
 				format: "org.matrix.custom.html",
-				formatted_body: `I'm just <a href="https://matrix.to/#/!PnyBKvUBOhjuCucEfk:cadence.moe">worm-form</a> testing channel mentions`
+				formatted_body: `I'm just <a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe">worm-form</a> testing channel mentions`
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
@@ -1643,7 +1643,7 @@ test("event2message: text attachments work", async t => {
 			},
 			sender: "@cadence:cadence.moe",
 			event_id: "$c2WVyP6KcfAqh5imOa8e0xzt2C8JTR-cWbEd3GargEQ",
-			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
 			messagesToDelete: [],
@@ -1677,7 +1677,7 @@ test("event2message: image attachments work", async t => {
 				url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"
 			},
 			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
-			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
 			messagesToDelete: [],
@@ -1726,7 +1726,7 @@ test("event2message: encrypted image attachments work", async t => {
 				}
 			},
 			event_id: "$JNhONhXO-5jrztZz8b7mbTMJasbU78TwQr4tog-3Mnk",
-			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
 			messagesToDelete: [],
@@ -1770,7 +1770,7 @@ test("event2message: stickers work", async t => {
 				}
 			},
 			event_id: "$PdI-KjdQ8Z_Tb4x9_7wKRPZCsrrXym4BXtbAPekypuM",
-			room_id: "!PnyBKvUBOhjuCucEfk:cadence.moe"
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
 			messagesToDelete: [],

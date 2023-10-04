@@ -103,7 +103,7 @@ function getStateEvent(roomID, type, key) {
 /**
  * "Any of the AS's users must be in the room. This API is primarily for Application Services and should be faster to respond than /members as it can be implemented more efficiently on the server."
  * @param {string} roomID
- * @returns {Promise<{joined: {[mxid: string]: Ty.R.RoomMember}}>}
+ * @returns {Promise<{joined: {[mxid: string]: {avatar_url?: string, display_name?: string}}}>}
  */
 function getJoinedMembers(roomID) {
 	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/joined_members`)

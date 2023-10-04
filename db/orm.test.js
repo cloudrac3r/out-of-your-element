@@ -26,6 +26,6 @@ test("orm: from: get pluck works", t => {
 })
 
 test("orm: from: join and pluck works", t => {
-	const mxid = from("sim").join("sim_member", "mxid").and("WHERE discord_id = ? AND room_id = ?").pluck("mxid").get("771520384671416320", "!uCtjHhfGlYbVnPVlkG:cadence.moe")
+	const mxid = from("sim").join("sim_member", "mxid").and("WHERE discord_id = ? AND room_id = ?").pluck("mxid").get("771520384671416320", "!hYnGGlPHlbujVVfktC:cadence.moe")
 	t.equal(mxid, "@_ooye_bojack_horseman:cadence.moe")
 })

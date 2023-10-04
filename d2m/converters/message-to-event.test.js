@@ -273,9 +273,69 @@ test("message2event: simple reply to matrix user, reply fallbacks disabled", asy
 	}])
 })
 
-test("message2event: simple written @mentions for matrix users", async t => {
-	let called = 0
+test("message2event: simple written @mention for matrix user", async t => {
 	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {}, {
+		api: {
+			async getJoinedMembers(roomID) {
+				t.equal(roomID, "!rEOspnYqdOalaIFniV:cadence.moe")
+				return new Promise(resolve => {
+					setTimeout(() => {
+						resolve({
+							joined: {
+								"@she_who_brings_destruction:matrix.org": {
+									avatar_url: "mxc://matrix.org/FKcfnfFZlEhspeMsERfYtCuO",
+									display_name: "ash (Old)"
+								},
+								"@tomskeleton:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/OvYYicuOwfAACKaXKJCUPbVz",
+									display_name: "tomskeleton"
+								},
+								"@she_who_brings_destruction:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/XDXLMbkieETPrjFupoeiwyyq",
+									display_name: "ash"
+								},
+								"@_ooye_bot:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/jlrgFjYQHzfBvORedOmYqXVz",
+									display_name: "Out Of Your Element"
+								},
+								"@cadence:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/GJDPWiryxIhyRBNJzRNYzAlh",
+									display_name: "cadence [they]"
+								},
+								"@_ooye_tomskeleton:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/SdSrjjsrNVdyPTAKEGQUhKUK",
+									display_name: "tomskeleton"
+								},
+								"@_ooye_queergasm:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/KqXYGbUqhPPJKifLmfpoLnmB",
+									display_name: "queergasm"
+								},
+								"@_ooye_.subtext:cadence.moe": {
+									avatar_url: "mxc://cadence.moe/heoCvaUmfCdpxdzaChwwkpEp",
+									display_name: ".subtext"
+								}
+							}
+						})
+					})
+				})
+			}
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {
+			user_ids: [
+				"@she_who_brings_destruction:cadence.moe"
+			]
+		},
+		msgtype: "m.text",
+		body: "@ash do you need anything from the store btw as I'm heading there after gym"
+	}])
+})
+
+test("message2event: advanced written @mentions for matrix users", async t => {
+	let called = 0
+	const events = await messageToEvent(data.message.advanced_written_at_mention_for_matrix, data.guild.general, {}, {
 		api: {
 			async getJoinedMembers(roomID) {
 				called++
@@ -285,19 +345,19 @@ test("message2event: simple written @mentions for matrix users", async t => {
 						resolve({
 							joined: {
 								"@cadence:cadence.moe": {
-									displayname: "cadence [they]",
+									display_name: "cadence [they]",
 									avatar_url: "whatever"
 								},
 								"@huckleton:cadence.moe": {
-									displayname: "huck",
+									display_name: "huck",
 									avatar_url: "whatever"
 								},
 								"@_ooye_botrac4r:cadence.moe": {
-									displayname: "botrac4r",
+									display_name: "botrac4r",
 									avatar_url: "whatever"
 								},
 								"@_ooye_bot:cadence.moe": {
-									displayname: "Out Of Your Element",
+									display_name: "Out Of Your Element",
 									avatar_url: "whatever"
 								}
 							}
@@ -361,7 +421,7 @@ test("message2event: type 4 channel name change", async t => {
 test("message2event: thread start message reference", async t => {
 	const events = await messageToEvent(data.special_message.thread_start_context, data.guild.general, {}, {
 		api: {
-			getEvent: mockGetEvent(t, "!PnyBKvUBOhjuCucEfk:cadence.moe", "$FchUVylsOfmmbj-VwEs5Z9kY49_dt2zd0vWfylzy5Yo", {
+			getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$FchUVylsOfmmbj-VwEs5Z9kY49_dt2zd0vWfylzy5Yo", {
 				"type": "m.room.message",
 				"sender": "@_ooye_kyuugryphon:cadence.moe",
 				"content": {

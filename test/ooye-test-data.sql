@@ -5,9 +5,10 @@ INSERT INTO guild_space (guild_id, space_id) VALUES
 
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),
-('497161350934560778', '!edUxjVdzgUvXDUIQCK:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
-('160197704226439168', '!uCtjHhfGlYbVnPVlkG:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
-('1100319550446252084', '!PnyBKvUBOhjuCucEfk:cadence.moe', 'worm-farm', NULL, NULL, NULL);
+('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
+('160197704226439168', '!hYnGGlPHlbujVVfktC:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
+('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
+('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL);
 
 INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),
@@ -18,7 +19,7 @@ INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
 ('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe');;
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
-('@_ooye_bojack_horseman:cadence.moe', '!uCtjHhfGlYbVnPVlkG:cadence.moe', NULL);
+('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL);
 
 INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1106366167788044450', '122155380120748034'),
@@ -83,7 +84,7 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
 ('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'malformed mxc'),
 ('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!PnyBKvUBOhjuCucEfk:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
+('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
 ('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
 
 COMMIT;

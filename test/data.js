@@ -421,6 +421,36 @@ module.exports = {
 			components: []
 		},
 		simple_written_at_mention_for_matrix: {
+			id: "1159030564049915915",
+			type: 0,
+			content: "@ash do you need anything from the store btw as I'm heading there after gym",
+			channel_id: "297272183716052993",
+			author: {
+				id: "221902610066571260",
+				username: "subtextual",
+				avatar: "c108f921e2fb84981197fe2b895e6a78",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "subtext",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-10-04T07:33:40.216000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
+		advanced_written_at_mention_for_matrix: {
 			id: "1126739682080858234",
 			type: 0,
 			content: "@Cadence, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and @huck",
