@@ -42,7 +42,7 @@ async function removeReaction(data) {
 			}
 			if (!lookingAtMatrixReaction && !wantToRemoveMatrixReaction) {
 				// We are removing a Discord user's reaction, so we just make the sim user remove it.
-				const mxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(data.user_id)
+				const mxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(data.user_id)
 				if (mxid === event.sender) {
 					await api.redactEvent(roomID, event.event_id, mxid)
 				}

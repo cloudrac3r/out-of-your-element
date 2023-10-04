@@ -28,8 +28,8 @@ export type Models = {
 	}
 
 	lottie: {
-		id: string
-		mxc: string
+		sticker_id: string
+		mxc_url: string
 	}
 
 	member_cache: {
@@ -45,7 +45,7 @@ export type Models = {
 	}
 
 	sim: {
-		discord_id: string
+		user_id: string
 		sim_name: string
 		localpart: string
 		mxid: string

@@ -324,7 +324,7 @@ async function eventToMessage(event, guild, di) {
 			}
 			const sender = repliedToEvent.sender
 			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
-			const authorID = select("sim", "discord_id", "WHERE mxid = ?").pluck().get(repliedToEvent.sender)
+			const authorID = select("sim", "user_id", "WHERE mxid = ?").pluck().get(repliedToEvent.sender)
 			if (authorID) {
 				replyLine += `<@${authorID}>`
 			} else {
@@ -367,7 +367,7 @@ async function eventToMessage(event, guild, di) {
 			// Handling mentions of Discord users
 			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
 				if (!utils.eventSenderIsFromDiscord(mxid)) return whole
-				const userID = select("sim", "discord_id", "WHERE mxid = ?").pluck().get(mxid)
+				const userID = select("sim", "user_id", "WHERE mxid = ?").pluck().get(mxid)
 				if (!userID) return whole
 				return `${attributeValue} data-user-id="${userID}">`
 			})

@@ -19,7 +19,7 @@ function getDiscordParseCallbacks(message, useHTML) {
 	return {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
-			const mxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(node.id)
+			const mxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(node.id)
 			const username = message.mentions.find(ment => ment.id === node.id)?.username || node.id
 			if (mxid && useHTML) {
 				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
@@ -405,13 +405,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 			const format = file.stickerFormat.get(stickerItem.format_type)
 			if (format?.mime === "lottie") {
 				try {
-					const {mxc, info} = await lottie.convert(stickerItem)
+					const {mxc_url, info} = await lottie.convert(stickerItem)
 					return {
 						$type: "m.sticker",
 						"m.mentions": mentions,
 						body: stickerItem.name,
 						info,
-						url: mxc
+						url: mxc_url
 					}
 				} catch (e) {
 					return {

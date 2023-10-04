@@ -29,7 +29,7 @@ async function createSim(user) {
 
 	// Save chosen name in the database forever
 	// Making this database change right away so that in a concurrent registration, the 2nd registration will already have generated a different localpart because it can see this row when it generates
-	db.prepare("INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(user.id, simName, localpart, mxid)
+	db.prepare("INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(user.id, simName, localpart, mxid)
 
 	// Register matrix user with that name
 	try {
@@ -37,7 +37,7 @@ async function createSim(user) {
 	} catch (e) {
 		// If user creation fails, manually undo the database change. Still isn't perfect, but should help.
 		// (A transaction would be preferable, but I don't think it's safe to leave transaction open across event loop ticks.)
-		db.prepare("DELETE FROM sim WHERE discord_id = ?").run(user.id)
+		db.prepare("DELETE FROM sim WHERE user_id = ?").run(user.id)
 		throw e
 	}
 	return mxid
@@ -51,7 +51,7 @@ async function createSim(user) {
  */
 async function ensureSim(user) {
 	let mxid = null
-	const existing = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(user.id)
+	const existing = select("sim", "mxid", "WHERE user_id = ?").pluck().get(user.id)
 	if (existing) {
 		mxid = existing
 	} else {
@@ -164,7 +164,7 @@ async function syncAllUsersInRoom(roomID) {
 	assert.ok(typeof guildID === "string")
 
 	for (const mxid of mxids) {
-		const userID = select("sim", "discord_id", "WHERE mxid = ?").pluck().get(mxid)
+		const userID = select("sim", "user_id", "WHERE mxid = ?").pluck().get(mxid)
 		assert.ok(typeof userID === "string")
 
 		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIGuildMember>} */

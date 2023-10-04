@@ -10,7 +10,7 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
 ('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL);
 
-INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES
+INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),
 ('820865262526005258', 'crunch_god', '_ooye_crunch_god', '@_ooye_crunch_god:cadence.moe'),
 ('771520384671416320', 'bojack_horseman', '_ooye_bojack_horseman', '@_ooye_bojack_horseman:cadence.moe'),

@@ -251,7 +251,7 @@ module.exports = {
 	async onTypingStart(client, data) {
 		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(data.channel_id)
 		if (!roomID) return
-		const mxid = from("sim").join("sim_member", "mxid").and("WHERE discord_id = ? AND room_id = ?").pluck("mxid").get(data.user_id, roomID)
+		const mxid = from("sim").join("sim_member", "mxid").and("WHERE user_id = ? AND room_id = ?").pluck("mxid").get(data.user_id, roomID)
 		if (!mxid) return
 		// Each Discord user triggers the notification every 8 seconds as long as they remain typing.
 		// Discord does not send typing stopped events, so typing only stops if the timeout is reached or if the user sends their message.

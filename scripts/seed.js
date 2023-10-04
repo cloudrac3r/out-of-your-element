@@ -41,5 +41,5 @@ const utils = require("../m2d/converters/utils")
 	await api.profileSetAvatarUrl(mxid, avatarUrl)
 
 	// add initial rows to database, like adding the bot to sim...
-	db.prepare("INSERT INTO sim (discord_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run("0", reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), reg.sender_localpart, mxid)
+	db.prepare("INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run("0", reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), reg.sender_localpart, mxid)
 })()

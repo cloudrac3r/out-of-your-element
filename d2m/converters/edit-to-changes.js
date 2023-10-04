@@ -22,7 +22,7 @@ async function editToChanges(message, guild, api) {
 	// Figure out what events we will be replacing
 
 	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
-	let senderMxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(message.author.id) || null
+	let senderMxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(message.author.id) || null
 	if (senderMxid) {
 		const senderIsInRoom = select("sim_member", "mxid", "WHERE room_id = ? AND mxid = ?").get(roomID, senderMxid)
 		if (!senderIsInRoom) {

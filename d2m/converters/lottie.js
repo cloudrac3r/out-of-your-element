@@ -35,11 +35,11 @@ const Rlottie = (async () => {
 
 /**
  * @param {DiscordTypes.APIStickerItem} stickerItem
- * @returns {Promise<{mxc: string, info: typeof INFO}>}
+ * @returns {Promise<{mxc_url: string, info: typeof INFO}>}
  */
 async function convert(stickerItem) {
-	const existingMxc = select("lottie", "mxc", "WHERE id = ?").pluck().get(stickerItem.id)
-	if (existingMxc) return {mxc: existingMxc, info: INFO}
+	const existingMxc = select("lottie", "mxc_url", "WHERE sticker_id = ?").pluck().get(stickerItem.id)
+	if (existingMxc) return {mxc_url: existingMxc, info: INFO}
 	const r = await Rlottie
 	const res = await fetch(file.DISCORD_IMAGES_BASE + file.sticker(stickerItem))
 	if (res.status !== 200) throw new Error("Sticker data file not found.")
@@ -67,8 +67,8 @@ async function convert(stickerItem) {
 		}
 	})
 	assert(root.content_uri)
-	db.prepare("INSERT INTO lottie (id, mxc) VALUES (?, ?)").run(stickerItem.id, root.content_uri)
-	return {mxc: root.content_uri, info: INFO}
+	db.prepare("INSERT INTO lottie (sticker_id, mxc_url) VALUES (?, ?)").run(stickerItem.id, root.content_uri)
+	return {mxc_url: root.content_uri, info: INFO}
 }
 
 module.exports.convert = convert

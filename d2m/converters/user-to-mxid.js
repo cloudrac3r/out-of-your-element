@@ -53,7 +53,7 @@ function userToSimName(user) {
 	assert.notEqual(user.discriminator, "0000", "cannot create user for a webhook")
 
 	// 1. Is sim user already registered?
-	const existing = select("sim", "sim_name", "WHERE discord_id = ?").pluck().get(user.id)
+	const existing = select("sim", "sim_name", "WHERE user_id = ?").pluck().get(user.id)
 	if (existing) return existing
 
 	// 2. Register based on username (could be new or old format)

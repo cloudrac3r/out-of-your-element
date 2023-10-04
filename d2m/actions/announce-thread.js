@@ -15,7 +15,7 @@ const api = sync.require("../../matrix/api")
  * @param {import("discord-api-types/v10").APIThreadChannel} thread
  */
 async function announceThread(parentRoomID, threadRoomID, thread) {
-	const creatorMxid = select("sim", "mxid", "WHERE discord_id = ?").pluck().get(thread.owner_id)
+	const creatorMxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(thread.owner_id)
 
    const content = await threadToAnnouncement.threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thread, {api})
 
