@@ -45,9 +45,11 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 
 Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
 
-The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. On my personal instance of OOYE, every 100,000 messages sent require only 17.7 MB of storage space in the SQLite database.
+The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. Some event IDs are actually stored as xxhash integers to reduce storage requirements even more. On my personal instance of OOYE, every 100,000 messages sent require only 17.7 MB of storage space in the SQLite database.
 
 Only necessary data and columns are queried from the database. We only contact the homeserver API if the database doesn't contain what we need.
+
+File uploads (like avatars from bridged members) are checked locally and deduplicated. Only brand new files are uploaded to the homeserver. This saves loads of space in the homeserver's media repo, especially for Synapse.
 
 # Setup
 
@@ -63,19 +65,21 @@ Follow these steps:
 
 1. [Get Node.js version 18 or later](https://nodejs.org/en/download/releases) (the version is required by the matrix-appservice dependency)
 
-2. Install dependencies: `npm install --save-dev` (omit --save-dev if you will not run the automated tests)
+1. Clone this repo and checkout a specific tag. (Development happens on main. Stabler versions are tagged.)
 
-3. Copy `config.example.js` to `config.js` and fill in Discord token.
+1. Install dependencies: `npm install --save-dev` (omit --save-dev if you will not run the automated tests)
 
-4. Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
+1. Copy `config.example.js` to `config.js` and fill in Discord token.
 
-5. Run `node scripts/seed.js` to check your setup, create the database and server state (only need to run this once ever)
+1. Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
 
-6. Make sure the tests work by running `npm t`
+1. Run `node scripts/seed.js` to check your setup, create the database and server state (only need to run this once ever)
 
-7. Start the bridge: `node start.js`
+1. Make sure the tests work by running `npm t`
 
-8. Add the bot to a server - use any *one* of the following commands for an invite link:
+1. Start the bridge: `node start.js`
+
+1. Add the bot to a server - use any *one* of the following commands for an invite link:
 	* (in the REPL) `addbot`
 	* (in a chat) `//addbot`
 	* $ `node addbot.js`
