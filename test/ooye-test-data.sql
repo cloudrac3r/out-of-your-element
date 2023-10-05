@@ -8,7 +8,8 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
 ('160197704226439168', '!hYnGGlPHlbujVVfktC:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
 ('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
-('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL);
+('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL),
+('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL);
 
 INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),
@@ -72,7 +73,7 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/emojis/393635038903926784.gif', 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc'),
 ('https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg', 'mxc://cadence.moe/zAXdQriaJuLZohDDmacwWWDR');
 
-INSERT INTO emoji (id, name, animated, mxc_url) VALUES
+INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('230201364309868544', 'hippo', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),
 ('393635038903926784', 'hipposcope', 1, 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc'),
 ('362741439211503616', 'bn_re', 0, 'mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT'),

@@ -1,9 +1,9 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {discord, sync, db, select, from} = passthrough
 /** @type {import("./message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
 /** @type {import("../actions/register-user")} */
@@ -21,15 +21,12 @@ const createRoom = sync.require("../actions/create-room")
 async function editToChanges(message, guild, api) {
 	// Figure out what events we will be replacing
 
-	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
-	let senderMxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(message.author.id) || null
-	if (senderMxid) {
-		const senderIsInRoom = select("sim_member", "mxid", "WHERE room_id = ? AND mxid = ?").get(roomID, senderMxid)
-		if (!senderIsInRoom) {
-			senderMxid = null // just send as ooye bot
-		}
-	}
-	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part"], "WHERE message_id = ?").all(message.id)
+	const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
+	assert(roomID)
+	/** @type {string?} Null if we don't have a sender in the room, which will happen if it's a webhook's message. The bridge bot will do the edit instead. */
+	const senderMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id}).pluck("mxid").get() || null
+
+	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part"], {message_id: message.id}).all()
 
 	// Figure out what we will be replacing them with
 

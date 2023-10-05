@@ -43,7 +43,7 @@ async function uploadDiscordFileToMxc(path) {
 	}
 
 	// Has this file already been uploaded in the past? Grab the existing copy from the database.
-	const existingFromDb = select("file", "mxc_url", "WHERE discord_url = ?").pluck().get(urlNoExpiry)
+	const existingFromDb = select("file", "mxc_url", {discord_url: urlNoExpiry}).pluck().get()
 	if (typeof existingFromDb === "string") {
 		return existingFromDb
 	}

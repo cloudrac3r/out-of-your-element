@@ -86,7 +86,7 @@ async function _syncSpace(guild, shouldActuallySync) {
 		await inflightSpaceCreate.get(guild.id) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
+	const spaceID = select("guild_space", "space_id", {guild_id: guild.id}).pluck().get()
 
 	if (!spaceID) {
 		const creation = (async () => {
@@ -117,7 +117,7 @@ async function _syncSpace(guild, shouldActuallySync) {
 	const newAvatarState = spaceDiff["m.room.avatar/"]
 	if (guild.icon && newAvatarState?.url) {
 		// don't try to update rooms with custom avatars though
-		const roomsWithCustomAvatars = select("channel_room", "room_id", "WHERE custom_avatar IS NOT NULL").pluck().all()
+		const roomsWithCustomAvatars = select("channel_room", "room_id", {}, "WHERE custom_avatar IS NOT NULL").pluck().all()
 
 		const childRooms = ks.kstateToState(spaceKState).filter(({type, state_key, content}) => {
 			return type === "m.space.child" && "via" in content && !roomsWithCustomAvatars.includes(state_key)
@@ -159,7 +159,7 @@ async function syncSpaceFully(guildID) {
 	const guild = discord.guilds.get(guildID)
 	assert.ok(guild)
 
-	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guildID)
+	const spaceID = select("guild_space", "space_id", {guild_id: guildID}).pluck().get()
 
 	const guildKState = await guildToKState(guild)
 
@@ -180,7 +180,7 @@ async function syncSpaceFully(guildID) {
 	}).map(({state_key}) => state_key)
 
 	for (const roomID of childRooms) {
-		const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(roomID)
+		const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
 		if (!channelID) continue
 		if (discord.channels.has(channelID)) {
 			await createRoom.syncRoom(channelID)
@@ -198,7 +198,7 @@ async function syncSpaceFully(guildID) {
 async function syncSpaceExpressions(data) {
 	// No need for kstate here. Each of these maps to a single state event, which will always overwrite what was there before. I can just send the state event.
 
-	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(data.guild_id)
+	const spaceID = select("guild_space", "space_id", {guild_id: data.guild_id}).pluck().get()
 	if (!spaceID) return
 
 	if ("emojis" in data && data.emojis.length) {

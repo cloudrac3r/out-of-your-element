@@ -81,7 +81,7 @@ const commands = [{
 	execute: replyctx(
 		async (message, channel, guild, ctx) => {
 			// Guard
-			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channel.id)
+			const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 			if (!roomID) return discord.snow.channel.createMessage(channel.id, {
 				...ctx,
 				content: "This channel isn't bridged to the other side."
@@ -125,8 +125,8 @@ const commands = [{
 	execute: replyctx(
 		async (message, channel, guild, ctx) => {
 			// Check guild is bridged
-			const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
-			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channel.id)
+			const spaceID = select("guild_space", "space_id", {guild_id: guild.id}).pluck().get()
+			const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 			if (!spaceID || !roomID) return discord.snow.channel.createMessage(channel.id, {
 				...ctx,
 				content: "This server isn't bridged to Matrix, so you can't invite Matrix users."

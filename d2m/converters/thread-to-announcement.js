@@ -17,7 +17,7 @@ const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
 async function threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thread, di) {
-	const branchedFromEventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(thread.id)
+	const branchedFromEventID = select("event_message", "event_id", {message_id: thread.id}).pluck().get()
 	/** @type {{"m.mentions"?: any, "m.in_reply_to"?: any}} */
 	const context = {}
 	if (branchedFromEventID) {

@@ -7,19 +7,19 @@ const passthrough = require("../../passthrough")
 const {sync, select} = passthrough
 
 /**
- * @param {string} emoji
+ * @param {string} input
  * @param {string | null | undefined} shortcode
  * @returns {string?}
  */
-function encodeEmoji(emoji, shortcode) {
+function encodeEmoji(input, shortcode) {
 	let discordPreferredEncoding
-	if (emoji.startsWith("mxc://")) {
+	if (input.startsWith("mxc://")) {
 		// Custom emoji
-		let row = select("emoji", ["id", "name"], "WHERE mxc_url = ?").get(emoji)
+		let row = select("emoji", ["emoji_id", "name"], {mxc_url: input}).get()
 		if (!row && shortcode) {
 			// Use the name to try to find a known emoji with the same name.
 			const name = shortcode.replace(/^:|:$/g, "")
-			row = select("emoji", ["id", "name"], "WHERE name = ?").get(name)
+			row = select("emoji", ["emoji_id", "name"], {name: name}).get()
 		}
 		if (!row) {
 			// We don't have this emoji and there's no realistic way to just-in-time upload a new emoji somewhere.
@@ -27,11 +27,11 @@ function encodeEmoji(emoji, shortcode) {
 			return null
 		}
 		// Cool, we got an exact or a candidate emoji.
-		discordPreferredEncoding = encodeURIComponent(`${row.name}:${row.id}`)
+		discordPreferredEncoding = encodeURIComponent(`${row.name}:${row.emoji_id}`)
 	} else {
 		// Default emoji
 		// https://github.com/discord/discord-api-docs/issues/2723#issuecomment-807022205 ????????????
-		const encoded = encodeURIComponent(emoji)
+		const encoded = encodeURIComponent(input)
 		const encodedTrimmed = encoded.replace(/%EF%B8%8F/g, "")
 
 		const forceTrimmedList = [
@@ -42,10 +42,10 @@ function encodeEmoji(emoji, shortcode) {
 
 		discordPreferredEncoding =
 			( forceTrimmedList.includes(encodedTrimmed) ? encodedTrimmed
-			: encodedTrimmed !== encoded && [...emoji].length === 2 ? encoded
+			: encodedTrimmed !== encoded && [...input].length === 2 ? encoded
 			: encodedTrimmed)
 
-		console.log("add reaction from matrix:", emoji, encoded, encodedTrimmed, "chosen:", discordPreferredEncoding)
+		console.log("add reaction from matrix:", input, encoded, encodedTrimmed, "chosen:", discordPreferredEncoding)
 	}
 	return discordPreferredEncoding
 }

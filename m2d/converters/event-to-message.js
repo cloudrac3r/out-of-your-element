@@ -121,7 +121,7 @@ turndownService.addRule("emoji", {
 	replacement: function (content, node) {
 		const mxcUrl = node.getAttribute("src")
 		// Get the known emoji from the database. (We may not be able to actually use this if it was from another server.)
-		const row = select("emoji", ["id", "name", "animated"], "WHERE mxc_url = ?").get(mxcUrl)
+		const row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrl}).get()
 		// Also guess a suitable emoji based on the ID (if available) or name
 		let guess = null
 		const guessedName = node.getAttribute("title").replace(/^:|:$/g, "")
@@ -129,7 +129,7 @@ turndownService.addRule("emoji", {
 			/** @type {{name: string, id: string, animated: number}[]} */
 			// @ts-ignore
 			const emojis = guild.emojis
-			const match = emojis.find(e => e.id === row?.id) || emojis.find(e => e.name === guessedName) || emojis.find(e => e.name?.toLowerCase() === guessedName.toLowerCase())
+			const match = emojis.find(e => e.id === row?.emoji_id) || emojis.find(e => e.name === guessedName) || emojis.find(e => e.name?.toLowerCase() === guessedName.toLowerCase())
 			if (match) {
 				guess = match
 				break
@@ -180,7 +180,7 @@ turndownService.addRule("fencedCodeBlock", {
  * @returns {Promise<{displayname?: string?, avatar_url?: string?}>}
  */
 async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
-	const row = select("member_cache", ["displayname", "avatar_url"], "WHERE room_id = ? AND mxid = ?").get(roomID, mxid)
+	const row = select("member_cache", ["displayname", "avatar_url"], {room_id: roomID, mxid}).get()
 	if (row) return row
 	return api.getStateEvent(roomID, "m.room.member", mxid).then(event => {
 		db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(roomID, mxid, event?.displayname || null, event?.avatar_url || null)
@@ -285,7 +285,7 @@ async function eventToMessage(event, guild, di) {
 			if (relType !== "m.replace") return
 			const originalEventId = relatesTo.event_id
 			if (!originalEventId) return
-			messageIDsToEdit = select("event_message", "message_id", "WHERE event_id = ? ORDER BY part").pluck().all(originalEventId)
+			messageIDsToEdit = select("event_message", "message_id", {event_id: originalEventId}, "ORDER BY part").pluck().all()
 			if (!messageIDsToEdit.length) return
 
 			// Ok, it's an edit.
@@ -316,7 +316,7 @@ async function eventToMessage(event, guild, di) {
 			if (!repliedToEventId) return
 			let repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
 			if (!repliedToEvent) return
-			const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").and("WHERE event_id = ? ORDER BY part").get(repliedToEventId)
+			const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
 			if (row) {
 				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			} else {
@@ -324,7 +324,7 @@ async function eventToMessage(event, guild, di) {
 			}
 			const sender = repliedToEvent.sender
 			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
-			const authorID = select("sim", "user_id", "WHERE mxid = ?").pluck().get(repliedToEvent.sender)
+			const authorID = select("sim", "user_id", {mxid: repliedToEvent.sender}).pluck().get()
 			if (authorID) {
 				replyLine += `<@${authorID}>`
 			} else {
@@ -367,14 +367,14 @@ async function eventToMessage(event, guild, di) {
 			// Handling mentions of Discord users
 			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
 				if (!utils.eventSenderIsFromDiscord(mxid)) return whole
-				const userID = select("sim", "user_id", "WHERE mxid = ?").pluck().get(mxid)
+				const userID = select("sim", "user_id", {mxid: mxid}).pluck().get()
 				if (!userID) return whole
 				return `${attributeValue} data-user-id="${userID}">`
 			})
 
 			// Handling mentions of Discord rooms
 			input = input.replace(/("https:\/\/matrix.to\/#\/(![^"]+)")>/g, (whole, attributeValue, roomID) => {
-				const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(roomID)
+				const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
 				if (!channelID) return whole
 				return `${attributeValue} data-channel-id="${channelID}">`
 			})

@@ -14,7 +14,7 @@ async function emojiToKey(emoji) {
 	let key
 	if (emoji.id) {
 		// Custom emoji
-		const mxc = select("emoji", "mxc_url", "WHERE id = ?").pluck().get(emoji.id)
+		const mxc = select("emoji", "mxc_url", {emoji_id: emoji.id}).pluck().get(emoji.id)
 		if (mxc) {
 			// The custom emoji is registered and we should send it
 			key = mxc

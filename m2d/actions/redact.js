@@ -12,7 +12,7 @@ const utils = sync.require("../converters/utils")
  * @param {Ty.Event.Outer_M_Room_Redaction} event
  */
 async function deleteMessage(event) {
-	const rows = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").and("WHERE event_id = ?").all(event.redacts)
+	const rows = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: event.redacts}).all()
 	for (const row of rows) {
 		discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
 	}
@@ -23,7 +23,8 @@ async function deleteMessage(event) {
  */
 async function removeReaction(event) {
 	const hash = utils.getEventIDHash(event.redacts)
-	const row = from("reaction").join("message_channel", "message_id").select("channel_id", "message_id", "encoded_emoji").and("WHERE hashed_event_id = ?").get(hash)
+	// TODO: this works but fix the type
+	const row = from("reaction").join("message_channel", "message_id").select("channel_id", "message_id", "encoded_emoji").where({hashed_event_id: hash}).get()
 	if (!row) return
 	await discord.snow.channel.deleteReactionSelf(row.channel_id, row.message_id, row.encoded_emoji)
 	db.prepare("DELETE FROM reaction WHERE hashed_event_id = ?").run(hash)

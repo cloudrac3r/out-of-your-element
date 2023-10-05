@@ -1,19 +1,28 @@
 // @ts-check
 
 const {db} = require("../passthrough")
-const U = require("./orm-utils")
+const U = require("./orm-defs")
 
 /**
  * @template {keyof U.Models} Table
  * @template {keyof U.Models[Table]} Col
  * @param {Table} table
  * @param {Col[] | Col} cols
+ * @param {Partial<U.Models[Table]>} where
  * @param {string} [e]
  */
-function select(table, cols, e = "") {
+function select(table, cols, where = {}, e = "") {
 	if (!Array.isArray(cols)) cols = [cols]
+	const parameters = []
+	const wheres = Object.entries(where).map(([col, value]) => {
+		parameters.push(value)
+		return `"${col}" = ?`
+	})
+	const whereString = wheres.length ? " WHERE " + wheres.join(" AND ") : ""
 	/** @type {U.Prepared<Pick<U.Models[Table], Col>>} */
-	const prepared = db.prepare(`SELECT ${cols.map(k => `"${String(k)}"`).join(", ")} FROM ${table} ${e}`)
+	const prepared = db.prepare(`SELECT ${cols.map(k => `"${String(k)}"`).join(", ")} FROM ${table} ${whereString} ${e}`)
+	prepared.get = prepared.get.bind(prepared, ...parameters)
+	prepared.all = prepared.all.bind(prepared, ...parameters)
 	return prepared
 }
 
@@ -26,13 +35,18 @@ class From {
 	 * @param {Table} table
 	 */
 	constructor(table) {
-		/** @type {Table[]} */
+		/** @private @type {Table[]} */
 		this.tables = [table]
-
+		/** @private */
 		this.sql = ""
+		/** @private */
 		this.cols = []
+		/** @private */
 		this.using = []
+		/** @private */
 		this.isPluck = false
+		/** @private */
+		this.parameters = []
 	}
 
 	/**
@@ -78,7 +92,19 @@ class From {
 	 * @param {string} sql
 	 */
 	and(sql) {
-		this.sql = sql
+		this.sql += " " + sql
+		return this
+	}
+
+	/**
+	 * @param {Partial<U.Models[Table]>} conditions
+	 */
+	where(conditions) {
+		const wheres = Object.entries(conditions).map(([col, value]) => {
+			this.parameters.push(value)
+			return `"${col}" = ?`
+		})
+		this.sql += " WHERE " + wheres.join(" AND ")
 		return this
 	}
 
@@ -98,12 +124,12 @@ class From {
 
 	get(..._) {
 		const prepared = this.prepare()
-		return prepared.get(..._)
+		return prepared.get(...this.parameters, ..._)
 	}
 
 	all(..._) {
 		const prepared = this.prepare()
-		return prepared.all(..._)
+		return prepared.all(...this.parameters, ..._)
 	}
 }
 

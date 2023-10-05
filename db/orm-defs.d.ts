@@ -64,7 +64,7 @@ export type Models = {
 	}
 
 	emoji: {
-		id: string
+		emoji_id: string
 		name: string
 		animated: number
 		mxc_url: string

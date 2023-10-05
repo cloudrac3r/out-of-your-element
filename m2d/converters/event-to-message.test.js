@@ -1508,7 +1508,7 @@ test("event2message: caches the member if the member is not known", async t => {
 		}
 	)
 
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], "WHERE room_id = '!should_be_newly_cached:cadence.moe'").all(), [
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!should_be_newly_cached:cadence.moe"}).all(), [
 		{avatar_url: "mxc://cadence.moe/this_is_the_avatar", displayname: null, mxid: "@should_be_newly_cached:cadence.moe"}
 	])
 	t.equal(called, 1, "getStateEvent should be called once")
@@ -1551,7 +1551,7 @@ test("event2message: skips caching the member if the member does not exist, some
 			}]
 		}
 	)
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], "WHERE room_id = '!not_real:cadence.moe'").all(), [])
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!not_real:cadence.moe"}).all(), [])
 	t.equal(called, 1, "getStateEvent should be called once")
 })
 
@@ -1594,7 +1594,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			}]
 		}
 	)
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], "WHERE room_id = '!should_be_newly_cached_2:cadence.moe'").all(), [
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!should_be_newly_cached_2:cadence.moe"}).all(), [
 		{avatar_url: null, displayname: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER", mxid: "@should_be_newly_cached_2:cadence.moe"}
 	])
 	t.equal(called, 1, "getStateEvent should be called once")

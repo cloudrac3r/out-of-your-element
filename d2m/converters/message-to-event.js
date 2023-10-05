@@ -19,7 +19,7 @@ function getDiscordParseCallbacks(message, useHTML) {
 	return {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
-			const mxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(node.id)
+			const mxid = select("sim", "mxid", {user_id: node.id}).pluck().get()
 			const username = message.mentions.find(ment => ment.id === node.id)?.username || node.id
 			if (mxid && useHTML) {
 				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
@@ -29,7 +29,7 @@ function getDiscordParseCallbacks(message, useHTML) {
 		},
 		/** @param {{id: string, type: "discordChannel"}} node */
 		channel: node => {
-			const row = select("channel_room", ["room_id", "name", "nick"], "WHERE channel_id = ?").get(node.id)
+			const row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
 			if (!row) {
 				return `<#${node.id}>` // fallback for when this channel is not bridged
 			} else if (useHTML) {
@@ -41,7 +41,7 @@ function getDiscordParseCallbacks(message, useHTML) {
 		/** @param {{animated: boolean, name: string, id: string, type: "discordEmoji"}} node */
 		emoji: node => {
 			if (useHTML) {
-				const mxc = select("emoji", "mxc_url", "WHERE id = ?").pluck().get(node.id)
+				const mxc = select("emoji", "mxc_url", {emoji_id: node.id}).pluck().get()
 				if (mxc) {
 					return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
 				} else { // We shouldn't get here since all emojis should have been added ahead of time in the messageToEvent function.
@@ -85,8 +85,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const ref = message.message_reference
 		assert(ref)
 		assert(ref.message_id)
-		const eventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(ref.message_id)
-		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(ref.channel_id)
+		const eventID = select("event_message", "event_id", {message_id: ref.message_id}).pluck().get()
+		const roomID = select("channel_room", "room_id", {channel_id: ref.channel_id}).pluck().get()
 		if (!eventID || !roomID) return []
 		const event = await di.api.getEvent(roomID, eventID)
 		return [{
@@ -138,8 +138,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	async function addTextEvent(content, msgtype, {scanMentions}) {
 		content = content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
-			const eventID = select("event_message", "event_id", "WHERE message_id = ?").pluck().get(messageID)
-			const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
+			const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
+			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 			if (eventID && roomID) {
 				return `https://matrix.to/#/${roomID}/${eventID}`
 			} else {
@@ -155,8 +155,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			const id = match[3]
 			const name = match[2]
 			const animated = +!!match[1]
-			const row = select("emoji", "id", "WHERE id = ?").pluck().get(id)
-			if (!row) {
+			const exists = select("emoji", "emoji_id", {emoji_id: id}).pluck().get()
+			if (!exists) {
 				// The custom emoji is not registered. We will register it and then add it.
 				emojiDownloads.push(
 					file.uploadDiscordFileToMxc(file.emoji(id, animated)).then(mxc => {
@@ -182,7 +182,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
 			if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
 				const writtenMentionsText = matches.map(m => m[1].toLowerCase())
-				const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(message.channel_id)
+				const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 				assert(roomID)
 				const {joined} = await di.api.getJoinedMembers(roomID)
 				for (const [mxid, member] of Object.entries(joined)) {

@@ -71,7 +71,7 @@ async function channelToKState(channel, guild) {
 	const spaceID = await createSpace.ensureSpace(guild)
 	assert.ok(typeof spaceID === "string")
 
-	const row = select("channel_room", ["nick", "custom_avatar"], "WHERE channel_id = ?").get(channel.id)
+	const row = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
 	const customName = row?.nick
 	const customAvatar = row?.custom_avatar
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
@@ -248,7 +248,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		await inflightRoomCreate.get(channelID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	const existing = select("channel_room", ["room_id", "thread_parent"], "WHERE channel_id = ?").get(channelID)
+	const existing = select("channel_room", ["room_id", "thread_parent"], {channel_id: channelID}).get()
 
 	if (!existing) {
 		const creation = (async () => {
@@ -308,9 +308,9 @@ async function _unbridgeRoom(channelID) {
 }
 
 async function unbridgeDeletedChannel(channelID, guildID) {
-	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
+	const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 	assert.ok(roomID)
-	const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guildID)
+	const spaceID = select("guild_space", "space_id", {guild_id: guildID}).pluck().get()
 	assert.ok(spaceID)
 
 	// remove room from being a space member

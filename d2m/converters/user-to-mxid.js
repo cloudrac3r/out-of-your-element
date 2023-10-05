@@ -53,7 +53,7 @@ function userToSimName(user) {
 	assert.notEqual(user.discriminator, "0000", "cannot create user for a webhook")
 
 	// 1. Is sim user already registered?
-	const existing = select("sim", "sim_name", "WHERE user_id = ?").pluck().get(user.id)
+	const existing = select("sim", "sim_name", {user_id: user.id}).pluck().get()
 	if (existing) return existing
 
 	// 2. Register based on username (could be new or old format)
@@ -64,7 +64,7 @@ function userToSimName(user) {
 	}
 
 	// Check for conflicts with already registered sims
-	const matches = select("sim", "sim_name", "WHERE sim_name LIKE ? ESCAPE '@'").pluck().all(downcased + "%")
+	const matches = select("sim", "sim_name", {}, "WHERE sim_name LIKE ? ESCAPE '@'").pluck().all(downcased + "%")
 	// Keep generating until we get a suggestion that doesn't conflict
 	for (const suggestion of generateLocalpartAlternatives(preferences)) {
 		if (!matches.includes(suggestion)) return suggestion

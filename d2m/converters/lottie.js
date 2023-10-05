@@ -38,7 +38,7 @@ const Rlottie = (async () => {
  * @returns {Promise<{mxc_url: string, info: typeof INFO}>}
  */
 async function convert(stickerItem) {
-	const existingMxc = select("lottie", "mxc_url", "WHERE sticker_id = ?").pluck().get(stickerItem.id)
+	const existingMxc = select("lottie", "mxc_url", {sticker_id: stickerItem.id}).pluck().get()
 	if (existingMxc) return {mxc_url: existingMxc, info: INFO}
 	const r = await Rlottie
 	const res = await fetch(file.DISCORD_IMAGES_BASE + file.sticker(stickerItem))

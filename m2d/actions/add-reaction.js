@@ -14,9 +14,9 @@ const emoji = sync.require("../converters/emoji")
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event
  */
 async function addReaction(event) {
-	const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(event.room_id)
+	const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
 	if (!channelID) return // We just assume the bridge has already been created
-	const messageID = select("event_message", "message_id", "WHERE event_id = ? AND part = 0").pluck().get(event.content["m.relates_to"].event_id) // 0 = primary
+	const messageID = select("event_message", "message_id", {event_id: event.content["m.relates_to"].event_id, part: 0}).pluck().get() // 0 = primary
 	if (!messageID) return // Nothing can be done if the parent message was never bridged.
 
 	const key = event.content["m.relates_to"].key // TODO: handle custom text or emoji reactions

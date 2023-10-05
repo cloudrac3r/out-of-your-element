@@ -58,7 +58,7 @@ async function resolvePendingFiles(message) {
 
 /** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker} event */
 async function sendEvent(event) {
-	const row = select("channel_room", ["channel_id", "thread_parent"], "WHERE room_id = ?").get(event.room_id)
+	const row = select("channel_room", ["channel_id", "thread_parent"], {room_id: event.room_id}).get()
 	if (!row) return // allow the bot to exist in unbridged rooms, just don't do anything with it
 	let channelID = row.channel_id
 	let threadID = undefined

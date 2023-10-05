@@ -46,7 +46,7 @@ module.exports = {
 
 		const channelID = gatewayMessage.d.channel_id
 		if (!channelID) return
-		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelID)
+		const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!roomID) return
 
 		let stackLines = e.stack.split("\n")
@@ -85,7 +85,7 @@ module.exports = {
 	async checkMissedMessages(client, guild) {
 		if (guild.unavailable) return
 		const bridgedChannels = select("channel_room", "channel_id").pluck().all()
-		const prepared = select("event_message", "event_id", "WHERE message_id = ?").pluck()
+		const prepared = select("event_message", "event_id", {}, "WHERE message_id = ?").pluck()
 		for (const channel of guild.channels.concat(guild.threads)) {
 			if (!bridgedChannels.includes(channel.id)) continue
 			if (!channel.last_message_id) continue
@@ -129,7 +129,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
-		const parentRoomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(thread.parent_id)
+		const parentRoomID = select("channel_room", "room_id", {channel_id: thread.parent_id}).pluck().get()
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
@@ -140,7 +140,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayGuildUpdateDispatchData} guild
 	 */
 	async onGuildUpdate(client, guild) {
-		const spaceID = select("guild_space", "space_id", "WHERE guild_id = ?").pluck().get(guild.id)
+		const spaceID = select("guild_space", "space_id", {guild_id: guild.id}).pluck().get()
 		if (!spaceID) return
 		await createSpace.syncSpace(guild)
 	},
@@ -151,7 +151,7 @@ module.exports = {
 	 * @param {boolean} isThread
 	 */
 	async onChannelOrThreadUpdate(client, channelOrThread, isThread) {
-		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(channelOrThread.id)
+		const roomID = select("channel_room", "room_id", {channel_id: channelOrThread.id}).pluck().get()
 		if (!roomID) return // No target room to update the data on
 		await createRoom.syncRoom(channelOrThread.id)
 	},
@@ -162,7 +162,7 @@ module.exports = {
 	 */
 	async onMessageCreate(client, message) {
 		if (message.webhook_id) {
-			const row = select("webhook", "webhook_id", "WHERE webhook_id = ?").pluck().get(message.webhook_id)
+			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
 			if (row) {
 				// The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 				return
@@ -183,7 +183,7 @@ module.exports = {
 	 */
 	async onMessageUpdate(client, data) {
 		if (data.webhook_id) {
-			const row = select("webhook", "webhook_id", "WHERE webhook_id = ?").pluck().get(data.webhook_id)
+			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
 			if (row) {
 				// The update was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 				return
@@ -249,9 +249,9 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayTypingStartDispatchData} data
 	 */
 	async onTypingStart(client, data) {
-		const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(data.channel_id)
+		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 		if (!roomID) return
-		const mxid = from("sim").join("sim_member", "mxid").and("WHERE user_id = ? AND room_id = ?").pluck("mxid").get(data.user_id, roomID)
+		const mxid = from("sim").join("sim_member", "mxid").where({user_id: data.user_id, room_id: roomID}).pluck("mxid").get()
 		if (!mxid) return
 		// Each Discord user triggers the notification every 8 seconds as long as they remain typing.
 		// Discord does not send typing stopped events, so typing only stops if the timeout is reached or if the user sends their message.

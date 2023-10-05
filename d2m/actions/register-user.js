@@ -51,7 +51,7 @@ async function createSim(user) {
  */
 async function ensureSim(user) {
 	let mxid = null
-	const existing = select("sim", "mxid", "WHERE user_id = ?").pluck().get(user.id)
+	const existing = select("sim", "mxid", {user_id: user.id}).pluck().get()
 	if (existing) {
 		mxid = existing
 	} else {
@@ -74,7 +74,7 @@ async function ensureSimJoined(user, roomID) {
 	const mxid = await ensureSim(user)
 
 	// Ensure joined
-	const existing = select("sim_member", "mxid", "WHERE room_id = ? AND mxid = ?").pluck().get(roomID, mxid)
+	const existing = select("sim_member", "mxid", {room_id: roomID, mxid}).pluck().get()
 	if (!existing) {
 		try {
 			await api.inviteToRoom(roomID, mxid)
@@ -143,7 +143,7 @@ async function syncUser(user, member, guildID, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guildID)
 	const currentHash = hashProfileContent(content)
-	const existingHash = select("sim_member", "hashed_profile_content", "WHERE room_id = ? AND mxid = ?").safeIntegers().pluck().get(roomID, mxid)
+	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
 	if (existingHash !== currentHash) {
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
@@ -153,9 +153,9 @@ async function syncUser(user, member, guildID, roomID) {
 }
 
 async function syncAllUsersInRoom(roomID) {
-	const mxids = select("sim_member", "mxid", "WHERE room_id = ?").pluck().all(roomID)
+	const mxids = select("sim_member", "mxid", {room_id: roomID}).pluck().all()
 
-	const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(roomID)
+	const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
 	assert.ok(typeof channelID === "string")
 
 	/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
@@ -164,7 +164,7 @@ async function syncAllUsersInRoom(roomID) {
 	assert.ok(typeof guildID === "string")
 
 	for (const mxid of mxids) {
-		const userID = select("sim", "user_id", "WHERE mxid = ?").pluck().get(mxid)
+		const userID = select("sim", "user_id", {mxid}).pluck().get()
 		assert.ok(typeof userID === "string")
 
 		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIGuildMember>} */

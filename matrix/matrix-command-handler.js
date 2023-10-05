@@ -151,7 +151,7 @@ const commands = [{
 		async (event, realBody, ctx) => {
 			// Guard
 			/** @type {string} */ // @ts-ignore
-			const channelID = select("channel_room", "channel_id", "WHERE room_id = ?").pluck().get(event.room_id)
+			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
 			const guildID = discord.channels.get(channelID)?.["guild_id"]
 			let matrixOnlyReason = null
 			const matrixOnlyConclusion = "So the emoji will be uploaded on Matrix-side only. It will still be usable over the bridge, but may have degraded functionality."

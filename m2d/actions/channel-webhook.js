@@ -14,7 +14,7 @@ const {discord, db, select} = passthrough
  */
 async function ensureWebhook(channelID, forceCreate = false) {
 	if (!forceCreate) {
-		const row = select("webhook", ["webhook_id", "webhook_token"], "WHERE channel_id = ?").get(channelID)
+		const row = select("webhook", ["webhook_id", "webhook_token"], {channel_id: channelID}).get()
 		if (row) {
 			return {
 				id: row.webhook_id,

@@ -18,9 +18,9 @@ const emoji = sync.require("../../m2d/converters/emoji")
  * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveDispatchData} data
  */
 async function removeReaction(data) {
-	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(data.channel_id)
+	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", "WHERE message_id = ? AND part = 0").pluck().get(data.message_id)
+	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
 	if (!eventIDForMessage) return
 
 	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
@@ -42,7 +42,7 @@ async function removeReaction(data) {
 			}
 			if (!lookingAtMatrixReaction && !wantToRemoveMatrixReaction) {
 				// We are removing a Discord user's reaction, so we just make the sim user remove it.
-				const mxid = select("sim", "mxid", "WHERE user_id = ?").pluck().get(data.user_id)
+				const mxid = select("sim", "mxid", {user_id: data.user_id}).pluck().get()
 				if (mxid === event.sender) {
 					await api.redactEvent(roomID, event.event_id, mxid)
 				}
@@ -55,9 +55,9 @@ async function removeReaction(data) {
  * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveEmojiDispatchData} data
  */
 async function removeEmojiReaction(data) {
-	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(data.channel_id)
+	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", "WHERE message_id = ? AND part = 0").pluck().get(data.message_id)
+	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
 	if (!eventIDForMessage) return
 
 	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
@@ -79,9 +79,9 @@ async function removeEmojiReaction(data) {
  * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveAllDispatchData} data
  */
 async function removeAllReactions(data) {
-	const roomID = select("channel_room", "room_id", "WHERE channel_id = ?").pluck().get(data.channel_id)
+	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", "WHERE message_id = ? AND part = 0").pluck().get(data.message_id)
+	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
 	if (!eventIDForMessage) return
 
 	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
