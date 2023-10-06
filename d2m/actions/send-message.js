@@ -46,7 +46,10 @@ async function sendMessage(message, guild) {
 		const eventID = await api.sendEvent(roomID, eventType, eventWithoutType, senderMxid, useTimestamp)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, eventPart) // source 1 = discord
 
-		eventPart = 1 // TODO: use more intelligent algorithm to determine whether primary or supporting
+		// The primary event is part = 0 and has the most important and distinct information. It is used to provide reply previews, be pinned, and possibly future uses.
+		// The first event is chosen to be the primary part because it is usually the message text content and is more likely to be distinct.
+		// For example, "Reply to 'this meme made me think of you'" is more useful than "Replied to image".
+		eventPart = 1
 		eventIDs.push(eventID)
 	}
 
