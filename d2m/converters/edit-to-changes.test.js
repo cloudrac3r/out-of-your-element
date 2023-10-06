@@ -4,7 +4,7 @@ const data = require("../../test/data")
 const Ty = require("../../types")
 
 test("edit2changes: edit by webhook", async t => {
-	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_by_webhook, data.guild.general, {})
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promoteEvent, promoteNextEvent} = await editToChanges(data.message_update.edit_by_webhook, data.guild.general, {})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [{
@@ -27,10 +27,12 @@ test("edit2changes: edit by webhook", async t => {
 		}
 	}])
 	t.equal(senderMxid, null)
+	t.equal(promoteEvent, null)
+	t.equal(promoteNextEvent, false)
 })
 
 test("edit2changes: bot response", async t => {
-	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.bot_response, data.guild.general, {
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promoteEvent, promoteNextEvent} = await editToChanges(data.message_update.bot_response, data.guild.general, {
 		async getJoinedMembers(roomID) {
 			t.equal(roomID, "!hYnGGlPHlbujVVfktC:cadence.moe")
 			return new Promise(resolve => {
@@ -82,17 +84,21 @@ test("edit2changes: bot response", async t => {
 		}
 	}])
 	t.equal(senderMxid, "@_ooye_bojack_horseman:cadence.moe")
+	t.equal(promoteEvent, null)
+	t.equal(promoteNextEvent, false)
 })
 
 test("edit2changes: remove caption from image", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.removed_caption_from_image, data.guild.general, {})
+	const {eventsToRedact, eventsToReplace, eventsToSend, promoteEvent, promoteNextEvent} = await editToChanges(data.message_update.removed_caption_from_image, data.guild.general, {})
 	t.deepEqual(eventsToRedact, ["$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA"])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [])
+	t.equal(promoteEvent, "$51f4yqHinwnSbPEQ9dCgoyy4qiIJSX0QYYVUnvwyTCI")
+	t.equal(promoteNextEvent, false)
 })
 
 test("edit2changes: add caption back to that image", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.added_caption_to_image, data.guild.general, {})
+	const {eventsToRedact, eventsToReplace, eventsToSend, promoteEvent, promoteNextEvent} = await editToChanges(data.message_update.added_caption_to_image, data.guild.general, {})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [{
 		$type: "m.room.message",
@@ -101,6 +107,8 @@ test("edit2changes: add caption back to that image", async t => {
 		"m.mentions": {}
 	}])
 	t.deepEqual(eventsToReplace, [])
+	t.equal(promoteEvent, null)
+	t.equal(promoteNextEvent, false)
 })
 
 test("edit2changes: stickers and attachments are not changed, only the content can be edited", async t => {

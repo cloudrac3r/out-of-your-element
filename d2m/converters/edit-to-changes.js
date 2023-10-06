@@ -83,6 +83,20 @@ async function editToChanges(message, guild, api) {
 	// Anything remaining in oldEventRows is present in the old version only and should be redacted.
 	eventsToRedact = oldEventRows
 
+	// If events are being deleted, we might be deleting the part = 0. But we want to have a part = 0 at all times. In this case we choose an existing event to promote.
+	let promoteEvent = null, promoteNextEvent = false
+	if (eventsToRedact.some(e => e.part === 0)) {
+		if (eventsToReplace.length) {
+			// We can choose an existing event to promote. Bigger order is better.
+			const order = e => 2*+(e.event_type === "m.room.message") + 1*+(e.event_subtype === "m.text")
+			eventsToReplace.sort((a, b) => order(b) - order(a))
+			promoteEvent = eventsToReplace[0].old.event_id
+		} else {
+			// Everything is being deleted. Whatever gets sent in their place will be the new part = 0.
+			promoteNextEvent = true
+		}
+	}
+
 	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!
 	// (Example: a MESSAGE_UPDATE for a text+image message - Discord does not allow the image to be changed, but the text might have been.)
 	// So we'll remove entries from eventsToReplace that *definitely* cannot have changed. (This is category 4 mentioned above.) Everything remaining *may* have changed.
@@ -103,7 +117,7 @@ async function editToChanges(message, guild, api) {
 	eventsToRedact = eventsToRedact.map(e => e.event_id)
 	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
 
-	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid}
+	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid, promoteEvent, promoteNextEvent}
 }
 
 /**

@@ -1,7 +1,7 @@
 // @ts-check
 
 const passthrough = require("../../passthrough")
-const { sync, db } = passthrough
+const {sync, db, select} = passthrough
 /** @type {import("../converters/edit-to-changes")} */
 const editToChanges = sync.require("../converters/edit-to-changes")
 /** @type {import("../../matrix/api")} */
@@ -12,7 +12,7 @@ const api = sync.require("../../matrix/api")
  * @param {import("discord-api-types/v10").APIGuild} guild
  */
 async function editMessage(message, guild) {
-	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid} = await editToChanges.editToChanges(message, guild, api)
+	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promoteEvent, promoteNextEvent} = await editToChanges.editToChanges(message, guild, api)
 
 	// 1. Replace all the things.
 	for (const {oldID, newContent} of eventsToReplace) {
@@ -33,10 +33,17 @@ async function editMessage(message, guild) {
 	for (const eventID of eventsToRedact) {
 		await api.redactEvent(roomID, eventID, senderMxid)
 		db.prepare("DELETE FROM event_message WHERE event_id = ?").run(eventID)
-		// TODO: If I just redacted part = 0, I should update one of the other events to make it the new part = 0, right?
 	}
 
-	// 3. Send all the things.
+	// 3. Consistency: Ensure there is exactly one part = 0
+	let eventPart = 1
+	if (promoteEvent) {
+		db.prepare("UPDATE event_message SET part = 0 WHERE event_id = ?").run(promoteEvent)
+	} else if (promoteNextEvent) {
+		eventPart = 0
+	}
+
+	// 4. Send all the things.
 	for (const content of eventsToSend) {
 		const eventType = content.$type
 		/** @type {Pick<typeof content, Exclude<keyof content, "$type">> & { $type?: string }} */
@@ -44,7 +51,9 @@ async function editMessage(message, guild) {
 		delete contentWithoutType.$type
 
 		const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, 1, 1)").run(eventID, eventType, content.msgtype || null, message.id) // part 1 = supporting; source 1 = discord
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 1)").run(eventID, eventType, content.msgtype || null, message.id, eventPart) // part 1 = supporting; source 1 = discord
+
+		eventPart = 1
 	}
 }
 
