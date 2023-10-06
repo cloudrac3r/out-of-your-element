@@ -19,7 +19,7 @@ async function addReaction(event) {
 	const messageID = select("event_message", "message_id", {event_id: event.content["m.relates_to"].event_id, part: 0}).pluck().get() // 0 = primary
 	if (!messageID) return // Nothing can be done if the parent message was never bridged.
 
-	const key = event.content["m.relates_to"].key // TODO: handle custom text or emoji reactions
+	const key = event.content["m.relates_to"].key
 	const discordPreferredEncoding = emoji.encodeEmoji(key, event.content.shortcode)
 	if (!discordPreferredEncoding) return
 
