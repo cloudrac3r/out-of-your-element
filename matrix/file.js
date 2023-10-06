@@ -21,13 +21,11 @@ function _removeExpiryParams(url) {
 }
 
 /**
- * @param {string} path
+ * @param {string} path or full URL if it's not a Discord CDN file
  */
 async function uploadDiscordFileToMxc(path) {
 	let url
 	if (path.startsWith("http")) {
-		// TODO: this is cheating to make seed.js easier. due a refactor or a name change since it's not soley for discord?
-		// possibly could be good to save non-discord external URLs under a user-specified key rather than simply using the url?
 		url = path
 	} else {
 		url = DISCORD_IMAGES_BASE + path
