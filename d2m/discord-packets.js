@@ -25,7 +25,6 @@ const utils = {
 			client.application = message.d.application
 			console.log(`Discord logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
 
-
 		} else if (message.t === "GUILD_CREATE") {
 			client.guilds.set(message.d.id, message.d)
 			const arr = []

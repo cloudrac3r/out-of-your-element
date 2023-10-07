@@ -73,8 +73,7 @@ Follow these steps:
 
 1. Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
 
-1. Run `node scripts/seed.js` to check your setup, create the database and server state (only need to run this once ever)
-
+1. Run `node scripts/seed.js` to check your setup and set the bot's initial state. You only need to run this once ever.
 1. Make sure the tests work by running `npm t`
 
 1. Start the bridge: `node start.js`
