@@ -161,6 +161,7 @@ module.exports = {
 	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
 	 */
 	async onMessageCreate(client, message) {
+		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
 		if (message.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
 			if (row) {
