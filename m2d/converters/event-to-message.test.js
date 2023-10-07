@@ -1,9 +1,11 @@
+const assert = require("assert").strict
 const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
 const data = require("../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {db, select} = require("../../passthrough")
 
+/* c8 ignore next 7 */
 function slow() {
 	if (process.argv.includes("--slow")) {
 		return test
@@ -843,6 +845,7 @@ test("event2message: editing a rich reply to a sim user", async t => {
 		}, data.guild.general, {
 			api: {
 				getEvent: (roomID, eventID) => {
+					assert.ok(eventID === "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04" || eventID === "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8")
 					if (eventID === "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04") {
 						eventsFetched.push("past")
 						return mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
@@ -870,8 +873,6 @@ test("event2message: editing a rich reply to a sim user", async t => {
 								}
 							}
 						})(roomID, eventID)
-					} else {
-						throw new Error(`This test wasn't meant to fetch event ID: ${eventID}`)
 					}
 				}
 			}
@@ -1920,9 +1921,9 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 		sender: "@cadence:cadence.moe",
 		content: {
 			msgtype: "m.text",
-			body: "testing :chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black:",
+			body: "testing :chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black::chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black:",
 			format: "org.matrix.custom.html",
-			formatted_body: "testing <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\">"
+			formatted_body: "testing <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\">"
 		},
 		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
 		room_id: "!maggESguZBqGBZtSnr:cadence.moe"

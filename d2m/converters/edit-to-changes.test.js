@@ -97,6 +97,22 @@ test("edit2changes: remove caption from image", async t => {
 	t.equal(promoteNextEvent, false)
 })
 
+test("edit2changes: change file type", async t => {
+	const {eventsToRedact, eventsToReplace, eventsToSend, promoteEvent, promoteNextEvent} = await editToChanges(data.message_update.changed_file_type, data.guild.general, {})
+	t.deepEqual(eventsToRedact, ["$51f4yqHinwnSbPEQ9dCgoyy4qiIJSX0QYYVUnvwyTCJ"])
+	t.deepEqual(eventsToSend, [{
+		$type: "m.room.message",
+		body: "📝 Uploaded file: https://cdn.discordapp.com/attachments/112760669178241024/1141501302497615912/gaze_into_my_dark_mind.txt (20 MB)",
+		format: "org.matrix.custom.html",
+		formatted_body: "📝 Uploaded file: <a href=\"https://cdn.discordapp.com/attachments/112760669178241024/1141501302497615912/gaze_into_my_dark_mind.txt\">gaze_into_my_dark_mind.txt</a> (20 MB)",
+		"m.mentions": {},
+		msgtype: "m.text"
+	}])
+	t.deepEqual(eventsToReplace, [])
+	t.equal(promoteEvent, null)
+	t.equal(promoteNextEvent, true)
+})
+
 test("edit2changes: add caption back to that image", async t => {
 	const {eventsToRedact, eventsToReplace, eventsToSend, promoteEvent, promoteNextEvent} = await editToChanges(data.message_update.added_caption_to_image, data.guild.general, {})
 	t.deepEqual(eventsToRedact, [])
@@ -135,7 +151,6 @@ test("edit2changes: stickers and attachments are not changed, only the content c
 		}
 	}])
 })
-
 
 test("edit2changes: edit of reply to skull webp attachment with content", async t => {
 	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_of_reply_to_skull_webp_attachment_with_content, data.guild.general, {})

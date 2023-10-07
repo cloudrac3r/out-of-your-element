@@ -125,7 +125,7 @@ turndownService.addRule("emoji", {
 		// Also guess a suitable emoji based on the ID (if available) or name
 		let guess = null
 		const guessedName = node.getAttribute("title").replace(/^:|:$/g, "")
-		for (const guild of discord?.guilds.values() || []) {
+		for (const guild of discord.guilds.values()) {
 			/** @type {{name: string, id: string, animated: number}[]} */
 			// @ts-ignore
 			const emojis = guild.emojis

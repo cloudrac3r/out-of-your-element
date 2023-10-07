@@ -40,6 +40,7 @@ async function compositeMatrixEmojis(mxcs) {
 						.resize(SIZE, SIZE, {fit: "contain", background: {r: 0, g: 0, b: 0, alpha: 0}})
 						.png({compressionLevel: 0})
 						.toBuffer((err, buffer, info) => {
+							/* c8 ignore next */
 							if (err) return reject(err)
 							resolve({info, buffer})
 						})
@@ -73,6 +74,7 @@ async function compositeMatrixEmojis(mxcs) {
 		}
 	}))
 
+	// Calculate the size of the final composited image
 	const totalWidth = Math.min(buffers.length, IMAGES_ACROSS) * SIZE
 	const imagesDown = Math.ceil(buffers.length / IMAGES_ACROSS)
 	const totalHeight = imagesDown * SIZE
@@ -80,8 +82,15 @@ async function compositeMatrixEmojis(mxcs) {
 	let left = 0, top = 0
 	for (const buffer of buffers) {
 		if (Buffer.isBuffer(buffer)) {
+			// Composite the current buffer into the sprite sheet
 			comp.push({left, top, input: buffer})
-			;(left += SIZE) + SIZE > RESULT_WIDTH && (left = 0, top += SIZE)
+			// The next buffer should be placed one slot to the right
+			left += SIZE
+			// If we're out of space to fit the entire next buffer there, wrap to the next line
+			if (left + SIZE > RESULT_WIDTH) {
+				left = 0
+				top += SIZE
+			}
 		}
 	}
 

@@ -134,7 +134,7 @@ function hashProfileContent(content) {
  * 1. Join the sim to the room if needed
  * 2. Make an object of what the new room member state content would be, including uploading the profile picture if it hasn't been done before
  * 3. Compare against the previously known state content, which is helpfully stored in the database
- * 4. If the state content has changes, send it to Matrix and update it in the database for next time
+ * 4. If the state content has changed, send it to Matrix and update it in the database for next time
  * @param {import("discord-api-types/v10").APIUser} user
  * @param {Omit<import("discord-api-types/v10").APIGuildMember, "user">} member
  * @returns {Promise<string>} mxid of the updated sim
