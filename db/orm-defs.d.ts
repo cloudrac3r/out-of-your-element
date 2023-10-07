@@ -75,6 +75,12 @@ export type Models = {
 		message_id: string
 		encoded_emoji: string
 	}
+
+	auto_emoji: {
+		name: string
+		emoji_id: string
+		guild_id: string
+	}
 }
 
 export type Prepared<Row> = {

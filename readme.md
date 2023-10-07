@@ -59,7 +59,6 @@ You'll need:
 
 * Administrative access to a homeserver
 * Discord bot
-* Custom emojis named `L1` and `L2` for replies sent to Discord (TODO: provide)
 
 Follow these steps:
 
@@ -148,6 +147,7 @@ Follow these steps:
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
 * (70) matrix-appservice: I wish it didn't pull in express :(
+* (0) minimist: It's already pulled in by better-sqlite3->prebuild-install
 * (0) mixin-deep: This is my fork! It fixes a bug in regular mixin-deep.
 * (3) node-fetch@2: I like it and it does what I want.
 * (0) pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.

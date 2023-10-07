@@ -1,0 +1,10 @@
+BEGIN TRANSACTION;
+
+CREATE TABLE auto_emoji (
+	name	TEXT NOT NULL,
+	emoji_id	TEXT NOT NULL,
+	guild_id	TEXT NOT NULL,
+	PRIMARY KEY (name)
+) WITHOUT ROWID;
+
+COMMIT;
