@@ -316,11 +316,12 @@ async function eventToMessage(event, guild, di) {
 			if (!repliedToEventId) return
 			let repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
 			if (!repliedToEvent) return
+			// @ts-ignore
+			const autoEmoji = new Map(select("auto_emoji", ["name", "emoji_id"], {}, "WHERE name = 'L1' OR name = 'L2'").raw().all())
+			replyLine = `<:L1:${autoEmoji.get("L1")}><:L2:${autoEmoji.get("L2")}>`
 			const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
 			if (row) {
-				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
-			} else {
-				replyLine = `<:L1:1144820033948762203><:L2:1144820084079087647>`
+				replyLine += `https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			}
 			const sender = repliedToEvent.sender
 			const senderName = sender.match(/@([^:]*)/)?.[1] || sender

@@ -89,4 +89,9 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
 ('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
 
+INSERT INTO "auto_emoji" ("name","emoji_id","guild_id") VALUES
+('L1','1144820033948762203','529176156398682115'),
+('L2','1144820084079087647','529176156398682115'),
+('_','_','529176156398682115');
+
 COMMIT;

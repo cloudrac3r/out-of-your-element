@@ -86,6 +86,7 @@ export type Models = {
 export type Prepared<Row> = {
 	pluck: () => Prepared<Row[keyof Row]>
 	safeIntegers: () => Prepared<{[K in keyof Row]: Row[K] extends number ? BigInt : Row[K]}>
+	raw: () => Prepared<Row[keyof Row][]>
 	all: (..._: any[]) => Row[]
 	get: (..._: any[]) => Row | null
 }
