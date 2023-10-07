@@ -464,6 +464,18 @@ test("message2event: mid-message small bridged emoji", async t => {
 	}])
 })
 
+test("message2event: emoji that hasn't been registered yet", async t => {
+	const events = await messageToEvent(data.message.not_been_registered_emoji, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: ":Yeah:",
+		format: "org.matrix.custom.html",
+		formatted_body: '<img data-mx-emoticon height="32" src="mxc://cadence.moe/pgdGTxAyEltccRgZKxdqzHHP" title=":Yeah:" alt=":Yeah:">'
+	}])
+})
+
 test("message2event: emoji triple long name", async t => {
 	const events = await messageToEvent(data.message.emoji_triple_long_name, data.guild.general, {})
 	t.deepEqual(events, [{

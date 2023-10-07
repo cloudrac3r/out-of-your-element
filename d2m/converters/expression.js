@@ -29,7 +29,7 @@ async function emojisToState(emojis) {
 				},
 				url
 			}
-			db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(emoji.id, emoji.name, +!!emoji.animated, url)
+			db.prepare("INSERT OR IGNORE INTO emoji (emoji_id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(emoji.id, emoji.name, +!!emoji.animated, url)
 		}).catch(e => {
 			if (e.data.errcode === "M_TOO_LARGE") { // Very unlikely to happen. Only possible for 3x-series emojis uploaded shortly after animated emojis were introduced, when there was no 256 KB size limit.
 				return

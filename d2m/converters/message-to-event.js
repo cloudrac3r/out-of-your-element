@@ -9,6 +9,8 @@ const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
+/** @type {import("./emoji-to-key")} */
+const emojiToKey = sync.require("./emoji-to-key")
 /** @type {import("./lottie")} */
 const lottie = sync.require("./lottie")
 const reg = require("../../matrix/read-registration")
@@ -150,22 +152,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
 		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
 		const emojiMatches = [...content.matchAll(/<(a?):([^:>]{2,64}):([0-9]+)>/g)]
-		const emojiDownloads = []
-		for (const match of emojiMatches) {
+		await Promise.all(emojiMatches.map(match => {
 			const id = match[3]
 			const name = match[2]
-			const animated = +!!match[1]
-			const exists = select("emoji", "emoji_id", {emoji_id: id}).pluck().get()
-			if (!exists) {
-				// The custom emoji is not registered. We will register it and then add it.
-				emojiDownloads.push(
-					file.uploadDiscordFileToMxc(file.emoji(id, animated)).then(mxc => {
-						db.prepare("INSERT OR IGNORE INTO emoji (id, name, animated, mxc_url) VALUES (?, ?, ?, ?)").run(id, name, animated, mxc)
-					})
-				)
-			}
-		}
-		await Promise.all(emojiDownloads)
+			const animated = match[1]
+			return emojiToKey.emojiToKey({id, name, animated}) // Register the custom emoji if needed
+		}))
 
 		let html = markdown.toHTML(content, {
 			discordCallback: getDiscordParseCallbacks(message, true)
