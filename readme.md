@@ -1,8 +1,14 @@
 # Out Of Your Element
 
+<img src="docs/img/icon.png" height="128" width="128">
+
 Modern Matrix-to-Discord appservice bridge.
 
 Created by [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) // Discuss in [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe)
+
+## Docs
+
+This readme has the most important info. The rest is [in the docs folder.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs)
 
 ## Why a new bridge?
 
@@ -43,10 +49,6 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 
 * This bridge is not designed for puppetting.
 * Direct Messaging is not supported yet.
-
-## Documentation
-
-The most important information is here in the readme. The rest is [in the docs folder.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs)
 
 ## Efficiency details
 
@@ -93,7 +95,7 @@ Follow these steps:
 	* $ `npm run addbot`
 	* $ `./addbot.sh`
 
-# Development information
+# Development setup
 
 * Be sure to install dependencies with `--save-dev` so you can run the tests.
 * Any files you change will automatically be reloaded, except for `stdin.js` and `d2m/discord-*.js`.
