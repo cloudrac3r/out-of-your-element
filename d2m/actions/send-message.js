@@ -12,6 +12,8 @@ const api = sync.require("../../matrix/api")
 const registerUser = sync.require("./register-user")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
+/** @type {import("../../discord/utils")} */
+const dUtils = sync.require("../../discord/utils")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
@@ -21,7 +23,7 @@ async function sendMessage(message, guild) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 
 	let senderMxid = null
-	if (!message.webhook_id) {
+	if (!dUtils.isWebhookMessage(message)) {
 		if (message.member) { // available on a gateway message create event
 			senderMxid = await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
 		} else { // well, good enough...

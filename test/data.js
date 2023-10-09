@@ -2007,6 +2007,193 @@ module.exports = {
 			},
 			attachments: [],
 			guild_id: "1100319549670301727"
+		},
+		bridge_echo_webhook: {
+			webhook_id: "1160692755144654970",
+			type: 0,
+			tts: false,
+			timestamp: "2023-10-09T21:15:58.866000+00:00",
+			pinned: false,
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			id: "1161049444674973706",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "ready when you are",
+			components: [],
+			channel_id: "497161350934560778",
+			author: {
+				username: "cadence [they]",
+				id: "1160692755144654970",
+				discriminator: "0000",
+				bot: true,
+				avatar: "af0ead3b92cf6e448fdad80b4e7fc9e5"
+			},
+			attachments: [],
+			application_id: "684280192553844747",
+			guild_id: "497159726455455754"
+		},
+		crosspost_announcement: {
+			id: "1152745817678028840",
+			type: 0,
+			content: "All text based commands are now inactive on Chewey Bot\nTo continue using commands you'll need to use them as slash commands",
+			channel_id: "500454381414514688",
+			author: {
+				id: "748007224353226832",
+				username: "Chewey Bot Official Server #announcements",
+				avatar: "427b2893c574b90f1c6bb54da2c609cb",
+				discriminator: "0000",
+				public_flags: 0,
+				flags: 0,
+				bot: true
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-09-16T23:20:19.916000+00:00",
+			edited_timestamp: null,
+			flags: 2,
+			components: [],
+			webhook_id: "748007224353226832",
+			message_reference: {
+				channel_id: "372274661439832065",
+				message_id: "1152745799596384263",
+				guild_id: "372271956562542592"
+			}
+		},
+	},
+	interaction_message: {
+		thinking_interaction_without_bot_user: {
+			webhook_id: "1109360903096369153",
+			type: 20,
+			tts: false,
+			timestamp: "2023-10-09T21:16:11.673000+00:00",
+			pinned: false,
+			nonce: "1161049469261709312",
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			interaction: {
+				user: {
+					username: "papiophidian",
+					public_flags: 4194880,
+					id: "320067006521147393",
+					global_name: "PapiOphidian",
+					discriminator: "0",
+					avatar_decoration_data: null,
+					avatar: "5fc4ad85c1ea876709e9a7d3374a78a1"
+				},
+				type: 2,
+				name: "stats",
+				member: {
+					roles: [],
+					premium_since: null,
+					pending: false,
+					nick: "Brad",
+					mute: false,
+					joined_at: "2018-10-03T21:35:50.974000+00:00",
+					flags: 0,
+					deaf: false,
+					communication_disabled_until: null,
+					avatar: null
+				},
+				id: "1161049497724534825"
+			},
+			id: "1161049498391425196",
+			flags: 128,
+			embeds: [],
+			edited_timestamp: null,
+			content: "",
+			components: [],
+			channel_id: "497161350934560778",
+			author: {
+				username: "Amanda 🎵",
+				public_flags: 524288,
+				id: "1109360903096369153",
+				global_name: null,
+				discriminator: "2192",
+				bot: true,
+				avatar_decoration_data: null,
+				avatar: "e4a45abe5f8ee44f0b59b79a08bdb2ac"
+			},
+			attachments: [],
+			application_id: "1109360903096369153",
+			guild_id: "497159726455455754"
+		},
+		thinking_interaction: {
+			webhook_id: "1109360903096369153",
+			type: 20,
+			tts: false,
+			timestamp: "2023-10-09T21:18:45.002000+00:00",
+			pinned: false,
+			nonce: "1161050112089128960",
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [ "604073998749270046" ],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2023-10-09T21:18:30.600000+00:00",
+				flags: 1,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: null
+			},
+			interaction: {
+				user: {
+					username: "papiophidian",
+					public_flags: 4194880,
+					id: "320067006521147393",
+					global_name: "PapiOphidian",
+					discriminator: "0",
+					avatar_decoration_data: null,
+					avatar: "5fc4ad85c1ea876709e9a7d3374a78a1"
+				},
+				type: 2,
+				name: "stats",
+				member: {
+					roles: [],
+					premium_since: null,
+					pending: false,
+					nick: "Brad",
+					mute: false,
+					joined_at: "2018-10-03T21:35:50.974000+00:00",
+					flags: 0,
+					deaf: false,
+					communication_disabled_until: null,
+					avatar: null
+				},
+				id: "1161050140640018472"
+			},
+			id: "1161050141499863120",
+			flags: 128,
+			embeds: [],
+			edited_timestamp: null,
+			content: "",
+			components: [],
+			channel_id: "497161350934560778",
+			author: {
+				username: "Amanda 🎵",
+				public_flags: 524288,
+				id: "1109360903096369153",
+				global_name: null,
+				discriminator: "2192",
+				bot: true,
+				avatar_decoration_data: null,
+				avatar: "e4a45abe5f8ee44f0b59b79a08bdb2ac"
+			},
+			attachments: [],
+			application_id: "1109360903096369153",
+			guild_id: "497159726455455754"
 		}
 	}
 }

@@ -47,4 +47,14 @@ function getPermissions(userRoles, guildRoles, userID, channelOverwrites) {
 	return allowed
 }
 
+/**
+ * Command interaction responses have a webhook_id for some reason, but still have real author info of a real bot user in the server.
+ * @param {DiscordTypes.APIMessage} message
+ */
+function isWebhookMessage(message) {
+	const isInteractionResponse = message.type === 20
+	return message.webhook_id && !isInteractionResponse
+}
+
 module.exports.getPermissions = getPermissions
+module.exports.isWebhookMessage = isWebhookMessage

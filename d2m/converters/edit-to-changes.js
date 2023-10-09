@@ -24,7 +24,7 @@ async function editToChanges(message, guild, api) {
 	const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 	assert(roomID)
 	/** @type {string?} Null if we don't have a sender in the room, which will happen if it's a webhook's message. The bridge bot will do the edit instead. */
-	const senderMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id}).pluck("mxid").get() || null
+	const senderMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id, room_id: roomID}).pluck("mxid").get() || null
 
 	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part"], {message_id: message.id}).all()
 

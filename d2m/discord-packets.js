@@ -141,7 +141,6 @@ const utils = {
 					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
 
 				} else if (message.t === "MESSAGE_CREATE") {
-					console.log(message.d)
 					await eventDispatcher.onMessageCreate(client, message.d)
 
 				} else if (message.t === "MESSAGE_UPDATE") {
