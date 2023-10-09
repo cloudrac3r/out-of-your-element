@@ -490,3 +490,15 @@ test("message2event: emoji triple long name", async t => {
 			+ '<img data-mx-emoticon height="32" src="mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik" title=":brillillillilliant_move:" alt=":brillillillilliant_move:">'
 	}])
 })
+
+test("message2event: crossposted announcements say where they are crossposted from", async t => {
+	const events = await messageToEvent(data.special_message.crosspost_announcement, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "[🔀 Chewey Bot Official Server #announcements]\nAll text based commands are now inactive on Chewey Bot\nTo continue using commands you'll need to use them as slash commands",
+		format: "org.matrix.custom.html",
+		formatted_body: "🔀 <strong>Chewey Bot Official Server #announcements</strong><br>All text based commands are now inactive on Chewey Bot<br>To continue using commands you'll need to use them as slash commands"
+	}])
+})

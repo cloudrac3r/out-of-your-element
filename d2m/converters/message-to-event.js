@@ -194,6 +194,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 			html = "* " + html
 		}
 
+		const flags = message.flags || 0
+		if (flags & 2) {
+			body = `[🔀 ${message.author.username}]\n` + body
+			html = `🔀 <strong>${message.author.username}</strong><br>` + html
+		}
+
 		// Fallback body/formatted_body for replies
 		// This branch is optional - do NOT change anything apart from the reply fallback, since it may not be run
 		if (repliedToEventRow && options.includeReplyFallback !== false) {
