@@ -2,6 +2,8 @@
 
 Modern Matrix-to-Discord appservice bridge.
 
+Created by [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) // Discuss in [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe)
+
 ## Why a new bridge?
 
 * Modern: Supports new Discord features like replies, threads and stickers, and new Matrix features like edits, spaces and space membership.
@@ -40,12 +42,17 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 ## Caveats
 
 * This bridge is not designed for puppetting.
+* Direct Messaging is not supported yet.
+
+## Documentation
+
+The most important information is here in the readme. The rest is [in the docs folder.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs)
 
 ## Efficiency details
 
 Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
 
-The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. Some event IDs are actually stored as xxhash integers to reduce storage requirements even more. On my personal instance of OOYE, every 100,000 messages sent require only 17.7 MB of storage space in the SQLite database.
+The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. Some event IDs are actually stored as xxhash integers to reduce storage requirements even more. On my personal instance of OOYE, every 100,000 messages require 16.1 MB of storage space in the SQLite database.
 
 Only necessary data and columns are queried from the database. We only contact the homeserver API if the database doesn't contain what we need.
 
@@ -103,7 +110,10 @@ Follow these steps:
     ├── registration.yaml
     * The bridge's SQLite database is stored here:
     ├── db
-    │   └── *.sql, *.db
+    │   ├── *.sql, *.db
+    │   * Migrations change the database schema when you update to a newer version of OOYE:
+    │   └── migrations
+    │       └── *.sql, *.js
     * Discord-to-Matrix bridging:
     ├── d2m
     │   * Execute actions through the whole flow, like sending a Discord message to Matrix:
@@ -116,22 +126,27 @@ Follow these steps:
     │   ├── discord-*.js
     │   * Listening to events from Discord and dispatching them to the correct `action`:
     │   └── event-dispatcher.js
+    ├── discord
+    │   └── discord-command-handler.js
     * Matrix-to-Discord bridging:
     ├── m2d
     │   * Execute actions through the whole flow, like sending a Matrix message to Discord:
     │   ├── actions
     │   │   └── *.js
+    │   * Convert data from one form to another without depending on bridge state. Called by actions:
     │   ├── converters
     │   │   └── *.js
+    │   * Listening to events from Matrix and dispatching them to the correct `action`:
     │   └── event-dispatcher.js
-    * We aren't using the matrix-js-sdk, so here's all the stuff we need to call the Matrix C-S API:
+    * We aren't using the matrix-js-sdk, so here are all the functions for the Matrix C-S and Appservice APIs:
     ├── matrix
     │   └── *.js
-    * Various files you can run once if you need them. Hopefully you won't need them.
+    * Various files you can run once if you need them.
     ├── scripts
-    │   ├── *.js
     │   * First time running a new bridge? Run this file to plant a seed, which will flourish into state for the bridge:
-    │   └── seed.js
+    │   ├── seed.js
+    │   * Hopefully you won't need the rest of these. Code quality varies wildly.
+    │   └── *.js
     * You are here! :)
     └── readme.md
 
