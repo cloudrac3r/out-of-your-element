@@ -133,6 +133,9 @@ const utils = {
 				} else if (message.t === "CHANNEL_UPDATE") {
 					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
 
+				} else if (message.t === "CHANNEL_PINS_UPDATE") {
+					await eventDispatcher.onChannelPinsUpdate(client, message.d)
+
 				} else if (message.t === "THREAD_CREATE") {
 					// @ts-ignore
 					await eventDispatcher.onThreadCreate(client, message.d)

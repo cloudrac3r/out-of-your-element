@@ -19,6 +19,8 @@ const announceThread = sync.require("./actions/announce-thread")
 const createRoom = sync.require("./actions/create-room")
 /** @type {import("./actions/create-space")}) */
 const createSpace = sync.require("./actions/create-space")
+/** @type {import("./actions/update-pins")}) */
+const updatePins = sync.require("./actions/update-pins")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 /** @type {import("../discord/discord-command-handler")}) */
@@ -155,6 +157,16 @@ module.exports = {
 		const roomID = select("channel_room", "room_id", {channel_id: channelOrThread.id}).pluck().get()
 		if (!roomID) return // No target room to update the data on
 		await createRoom.syncRoom(channelOrThread.id)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayChannelPinsUpdateDispatchData} data
+	 */
+	async onChannelPinsUpdate(client, data) {
+		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
+		if (!roomID) return // No target room to update pins in
+		await updatePins.updatePins(data.channel_id, roomID)
 	},
 
 	/**

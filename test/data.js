@@ -221,6 +221,14 @@ module.exports = {
 			deaf: false
 		}
 	},
+	pins: {
+		faked: [
+			{id: "1126786462646550579"},
+			{id: "1141501302736695316"},
+			{id: "1106366167788044450"},
+			{id: "1115688611186193400"}
+		]
+	},
 	message: {
 		// Display order is text content, attachments, then stickers
 		simple_plaintext: {
