@@ -337,7 +337,7 @@ index 0000000..40cc358
 +module.exports.updatePins = updatePins
 ```
 
-I try to keep as much logic as possible out of the actions, meaning I never have to unit test the actions themselves, and I can skip right ahead to trying this with the real bot.
+I try to keep as much logic as possible out of the actions and in the converters. This should mean I *never have to unit test the actions themselves.* The actions will be tested manually with the real bot.
 
 ## Notes on missed events
 
