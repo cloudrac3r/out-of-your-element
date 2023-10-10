@@ -1,7 +1,7 @@
 // @ts-check
 
 const Ty = require("../../types")
-const assert = require("assert").strict
+const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
@@ -9,15 +9,15 @@ const {discord, sync, db, select} = passthrough
 const api = sync.require("../../matrix/api")
 /** @type {import("../converters/emoji-to-key")} */
 const emojiToKey = sync.require("../converters/emoji-to-key")
-/** @type {import("../../m2d/converters/utils")} */
-const utils = sync.require("../../m2d/converters/utils")
 /** @type {import("../../m2d/converters/emoji")} */
 const emoji = sync.require("../../m2d/converters/emoji")
+/** @type {import("../converters/remove-reaction")} */
+const converter = sync.require("../converters/remove-reaction")
 
 /**
- * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveDispatchData} data
+ * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData | DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData | DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
  */
-async function removeReaction(data) {
+async function removeSomeReactions(data) {
 	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 	if (!roomID) return
 	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
@@ -25,76 +25,49 @@ async function removeReaction(data) {
 
 	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
 	const relations = await api.getRelations(roomID, eventIDForMessage, "m.annotation")
-	const key = await emojiToKey.emojiToKey(data.emoji)
 
-	const wantToRemoveMatrixReaction = data.user_id === discord.application.id
-	for (const event of relations.chunk) {
-		if (event.content["m.relates_to"].key === key) {
-			const lookingAtMatrixReaction = !utils.eventSenderIsFromDiscord(event.sender)
-			if (lookingAtMatrixReaction && wantToRemoveMatrixReaction) {
-				// We are removing a Matrix user's reaction, so we need to redact from the correct user ID (not @_ooye_matrix_bridge).
-				// Even though the bridge bot only reacted once on Discord-side, multiple Matrix users may have
-				// reacted on Matrix-side. Semantically, we want to remove the reaction from EVERY Matrix user.
-				await api.redactEvent(roomID, event.event_id)
-				// Clean up the database
-				const hash = utils.getEventIDHash(event.event_id)
-				db.prepare("DELETE FROM reaction WHERE hashed_event_id = ?").run(hash)
-			}
-			if (!lookingAtMatrixReaction && !wantToRemoveMatrixReaction) {
-				// We are removing a Discord user's reaction, so we just make the sim user remove it.
-				const mxid = select("sim", "mxid", {user_id: data.user_id}).pluck().get()
-				if (mxid === event.sender) {
-					await api.redactEvent(roomID, event.event_id, mxid)
-				}
-			}
-		}
+	// Run the proper strategy and any strategy-specific database changes
+	const removals = await
+		( "user_id" in data ? removeReaction(data, relations)
+		: "emoji" in data ? removeEmojiReaction(data, relations)
+		: removeAllReactions(data, relations))
+
+	// Redact the events and delete individual stored events in the database
+	for (const removal of removals) {
+		await api.redactEvent(roomID, removal.eventID, removal.mxid)
+		if (removal.hash) db.prepare("DELETE FROM reaction WHERE hashed_event_id = ?").run(removal.hash)
 	}
 }
 
 /**
- * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveEmojiDispatchData} data
+ * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData} data
+ * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
  */
-async function removeEmojiReaction(data) {
-	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
-	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
-	if (!eventIDForMessage) return
-
-	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
-	const relations = await api.getRelations(roomID, eventIDForMessage, "m.annotation")
+async function removeReaction(data, relations) {
 	const key = await emojiToKey.emojiToKey(data.emoji)
+	return converter.removeReaction(data, relations, key)
+}
 
-	for (const event of relations.chunk) {
-		if (event.content["m.relates_to"].key === key) {
-			const mxid = utils.eventSenderIsFromDiscord(event.sender) ? event.sender : undefined
-			await api.redactEvent(roomID, event.event_id, mxid)
-		}
-	}
-
+/**
+ * @param {DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData} data
+ * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ */
+async function removeEmojiReaction(data, relations) {
+	const key = await emojiToKey.emojiToKey(data.emoji)
 	const discordPreferredEncoding = emoji.encodeEmoji(key, undefined)
 	db.prepare("DELETE FROM reaction WHERE message_id = ? AND encoded_emoji = ?").run(data.message_id, discordPreferredEncoding)
+
+	return converter.removeEmojiReaction(data, relations, key)
 }
 
 /**
- * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveAllDispatchData} data
+ * @param {DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
+ * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
  */
-async function removeAllReactions(data) {
-	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
-	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
-	if (!eventIDForMessage) return
-
-	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
-	const relations = await api.getRelations(roomID, eventIDForMessage, "m.annotation")
-
-	for (const event of relations.chunk) {
-		const mxid = utils.eventSenderIsFromDiscord(event.sender) ? event.sender : undefined
-		await api.redactEvent(roomID, event.event_id, mxid)
-	}
-
+async function removeAllReactions(data, relations) {
 	db.prepare("DELETE FROM reaction WHERE message_id = ?").run(data.message_id)
+
+	return converter.removeAllReactions(data, relations)
 }
 
-module.exports.removeReaction = removeReaction
-module.exports.removeEmojiReaction = removeEmojiReaction
-module.exports.removeAllReactions = removeAllReactions
+module.exports.removeSomeReactions = removeSomeReactions

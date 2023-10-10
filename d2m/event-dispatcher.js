@@ -1,4 +1,5 @@
 const assert = require("assert").strict
+const DiscordTypes = require("discord-api-types/v10")
 const util = require("util")
 const {sync, db, select, from} = require("../passthrough")
 
@@ -80,7 +81,7 @@ module.exports = {
 	 * If more messages were missed, only the latest missed message will be posted. TODO: Consider bridging more, or post a warning when skipping history?
 	 * This can ONLY detect new messages, not any other kind of event. Any missed edits, deletes, reactions, etc will not be bridged.
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayGuildCreateDispatchData} guild
+	 * @param {DiscordTypes.GatewayGuildCreateDispatchData} guild
 	 */
 	async checkMissedMessages(client, guild) {
 		if (guild.unavailable) return
@@ -126,7 +127,7 @@ module.exports = {
 	 * Announces to the parent room that the thread room has been created.
 	 * See notes.md, "Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement"
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").APIThreadChannel} thread
+	 * @param {DiscordTypes.APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
 		const parentRoomID = select("channel_room", "room_id", {channel_id: thread.parent_id}).pluck().get()
@@ -137,7 +138,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayGuildUpdateDispatchData} guild
+	 * @param {DiscordTypes.GatewayGuildUpdateDispatchData} guild
 	 */
 	async onGuildUpdate(client, guild) {
 		const spaceID = select("guild_space", "space_id", {guild_id: guild.id}).pluck().get()
@@ -147,7 +148,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayChannelUpdateDispatchData} channelOrThread
+	 * @param {DiscordTypes.GatewayChannelUpdateDispatchData} channelOrThread
 	 * @param {boolean} isThread
 	 */
 	async onChannelOrThreadUpdate(client, channelOrThread, isThread) {
@@ -158,7 +159,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
+	 * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
 	 */
 	async onMessageCreate(client, message) {
 		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
@@ -169,7 +170,7 @@ module.exports = {
 				return
 			}
 		}
-		/** @type {import("discord-api-types/v10").APIGuildChannel} */
+		/** @type {DiscordTypes.APIGuildChannel} */
 		const channel = client.channels.get(message.channel_id)
 		if (!channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
@@ -180,7 +181,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageUpdateDispatchData} data
+	 * @param {DiscordTypes.GatewayMessageUpdateDispatchData} data
 	 */
 	async onMessageUpdate(client, data) {
 		if (data.webhook_id) {
@@ -193,9 +194,9 @@ module.exports = {
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.
 		if (typeof data.content === "string") {
-			/** @type {import("discord-api-types/v10").GatewayMessageCreateDispatchData} */
+			/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 			const message = data
-			/** @type {import("discord-api-types/v10").APIGuildChannel} */
+			/** @type {DiscordTypes.APIGuildChannel} */
 			const channel = client.channels.get(message.channel_id)
 			if (!channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)
@@ -205,7 +206,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageReactionAddDispatchData} data
+	 * @param {DiscordTypes.GatewayMessageReactionAddDispatchData} data
 	 */
 	async onReactionAdd(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
@@ -215,31 +216,15 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveDispatchData} data
+	 * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData | DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData | DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
 	 */
-	async onReactionRemove(client, data) {
-		await removeReaction.removeReaction(data)
+	async onSomeReactionsRemoved(client, data) {
+		await removeReaction.removeSomeReactions(data)
 	},
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveEmojiDispatchData} data
-	 */
-	async onReactionEmojiRemove(client, data) {
-		await removeReaction.removeEmojiReaction(data)
-	},
-
-	/**
-	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageReactionRemoveAllDispatchData} data
-	 */
-	async onRemoveAllReactions(client, data) {
-		await removeReaction.removeAllReactions(data)
-	},
-
-	/**
-	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayMessageDeleteDispatchData} data
+	 * @param {DiscordTypes.GatewayMessageDeleteDispatchData} data
 	 */
 	async onMessageDelete(client, data) {
 		await deleteMessage.deleteMessage(data)
@@ -247,7 +232,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayTypingStartDispatchData} data
+	 * @param {DiscordTypes.GatewayTypingStartDispatchData} data
 	 */
 	async onTypingStart(client, data) {
 		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
@@ -262,7 +247,7 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData | import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} data
+	 * @param {DiscordTypes.GatewayGuildEmojisUpdateDispatchData | DiscordTypes.GatewayGuildStickersUpdateDispatchData} data
 	 */
 	async onExpressionsUpdate(client, data) {
 		await createSpace.syncSpaceExpressions(data)

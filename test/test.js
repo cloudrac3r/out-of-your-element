@@ -20,7 +20,10 @@ const sync = new HeatSync({watchFS: false})
 const discord = {
 	guilds: new Map([
 		[data.guild.general.id, data.guild.general]
-	])
+	]),
+	application: {
+		id: "684280192553844747"
+	}
 }
 
 Object.assign(passthrough, { discord, config, sync, db })
@@ -49,6 +52,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../d2m/converters/message-to-event.test")
 	require("../d2m/converters/message-to-event.embeds.test")
 	require("../d2m/converters/edit-to-changes.test")
+	require("../d2m/converters/remove-reaction.test")
 	require("../d2m/converters/thread-to-announcement.test")
 	require("../d2m/converters/user-to-mxid.test")
 	require("../d2m/converters/emoji-to-key.test")
