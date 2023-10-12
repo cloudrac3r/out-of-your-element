@@ -40,9 +40,11 @@ async function sendMessage(message, guild) {
 	}
 	for (const event of events) {
 		const eventType = event.$type
-		/** @type {Pick<typeof event, Exclude<keyof event, "$type">> & { $type?: string }} */
+		if (event.$sender) senderMxid = event.$sender
+		/** @type {Pick<typeof event, Exclude<keyof event, "$type" | "$sender">> & { $type?: string, $sender?: string }} */
 		const eventWithoutType = {...event}
 		delete eventWithoutType.$type
+		delete eventWithoutType.$sender
 
 		const useTimestamp = message["backfill"] ? new Date(message.timestamp).getTime() : undefined
 		const eventID = await api.sendEvent(roomID, eventType, eventWithoutType, senderMxid, useTimestamp)

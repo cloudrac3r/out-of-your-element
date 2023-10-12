@@ -1,7 +1,7 @@
 BEGIN TRANSACTION;
 
-INSERT INTO guild_space (guild_id, space_id) VALUES
-('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe');
+INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
+('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe', 0);
 
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),

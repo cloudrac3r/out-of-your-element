@@ -15,6 +15,24 @@ const ks = sync.require("../../matrix/kstate")
 /** @type {import("./create-space")}) */
 const createSpace = sync.require("./create-space") // watch out for the require loop
 
+/**
+ * There are 3 levels of room privacy:
+ * 0: Room is invite-only.
+ * 1: Anybody can use a link to join.
+ * 2: Room is published in room directory.
+ */
+const PRIVACY_ENUMS = {
+	PRESET: ["private_chat", "public_chat", "public_chat"],
+	VISIBILITY: ["private", "private", "public"],
+	SPACE_HISTORY_VISIBILITY: ["invited", "world_readable", "world_readable"], // copying from element client
+	ROOM_HISTORY_VISIBILITY: ["shared", "shared", "world_readable"], // any events sent after <value> are visible, but for world_readable anybody can read without even joining
+	GUEST_ACCESS: ["can_join", "forbidden", "forbidden"], // whether guests can join space if other conditions are met
+	SPACE_JOIN_RULES: ["invite", "public", "public"],
+	ROOM_JOIN_RULES: ["restricted", "public", "public"]
+}
+
+const DEFAULT_PRIVACY_LEVEL = 0
+
 /** @type {Map<string, Promise<string>>} channel ID -> Promise<room ID> */
 const inflightRoomCreate = new Map()
 
@@ -69,7 +87,9 @@ function convertNameAndTopic(channel, guild, customName) {
  */
 async function channelToKState(channel, guild) {
 	const spaceID = await createSpace.ensureSpace(guild)
-	assert.ok(typeof spaceID === "string")
+	assert(typeof spaceID === "string")
+	const privacyLevel = select("guild_space", "privacy_level", {space_id: spaceID}).pluck().get()
+	assert(privacyLevel)
 
 	const row = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
 	const customName = row?.nick
@@ -84,27 +104,33 @@ async function channelToKState(channel, guild) {
 		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
-	let history_visibility = "shared"
+	let history_visibility = PRIVACY_ENUMS.ROOM_HISTORY_VISIBILITY[privacyLevel]
 	if (channel["thread_metadata"]) history_visibility = "world_readable"
+
+	/** @type {{join_rule: string, allow?: any}} */
+	let join_rules = {
+		join_rule: "restricted",
+		allow: [{
+			type: "m.room_membership",
+			room_id: spaceID
+		}]
+	}
+	if (PRIVACY_ENUMS.ROOM_JOIN_RULES[privacyLevel] !== "restricted") {
+		join_rules = {join_rule: PRIVACY_ENUMS.ROOM_JOIN_RULES[privacyLevel]}
+	}
 
 	const channelKState = {
 		"m.room.name/": {name: convertedName},
 		"m.room.topic/": {topic: convertedTopic},
 		"m.room.avatar/": avatarEventContent,
-		"m.room.guest_access/": {guest_access: "can_join"},
+		"m.room.guest_access/": {guest_access: PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},
 		"m.room.history_visibility/": {history_visibility},
 		[`m.space.parent/${spaceID}`]: {
 			via: [reg.ooye.server_name],
 			canonical: true
 		},
 		/** @type {{join_rule: string, [x: string]: any}} */
-		"m.room.join_rules/": {
-			join_rule: "restricted",
-			allow: [{
-				type: "m.room_membership",
-				room_id: spaceID
-			}]
-		},
+		"m.room.join_rules/": join_rules,
 		"m.room.power_levels/": {
 			events: {
 				"m.room.avatar": 0
@@ -132,7 +158,7 @@ async function channelToKState(channel, guild) {
 		}
 	}
 
-	return {spaceID, channelKState}
+	return {spaceID, privacyLevel, channelKState}
 }
 
 /**
@@ -141,9 +167,10 @@ async function channelToKState(channel, guild) {
  * @param guild
  * @param {string} spaceID
  * @param {any} kstate
+ * @param {number} privacyLevel
  * @returns {Promise<string>} room ID
  */
-async function createRoom(channel, guild, spaceID, kstate) {
+async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 	let threadParent = null
 	if (channel.type === DiscordTypes.ChannelType.PublicThread) threadParent = channel.parent_id
 
@@ -160,8 +187,8 @@ async function createRoom(channel, guild, spaceID, kstate) {
 		const roomID = await api.createRoom({
 			name,
 			topic,
-			preset: "private_chat", // This is closest to what we want, but properties from kstate override it anyway
-			visibility: "private", // Not shown in the room directory
+			preset: PRIVACY_ENUMS.ROOM_HISTORY_VISIBILITY[privacyLevel], // This is closest to what we want, but properties from kstate override it anyway
+			visibility: PRIVACY_ENUMS.VISIBILITY[privacyLevel],
 			invite: [],
 			initial_state: ks.kstateToState(kstate)
 		})
@@ -252,8 +279,8 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 	if (!existing) {
 		const creation = (async () => {
-			const {spaceID, channelKState} = await channelToKState(channel, guild)
-			const roomID = await createRoom(channel, guild, spaceID, channelKState)
+			const {spaceID, privacyLevel, channelKState} = await channelToKState(channel, guild)
+			const roomID = await createRoom(channel, guild, spaceID, channelKState, privacyLevel)
 			inflightRoomCreate.delete(channelID) // OK to release inflight waiters now. they will read the correct `existing` row
 			return roomID
 		})()
@@ -371,6 +398,8 @@ async function createAllForGuild(guildID) {
 	}
 }
 
+module.exports.DEFAULT_PRIVACY_LEVEL = DEFAULT_PRIVACY_LEVEL
+module.exports.PRIVACY_ENUMS = PRIVACY_ENUMS
 module.exports.createRoom = createRoom
 module.exports.ensureRoom = ensureRoom
 module.exports.syncRoom = syncRoom

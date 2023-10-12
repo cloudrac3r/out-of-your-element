@@ -32,8 +32,8 @@ async function createSpace(guild, kstate) {
 	const roomID = await createRoom.postApplyPowerLevels(kstate, async kstate => {
 		return api.createRoom({
 			name,
-			preset: "private_chat", // cannot join space unless invited
-			visibility: "private",
+			preset: createRoom.PRIVACY_ENUMS.PRESET[createRoom.DEFAULT_PRIVACY_LEVEL], // New spaces will have to use the default privacy level; we obviously can't look up the existing entry
+			visibility: createRoom.PRIVACY_ENUMS.VISIBILITY[createRoom.DEFAULT_PRIVACY_LEVEL],
 			power_level_content_override: {
 				events_default: 100, // space can only be managed by bridge
 				invite: 0 // any existing member can invite others
@@ -51,23 +51,21 @@ async function createSpace(guild, kstate) {
 }
 
 /**
- * @param {DiscordTypes.APIGuild} guild]
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {number} privacyLevel
  */
-async function guildToKState(guild) {
+async function guildToKState(guild, privacyLevel) {
 	const avatarEventContent = {}
 	if (guild.icon) {
 		avatarEventContent.discord_path = file.guildIcon(guild)
 		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
 	}
 
-	let history_visibility = "invited"
-	if (guild["thread_metadata"]) history_visibility = "world_readable"
-
 	const guildKState = {
 		"m.room.name/": {name: guild.name},
 		"m.room.avatar/": avatarEventContent,
-		"m.room.guest_access/": {guest_access: "can_join"}, // guests can join space if other conditions are met
-		"m.room.history_visibility/": {history_visibility: "invited"} // any events sent after user was invited are visible
+		"m.room.guest_access/": {guest_access: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},
+		"m.room.history_visibility/": {history_visibility: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]}
 	}
 
 	return guildKState
@@ -86,11 +84,11 @@ async function _syncSpace(guild, shouldActuallySync) {
 		await inflightSpaceCreate.get(guild.id) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	const spaceID = select("guild_space", "space_id", {guild_id: guild.id}).pluck().get()
+	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id: guild.id}).get()
 
-	if (!spaceID) {
+	if (!row) {
 		const creation = (async () => {
-			const guildKState = await guildToKState(guild)
+			const guildKState = await guildToKState(guild, createRoom.DEFAULT_PRIVACY_LEVEL) // New spaces will have to use the default privacy level; we obviously can't look up the existing entry
 			const spaceID = await createSpace(guild, guildKState)
 			inflightSpaceCreate.delete(guild.id)
 			return spaceID
@@ -99,13 +97,15 @@ async function _syncSpace(guild, shouldActuallySync) {
 		return creation // Naturally, the newly created space is already up to date, so we can always skip syncing here.
 	}
 
+	const {space_id: spaceID, privacy_level} = row
+
 	if (!shouldActuallySync) {
 		return spaceID // only need to ensure space exists, and it does. return the space ID
 	}
 
 	console.log(`[space sync] to matrix: ${guild.name}`)
 
-	const guildKState = await guildToKState(guild) // calling this in both branches because we don't want to calculate this if not syncing
+	const guildKState = await guildToKState(guild, privacy_level) // calling this in both branches because we don't want to calculate this if not syncing
 
 	// sync guild state to space
 	const spaceKState = await createRoom.roomToKState(spaceID)
@@ -159,16 +159,19 @@ async function syncSpaceFully(guildID) {
 	const guild = discord.guilds.get(guildID)
 	assert.ok(guild)
 
-	const spaceID = select("guild_space", "space_id", {guild_id: guildID}).pluck().get()
+	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id: guildID}).get()
 
-	const guildKState = await guildToKState(guild)
-
-	if (!spaceID) {
+	if (!row) {
+		const guildKState = await guildToKState(guild, createRoom.DEFAULT_PRIVACY_LEVEL)
 		const spaceID = await createSpace(guild, guildKState)
 		return spaceID // Naturally, the newly created space is already up to date, so we can always skip syncing here.
 	}
 
+	const {space_id: spaceID, privacy_level} = row
+
 	console.log(`[space sync] to matrix: ${guild.name}`)
+
+	const guildKState = await guildToKState(guild, privacy_level)
 
 	// sync guild state to space
 	const spaceKState = await createRoom.roomToKState(spaceID)
