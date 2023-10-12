@@ -11,6 +11,8 @@ const {discord, sync, db, select} = require("../passthrough")
 const api = sync.require("../matrix/api")
 /** @type {import("../matrix/file")} */
 const file = sync.require("../matrix/file")
+/** @type {import("../d2m/actions/create-space")} */
+const createSpace = sync.require("../d2m/actions/create-space")
 /** @type {import("./utils")} */
 const utils = sync.require("./utils")
 
@@ -210,6 +212,39 @@ const commands = [{
 				...ctx,
 				content: addbot()
 			})
+		}
+	)
+}, {
+	aliases: ["privacy", "discoverable", "publish", "published"],
+	execute: replyctx(
+		async (message, channel, guild, ctx) => {
+			const current = select("guild_space", "privacy_level", {guild_id: guild.id}).pluck().get()
+			if (current == null) {
+				return discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: "This server isn't bridged to the other side."
+				})
+			}
+
+			const levels = ["invite", "link", "directory"]
+			const level = levels.findIndex(x => message.content.includes(x))
+			if (level === -1) {
+				return discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: "**Usage: `//privacy <level>`**. This will set who can join the space on Matrix-side. There are three levels:"
+						+ "\n`invite`: Can only join with a direct in-app invite from another Matrix user, or the //invite command."
+						+ "\n`link`: Matrix links can be created and shared like Discord's invite links. `invite` features also work."
+						+ "\n`directory`: Publishes to the Matrix in-app directory, like Server Discovery. Preview enabled. `invite` and `link` also work."
+						+ `\n**Current privacy level: \`${levels[current]}\`**`
+				})
+			}
+
+			db.prepare("UPDATE guild_space SET privacy_level = ? WHERE guild_id = ?").run(level, guild.id)
+			discord.snow.channel.createMessage(channel.id, {
+				...ctx,
+				content: `Privacy level updated to \`${levels[level]}\`. Changes will apply shortly.`
+			})
+			await createSpace.syncSpaceFully(guild.id)
 		}
 	)
 }]

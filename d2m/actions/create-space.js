@@ -154,7 +154,7 @@ function syncSpace(guild) {
 
 /**
  * Inefficiently force the space and its existing child rooms to be fully updated.
- * Should not need to be called as part of the bridge's normal operation.
+ * Prefer not to call this as part of the bridge's normal operation.
  */
 async function syncSpaceFully(guildID) {
 	/** @ts-ignore @type {DiscordTypes.APIGuild} */
