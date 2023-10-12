@@ -134,7 +134,8 @@ async function channelToKState(channel, guild) {
 		"m.room.power_levels/": {
 			events: {
 				"m.room.avatar": 0
-			}
+			},
+			users: reg.ooye.invite.reduce((a, c) => (a[c] = 100, a), {})
 		},
 		"chat.schildi.hide_ui/read_receipts": {
 			hidden: true
