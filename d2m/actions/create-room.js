@@ -89,7 +89,7 @@ async function channelToKState(channel, guild) {
 	const spaceID = await createSpace.ensureSpace(guild)
 	assert(typeof spaceID === "string")
 	const privacyLevel = select("guild_space", "privacy_level", {space_id: spaceID}).pluck().get()
-	assert(privacyLevel)
+	assert(typeof privacyLevel === "number")
 
 	const row = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
 	const customName = row?.nick
