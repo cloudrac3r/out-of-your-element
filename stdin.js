@@ -21,15 +21,19 @@ const guildID = "112760669178241024"
 
 const extraContext = {}
 
-setImmediate(() => { // assign after since old extraContext data will get removed
-	if (!passthrough.repl) {
-		const cli = repl.start({ prompt: "", eval: customEval, writer: s => s })
-		Object.assign(cli.context, extraContext, passthrough)
-		passthrough.repl = cli
-	} else Object.assign(passthrough.repl.context, extraContext)
-	// @ts-expect-error Says exit isn't assignable to a string
-	sync.addTemporaryListener(passthrough.repl, "exit", () => process.exit())
-})
+if (process.stdin.isTTY) {
+	setImmediate(() => { // assign after since old extraContext data will get removed
+		if (!passthrough.repl) {
+			const cli = repl.start({ prompt: "", eval: customEval, writer: s => s })
+			Object.assign(cli.context, extraContext, passthrough)
+			passthrough.repl = cli
+		} else {
+			Object.assign(passthrough.repl.context, extraContext)
+		}
+		// @ts-expect-error Says exit isn't assignable to a string
+		sync.addTemporaryListener(passthrough.repl, "exit", () => process.exit())
+	})
+}
 
 /**
  * @param {string} input
