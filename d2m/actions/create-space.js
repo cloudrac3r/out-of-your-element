@@ -65,7 +65,7 @@ async function guildToKState(guild, privacyLevel) {
 		"m.room.name/": {name: guild.name},
 		"m.room.avatar/": avatarEventContent,
 		"m.room.guest_access/": {guest_access: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},
-		"m.room.history_visibility/": {history_visibility: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]}
+		"m.room.history_visibility/": {history_visibility: createRoom.PRIVACY_ENUMS.SPACE_HISTORY_VISIBILITY[privacyLevel]}
 	}
 
 	return guildKState
