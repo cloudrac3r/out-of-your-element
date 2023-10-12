@@ -239,6 +239,15 @@ const commands = [{
 				})
 			}
 
+			assert(message.member)
+			const guildPermissions = utils.getPermissions(message.member.roles, guild.roles)
+			if (guild.owner_id !== message.author.id && !(guildPermissions & BigInt(0x28))) { // MANAGE_GUILD | ADMINISTRATOR
+				return discord.snow.channel.createMessage(channel.id, {
+					...ctx,
+					content: "You don't have permission to change the privacy level. You need Manage Server or Administrator."
+				})
+			}
+
 			db.prepare("UPDATE guild_space SET privacy_level = ? WHERE guild_id = ?").run(level, guild.id)
 			discord.snow.channel.createMessage(channel.id, {
 				...ctx,
