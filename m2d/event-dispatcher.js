@@ -147,6 +147,6 @@ sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
  */
 async event => {
 	if (event.state_key[0] !== "@") return
-	if (utils.eventSenderIsFromDiscord(event.sender)) return
-	db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(event.room_id, event.sender, event.content.displayname || null, event.content.avatar_url || null)
+	if (utils.eventSenderIsFromDiscord(event.state_key)) return
+	db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(event.room_id, event.state_key, event.content.displayname || null, event.content.avatar_url || null)
 }))

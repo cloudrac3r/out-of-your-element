@@ -1,0 +1,5 @@
+BEGIN TRANSACTION;
+
+DELETE FROM member_cache;
+
+COMMIT;
