@@ -99,7 +99,7 @@ async function sendEvent(event) {
 
 	for (const message of messagesToSend) {
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
-		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, channelID)
+		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, threadID || channelID)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content["msgtype"] || null, messageResponse.id, eventPart) // source 0 = matrix
 
 		eventPart = 1

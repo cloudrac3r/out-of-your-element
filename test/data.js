@@ -939,6 +939,92 @@ module.exports = {
 			attachments: [],
 			guild_id: "112760669178241024"
 		},
+		simple_reply_to_reply_in_thread: {
+			type: 19,
+			tts: false,
+			timestamp: "2023-10-12T12:35:12.721000+00:00",
+			referenced_message: {
+				webhook_id: "1142275246532083723",
+				type: 0,
+				tts: false,
+				timestamp: "2023-10-12T12:35:06.578000+00:00",
+				position: 1,
+				pinned: false,
+				mentions: [
+					{
+						username: "cadence.worm",
+						public_flags: 0,
+						id: "772659086046658620",
+						global_name: "cadence",
+						discriminator: "0",
+						avatar_decoration_data: null,
+						avatar: "4b5c4b28051144e4c111f0113a0f1cf1"
+					}
+				],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1162005526675193909",
+				flags: 0,
+				embeds: [],
+				edited_timestamp: null,
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/1100319549670301727/1162005314908999790/1162005501782011975 <@772659086046658620>:\n" +
+				"> So what I'm wondering is about replies.\n" +
+				"What about them?",
+				components: [],
+				channel_id: "1162005314908999790",
+				author: {
+					username: "cadence [they]",
+					id: "1142275246532083723",
+					global_name: null,
+					discriminator: "0000",
+					bot: true,
+					avatar: "af0ead3b92cf6e448fdad80b4e7fc9e5"
+				},
+				attachments: [],
+				application_id: "684280192553844747"
+			},
+			position: 2,
+			pinned: false,
+			nonce: "1162005551190638592",
+			message_reference: {
+				message_id: "1162005526675193909",
+				guild_id: "1100319549670301727",
+				channel_id: "1162005314908999790"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [],
+				premium_since: null,
+				pending: false,
+				nick: "worm",
+				mute: false,
+				joined_at: "2023-04-25T07:17:03.696000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: null
+			},
+			id: "1162005552440815646",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "Well, they don't seem to...",
+			components: [],
+			channel_id: "1162005314908999790",
+			author: {
+				username: "cadence.worm",
+				public_flags: 0,
+				id: "772659086046658620",
+				global_name: "cadence",
+				discriminator: "0",
+				avatar_decoration_data: null,
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1"
+			},
+			attachments: [],
+			guild_id: "1100319549670301727"
+		},
 		sticker: {
 			id: "1106366167788044450",
 			type: 0,

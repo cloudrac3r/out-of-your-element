@@ -8,6 +8,7 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
 ('160197704226439168', '!hYnGGlPHlbujVVfktC:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
 ('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
+('1162005314908999790', '!FuDZhlOAtqswlyxzeR:cadence.moe', 'Hey.', NULL, '1100319550446252084', NULL),
 ('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL),
 ('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL);
 
@@ -36,7 +37,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1144865310588014633', '687028734322147344'),
 ('1145688633186193479', '1100319550446252084'),
 ('1145688633186193480', '1100319550446252084'),
-('1145688633186193481', '1100319550446252084');
+('1145688633186193481', '1100319550446252084'),
+('1162005526675193909', '1162005314908999790');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 1),
@@ -57,7 +59,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8', 'm.room.message', 'm.text', '1144874214311067708', 0, 0),
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs', 'm.room.message', 'm.text', '1145688633186193479', 0, 0),
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt', 'm.room.message', 'm.text', '1145688633186193480', 0, 0),
-('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt', 'm.room.message', 'm.text', '1145688633186193481', 1, 0);
+('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt', 'm.room.message', 'm.text', '1145688633186193481', 1, 0),
+('$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo', 'm.room.message', 'm.text', '1162005526675193909', 0, 0);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),

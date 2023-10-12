@@ -215,6 +215,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 				repliedToUserHtml = repliedToDisplayName
 			}
 			let repliedToContent = message.referenced_message?.content
+			if (repliedToContent?.startsWith("> <:L1:")) {
+				// If the Discord user is replying to a Matrix user's reply, the fallback is going to contain the emojis and stuff from the bridged rep of the Matrix user's reply quote.
+				// Need to remove that previous reply rep from this fallback body. The fallbody body should only contain the Matrix user's actual message.
+				repliedToContent = repliedToContent.split("\n").slice(2).join("\n")
+			}
 			if (repliedToContent == "") repliedToContent = "[Media]"
 			else if (!repliedToContent) repliedToContent = "[Replied-to message content wasn't provided by Discord]"
 			const repliedToHtml = markdown.toHTML(repliedToContent, {

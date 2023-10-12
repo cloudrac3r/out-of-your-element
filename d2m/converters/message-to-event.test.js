@@ -273,6 +273,45 @@ test("message2event: simple reply to matrix user, reply fallbacks disabled", asy
 	}])
 })
 
+test("message2event: simple reply in thread to a matrix user's reply", async t => {
+	const events = await messageToEvent(data.message.simple_reply_to_reply_in_thread, data.guild.general, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!FuDZhlOAtqswlyxzeR:cadence.moe", "$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo", {
+				type: "m.room.message",
+				sender: "@cadence:cadence.moe",
+				content: {
+					msgtype: "m.text",
+					body: "> <@_ooye_cadence:cadence.moe> So what I'm wondering is about replies.\n\nWhat about them?",
+					format: "org.matrix.custom.html",
+					formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe/$fWQT8uOrzLzAXNVXz88VkGx7Oo724iS5uD8Qn5KUy9w?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_cadence:cadence.moe\">@_ooye_cadence:cadence.moe</a><br>So what I&#39;m wondering is about replies.</blockquote></mx-reply>What about them?",
+					"m.relates_to": {
+						"m.in_reply_to": {
+							event_id: "$fWQT8uOrzLzAXNVXz88VkGx7Oo724iS5uD8Qn5KUy9w"
+						}
+					}
+				},
+				event_id: "$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo",
+				room_id: "!FuDZhlOAtqswlyxzeR:cadence.moe"
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo"
+			}
+		},
+		"m.mentions": {
+			user_ids: ["@cadence:cadence.moe"]
+		},
+		msgtype: "m.text",
+      body: "> cadence: What about them?\n\nWell, they don't seem to...",
+      format: "org.matrix.custom.html",
+      formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe/$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">cadence</a><br>What about them?</blockquote></mx-reply>Well, they don't seem to...",
+	}])
+})
+
 test("message2event: simple written @mention for matrix user", async t => {
 	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {}, {
 		api: {
