@@ -73,6 +73,7 @@ function onReactionAdd(event) {
  * @callback CommandExecute
  * @param {Ty.Event.Outer_M_Room_Message} event
  * @param {string} realBody
+ * @param {string[]} words
  * @param {any} [ctx]
  */
 
@@ -85,13 +86,13 @@ function onReactionAdd(event) {
 /** @param {CommandExecute} execute */
 function replyctx(execute) {
 	/** @type {CommandExecute} */
-	return function(event, realBody, ctx = {}) {
+	return function(event, realBody, words, ctx = {}) {
 		ctx["m.relates_to"] = {
 			"m.in_reply_to": {
 				event_id: event.event_id
 			}
 		}
-		return execute(event, realBody, ctx)
+		return execute(event, realBody, words, ctx)
 	}
 }
 
@@ -148,7 +149,7 @@ class MatrixStringBuilder {
 const commands = [{
 	aliases: ["emoji"],
 	execute: replyctx(
-		async (event, realBody, ctx) => {
+		async (event, realBody, words, ctx) => {
 			// Guard
 			/** @type {string} */ // @ts-ignore
 			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
@@ -165,7 +166,7 @@ const commands = [{
 				const permissions = dUtils.getPermissions([], guild.roles)
 				if (guild.emojis.length >= slots) {
 					matrixOnlyReason = "CAPACITY"
-				} else if (!(permissions | 0x40000000n)) { // MANAGE_GUILD_EXPRESSIONS (apparently CREATE_GUILD_EXPRESSIONS isn't good enough...)
+				} else if (!(permissions & 0x40000000n)) { // MANAGE_GUILD_EXPRESSIONS (apparently CREATE_GUILD_EXPRESSIONS isn't good enough...)
 					matrixOnlyReason = "USER_PERMISSIONS"
 				}
 			}
@@ -284,6 +285,36 @@ const commands = [{
 			})
 		}
 	)
+}, {
+	aliases: ["thread"],
+	execute: replyctx(
+		async (event, realBody, words, ctx) => {
+			// Guard
+			/** @type {string} */ // @ts-ignore
+			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
+			const guildID = discord.channels.get(channelID)?.["guild_id"]
+			if (!guildID) {
+				return api.sendEvent(event.room_id, "m.room.message", {
+					...ctx,
+					msgtype: "m.text",
+					body: "This room isn't bridged to the other side."
+				})
+			}
+
+			const guild = discord.guilds.get(guildID)
+			assert(guild)
+			const permissions = dUtils.getPermissions([], guild.roles)
+			if (!(permissions & 0x800000000n)) { // CREATE_PUBLIC_THREADS
+				return api.sendEvent(event.room_id, "m.room.message", {
+					...ctx,
+					msgtype: "m.text",
+					body: "This command creates a thread on Discord. But you aren't allowed to do this, because if you were a Discord user, you wouldn't have the Create Public Threads permission."
+				})
+			}
+
+			await discord.snow.channel.createThreadWithoutMessage(channelID, {type: 11, name: words.slice(1).join(" ")})
+		}
+	)
 }]
 
 
@@ -308,7 +339,7 @@ async function execute(event) {
 	const command = commands.find(c => c.aliases.includes(commandName))
 	if (!command) return
 
-	await command.execute(event, realBody)
+	await command.execute(event, realBody, words)
 }
 
 module.exports.execute = execute

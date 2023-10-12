@@ -28,6 +28,8 @@ If a room is newly created, it will be added to the space, but it will not be an
 
 If a thread is newly created, it will be added to the space, and an announcement will also be posted to the parent channel with a link to quickly join.
 
+Matrix users can create their own thread with `/thread <name>`. This will create a real thread channel on Discord-side and announce its creation on both sides in the usual way.
+
 ## Custom Room Icons
 
 Normally on Matrix, the room icons will match the space icon. Since Matrix allows for room-specific icons, the bridge will keep track of any custom icon that was set on a room.
