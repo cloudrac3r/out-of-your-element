@@ -187,7 +187,7 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 		const roomID = await api.createRoom({
 			name,
 			topic,
-			preset: PRIVACY_ENUMS.ROOM_HISTORY_VISIBILITY[privacyLevel], // This is closest to what we want, but properties from kstate override it anyway
+			preset: PRIVACY_ENUMS.PRESET[privacyLevel], // This is closest to what we want, but properties from kstate override it anyway
 			visibility: PRIVACY_ENUMS.VISIBILITY[privacyLevel],
 			invite: [],
 			initial_state: ks.kstateToState(kstate)
