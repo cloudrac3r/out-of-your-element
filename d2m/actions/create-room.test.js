@@ -5,7 +5,34 @@ const {kstateStripConditionals} = require("../../matrix/kstate")
 const {test} = require("supertape")
 const testData = require("../../test/data")
 
-test("channel2room: general", async t => {
+const passthrough = require("../../passthrough")
+const {db} = passthrough
+
+test("channel2room: discoverable privacy room", async t => {
+	db.prepare("UPDATE guild_space SET privacy_level = 2").run()
+	t.deepEqual(
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general).then(x => x.channelKState)),
+		Object.assign({}, testData.room.general, {
+			"m.room.guest_access/": {guest_access: "forbidden"},
+			"m.room.join_rules/": {join_rule: "public"},
+			"m.room.history_visibility/": {history_visibility: "world_readable"}
+		})
+	)
+})
+
+test("channel2room: linkable privacy room", async t => {
+	db.prepare("UPDATE guild_space SET privacy_level = 1").run()
+	t.deepEqual(
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general).then(x => x.channelKState)),
+		Object.assign({}, testData.room.general, {
+			"m.room.guest_access/": {guest_access: "forbidden"},
+			"m.room.join_rules/": {join_rule: "public"}
+		})
+	)
+})
+
+test("channel2room: invite-only privacy room", async t => {
+	db.prepare("UPDATE guild_space SET privacy_level = 0").run()
 	t.deepEqual(
 		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general).then(x => x.channelKState)),
 		testData.room.general

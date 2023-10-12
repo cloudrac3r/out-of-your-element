@@ -14,6 +14,7 @@ const db = new sqlite(":memory:")
 
 const reg = require("../matrix/read-registration")
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
+reg.ooye.invite = ["@test_auto_invite:example.org"]
 
 const sync = new HeatSync({watchFS: false})
 

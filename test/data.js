@@ -44,6 +44,9 @@ module.exports = {
 			"m.room.power_levels/": {
 				events: {
 					"m.room.avatar": 0
+				},
+				users: {
+					"@test_auto_invite:example.org": 100
 				}
 			},
 			"chat.schildi.hide_ui/read_receipts": {hidden: true},
