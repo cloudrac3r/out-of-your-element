@@ -102,7 +102,7 @@ async function editToChanges(message, guild, api) {
 	// So we'll remove entries from eventsToReplace that *definitely* cannot have changed. (This is category 4 mentioned above.) Everything remaining *may* have changed.
 	eventsToReplace = eventsToReplace.filter(ev => {
 		// Discord does not allow files, images, attachments, or videos to be edited.
-		if (ev.old.event_type === "m.room.message" && ev.old.event_subtype !== "m.text" && ev.old.event_subtype !== "m.emote") {
+		if (ev.old.event_type === "m.room.message" && ev.old.event_subtype !== "m.text" && ev.old.event_subtype !== "m.emote" && ev.old.event_subtype !== "m.notice") {
 			return false
 		}
 		// Discord does not allow stickers to be edited.
