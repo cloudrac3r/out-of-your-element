@@ -222,6 +222,40 @@ module.exports = {
 			},
 			mute: false,
 			deaf: false
+		},
+		papiophidian: {
+			avatar: null,
+			communication_disabled_until: null,
+			flags: 0,
+			joined_at: "2018-08-05T09:40:47.076000+00:00",
+			nick: null,
+			pending: false,
+			premium_since: "2021-09-30T18:58:44.996000+00:00",
+			roles: [
+				"475599410068324352",
+				"475599471049310208",
+				"497586624390234112",
+				"613685290938138625",
+				"475603310955593729",
+				"1151970058730487898",
+				"1151970058730487901"
+			],
+			unusual_dm_activity_until: null,
+			user: {
+				id: "320067006521147393",
+				username: "papiophidian",
+				avatar: "5fc4ad85c1ea876709e9a7d3374a78a1",
+				discriminator: "0",
+				public_flags: 4194880,
+				flags: 4194880,
+				banner: "a_6f311cf6a3851a98e2fa0335af85b1d1",
+				accent_color: 1579292,
+				global_name: "PapiOphidian",
+				avatar_decoration_data: null,
+				banner_color: "#18191c"
+			},
+			mute: false,
+			deaf: false
 		}
 	},
 	pins: {

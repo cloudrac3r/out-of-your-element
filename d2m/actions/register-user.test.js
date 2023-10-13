@@ -22,6 +22,26 @@ test("member2state: without member nick or avatar", async t => {
 	)
 })
 
+test("member2state: with global name, without member nick or avatar", async t => {
+	t.deepEqual(
+		await _memberToStateContent(testData.member.papiophidian.user, testData.member.papiophidian, testData.guild.general.id),
+		{
+			avatar_url: "mxc://cadence.moe/JPzSmALLirnIprlSMKohSSoX",
+			displayname: "PapiOphidian",
+			membership: "join",
+			"moe.cadence.ooye.member": {
+				avatar: "/avatars/320067006521147393/5fc4ad85c1ea876709e9a7d3374a78a1.png?size=1024"
+			},
+			"uk.half-shot.discord.member": {
+				bot: false,
+				displayColor: 1579292,
+				id: "320067006521147393",
+				username: "@papiophidian"
+			}
+		}
+	)
+})
+
 test("member2state: with member nick and avatar", async t => {
 	t.deepEqual(
 		await _memberToStateContent(testData.member.sheep.user, testData.member.sheep, testData.guild.general.id),
