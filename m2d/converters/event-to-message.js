@@ -324,11 +324,12 @@ async function eventToMessage(event, guild, di) {
 				replyLine += `https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			}
 			const sender = repliedToEvent.sender
-			const senderName = sender.match(/@([^:]*)/)?.[1] || sender
 			const authorID = select("sim", "user_id", {mxid: repliedToEvent.sender}).pluck().get()
 			if (authorID) {
 				replyLine += `<@${authorID}>`
 			} else {
+				let senderName = select("member_cache", "displayname", {mxid: repliedToEvent.sender}).pluck().get()
+				if (!senderName) senderName = sender.match(/@([^:]*)/)?.[1] || sender
 				replyLine += `Ⓜ️**${senderName}**`
 			}
 			// If the event has been edited, the homeserver will include the relation in `unsigned`.

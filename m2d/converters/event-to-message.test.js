@@ -1151,7 +1151,7 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence**:"
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence [they]**:"
 					+ "\n> i should have a little happy test   list bold em..."
 					+ "\n**no you can't!!!**",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
@@ -1312,7 +1312,7 @@ test("event2message: with layered rich replies, the preview should only be the r
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence**:"
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence [they]**:"
 					+ "\n> two"
 					+ "\nthree",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
