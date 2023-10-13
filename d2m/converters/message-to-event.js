@@ -17,7 +17,12 @@ const reg = require("../../matrix/read-registration")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
-function getDiscordParseCallbacks(message, useHTML) {
+/**
+ * @param {DiscordTypes.APIMessage} message
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {boolean} useHTML
+ */
+function getDiscordParseCallbacks(message, guild, useHTML) {
 	return {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
@@ -53,8 +58,18 @@ function getDiscordParseCallbacks(message, useHTML) {
 				return `:${node.name}:`
 			}
 		},
-		role: node =>
-			"@&" + node.id,
+		role: node => {
+			const role = guild.roles.find(r => r.id === node.id)
+			if (!role) {
+				return "@&" + node.id // fallback for if the cache breaks. if this happens, fix discord-packets.js to store the role info.
+			} else if (useHTML && role.color) {
+				return `<font color="#${role.color.toString(16)}">@${role.name}</font>`
+			} else if (useHTML) {
+				return `<span data-mx-color="#ffffff" data-mx-bg-color="#414eef">@${role.name}</span>`
+			} else {
+				return `@${role.name}:`
+			}
+		},
 		everyone: node =>
 			"@room",
 		here: node =>
@@ -160,11 +175,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}))
 
 		let html = markdown.toHTML(content, {
-			discordCallback: getDiscordParseCallbacks(message, true)
+			discordCallback: getDiscordParseCallbacks(message, guild, true)
 		}, null, null)
 
 		let body = markdown.toHTML(content, {
-			discordCallback: getDiscordParseCallbacks(message, false),
+			discordCallback: getDiscordParseCallbacks(message, guild, false),
 			discordOnly: true,
 			escapeHTML: false,
 		}, null, null)
@@ -223,10 +238,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 			if (repliedToContent == "") repliedToContent = "[Media]"
 			else if (!repliedToContent) repliedToContent = "[Replied-to message content wasn't provided by Discord]"
 			const repliedToHtml = markdown.toHTML(repliedToContent, {
-				discordCallback: getDiscordParseCallbacks(message, true)
+				discordCallback: getDiscordParseCallbacks(message, guild, true)
 			}, null, null)
 			const repliedToBody = markdown.toHTML(repliedToContent, {
-				discordCallback: getDiscordParseCallbacks(message, false),
+				discordCallback: getDiscordParseCallbacks(message, guild, false),
 				discordOnly: true,
 				escapeHTML: false,
 			}, null, null)

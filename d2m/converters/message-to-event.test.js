@@ -73,6 +73,18 @@ test("message2event: simple room mention", async t => {
 	}])
 })
 
+test("message2event: simple role mentions", async t => {
+	const events = await messageToEvent(data.message.simple_role_mentions, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "I'm just @!!DLCS!!: testing a few role pings @Master Wonder Mage: don't mind me",
+		format: "org.matrix.custom.html",
+		formatted_body: `I'm just <font color="#a901ff">@!!DLCS!!</font> testing a few role pings <span data-mx-color="#ffffff" data-mx-bg-color="#414eef">@Master Wonder Mage</span> don't mind me`
+	}])
+})
+
 test("message2event: simple message link", async t => {
 	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {})
 	t.deepEqual(events, [{
