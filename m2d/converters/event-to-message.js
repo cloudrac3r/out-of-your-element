@@ -5,6 +5,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const chunk = require("chunk-text")
 const TurndownService = require("turndown")
 const assert = require("assert").strict
+const entities = require("entities")
 
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
@@ -349,11 +350,13 @@ async function eventToMessage(event, guild, di) {
 			} else {
 				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 				const contentPreviewChunks = chunk(
-					repliedToContent.replace(/.*<\/mx-reply>/, "") // Remove everything before replies, so just use the actual message body
-					.replace(/<blockquote>.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
-					.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
-					.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
-					.replace(/<[^>]+>/g, ""), 50) // Completely strip all other formatting.
+					entities.decodeHTML5Strict( // Remove entities like &amp; &quot;
+						repliedToContent.replace(/.*<\/mx-reply>/, "") // Remove everything before replies, so just use the actual message body
+						.replace(/<blockquote>.*?<\/blockquote>/, "") // If the message starts with a blockquote, don't count it and use the message body afterwards
+						.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
+						.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
+						.replace(/<[^>]+>/g, "") // Completely strip all HTML tags and formatting.
+					), 50)
 				contentPreview = ":\n> "
 				contentPreview += contentPreviewChunks.length > 1 ? contentPreviewChunks[0] + "..." : contentPreviewChunks[0]
 			}

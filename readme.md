@@ -164,6 +164,7 @@ Follow these steps:
 * (1) discord-markdown: This is my fork! I make sure it does what I want.
 * (0) giframe: This is my fork! It should do what I want.
 * (1) heatsync: Module hot-reloader that I trust.
+* (0) entities: Looks fine. No dependencies.
 * (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
 * (70) matrix-appservice: I wish it didn't pull in express :(
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install
