@@ -1,11 +1,11 @@
 // @ts-check
 
-const assert = require("assert").strict
-const crypto = require("crypto")
-const {pipeline} = require("stream")
-const {promisify} = require("util")
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
+const {Readable} = require("stream")
+const assert = require("assert").strict
+const crypto = require("crypto")
+const fetch = require("node-fetch").default
 const passthrough = require("../../passthrough")
 const {sync, discord, db, select} = passthrough
 
@@ -17,13 +17,12 @@ const eventToMessage = sync.require("../converters/event-to-message")
 const api = sync.require("../../matrix/api")
 
 /**
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[], pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]}} message
- * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]}>}
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[], pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer | Readable})[]}} message
+ * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]}>}
  */
 async function resolvePendingFiles(message) {
 	if (!message.pendingFiles) return message
 	const files = await Promise.all(message.pendingFiles.map(async p => {
-		let fileBuffer
 		if ("buffer" in p) {
 			return {
 				name: p.name,
@@ -31,21 +30,22 @@ async function resolvePendingFiles(message) {
 			}
 		}
 		if ("key" in p) {
-			// Encrypted
+			// Encrypted file
 			const d = crypto.createDecipheriv("aes-256-ctr", Buffer.from(p.key, "base64url"), Buffer.from(p.iv, "base64url"))
-			fileBuffer = await fetch(p.url).then(res => res.arrayBuffer()).then(x => {
-				return Buffer.concat([
-					d.update(Buffer.from(x)),
-					d.final()
-				])
-			})
+			// @ts-ignore
+			fetch(p.url).then(res => res.body.pipe(d))
+			return {
+				name: p.name,
+				file: d
+			}
 		} else {
-			// Unencrypted
-			fileBuffer = await fetch(p.url).then(res => res.arrayBuffer()).then(x => Buffer.from(x))
-		}
-		return {
-			name: p.name,
-			file: fileBuffer // TODO: Once SnowTransfer supports ReadableStreams for attachment uploads, pass in those instead of Buffers
+			// Unencrypted file
+			/** @type {Readable} */ // @ts-ignore
+			const body = await fetch(p.url).then(res => res.body)
+			return {
+				name: p.name,
+				file: body
+			}
 		}
 	}))
 	const newMessage = {

@@ -2,6 +2,7 @@
 
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
+const {Readable} = require("stream")
 const chunk = require("chunk-text")
 const TurndownService = require("turndown")
 const assert = require("assert").strict
@@ -9,8 +10,6 @@ const entities = require("entities")
 
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
-/** @type {import("../../matrix/file")} */
-const file = sync.require("../../matrix/file")
 /** @type {import("../converters/utils")} */
 const utils = sync.require("../converters/utils")
 /** @type {import("./emoji-sheet")} */
@@ -245,7 +244,7 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
-	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer}[]})[]} */
+	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
 	let messages = []
 
 	let displayName = event.sender
