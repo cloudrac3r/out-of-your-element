@@ -12,7 +12,7 @@ const api = sync.require("../../matrix/api")
  * @param {import("discord-api-types/v10").APIGuild} guild
  */
 async function editMessage(message, guild) {
-	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promoteEvent, promoteNextEvent} = await editToChanges.editToChanges(message, guild, api)
+	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promotions} = await editToChanges.editToChanges(message, guild, api)
 
 	// 1. Replace all the things.
 	for (const {oldID, newContent} of eventsToReplace) {
@@ -36,24 +36,30 @@ async function editMessage(message, guild) {
 	}
 
 	// 3. Consistency: Ensure there is exactly one part = 0
-	let eventPart = 1
-	if (promoteEvent) {
-		db.prepare("UPDATE event_message SET part = 0 WHERE event_id = ?").run(promoteEvent)
-	} else if (promoteNextEvent) {
-		eventPart = 0
+	const sendNewEventParts = new Set()
+	for (const promotion of promotions) {
+		if ("eventID" in promotion) {
+			db.prepare(`UPDATE event_message SET ${promotion.column} = 0 WHERE event_id = ?`).run(promotion.eventID)
+		} else if ("nextEvent" in promotion) {
+			sendNewEventParts.add(promotion.column)
+		}
 	}
 
 	// 4. Send all the things.
+	if (eventsToSend.length) {
+		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+	}
 	for (const content of eventsToSend) {
 		const eventType = content.$type
 		/** @type {Pick<typeof content, Exclude<keyof content, "$type">> & { $type?: string }} */
 		const contentWithoutType = {...content}
 		delete contentWithoutType.$type
+		delete contentWithoutType.$sender
 
+		const part = sendNewEventParts.has("part") && eventsToSend[0] === content ? 0 : 1
+		const reactionPart = sendNewEventParts.has("reaction_part") && eventsToSend[eventsToSend.length - 1] === content ? 0 : 1
 		const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES (?, ?, ?, ?, ?, 1)").run(eventID, eventType, content.msgtype || null, message.id, eventPart) // part 1 = supporting; source 1 = discord
-
-		eventPart = 1
+		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, content.msgtype || null, message.id, part, reactionPart) // source 1 = discord
 	}
 }
 

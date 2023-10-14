@@ -21,7 +21,7 @@ async function addReaction(data) {
 	const user = data.member?.user
 	assert.ok(user && user.username)
 
-	const parentID = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get() // 0 = primary
+	const parentID = select("event_message", "event_id", {message_id: data.message_id, reaction_part: 0}).pluck().get()
 	if (!parentID) return // Nothing can be done if the parent message was never bridged.
 	assert.equal(typeof parentID, "string")
 

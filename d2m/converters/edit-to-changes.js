@@ -26,7 +26,7 @@ async function editToChanges(message, guild, api) {
 	/** @type {string?} Null if we don't have a sender in the room, which will happen if it's a webhook's message. The bridge bot will do the edit instead. */
 	const senderMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id, room_id: roomID}).pluck("mxid").get() || null
 
-	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part"], {message_id: message.id}).all()
+	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part", "reaction_part"], {message_id: message.id}).all()
 
 	// Figure out what we will be replacing them with
 
@@ -83,17 +83,21 @@ async function editToChanges(message, guild, api) {
 	// Anything remaining in oldEventRows is present in the old version only and should be redacted.
 	eventsToRedact = oldEventRows
 
-	// If events are being deleted, we might be deleting the part = 0. But we want to have a part = 0 at all times. In this case we choose an existing event to promote.
-	let promoteEvent = null, promoteNextEvent = false
-	if (eventsToRedact.some(e => e.part === 0)) {
-		if (eventsToReplace.length) {
-			// We can choose an existing event to promote. Bigger order is better.
-			const order = e => 2*+(e.event_type === "m.room.message") + 1*+(e.event_subtype === "m.text")
-			eventsToReplace.sort((a, b) => order(b) - order(a))
-			promoteEvent = eventsToReplace[0].old.event_id
-		} else {
-			// Everything is being deleted. Whatever gets sent in their place will be the new part = 0.
-			promoteNextEvent = true
+	// We want to maintain exactly one part = 0 and one reaction_part = 0 database row at all times.
+	/** @type {({column: string, eventID: string} | {column: string, nextEvent: true})[]} */
+	const promotions = []
+	for (const column of ["part", "reaction_part"]) {
+		// If no events with part = 0 exist (or will exist), we need to do some management.
+		if (!eventsToReplace.some(e => e.old[column] === 0)) {
+			if (eventsToReplace.length) {
+				// We can choose an existing event to promote. Bigger order is better.
+				const order = e => 2*+(e.event_type === "m.room.message") + 1*+(e.event_subtype === "m.text")
+				eventsToReplace.sort((a, b) => order(b) - order(a))
+				promotions.push({column, eventID: eventsToReplace[0].old.event_id})
+			} else {
+				// No existing events to promote, but new events are being sent. Whatever gets sent will be the next part = 0.
+				promotions.push({column, nextEvent: true})
+			}
 		}
 	}
 
@@ -117,7 +121,7 @@ async function editToChanges(message, guild, api) {
 	eventsToRedact = eventsToRedact.map(e => e.event_id)
 	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
 
-	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid, promoteEvent, promoteNextEvent}
+	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid, promotions}
 }
 
 /**

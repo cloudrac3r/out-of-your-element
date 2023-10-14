@@ -20,7 +20,7 @@ const converter = sync.require("../converters/remove-reaction")
 async function removeSomeReactions(data) {
 	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, part: 0}).pluck().get()
+	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, reaction_part: 0}).pluck().get()
 	if (!eventIDForMessage) return
 
 	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */

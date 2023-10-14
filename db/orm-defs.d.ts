@@ -14,6 +14,7 @@ export type Models = {
 		event_type: string | null
 		event_subtype: string | null
 		part: number
+		reaction_part: number
 		source: number
 	}
 
