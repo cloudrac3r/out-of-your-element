@@ -108,7 +108,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const event = await di.api.getEvent(roomID, eventID)
 		return [{
 			...event.content,
-			$type: event.type
+			$type: event.type,
+			$sender: null
 		}]
 	}
 

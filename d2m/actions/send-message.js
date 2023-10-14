@@ -40,7 +40,7 @@ async function sendMessage(message, guild) {
 	}
 	for (const event of events) {
 		const eventType = event.$type
-		if (event.$sender) senderMxid = event.$sender
+		if ("$sender" in event) senderMxid = event.$sender
 		/** @type {Pick<typeof event, Exclude<keyof event, "$type" | "$sender">> & { $type?: string, $sender?: string }} */
 		const eventWithoutType = {...event}
 		delete eventWithoutType.$type

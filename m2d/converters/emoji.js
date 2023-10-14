@@ -36,6 +36,7 @@ function encodeEmoji(input, shortcode) {
 
 		const forceTrimmedList = [
 			"%F0%9F%91%8D", // 👍
+			"%F0%9F%91%8E", // 👎️
 			"%E2%AD%90", // ⭐
 			"%F0%9F%90%88", // 🐈
 			"%E2%9D%93", // ❓

@@ -485,6 +485,7 @@ test("message2event: thread start message reference", async t => {
 	})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
+		$sender: null,
 		msgtype: "m.text",
 		body: "layer 4",
 		"m.mentions": {}
