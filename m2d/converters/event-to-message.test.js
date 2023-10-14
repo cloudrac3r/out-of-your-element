@@ -813,6 +813,86 @@ test("event2message: should include a reply preview when message ends with a blo
 	)
 })
 
+test("event2message: should include a reply preview when replying to a description-only bot embed", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@_ooye_amanda:cadence.moe> > It looks like this queue has ended.\n\nso you're saying on matrix side I would have to edit ^this^ to add \"Timed out\" before the blockquote?",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ?via=cadence.moe&via=matrix.org\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_amanda:cadence.moe\">@_ooye_amanda:cadence.moe</a><br><blockquote>It looks like this queue has ended.</blockquote></blockquote></mx-reply>so you're saying on matrix side I would have to edit ^this^ to add &quot;Timed out&quot; before the blockquote?",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ"
+					}
+				}
+			},
+			event_id: "$qCOlszCawu5hlnF2a2PGyXeGGvtoNJdXyRAEaTF0waA",
+			room_id: "!CzvdIdUQXgUjDVKxeU:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!CzvdIdUQXgUjDVKxeU:cadence.moe", "$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ", {
+					type: "m.room.message",
+					room_id: "!edUxjVdzgUvXDUIQCK:cadence.moe",
+					sender: "@_ooye_amanda:cadence.moe",
+					content: {
+						"m.mentions": {},
+						msgtype: "m.notice",
+						body: "> Now Playing: [**LOADING**](https://amanda.moe)\n" +
+						"> \n" +
+						"> `[​====[LOADING]=====]`",
+						format: "org.matrix.custom.html",
+						formatted_body: '<blockquote>Now Playing: <a href="https://amanda.moe"><strong>LOADING</strong></a><br><br><code>[​====[LOADING]=====]</code></blockquote>'
+					},
+					unsigned: {
+						"m.relations": {
+							"m.replace": {
+								type: "m.room.message",
+								room_id: "!edUxjVdzgUvXDUIQCK:cadence.moe",
+								sender: "@_ooye_amanda:cadence.moe",
+								content: {
+									"m.mentions": {},
+									msgtype: "m.notice",
+									body: "* > It looks like this queue has ended.",
+									format: "org.matrix.custom.html",
+									formatted_body: "* <blockquote>It looks like this queue has ended.</blockquote>",
+									"m.new_content": {
+										"m.mentions": {},
+										msgtype: "m.notice",
+										body: "> It looks like this queue has ended.",
+										format: "org.matrix.custom.html",
+										formatted_body: "<blockquote>It looks like this queue has ended.</blockquote>"
+									},
+									"m.relates_to": {
+										rel_type: "m.replace",
+										event_id: "$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ"
+									}
+								},
+								event_id: "$nrLF310vALFIXPNk6MEIy0lYiGXi210Ok0DATSaF5jQ",
+								user_id: "@_ooye_amanda:cadence.moe",
+							}
+						},
+						user_id: "@_ooye_amanda:cadence.moe",
+					}
+				})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/497161350934560778/1162625810109317170 <@1109360903096369153>:"
+					+ "\n> It looks like this queue has ended."
+					+ `\nso you're saying on matrix side I would have to edit ^this^ to add "Timed out" before the blockquote?`,
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+})
+
 test("event2message: entities are not escaped in main message or reply preview", async t => {
 	// Intended result: Testing? in italics, followed by the sequence "':.`[]&things
 	t.deepEqual(

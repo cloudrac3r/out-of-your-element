@@ -18,7 +18,8 @@ INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
 ('771520384671416320', 'bojack_horseman', '_ooye_bojack_horseman', '@_ooye_bojack_horseman:cadence.moe'),
 ('112890272819507200', '.wing.', '_ooye_.wing.', '@_ooye_.wing.:cadence.moe'),
 ('114147806469554185', 'extremity', '_ooye_extremity', '@_ooye_extremity:cadence.moe'),
-('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe');;
+('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
+('1109360903096369153', 'amanda', '_ooye_amanda', '@_ooye_amanda:cadence.moe');
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL);
@@ -38,7 +39,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1145688633186193479', '1100319550446252084'),
 ('1145688633186193480', '1100319550446252084'),
 ('1145688633186193481', '1100319550446252084'),
-('1162005526675193909', '1162005314908999790');
+('1162005526675193909', '1162005314908999790'),
+('1162625810109317170', '497161350934560778');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 1),
@@ -60,7 +62,9 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs', 'm.room.message', 'm.text', '1145688633186193479', 0, 0),
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt', 'm.room.message', 'm.text', '1145688633186193480', 0, 0),
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt', 'm.room.message', 'm.text', '1145688633186193481', 1, 0),
-('$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo', 'm.room.message', 'm.text', '1162005526675193909', 0, 0);
+('$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo', 'm.room.message', 'm.text', '1162005526675193909', 0, 0),
+('$0wEdIP8fhTq-P68xwo_gyUw-Zv0KA2aS2tfhdFSrLZc', 'm.room.message', 'm.text', '1162625810109317170', 1, 1),
+('$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ', 'm.room.message', 'm.notice', '1162625810109317170', 1, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
@@ -91,7 +95,8 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'malformed mxc'),
 ('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
 ('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
+('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
+('!CzvdIdUQXgUjDVKxeU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
 
 INSERT INTO "auto_emoji" ("name","emoji_id","guild_id") VALUES
 ('L1','1144820033948762203','529176156398682115'),
