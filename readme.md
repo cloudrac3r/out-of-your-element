@@ -73,7 +73,7 @@ You'll need:
 
 Follow these steps:
 
-1. [Get Node.js version 18 or later](https://nodejs.org/en/download/releases) (the version is required by the matrix-appservice dependency)
+1. [Get Node.js version 18 or later](https://nodejs.org/en/download/releases) (the version is required by the better-sqlite3 and matrix-appservice dependencies)
 
 1. Clone this repo and checkout a specific tag. (Development happens on main. Stabler versions are tagged.)
 
