@@ -23,14 +23,22 @@ async function removeSomeReactions(data) {
 	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, reaction_part: 0}).pluck().get()
 	if (!eventIDForMessage) return
 
-	/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
-	const relations = await api.getRelations(roomID, eventIDForMessage, "m.annotation")
+	/** @type {Ty.Event.Outer<Ty.Event.M_Reaction>[]} */
+	let reactions = []
+	/** @type {string | undefined} */
+	let nextBatch = undefined
+	do {
+		/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
+		const res = await api.getRelations(roomID, eventIDForMessage, {from: nextBatch}, "m.annotation")
+		reactions = reactions.concat(res.chunk)
+		nextBatch = res.next_batch
+	} while (nextBatch)
 
 	// Run the proper strategy and any strategy-specific database changes
 	const removals = await
-		( "user_id" in data ? removeReaction(data, relations)
-		: "emoji" in data ? removeEmojiReaction(data, relations)
-		: removeAllReactions(data, relations))
+		( "user_id" in data ? removeReaction(data, reactions)
+		: "emoji" in data ? removeEmojiReaction(data, reactions)
+		: removeAllReactions(data, reactions))
 
 	// Redact the events and delete individual stored events in the database
 	for (const removal of removals) {
@@ -41,33 +49,33 @@ async function removeSomeReactions(data) {
 
 /**
  * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData} data
- * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} reactions
  */
-async function removeReaction(data, relations) {
+async function removeReaction(data, reactions) {
 	const key = await emojiToKey.emojiToKey(data.emoji)
-	return converter.removeReaction(data, relations, key)
+	return converter.removeReaction(data, reactions, key)
 }
 
 /**
  * @param {DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData} data
- * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} reactions
  */
-async function removeEmojiReaction(data, relations) {
+async function removeEmojiReaction(data, reactions) {
 	const key = await emojiToKey.emojiToKey(data.emoji)
 	const discordPreferredEncoding = emoji.encodeEmoji(key, undefined)
 	db.prepare("DELETE FROM reaction WHERE message_id = ? AND encoded_emoji = ?").run(data.message_id, discordPreferredEncoding)
 
-	return converter.removeEmojiReaction(data, relations, key)
+	return converter.removeEmojiReaction(data, reactions, key)
 }
 
 /**
  * @param {DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
- * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} reactions
  */
-async function removeAllReactions(data, relations) {
+async function removeAllReactions(data, reactions) {
 	db.prepare("DELETE FROM reaction WHERE message_id = ?").run(data.message_id)
 
-	return converter.removeAllReactions(data, relations)
+	return converter.removeAllReactions(data, reactions)
 }
 
 module.exports.removeSomeReactions = removeSomeReactions

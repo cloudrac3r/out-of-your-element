@@ -112,12 +112,16 @@ function getJoinedMembers(roomID) {
 /**
  * @param {string} roomID
  * @param {string} eventID
+ * @param {{from?: string, limit?: any}} pagination
  * @param {string?} [relType]
  * @returns {Promise<Ty.Pagination<Ty.Event.Outer<any>>>}
  */
-function getRelations(roomID, eventID, relType) {
+function getRelations(roomID, eventID, pagination, relType) {
 	let path = `/client/v1/rooms/${roomID}/relations/${eventID}`
 	if (relType) path += `/${relType}`
+	if (!pagination.from) delete pagination.from
+	if (!pagination.limit) pagination.limit = 50 // get a little more consistency between homeservers
+	path += `?${new URLSearchParams(pagination)}`
 	return mreq.mreq("GET", path)
 }
 

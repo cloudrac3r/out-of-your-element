@@ -29,30 +29,28 @@ function fakeAllReactionRemoval() {
 	}
 }
 
-function fakeChunk(chunk) {
-	return {
-		chunk: chunk.map(({sender, key}, i) => ({
-			content: {
-				"m.relates_to": {
-					rel_type: "m.annotation",
-					event_id: "$message",
-					key
-				}
-			},
-			event_id: `$reaction_${i}`,
-			sender,
-			type: "m.reaction",
-			origin_server_ts: 0,
-			room_id: "!THE_ROOM",
-			unsigned: null
-		}))
-	}
+function fakeReactions(reactions) {
+	return reactions.map(({sender, key}, i) => ({
+		content: {
+			"m.relates_to": {
+				rel_type: "m.annotation",
+				event_id: "$message",
+				key
+			}
+		},
+		event_id: `$reaction_${i}`,
+		sender,
+		type: "m.reaction",
+		origin_server_ts: 0,
+		room_id: "!THE_ROOM",
+		unsigned: null
+	}))
 }
 
 test("remove reaction: a specific discord user's reaction is removed", t => {
 	const removals = removeReaction.removeReaction(
 		fakeSpecificReactionRemoval("820865262526005258", "🐈", null),
-		fakeChunk([{key: "🐈", sender: "@_ooye_crunch_god:cadence.moe"}]),
+		fakeReactions([{key: "🐈", sender: "@_ooye_crunch_god:cadence.moe"}]),
 		"🐈"
 	)
 	t.deepEqual(removals, [{
@@ -64,7 +62,7 @@ test("remove reaction: a specific discord user's reaction is removed", t => {
 test("remove reaction: a specific matrix user's reaction is removed", t => {
 	const removals = removeReaction.removeReaction(
 		fakeSpecificReactionRemoval(BRIDGE_ID, "🐈", null),
-		fakeChunk([{key: "🐈", sender: "@cadence:cadence.moe"}]),
+		fakeReactions([{key: "🐈", sender: "@cadence:cadence.moe"}]),
 		"🐈"
 	)
 	t.deepEqual(removals, [{
@@ -77,7 +75,7 @@ test("remove reaction: a specific matrix user's reaction is removed", t => {
 test("remove reaction: a specific discord user's reaction is removed when there are multiple reactions", t => {
 	const removals = removeReaction.removeReaction(
 		fakeSpecificReactionRemoval("820865262526005258", "🐈", null),
-		fakeChunk([
+		fakeReactions([
 			{key: "🐈‍⬛", sender: "@_ooye_crunch_god:cadence.moe"},
 			{key: "🐈", sender: "@_ooye_crunch_god:cadence.moe"},
 			{key: "🐈", sender: "@_ooye_extremity:cadence.moe"},
@@ -95,7 +93,7 @@ test("remove reaction: a specific discord user's reaction is removed when there 
 test("remove reaction: a specific reaction leads to all matrix users' reaction of the emoji being removed", t => {
 	const removals = removeReaction.removeReaction(
 		fakeSpecificReactionRemoval(BRIDGE_ID, "🐈", null),
-		fakeChunk([
+		fakeReactions([
 			{key: "🐈", sender: "@_ooye_crunch_god:cadence.moe"},
 			{key: "🐈", sender: "@cadence:cadence.moe"},
 			{key: "🐈‍⬛", sender: "@zoe:cadence.moe"},
@@ -118,7 +116,7 @@ test("remove reaction: a specific reaction leads to all matrix users' reaction o
 test("remove reaction: an emoji removes all instances of the emoij from both sides", t => {
 	const removals = removeReaction.removeEmojiReaction(
 		fakeEmojiReactionRemoval("🐈", null),
-		fakeChunk([
+		fakeReactions([
 			{key: "🐈", sender: "@_ooye_crunch_god:cadence.moe"},
 			{key: "🐈", sender: "@cadence:cadence.moe"},
 			{key: "🐈‍⬛", sender: "@zoe:cadence.moe"},
@@ -145,7 +143,7 @@ test("remove reaction: an emoji removes all instances of the emoij from both sid
 test("remove reaction: remove all removes all from both sides", t => {
 	const removals = removeReaction.removeAllReactions(
 		fakeAllReactionRemoval(),
-		fakeChunk([
+		fakeReactions([
 			{key: "🐈", sender: "@_ooye_crunch_god:cadence.moe"},
 			{key: "🐈", sender: "@cadence:cadence.moe"},
 			{key: "🐈‍⬛", sender: "@zoe:cadence.moe"},

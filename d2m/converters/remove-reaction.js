@@ -17,15 +17,15 @@ const utils = sync.require("../../m2d/converters/utils")
 
 /**
  * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData} data
- * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} reactions
  * @param {string} key
  */
-function removeReaction(data, relations, key) {
+function removeReaction(data, reactions, key) {
 	/** @type {ReactionRemoveRequest[]} */
 	const removals = []
 
 	const wantToRemoveMatrixReaction = data.user_id === discord.application.id
-	for (const event of relations.chunk) {
+	for (const event of reactions) {
 		const eventID = event.event_id
 		if (event.content["m.relates_to"].key === key) {
 			const lookingAtMatrixReaction = !utils.eventSenderIsFromDiscord(event.sender)
@@ -52,14 +52,14 @@ function removeReaction(data, relations, key) {
 
 /**
  * @param {DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData} data
- * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} relations
  * @param {string} key
  */
 function removeEmojiReaction(data, relations, key) {
 	/** @type {ReactionRemoveRequest[]} */
 	const removals = []
 
-	for (const event of relations.chunk) {
+	for (const event of relations) {
 		const eventID = event.event_id
 		if (event.content["m.relates_to"].key === key) {
 			const mxid = utils.eventSenderIsFromDiscord(event.sender) ? event.sender : null
@@ -72,11 +72,11 @@ function removeEmojiReaction(data, relations, key) {
 
 /**
  * @param {DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
- * @param {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} relations
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} relations
  * @returns {ReactionRemoveRequest[]}
  */
 function removeAllReactions(data, relations) {
-	return relations.chunk.map(event => {
+	return relations.map(event => {
 		const eventID = event.event_id
 		const mxid = utils.eventSenderIsFromDiscord(event.sender) ? event.sender : null
 		return {eventID, mxid}
