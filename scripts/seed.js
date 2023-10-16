@@ -67,6 +67,18 @@ async function uploadAutoEmoji(guild, name, filename) {
 
 	console.log("✅ Database is ready...")
 
+	// ensure appservice bot user is registered...
+	try {
+		await api.register(reg.sender_localpart)
+	} catch (e) {
+		if (e.data?.error !== "Internal server error") throw e // "Internal server error" is the only OK error because Synapse says this if you try to register the same username twice.
+	}
+
+	// upload initial images...
+	const avatarUrl = await file.uploadDiscordFileToMxc("https://cadence.moe/friends/out_of_your_element.png")
+
+	console.log("✅ Matrix appservice login works...")
+
 	// upload the L1 L2 emojis to some guild
 	const emojis = db.prepare("SELECT name FROM auto_emoji WHERE name = 'L1' OR name = 'L2'").pluck().all()
 	if (emojis.length !== 2) {
@@ -103,11 +115,6 @@ async function uploadAutoEmoji(guild, name, filename) {
 		await uploadAutoEmoji(guild, "L2", "docs/img/L2.png")
 	}
 	console.log("✅ Emojis are ready...")
-
-	// ensure homeserver well-known is valid and returns reg.ooye.server_name...
-
-	// upload initial images...
-	const avatarUrl = await file.uploadDiscordFileToMxc("https://cadence.moe/friends/out_of_your_element.png")
 
 	// set profile data on discord...
 	const avatarImageBuffer = await fetch("https://cadence.moe/friends/out_of_your_element.png").then(res => res.arrayBuffer())

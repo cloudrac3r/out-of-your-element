@@ -36,7 +36,7 @@ async function createSim(user) {
 		await api.register(localpart)
 	} catch (e) {
 		// If user creation fails, manually undo the database change. Still isn't perfect, but should help.
-		// (A transaction would be preferable, but I don't think it's safe to leave transaction open across event loop ticks.)
+		// (I would prefer a transaction, but it's not safe to leave transactions open across event loop ticks.)
 		db.prepare("DELETE FROM sim WHERE user_id = ?").run(user.id)
 		throw e
 	}
