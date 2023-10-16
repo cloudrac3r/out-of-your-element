@@ -19,7 +19,7 @@
     "better-sqlite3": "^9.0.0",
     "chunk-text": "^2.0.1",
     "cloudstorm": "^0.9.0",
-    "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#abc56d544072a1dc5624adfea455b0e902adf7b3",
+    "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#de519353668c87ecc8c543e9749093481bc72ff8",
     "entities": "^4.5.0",
     "giframe": "github:cloudrac3r/giframe#v0.4.1",
     "heatsync": "^2.4.1",
