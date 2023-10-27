@@ -401,6 +401,10 @@ async function eventToMessage(event, guild, di) {
 				return `${attributeValue} data-channel-id="${channelID}">`
 			})
 
+			// Stripping colons after mentions
+			input = input.replace(/( data-user-id.*?<\/a>):?/g, "$1")
+			input = input.replace(/("https:\/\/matrix.to.*?<\/a>):?/g, "$1")
+
 			// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
 			input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
 
