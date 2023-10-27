@@ -368,7 +368,7 @@ test("event2message: lists are bridged correctly", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "*   line one\n*   line two\n*   line three\n    *   nested one\n    *   nested two\n*   line four",
+				content: "* line one\n* line two\n* line three\n  * nested one\n  * nested two\n* line four",
 				avatar_url: undefined
 			}]
 		}
@@ -492,6 +492,47 @@ test("event2message: quotes have an appropriate amount of whitespace", async t =
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "> Chancellor of Germany Angela Merkel, on March 17, 2017: they did not shake hands\n🤨",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: lists have appropriate line breaks", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: 'i am not certain what you mean by "already exists with as discord". my goals are\n' +
+					'* bridgeing specific channels with existing matrix rooms\n' +
+					'  * optionally maybe entire "servers"\n' +
+					'* offering the bridge as a public service ',
+				format: 'org.matrix.custom.html',
+				formatted_body: '<p>i am not certain what you mean by "already exists with as discord". my goals are</p>\n' +
+					'<ul>\n' +
+					'<li>bridgeing specific channels with existing matrix rooms\n' +
+					'<ul>\n' +
+					'<li>optionally maybe entire "servers"</li>\n' +
+					'</ul>\n' +
+					'</li>\n' +
+					'<li>offering the bridge as a public service</li>\n' +
+					'</ul>\n',
+				'm.mentions': {},
+				msgtype: 'm.text'
+			},
+			room_id: '!cBxtVRxDlZvSVhJXVK:cadence.moe',
+			sender: '@Milan:tchncs.de',
+			type: 'm.room.message',
+		}, {}, {
+			api: {
+				getStateEvent: async () => ({displayname: "Milan"})
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Milan",
+				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n* bridgeing specific channels with existing matrix rooms\n  * optionally maybe entire "servers"\n* offering the bridge as a public service`,
 				avatar_url: undefined
 			}]
 		}

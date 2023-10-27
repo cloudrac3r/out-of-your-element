@@ -35,14 +35,14 @@ test("message2event embeds: nothing but a field", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.notice",
-		body: "> **Amanda 🎵#2192 :online:"
-			+ "\n> willow tree, branch 0**"
+		body: "> ### Amanda 🎵#2192 :online:"
+			+ "\n> willow tree, branch 0"
 			+ "\n> **❯ Uptime:**\n> 3m 55s\n> **❯ Memory:**\n> 64.45MB",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><strong>Amanda 🎵#2192 <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ\" title=\":online:\" alt=\":online:\">'
+		formatted_body: '<blockquote><p><strong>Amanda 🎵#2192 <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ\" title=\":online:\" alt=\":online:\">'
 			+ '<br>willow tree, branch 0</strong>'
 			+ '<br><strong>❯ Uptime:</strong><br>3m 55s'
-			+ '<br><strong>❯ Memory:</strong><br>64.45MB</blockquote>'
+			+ '<br><strong>❯ Memory:</strong><br>64.45MB</p></blockquote>'
 	}])
 })
 
@@ -52,19 +52,19 @@ test("message2event embeds: reply with just an embed", async t => {
 		$type: "m.room.message",
 		msgtype: "m.notice",
 		"m.mentions": {},
-		body: "> [**⏺️ dynastic (@dynastic)**](https://twitter.com/i/user/719631291747078145)"
-			+ "\n> \n> **https://twitter.com/i/status/1707484191963648161**"
+		body: "> ## ⏺️ dynastic (@dynastic) https://twitter.com/i/user/719631291747078145"
+			+ "\n> \n> ## https://twitter.com/i/status/1707484191963648161"
 			+ "\n> \n> does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
-			+ "\n> \n> **Retweets**"
+			+ "\n> \n> ### Retweets"
 			+ "\n> 119"
-			+ "\n> \n> **Likes**"
+			+ "\n> \n> ### Likes"
 			+ "\n> 5581"
-			+ "\n> \n> — Twitter",
+			+ "\n> — Twitter",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><a href="https://twitter.com/i/user/719631291747078145"><strong>⏺️ dynastic (@dynastic)</strong></a>'
-			+ '<br><br><strong><a href="https://twitter.com/i/status/1707484191963648161">https://twitter.com/i/status/1707484191963648161</a></strong>'
-			+ '<br><br>does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?'
-			+ '<br><br><strong>Retweets</strong><br>119<br><br><strong>Likes</strong><br>5581<br><br>— Twitter</blockquote>'
+		formatted_body: '<blockquote><p><strong><a href="https://twitter.com/i/user/719631291747078145">⏺️ dynastic (@dynastic)</a></strong></p>'
+			+ '<p><strong><a href="https://twitter.com/i/status/1707484191963648161">https://twitter.com/i/status/1707484191963648161</a></strong>'
+			+ '</p><p>does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?'
+			+ '</p><p><strong>Retweets</strong><br>119</p><p><strong>Likes</strong><br>5581</p>— Twitter</blockquote>'
 	}])
 })
 
@@ -96,6 +96,48 @@ test("message2event embeds: image embed and attachment", async t => {
 			size: 51981,
 			mimetype: "image/jpeg"
 		},
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: blockquote in embed", async t => {
+	const events = await messageToEvent(data.message_with_embeds.blockquote_in_embed, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: ":emoji: **4 |** #wonderland",
+		format: "org.matrix.custom.html",
+		formatted_body: `<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO\" title=\":emoji:\" alt=\":emoji:\"> <strong>4 |</strong> <a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe\">#wonderland</a>`,
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "> ## ⏺️ minimus https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo\n> \n> reply draft\n> > The following is a message composed via consensus of the Stinker Council.\n> > \n> > For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.\n> > \n> > Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.\n> > \n> > There will be no further communication.\n> \n> [Go to Message](https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo)",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote><p><strong><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo\">⏺️ minimus</a></strong></p><p>reply draft<br><blockquote>The following is a message composed via consensus of the Stinker Council.<br><br>For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.<br><br>Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.<br><br>There will be no further communication.</blockquote></p><p><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo\">Go to Message</a></p></blockquote>",
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: crazy html is all escaped", async t => {
+	const events = await messageToEvent(data.message_with_embeds.escaping_crazy_html_tags, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "> ## ⏺️ <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;) https://a.co/&amp;<script>"
+			+ "\n> \n> ## <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;) https://a.co/&amp;<script>"
+			+ "\n> \n> <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+			+ "\n> \n> ### <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+			+ "\n> <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+			+ "\n> — <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote>`
+			+ `<p><strong><a href="https://a.co/&amp;amp;&lt;script&gt;">⏺️ &lt;strong&gt;[&lt;span data-mx-color=&#39;#123456&#39;&gt;Hey&lt;script&gt;](https://a.co/&amp;amp;)</a></strong></p>`
+			+ `<p><strong><a href=\"https://a.co/&amp;amp;&lt;script&gt;">&lt;strong&gt;[&lt;span data-mx-color='#123456'&gt;Hey&lt;script&gt;](<a href="https://a.co/&amp;amp">https://a.co/&amp;amp</a>;)</a></strong></p>`
+			+ `<p>&lt;strong&gt;<a href="https://a.co/&amp;amp;">&lt;span data-mx-color='#123456'&gt;Hey&lt;script&gt;</a></p>`
+			+ `<p><strong>&lt;strong&gt;[&lt;span data-mx-color='#123456'&gt;Hey&lt;script&gt;](<a href=\"https://a.co/&amp;amp\">https://a.co/&amp;amp</a>;)</strong>`
+			+ `<br>&lt;strong&gt;<a href="https://a.co/&amp;amp;">&lt;span data-mx-color='#123456'&gt;Hey&lt;script&gt;</a></p>`
+			+ `— &lt;strong&gt;[&lt;span data-mx-color=&#39;#123456&#39;&gt;Hey&lt;script&gt;](https://a.co/&amp;amp;)</blockquote>`,
 		"m.mentions": {}
 	}])
 })

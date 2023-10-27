@@ -10,7 +10,8 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
 ('1162005314908999790', '!FuDZhlOAtqswlyxzeR:cadence.moe', 'Hey.', NULL, '1100319550446252084', NULL),
 ('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL),
-('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL);
+('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL),
+('176333891320283136', '!qzDBLKlildpzrrOnFZ:cadence.moe', '🌈丨davids-horse_she-took-the-kids', 'wonderland', NULL, 'mxc://cadence.moe/EVvrSkKIRONHjtRJsMLmHWLS');
 
 INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
 ('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),
@@ -40,7 +41,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1145688633186193480', '1100319550446252084'),
 ('1145688633186193481', '1100319550446252084'),
 ('1162005526675193909', '1162005314908999790'),
-('1162625810109317170', '497161350934560778');
+('1162625810109317170', '497161350934560778'),
+('1158842413025071135', '176333891320283136');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),
@@ -64,7 +66,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt', 'm.room.message', 'm.text', '1145688633186193481', 1, 0, 0),
 ('$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo', 'm.room.message', 'm.text', '1162005526675193909', 0, 0, 0),
 ('$0wEdIP8fhTq-P68xwo_gyUw-Zv0KA2aS2tfhdFSrLZc', 'm.room.message', 'm.text', '1162625810109317170', 1, 1, 1),
-('$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ', 'm.room.message', 'm.notice', '1162625810109317170', 1, 0, 1);
+('$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ', 'm.room.message', 'm.notice', '1162625810109317170', 1, 0, 1),
+('$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo', 'm.room.message', 'm.text', '1158842413025071135', 0, 0, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
@@ -80,7 +83,8 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/emojis/393635038903926784.gif', 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc'),
 ('https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg', 'mxc://cadence.moe/zAXdQriaJuLZohDDmacwWWDR'),
 ('https://cdn.discordapp.com/emojis/1125827250609201255.png', 'mxc://cadence.moe/pgdGTxAyEltccRgZKxdqzHHP'),
-('https://cdn.discordapp.com/avatars/320067006521147393/5fc4ad85c1ea876709e9a7d3374a78a1.png?size=1024', 'mxc://cadence.moe/JPzSmALLirnIprlSMKohSSoX');
+('https://cdn.discordapp.com/avatars/320067006521147393/5fc4ad85c1ea876709e9a7d3374a78a1.png?size=1024', 'mxc://cadence.moe/JPzSmALLirnIprlSMKohSSoX'),
+('https://cdn.discordapp.com/emojis/288858540888686602.png', 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO');
 
 INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('230201364309868544', 'hippo', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),
@@ -88,7 +92,8 @@ INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('362741439211503616', 'bn_re', 0, 'mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT'),
 ('551636841284108289', 'ae_botrac4r', 0, 'mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs'),
 ('975572106295259148', 'brillillillilliant_move', 0, 'mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik'),
-('606664341298872324', 'online', 0, 'mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ');
+('606664341298872324', 'online', 0, 'mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ'),
+('288858540888686602', 'upstinky', 0, 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO');
 
 INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),

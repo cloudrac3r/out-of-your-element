@@ -1605,6 +1605,114 @@ module.exports = {
 			edited_timestamp: "2023-10-01T01:42:05.631000+00:00",
 			flags: 0,
 			components: []
+		},
+		blockquote_in_embed: {
+			id: "1158894131322552391",
+			type: 0,
+			content: "<:emoji:288858540888686602> **4 |** <#176333891320283136>",
+			channel_id: "331390333810376704",
+			author: {
+				id: "700796664276844612",
+				username: "Starboard",
+				avatar: "1db8745493a3701235275be62ce05fea",
+				discriminator: "9387",
+				public_flags: 65536,
+				flags: 65536,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					description: "reply draft\n" +
+					"> The following is a message composed via consensus of the Stinker Council.\n" +
+					"> \n" +
+					"> For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.\n" +
+					"> \n" +
+					"> Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.\n" +
+					"> \n" +
+					"> There will be no further communication.",
+					color: 16769436,
+					timestamp: "2023-10-03T19:06:01.516000+00:00",
+					fields: [
+						{
+							name: "​",
+							value: "[Go to Message](https://discord.com/channels/112760669178241024/176333891320283136/1158842413025071135)",
+							inline: false
+						}
+					],
+					author: {
+						name: "minimus",
+						url: "https://discord.com/channels/112760669178241024/176333891320283136/1158842413025071135",
+						icon_url: "https://cdn.discordapp.com/guilds/112760669178241024/users/112760500130975744/avatars/caf8f18d190e92c280f8bc7e13f3dfb7.png",
+						proxy_icon_url: "https://images-ext-2.discordapp.net/external/ufuM1hu_C6wpfbLS-RVb5iqa_X6Ht3aIj-xntAo8jjw/https/cdn.discordapp.com/guilds/112760669178241024/users/112760500130975744/avatars/caf8f18d190e92c280f8bc7e13f3dfb7.png"
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-10-03T22:31:32.119000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
+		escaping_crazy_html_tags: {
+			id: "1158894131322552391",
+			type: 0,
+			content: "",
+			channel_id: "331390333810376704",
+			author: {
+				id: "700796664276844612",
+				username: "Starboard",
+				avatar: "1db8745493a3701235275be62ce05fea",
+				discriminator: "9387",
+				public_flags: 65536,
+				flags: 65536,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [{
+				type: "rich",
+				title: "<strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
+				description: "<strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
+				url: "https://a.co/&amp;<script>",
+				footer: {
+					text: "<strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+				},
+				author: {
+					name: "<strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
+					url: "https://a.co/&amp;<script>",
+					icon_url: "https://a.co/&amp;<script>"
+				},
+				fields: [
+					{
+						name: "<strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
+						value: "<strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+					}
+				]
+			}],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-10-03T22:31:32.119000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
 		}
 	},
 	message_update: {

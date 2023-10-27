@@ -4,6 +4,7 @@ const assert = require("assert").strict
 const markdown = require("discord-markdown")
 const pb = require("prettier-bytes")
 const DiscordTypes = require("discord-api-types/v10")
+const {tag} = require("html-template-tag")
 
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
@@ -13,6 +14,8 @@ const file = sync.require("../../matrix/file")
 const emojiToKey = sync.require("./emoji-to-key")
 /** @type {import("./lottie")} */
 const lottie = sync.require("./lottie")
+/** @type {import("../../m2d/converters/utils")} */
+const mxUtils = sync.require("../../m2d/converters/utils")
 const reg = require("../../matrix/read-registration")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
@@ -76,6 +79,12 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 			"@here"
 	}
 }
+
+const embedTitleParser = markdown.markdownEngine.parserFor({
+	...markdown.rules,
+	autolink: undefined,
+	link: undefined
+})
 
 /**
  * @param {import("discord-api-types/v10").APIMessage} message
@@ -154,8 +163,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 		addMention(repliedToEventSenderMxid)
 	}
 
-	async function addTextEvent(content, msgtype, {scanMentions}) {
-		content = content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
+	/**
+	 * Translate Discord message links to Matrix event links.
+	 * @param {string} content Partial or complete Discord message content
+	 */
+	function transformContentMessageLinks(content) {
+		return content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
 			const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
 			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 			if (eventID && roomID) {
@@ -164,6 +177,17 @@ async function messageToEvent(message, guild, options = {}, di) {
 				return `${whole} [event not found]`
 			}
 		})
+	}
+
+	/**
+	 * Translate links and emojis and mentions and stuff. Give back the text and HTML so they can be combined into bigger events.
+	 * @param {string} content Partial or complete Discord message content
+	 * @param {any} customOptions
+	 * @param {any} customParser
+	 * @param {any} customHtmlOutput
+	 */
+	async function transformContent(content, customOptions = {}, customParser = null, customHtmlOutput = null) {
+		content = transformContentMessageLinks(content)
 
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
 		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
@@ -171,39 +195,26 @@ async function messageToEvent(message, guild, options = {}, di) {
 		await Promise.all(emojiMatches.map(match => {
 			const id = match[3]
 			const name = match[2]
-			const animated = match[1]
+			const animated = !!match[1]
 			return emojiToKey.emojiToKey({id, name, animated}) // Register the custom emoji if needed
 		}))
 
 		let html = markdown.toHTML(content, {
-			discordCallback: getDiscordParseCallbacks(message, guild, true)
-		}, null, null)
+			discordCallback: getDiscordParseCallbacks(message, guild, true),
+			...customOptions
+		}, customParser, customHtmlOutput)
 
 		let body = markdown.toHTML(content, {
 			discordCallback: getDiscordParseCallbacks(message, guild, false),
 			discordOnly: true,
 			escapeHTML: false,
+			...customOptions
 		}, null, null)
 
-		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
-		if (scanMentions) {
-			const matches = [...content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
-			if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
-				const writtenMentionsText = matches.map(m => m[1].toLowerCase())
-				const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
-				assert(roomID)
-				const {joined} = await di.api.getJoinedMembers(roomID)
-				for (const [mxid, member] of Object.entries(joined)) {
-					if (!userRegex.some(rx => mxid.match(rx))) {
-						const localpart = mxid.match(/@([^:]*)/)
-						assert(localpart)
-						const displayName = member.display_name || localpart[1]
-						if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
-					}
-				}
-			}
-		}
+		return {body, html}
+	}
 
+	async function addTextEvent(body, html, msgtype, {scanMentions}) {
 		// Star * prefix for fallback edits
 		if (options.includeEditFallbackStar) {
 			body = "* " + body
@@ -281,9 +292,27 @@ async function messageToEvent(message, guild, options = {}, di) {
 		message.content = "changed the channel name to **" + message.content + "**"
 	}
 
+	// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
+	const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
+	if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
+		const writtenMentionsText = matches.map(m => m[1].toLowerCase())
+		const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
+		assert(roomID)
+		const {joined} = await di.api.getJoinedMembers(roomID)
+		for (const [mxid, member] of Object.entries(joined)) {
+			if (!userRegex.some(rx => mxid.match(rx))) {
+				const localpart = mxid.match(/@([^:]*)/)
+				assert(localpart)
+				const displayName = member.display_name || localpart[1]
+				if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
+			}
+		}
+	}
+
 	// Text content appears first
 	if (message.content) {
-		await addTextEvent(message.content, msgtype, {scanMentions: true})
+		const {body, html} = await transformContent(message.content)
+		await addTextEvent(body, html, msgtype, {scanMentions: true})
 	}
 
 	// Then attachments
@@ -303,7 +332,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				msgtype: "m.text",
 				body: `${emoji} Uploaded SPOILER file: ${attachment.url} (${pb(attachment.size)})`,
 				format: "org.matrix.custom.html",
-				formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <span data-mx-spoiler><a href="${attachment.url}">View</a></span> (${pb(attachment.size)})</blockquote>`
+				formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${attachment.url}"><span data-mx-spoiler>${attachment.url}</span></a> (${pb(attachment.size)})</blockquote>`
 			}
 		}
 		// for large files, always link them instead of uploading so I don't use up all the space in the content repo
@@ -384,38 +413,60 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Then embeds
 	for (const embed of message.embeds || []) {
 		if (embed.type === "image") {
-			continue // Matrix already does a fine enough job of providing image embeds.
+			continue // Matrix's own image embeds are fine.
 		}
 
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
-		let repParagraphs = []
-		const makeUrlTitle = (text, url) =>
-			( text && url ? `[**${text}**](${url})`
-			: text ? `**${text}**`
-			: url ? `**${url}**`
-			: "")
+		const rep = new mxUtils.MatrixStringBuilder()
 
+		// Author and URL into a paragraph
 		let authorNameText = embed.author?.name || ""
-		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // not using the real image
-		let authorTitle = makeUrlTitle(authorNameText, embed.author?.url)
-		if (authorTitle) repParagraphs.push(authorTitle)
-
-		let title = makeUrlTitle(embed.title, embed.url)
-		if (title) repParagraphs.push(title)
-
-		if (embed.image?.url) repParagraphs.push(`📸 ${embed.image.url}`)
-		if (embed.video?.url) repParagraphs.push(`🎞️ ${embed.video.url}`)
-
-		if (embed.description) repParagraphs.push(embed.description)
-		for (const field of embed.fields || []) {
-			repParagraphs.push(`**${field.name}**\n${field.value}`)
+		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // using the emoji instead of an image
+		if (authorNameText || embed.author?.url) {
+			if (embed.author?.url) {
+				const authorURL = transformContentMessageLinks(embed.author.url)
+				rep.addParagraph(`## ${authorNameText} ${authorURL}`, tag`<strong><a href="${authorURL}">${authorNameText}</a></strong>`)
+			} else {
+				rep.addParagraph(`## ${authorNameText}`, tag`<strong>${authorNameText}</strong>`)
+			}
 		}
-		if (embed.footer?.text) repParagraphs.push(`— ${embed.footer.text}`)
-		const repContent = repParagraphs.join("\n\n")
-		const repContentQuoted = repContent.split("\n").map(l => "> " + l).join("\n")
+
+		// Title and URL into a paragraph
+		if (embed.title) {
+			const {body, html} = await transformContent(embed.title, {}, embedTitleParser, markdown.htmlOutput)
+			if (embed.url) {
+				rep.addParagraph(`## ${body} ${embed.url}`, tag`<strong><a href="${embed.url}">$${html}</a></strong>`)
+			} else {
+				rep.addParagraph(`## ${body}`, `<strong>${html}</strong>`)
+			}
+		} else if (embed.url) {
+			rep.addParagraph(`## ${embed.url}`, tag`<strong><a href="${embed.url}">${embed.url}</a></strong>`)
+		}
+
+		if (embed.description) {
+			const {body, html} = await transformContent(embed.description)
+			rep.addParagraph(body, html)
+		}
+
+		for (const field of embed.fields || []) {
+			const name = field.name.match(/^[\s​­]*$/) ? {body: "", html: ""} : await transformContent(field.name, {}, embedTitleParser, markdown.htmlOutput)
+			const value = await transformContent(field.value)
+			const fieldRep = new mxUtils.MatrixStringBuilder()
+				.addLine(`### ${name.body}`, `<strong>${name.html}</strong>`, name.body)
+				.addLine(value.body, value.html, !!value.body)
+			rep.addParagraph(fieldRep.get().body, fieldRep.get().formatted_body)
+		}
+
+		if (embed.image?.url) rep.addParagraph(`📸 ${embed.image.url}`)
+		if (embed.video?.url) rep.addParagraph(`🎞️ ${embed.video.url}`)
+
+		if (embed.footer?.text) rep.addLine(`— ${embed.footer.text}`, tag`— ${embed.footer.text}`)
+		let {body, formatted_body: html} = rep.get()
+		body = body.split("\n").map(l => "> " + l).join("\n")
+		html = `<blockquote>${html}</blockquote>`
 
 		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
-		await addTextEvent(repContentQuoted, "m.notice", {scanMentions: false})
+		await addTextEvent(body, html, "m.notice", {scanMentions: false})
 	}
 
 	// Then stickers

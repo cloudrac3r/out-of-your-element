@@ -96,55 +96,6 @@ function replyctx(execute) {
 	}
 }
 
-const NEWLINE_ELEMENTS = mxUtils.BLOCK_ELEMENTS.concat(["BR"])
-
-class MatrixStringBuilder {
-	constructor() {
-		this.body = ""
-		this.formattedBody = ""
-	}
-
-	/**
-	 * @param {string} body
-	 * @param {string} formattedBody
-	 * @param {any} [condition]
-	 */
-	add(body, formattedBody, condition = true) {
-		if (condition) {
-			if (formattedBody == undefined) formattedBody = body
-			this.body += body
-			this.formattedBody += formattedBody
-		}
-		return this
-	}
-
-	/**
-	 * @param {string} body
-	 * @param {string} [formattedBody]
-	 * @param {any} [condition]
-	 */
-	addLine(body, formattedBody, condition = true) {
-		if (condition) {
-			if (formattedBody == undefined) formattedBody = body
-			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n"
-			this.body += body
-			const match = this.formattedBody.match(/<\/?([a-zA-Z]+[a-zA-Z0-9]*)[^>]*>\s*$/)
-			if (this.formattedBody.length && (!match || !NEWLINE_ELEMENTS.includes(match[1].toUpperCase()))) this.formattedBody += "<br>"
-			this.formattedBody += formattedBody
-		}
-		return this
-	}
-
-	get() {
-		return {
-			msgtype: "m.text",
-			body: this.body,
-			format: "org.matrix.custom.html",
-			formatted_body: this.formattedBody
-		}
-	}
-}
-
 /** @type {Command[]} */
 const commands = [{
 	aliases: ["emoji"],
@@ -219,7 +170,7 @@ const commands = [{
 				})
 			}
 
-			const b = new MatrixStringBuilder()
+			const b = new mxUtils.MatrixStringBuilder()
 				.addLine("## Emoji preview", "<h2>Emoji preview</h2>")
 				.addLine(`Ⓜ️ This room isn't bridged to Discord. ${matrixOnlyConclusion}`, `Ⓜ️ <em>This room isn't bridged to Discord. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "NOT_BRIDGED")
 				.addLine(`Ⓜ️ *Discord ran out of space for emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>Discord ran out of space for emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
@@ -250,7 +201,7 @@ const commands = [{
 						}
 					}
 					if (!("images" in pack)) pack.images = {}
-					const b = new MatrixStringBuilder()
+					const b = new mxUtils.MatrixStringBuilder()
 						.addLine(`Created ${toUpload.length} emojis`, "")
 					for (const e of toUpload) {
 						pack.images[e.name] = {

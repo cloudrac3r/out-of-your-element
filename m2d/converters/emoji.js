@@ -40,6 +40,7 @@ function encodeEmoji(input, shortcode) {
 			"%E2%AD%90", // ⭐
 			"%F0%9F%90%88", // 🐈
 			"%E2%9D%93", // ❓
+			"%F0%9F%8F%86", // 🏆️
 		]
 
 		discordPreferredEncoding =

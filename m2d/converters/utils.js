@@ -16,6 +16,7 @@ const BLOCK_ELEMENTS = [
 	"NOSCRIPT", "OL", "OUTPUT", "P", "PRE", "SECTION", "SUMMARY", "TABLE", "TBODY", "TD",
 	"TFOOT", "TH", "THEAD", "TR", "UL"
 ]
+const NEWLINE_ELEMENTS = BLOCK_ELEMENTS.concat(["BR"])
 
 /**
  * Determine whether an event is the bridged representation of a discord message.
@@ -63,7 +64,71 @@ function getEventIDHash(eventID) {
 	return signedHash
 }
 
+class MatrixStringBuilder {
+	constructor() {
+		this.body = ""
+		this.formattedBody = ""
+	}
+
+	/**
+	 * @param {string} body
+	 * @param {string} formattedBody
+	 * @param {any} [condition]
+	 */
+	add(body, formattedBody, condition = true) {
+		if (condition) {
+			if (formattedBody == undefined) formattedBody = body
+			this.body += body
+			this.formattedBody += formattedBody
+		}
+		return this
+	}
+
+	/**
+	 * @param {string} body
+	 * @param {string} [formattedBody]
+	 * @param {any} [condition]
+	 */
+	addLine(body, formattedBody, condition = true) {
+		if (condition) {
+			if (formattedBody == undefined) formattedBody = body
+			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n"
+			this.body += body
+			const match = this.formattedBody.match(/<\/?([a-zA-Z]+[a-zA-Z0-9]*)[^>]*>\s*$/)
+			if (this.formattedBody.length && (!match || !NEWLINE_ELEMENTS.includes(match[1].toUpperCase()))) this.formattedBody += "<br>"
+			this.formattedBody += formattedBody
+		}
+		return this
+	}
+
+	/**
+	 * @param {string} body
+	 * @param {string} [formattedBody]
+	 * @param {any} [condition]
+	 */
+	addParagraph(body, formattedBody, condition = true) {
+		if (condition) {
+			if (formattedBody == undefined) formattedBody = body
+			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n\n"
+			this.body += body
+			formattedBody = `<p>${formattedBody}</p>`
+			this.formattedBody += formattedBody
+		}
+		return this
+	}
+
+	get() {
+		return {
+			msgtype: "m.text",
+			body: this.body,
+			format: "org.matrix.custom.html",
+			formatted_body: this.formattedBody
+		}
+	}
+}
+
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash
+module.exports.MatrixStringBuilder = MatrixStringBuilder
