@@ -165,8 +165,7 @@ Follow these steps:
 * (0) giframe: This is my fork!
 * (1) heatsync: Module hot-reloader that I trust.
 * (0) entities: Looks fine. No dependencies.
-* (0) html-es6cape: Looks great, and it's already pulled in by html-template-tag
-* (0) html-template-tag: This is my fork!
+* (1) html-template-tag: This is my fork!
 * (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
 * (70) matrix-appservice: I wish it didn't pull in express :(
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install
