@@ -2168,7 +2168,8 @@ test("event2message: guessed @mentions may join members to mention", async t => 
 	const subtext = {
 		user: {
 			id: "321876634777218072",
-			username: "subtext",
+			username: "subtextual",
+			global_name: "subtext",
 			discriminator: "0"
 		}
 	}

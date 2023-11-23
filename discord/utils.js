@@ -2,6 +2,8 @@
 
 const DiscordTypes = require("discord-api-types/v10")
 
+const EPOCH = 1420070400000
+
 /**
  * @param {string[]} userRoles
  * @param {DiscordTypes.APIGuild["roles"]} guildRoles
@@ -56,5 +58,17 @@ function isWebhookMessage(message) {
 	return message.webhook_id && !isInteractionResponse
 }
 
+/** @param {string} snowflake */
+function snowflakeToTimestampExact(snowflake) {
+	return Number(BigInt(snowflake) >> 22n) + EPOCH
+}
+
+/** @param {number} timestamp */
+function timestampToSnowflakeInexact(timestamp) {
+	return String((timestamp - EPOCH) * 2**22)
+}
+
 module.exports.getPermissions = getPermissions
 module.exports.isWebhookMessage = isWebhookMessage
+module.exports.snowflakeToTimestampExact = snowflakeToTimestampExact
+module.exports.timestampToSnowflakeInexact = timestampToSnowflakeInexact
