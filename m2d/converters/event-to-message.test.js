@@ -63,6 +63,7 @@ test("event2message: body is used when there is no formatted_body", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -89,8 +90,15 @@ test("event2message: any markdown in body is escaped, except strikethrough", asy
 			unsigned: {
 				age: 405299
 			}
+		}, {}, {
+			snow: {
+				guild: {
+					searchGuildMembers: () => []
+				}
+			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -122,6 +130,7 @@ test("event2message: links in formatted body are not broken", async t => {
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -151,6 +160,7 @@ test("event2message: links in plaintext body are not broken", async t => {
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -181,6 +191,7 @@ test("event2message: basic html is converted to markdown", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -211,6 +222,7 @@ test("event2message: spoilers work", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -241,6 +253,7 @@ test("event2message: markdown syntax is escaped", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -271,6 +284,7 @@ test("event2message: html lines are bridged correctly", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -301,6 +315,7 @@ test("event2message: html lines are bridged correctly", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -332,6 +347,7 @@ test("event2message: whitespace is collapsed", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -364,6 +380,7 @@ test("event2message: lists are bridged correctly", async t => {
 			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -392,6 +409,7 @@ test("event2message: long messages are split", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -426,6 +444,7 @@ test("event2message: code blocks work", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -457,6 +476,7 @@ test("event2message: code block contents are formatted correctly and not escaped
 			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -487,6 +507,7 @@ test("event2message: quotes have an appropriate amount of whitespace", async t =
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -528,6 +549,7 @@ test("event2message: lists have appropriate line breaks", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -556,6 +578,7 @@ test("event2message: m.emote plaintext works", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -586,6 +609,7 @@ test("event2message: m.emote markdown syntax is escaped", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -633,6 +657,7 @@ test("event2message: rich reply to a sim user", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -709,6 +734,7 @@ test("event2message: rich reply to an already-edited message will quote the new 
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -756,6 +782,7 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -841,6 +868,7 @@ test("event2message: should include a reply preview when message ends with a blo
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -921,6 +949,7 @@ test("event2message: should include a reply preview when replying to a descripti
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -970,6 +999,7 @@ test("event2message: entities are not escaped in main message or reply preview",
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1048,6 +1078,7 @@ test("event2message: editing a rich reply to a sim user", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [{
 				id: "1144874214311067708",
@@ -1102,6 +1133,7 @@ test("event2message: editing a plaintext body message", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [{
 				id: "1145688633186193479",
@@ -1153,6 +1185,7 @@ test("event2message: editing a plaintext message to be longer", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [{
 				id: "1145688633186193479",
@@ -1208,6 +1241,7 @@ test("event2message: editing a plaintext message to be shorter", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: ["1145688633186193481"],
 			messagesToEdit: [{
 				id: "1145688633186193480",
@@ -1265,6 +1299,7 @@ test("event2message: editing a formatted body message", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [{
 				id: "1145688633186193479",
@@ -1317,6 +1352,7 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1376,6 +1412,7 @@ test("event2message: rich reply to an image", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1427,6 +1464,7 @@ test("event2message: rich reply to a spoiler should ensure the spoiler is hidden
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1478,6 +1516,7 @@ test("event2message: with layered rich replies, the preview should only be the r
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1508,6 +1547,7 @@ test("event2message: raw mentioning discord users in plaintext body works", asyn
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1538,6 +1578,7 @@ test("event2message: raw mentioning discord users in formatted body works", asyn
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1568,6 +1609,7 @@ test("event2message: mentioning discord users works", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1598,6 +1640,7 @@ test("event2message: mentioning matrix users works", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1628,6 +1671,7 @@ test("event2message: mentioning bridged rooms works", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1658,6 +1702,7 @@ test("event2message: colon after mentions is stripped", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1699,6 +1744,7 @@ test("event2message: caches the member if the member is not known", async t => {
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1743,6 +1789,7 @@ test("event2message: skips caching the member if the member does not exist, some
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1786,6 +1833,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1818,6 +1866,7 @@ test("event2message: overly long usernames are not treated specially when the ms
 			}
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1847,6 +1896,7 @@ test("event2message: text attachments work", async t => {
 			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1881,6 +1931,7 @@ test("event2message: image attachments work", async t => {
 			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1930,6 +1981,7 @@ test("event2message: encrypted image attachments work", async t => {
 			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -1974,6 +2026,7 @@ test("event2message: stickers work", async t => {
 			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -2002,6 +2055,7 @@ test("event2message: static emojis work", async t => {
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -2028,6 +2082,7 @@ test("event2message: animated emojis work", async t => {
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -2054,6 +2109,7 @@ test("event2message: unknown emojis in the middle are linked", async t => {
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
+			ensureJoined: [],
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
@@ -2063,6 +2119,53 @@ test("event2message: unknown emojis in the middle are linked", async t => {
 			}]
 		}
 	)
+})
+
+test("event2message: guessed @mentions may join members to mention", async t => {
+	let called = 0
+	const subtext = {
+		user: {
+			id: "321876634777218072",
+			username: "subtext",
+			discriminator: "0"
+		}
+	}
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "@subtext: what food would you like to order?"
+			},
+			event_id: "$u5gSwSzv_ZQS3eM00mnTBCor8nx_A_AwuQz7e59PZk8",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, {
+			id: "112760669178241024"
+		}, {
+			snow: {
+				guild: {
+					async searchGuildMembers(guildID, options) {
+						called++
+						t.equal(guildID, "112760669178241024")
+						t.deepEqual(options, {query: "subtext"})
+						return [subtext]
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@321876634777218072> what food would you like to order?",
+				avatar_url: undefined
+			}],
+			ensureJoined: [subtext.user]
+		}
+	)
+	t.equal(called, 1, "searchGuildMembers should be called once")
 })
 
 slow()("event2message: unknown emoji in the end is reuploaded as a sprite sheet", async t => {

@@ -259,7 +259,7 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
@@ -289,6 +289,8 @@ async function eventToMessage(event, guild, di) {
 	const attachments = []
 	/** @type {({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} */
 	const pendingFiles = []
+	/** @type {DiscordTypes.APIUser[]} */
+	const ensureJoined = []
 
 	// Convert content depending on what the message is
 	if (event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")) {
@@ -502,6 +504,17 @@ async function eventToMessage(event, guild, di) {
 
 	content = displayNameRunoff + replyLine + content
 
+	// Handling written @mentions: we need to look for candidate Discord members to join to the room
+	let writtenMentionMatch = content.match(/(?:^|[^"<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // d flag requires Node 16+
+	if (writtenMentionMatch) {
+		const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
+		if (results[0]) {
+			assert(results[0].user)
+			content = content.slice(0, writtenMentionMatch.index) + `<@${results[0].user.id}>` + content.slice(writtenMentionMatch.index + writtenMentionMatch[0].length)
+			ensureJoined.push(results[0].user)
+		}
+	}
+
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
 	messages = messages.concat(chunks.map(content => ({
@@ -543,7 +556,8 @@ async function eventToMessage(event, guild, di) {
 	return {
 		messagesToEdit,
 		messagesToSend,
-		messagesToDelete: messageIDsToEdit
+		messagesToDelete: messageIDsToEdit,
+		ensureJoined
 	}
 }
 
