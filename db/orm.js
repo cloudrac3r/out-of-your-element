@@ -82,7 +82,6 @@ class From {
 		/** @type {Pluck<Table, Select>} */
 		// @ts-ignore
 		const r = this
-		r.constructor = Pluck
 		r.cols = [col]
 		r.isPluck = true
 		return r
@@ -133,6 +132,7 @@ class From {
 	}
 }
 
+/* c8 ignore start - this code is only used for types and does not actually execute */
 /**
  * @template {keyof U.Models} Table
  * @template {keyof U.Merge<U.Models[Table]>} Col
@@ -156,6 +156,7 @@ class Pluck extends From {
 		return prepared.all(..._)
 	}
 }
+/* c8 ignore stop */
 
 /**
  * @template {keyof U.Models} Table
