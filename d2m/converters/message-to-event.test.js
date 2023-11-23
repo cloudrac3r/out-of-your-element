@@ -136,6 +136,19 @@ test("message2event: message link that OOYE doesn't know about", async t => {
 	t.equal(called, 1, "getEventForTimestamp should be called once")
 })
 
+test("message2event: message link from another server", async t => {
+	const events = await messageToEvent(data.message.message_link_from_another_server, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "Neither of these servers are known to OOYE: https://discord.com/channels/111/222/333 [event is from another server] https://canary.discordapp.com/channels/444/555/666 [event is from another server]",
+		format: "org.matrix.custom.html",
+		formatted_body: 'Neither of these servers are known to OOYE: <a href="https://discord.com/channels/111/222/333">https://discord.com/channels/111/222/333</a> [event is from another server]'
+			+ ' <a href="https://canary.discordapp.com/channels/444/555/666">https://canary.discordapp.com/channels/444/555/666</a> [event is from another server]'
+	}])
+})
+
 test("message2event: attachment with no content", async t => {
 	const events = await messageToEvent(data.message.attachment_no_content, data.guild.general, {})
 	t.deepEqual(events, [{

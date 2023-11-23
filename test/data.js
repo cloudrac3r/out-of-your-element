@@ -603,6 +603,37 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		message_link_from_another_server: {
+			id: "1160824382755708948",
+			type: 0,
+			content: "Neither of these servers are known to OOYE: https://discord.com/channels/111/222/333 https://canary.discordapp.com/channels/444/555/666",
+			channel_id: "112760669178241024",
+			author: {
+				id: "271237147401045000",
+				username: "jinx",
+				avatar: "a0ba563c16aff137289f67f38545807f",
+				discriminator: "0",
+				public_flags: 0,
+				premium_type: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "Jinx",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: '2023-10-09T06:21:39.923000+00:00',
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		simple_written_at_mention_for_matrix: {
 			id: "1159030564049915915",
 			type: 0,

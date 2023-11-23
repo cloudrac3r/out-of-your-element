@@ -268,6 +268,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 * @param {string} content Partial or complete Discord message content
 	 */
 	async function transformContentMessageLinks(content) {
+		let offset = 0
 		for (const match of [...content.matchAll(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/g)]) {
 			assert(typeof match.index === "number")
 			const channelID = match[2]
@@ -286,7 +287,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			} else {
 				result = `${match[0]} [event is from another server]`
 			}
-			content = content.slice(0, match.index) + result + content.slice(match.index + match[0].length)
+			content = content.slice(0, match.index + offset) + result + content.slice(match.index + match[0].length + offset)
+			offset += result.length - match[0].length
 		}
 		return content
 	}
