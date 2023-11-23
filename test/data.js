@@ -508,6 +508,36 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		unknown_role: {
+			id: "1162374402785153106",
+			type: 0,
+			content: "I'm just <@&4> testing a few role pings <@&B> don't mind me",
+			channel_id: "160197704226439168",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [ "212762309364285440", "503685967463448616" ],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-10-13T13:00:53.496000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		simple_message_link: {
 			id: "1126788210308161626",
 			type: 0,
@@ -535,6 +565,40 @@ module.exports = {
 			mention_everyone: false,
 			tts: false,
 			timestamp: "2023-07-07T08:14:04.050000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
+		message_link_to_before_ooye: {
+			id: "1160824382755708948",
+			type: 0,
+			content: "Me: I'll scroll up to find a certain message I'll send\n" +
+				"_scrolls up and clicks message links for god knows how long_\n" +
+				"_completely forgets what they were looking for and simply begins scrolling up to find some fun moments_\n" +
+				"_stumbles upon:_ https://discord.com/channels/112760669178241024/112760669178241024/810412561941921851",
+			channel_id: "112760669178241024",
+			author: {
+				id: "271237147401045000",
+				username: "jinx",
+				avatar: "a0ba563c16aff137289f67f38545807f",
+				discriminator: "0",
+				public_flags: 0,
+				premium_type: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "Jinx",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: '2023-10-09T06:21:39.923000+00:00',
 			edited_timestamp: null,
 			flags: 0,
 			components: []

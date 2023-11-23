@@ -505,7 +505,7 @@ async function eventToMessage(event, guild, di) {
 	content = displayNameRunoff + replyLine + content
 
 	// Handling written @mentions: we need to look for candidate Discord members to join to the room
-	let writtenMentionMatch = content.match(/(?:^|[^"<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // d flag requires Node 16+
+	let writtenMentionMatch = content.match(/(?:^|[^"<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/)
 	if (writtenMentionMatch) {
 		const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
 		if (results[0]) {

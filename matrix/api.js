@@ -84,6 +84,16 @@ async function getEvent(roomID, eventID) {
 
 /**
  * @param {string} roomID
+ * @param {number} ts unix silliseconds
+ */
+async function getEventForTimestamp(roomID, ts) {
+	/** @type {{event_id: string, origin_server_ts: number}} */
+	const root = await mreq.mreq("GET", path(`/client/v3/rooms/${roomID}/timestamp_to_event`, null, {ts}))
+	return root
+}
+
+/**
+ * @param {string} roomID
  * @returns {Promise<Ty.Event.BaseStateEvent[]>}
  */
 function getAllState(roomID) {
@@ -223,6 +233,7 @@ module.exports.joinRoom = joinRoom
 module.exports.inviteToRoom = inviteToRoom
 module.exports.leaveRoom = leaveRoom
 module.exports.getEvent = getEvent
+module.exports.getEventForTimestamp = getEventForTimestamp
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
 module.exports.getJoinedMembers = getJoinedMembers

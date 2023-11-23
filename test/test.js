@@ -45,6 +45,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	await p
 	db.exec(fs.readFileSync(join(__dirname, "ooye-test-data.sql"), "utf8"))
 	require("../db/orm.test")
+	require("../discord/utils.test")
 	require("../matrix/kstate.test")
 	require("../matrix/api.test")
 	require("../matrix/file.test")

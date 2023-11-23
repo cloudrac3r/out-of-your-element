@@ -16,6 +16,8 @@ const emojiToKey = sync.require("./emoji-to-key")
 const lottie = sync.require("./lottie")
 /** @type {import("../../m2d/converters/utils")} */
 const mxUtils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../discord/utils")} */
+const dUtils = sync.require("../../discord/utils")
 const reg = require("../../matrix/read-registration")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
@@ -53,7 +55,7 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 			if (useHTML) {
 				const mxc = select("emoji", "mxc_url", {emoji_id: node.id}).pluck().get()
 				assert(mxc) // All emojis should have been added ahead of time in the messageToEvent function.
-					return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
+				return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
 			} else {
 				return `:${node.name}:`
 			}
@@ -261,18 +263,32 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	/**
 	 * Translate Discord message links to Matrix event links.
+	 * If OOYE has handled this message in the past, this is an instant database lookup.
+	 * Otherwise, if OOYE knows the channel, this is a multi-second request to /timestamp_to_event to approximate.
 	 * @param {string} content Partial or complete Discord message content
 	 */
-	function transformContentMessageLinks(content) {
-		return content.replace(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/, (whole, guildID, channelID, messageID) => {
-			const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
+	async function transformContentMessageLinks(content) {
+		for (const match of [...content.matchAll(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/g)]) {
+			assert(typeof match.index === "number")
+			const channelID = match[2]
+			const messageID = match[3]
 			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
-			if (eventID && roomID) {
-				return `https://matrix.to/#/${roomID}/${eventID}`
+			let result
+			if (roomID) {
+				const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
+				if (eventID && roomID) {
+					result = `https://matrix.to/#/${roomID}/${eventID}`
+				} else {
+					const ts = dUtils.snowflakeToTimestampExact(messageID)
+					const {event_id} = await di.api.getEventForTimestamp(roomID, ts)
+					result = `https://matrix.to/#/${roomID}/${event_id}`
+				}
 			} else {
-				return `${whole} [event not found]`
+				result = `${match[0]} [event is from another server]`
 			}
-		})
+			content = content.slice(0, match.index) + result + content.slice(match.index + match[0].length)
+		}
+		return content
 	}
 
 	/**
@@ -283,7 +299,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 * @param {any} customHtmlOutput
 	 */
 	async function transformContent(content, customOptions = {}, customParser = null, customHtmlOutput = null) {
-		content = transformContentMessageLinks(content)
+		content = await transformContentMessageLinks(content)
 
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
 		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
@@ -429,7 +445,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // using the emoji instead of an image
 		if (authorNameText || embed.author?.url) {
 			if (embed.author?.url) {
-				const authorURL = transformContentMessageLinks(embed.author.url)
+				const authorURL = await transformContentMessageLinks(embed.author.url)
 				rep.addParagraph(`## ${authorNameText} ${authorURL}`, tag`<strong><a href="${authorURL}">${authorNameText}</a></strong>`)
 			} else {
 				rep.addParagraph(`## ${authorNameText}`, tag`<strong>${authorNameText}</strong>`)
