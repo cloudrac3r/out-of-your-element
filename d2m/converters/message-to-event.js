@@ -52,11 +52,8 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		emoji: node => {
 			if (useHTML) {
 				const mxc = select("emoji", "mxc_url", {emoji_id: node.id}).pluck().get()
-				if (mxc) {
+				assert(mxc) // All emojis should have been added ahead of time in the messageToEvent function.
 					return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
-				} else { // We shouldn't get here since all emojis should have been added ahead of time in the messageToEvent function.
-					return `<img src="mxc://cadence.moe/${node.id}" data-mx-emoticon alt=":${node.name}:" title=":${node.name}:" height="24">`
-				}
 			} else {
 				return `:${node.name}:`
 			}
@@ -64,7 +61,9 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		role: node => {
 			const role = guild.roles.find(r => r.id === node.id)
 			if (!role) {
-				return "@&" + node.id // fallback for if the cache breaks. if this happens, fix discord-packets.js to store the role info.
+				// This fallback should only trigger if somebody manually writes a silly message, or if the cache breaks (hasn't happened yet).
+				// If the cache breaks, fix discord-packets.js to store role info properly.
+				return "@&" + node.id
 			} else if (useHTML && role.color) {
 				return `<font color="#${role.color.toString(16)}">@${role.name}</font>`
 			} else if (useHTML) {

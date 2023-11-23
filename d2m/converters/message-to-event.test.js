@@ -85,6 +85,18 @@ test("message2event: simple role mentions", async t => {
 	}])
 })
 
+test("message2event: manually constructed unknown roles should use fallback", async t => {
+	const events = await messageToEvent(data.message.unknown_role, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "I'm just @&4 testing a few role pings <@&B> don't mind me",
+		format: "org.matrix.custom.html",
+		formatted_body: "I'm just @&4 testing a few role pings &lt;@&amp;B&gt; don't mind me"
+	}])
+})
+
 test("message2event: simple message link", async t => {
 	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {})
 	t.deepEqual(events, [{
