@@ -15,7 +15,7 @@ This readme has the most important info. The rest is [in the docs folder.](https
 * Modern: Supports new Discord features like replies, threads and stickers, and new Matrix features like edits, spaces and space membership.
 * Efficient: Special attention has been given to memory usage, database indexes, disk footprint, runtime algorithms, and queries to the homeserver.
 * Reliable: Any errors on either side are notified on Matrix and can be retried.
-* Tested: A test suite and code coverage make sure all the core logic works.
+* Tested: A test suite and code coverage make sure all the logic and special cases work.
 * Simple development: No build step (it's JavaScript, not TypeScript), minimal/lightweight dependencies, and abstraction only where necessary so that less background knowledge is required. No need to learn about Intents or library functions.
 * No locking algorithm: Other bridges use a locking algorithm which is a source of frequent bugs. This bridge avoids the need for one.
 * Latest API: Being on the latest Discord API version lets it access all features, without the risk of deprecated API versions being removed.
@@ -42,13 +42,14 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Custom emojis in messages
 * Custom room names/avatars can be applied on Matrix-side
 * Larger files from Discord are linked instead of reuploaded to Matrix
+* Simulated user accounts are named @the_persons_username rather than @112233445566778899
 
 For more information about features, [see the user guide.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/user-guide.md)
 
 ## Caveats
 
 * This bridge is not designed for puppetting.
-* Direct Messaging is not supported yet.
+* Direct Messaging is not supported until I figure out a good way of doing it.
 
 ## Efficiency details
 
