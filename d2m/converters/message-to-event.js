@@ -87,6 +87,103 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
 })
 
 /**
+ * @param {{room?: boolean, user_ids?: string[]}} mentions
+ * @param {DiscordTypes.APIAttachment} attachment
+ */
+async function attachmentToEvent(mentions, attachment) {
+	const emoji =
+		attachment.content_type?.startsWith("image/jp") ? "📸"
+		: attachment.content_type?.startsWith("image/") ? "🖼️"
+		: attachment.content_type?.startsWith("video/") ? "🎞️"
+		: attachment.content_type?.startsWith("text/") ? "📝"
+		: attachment.content_type?.startsWith("audio/") ? "🎶"
+		: "📄"
+	// no native media spoilers in Element, so we'll post a link instead, forcing it to not preview using a blockquote
+	if (attachment.filename.startsWith("SPOILER_")) {
+		return {
+			$type: "m.room.message",
+			"m.mentions": mentions,
+			msgtype: "m.text",
+			body: `${emoji} Uploaded SPOILER file: ${attachment.url} (${pb(attachment.size)})`,
+			format: "org.matrix.custom.html",
+			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${attachment.url}"><span data-mx-spoiler>${attachment.url}</span></a> (${pb(attachment.size)})</blockquote>`
+		}
+	}
+	// for large files, always link them instead of uploading so I don't use up all the space in the content repo
+	else if (attachment.size > reg.ooye.max_file_size) {
+		return {
+			$type: "m.room.message",
+			"m.mentions": mentions,
+			msgtype: "m.text",
+			body: `${emoji} Uploaded file: ${attachment.url} (${pb(attachment.size)})`,
+			format: "org.matrix.custom.html",
+			formatted_body: `${emoji} Uploaded file: <a href="${attachment.url}">${attachment.filename}</a> (${pb(attachment.size)})`
+		}
+	} else if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
+		return {
+			$type: "m.room.message",
+			"m.mentions": mentions,
+			msgtype: "m.image",
+			url: await file.uploadDiscordFileToMxc(attachment.url),
+			external_url: attachment.url,
+			body: attachment.filename,
+			filename: attachment.filename,
+			info: {
+				mimetype: attachment.content_type,
+				w: attachment.width,
+				h: attachment.height,
+				size: attachment.size
+			}
+		}
+	} else if (attachment.content_type?.startsWith("video/") && attachment.width && attachment.height) {
+		return {
+			$type: "m.room.message",
+			"m.mentions": mentions,
+			msgtype: "m.video",
+			url: await file.uploadDiscordFileToMxc(attachment.url),
+			external_url: attachment.url,
+			body: attachment.description || attachment.filename,
+			filename: attachment.filename,
+			info: {
+				mimetype: attachment.content_type,
+				w: attachment.width,
+				h: attachment.height,
+				size: attachment.size
+			}
+		}
+	} else if (attachment.content_type?.startsWith("audio/")) {
+		return {
+			$type: "m.room.message",
+			"m.mentions": mentions,
+			msgtype: "m.audio",
+			url: await file.uploadDiscordFileToMxc(attachment.url),
+			external_url: attachment.url,
+			body: attachment.description || attachment.filename,
+			filename: attachment.filename,
+			info: {
+				mimetype: attachment.content_type,
+				size: attachment.size,
+				duration: attachment.duration_secs ? attachment.duration_secs * 1000 : undefined
+			}
+		}
+	} else {
+		return {
+			$type: "m.room.message",
+			"m.mentions": mentions,
+			msgtype: "m.file",
+			url: await file.uploadDiscordFileToMxc(attachment.url),
+			external_url: attachment.url,
+			body: attachment.filename,
+			filename: attachment.filename,
+			info: {
+				mimetype: attachment.content_type,
+				size: attachment.size
+			}
+		}
+	}
+}
+
+/**
  * @param {import("discord-api-types/v10").APIMessage} message
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean}} options default values:
@@ -316,98 +413,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Then attachments
-	const attachmentEvents = await Promise.all(message.attachments.map(async attachment => {
-		const emoji =
-			attachment.content_type?.startsWith("image/jp") ? "📸"
-			: attachment.content_type?.startsWith("image/") ? "🖼️"
-			: attachment.content_type?.startsWith("video/") ? "🎞️"
-			: attachment.content_type?.startsWith("text/") ? "📝"
-			: attachment.content_type?.startsWith("audio/") ? "🎶"
-			: "📄"
-		// no native media spoilers in Element, so we'll post a link instead, forcing it to not preview using a blockquote
-		if (attachment.filename.startsWith("SPOILER_")) {
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.text",
-				body: `${emoji} Uploaded SPOILER file: ${attachment.url} (${pb(attachment.size)})`,
-				format: "org.matrix.custom.html",
-				formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${attachment.url}"><span data-mx-spoiler>${attachment.url}</span></a> (${pb(attachment.size)})</blockquote>`
-			}
-		}
-		// for large files, always link them instead of uploading so I don't use up all the space in the content repo
-		else if (attachment.size > reg.ooye.max_file_size) {
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.text",
-				body: `${emoji} Uploaded file: ${attachment.url} (${pb(attachment.size)})`,
-				format: "org.matrix.custom.html",
-				formatted_body: `${emoji} Uploaded file: <a href="${attachment.url}">${attachment.filename}</a> (${pb(attachment.size)})`
-			}
-		} else if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.image",
-				url: await file.uploadDiscordFileToMxc(attachment.url),
-				external_url: attachment.url,
-				body: attachment.filename,
-				filename: attachment.filename,
-				info: {
-					mimetype: attachment.content_type,
-					w: attachment.width,
-					h: attachment.height,
-					size: attachment.size
-				}
-			}
-		} else if (attachment.content_type?.startsWith("video/") && attachment.width && attachment.height) {
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.video",
-				url: await file.uploadDiscordFileToMxc(attachment.url),
-				external_url: attachment.url,
-				body: attachment.description || attachment.filename,
-				filename: attachment.filename,
-				info: {
-					mimetype: attachment.content_type,
-					w: attachment.width,
-					h: attachment.height,
-					size: attachment.size
-				}
-			}
-		} else if (attachment.content_type?.startsWith("audio/")) {
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.audio",
-				url: await file.uploadDiscordFileToMxc(attachment.url),
-				external_url: attachment.url,
-				body: attachment.description || attachment.filename,
-				filename: attachment.filename,
-				info: {
-					mimetype: attachment.content_type,
-					size: attachment.size,
-					duration: attachment.duration_secs ? attachment.duration_secs * 1000 : undefined
-				}
-			}
-		} else {
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.file",
-				url: await file.uploadDiscordFileToMxc(attachment.url),
-				external_url: attachment.url,
-				body: attachment.filename,
-				filename: attachment.filename,
-				info: {
-					mimetype: attachment.content_type,
-					size: attachment.size
-				}
-			}
-		}
-	}))
+	const attachmentEvents = await Promise.all(message.attachments.map(attachmentToEvent.bind(null, mentions)))
 	events.push(...attachmentEvents)
 
 	// Then embeds
