@@ -561,6 +561,48 @@ test("event2message: lists have appropriate line breaks", async t => {
 	)
 })
 
+test("event2message: ordered list start attribute works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: 'i am not certain what you mean by "already exists with as discord". my goals are\n' +
+					'1. bridgeing specific channels with existing matrix rooms\n' +
+					'  2. optionally maybe entire "servers"\n' +
+					'3. offering the bridge as a public service ',
+				format: 'org.matrix.custom.html',
+				formatted_body: '<p>i am not certain what you mean by "already exists with as discord". my goals are</p>\n' +
+					'<ol>\n' +
+					'<li>bridgeing specific channels with existing matrix rooms\n' +
+					'<ol start="2">\n' +
+					'<li>optionally maybe entire "servers"</li>\n' +
+					'</ol>\n' +
+					'</li>\n' +
+					'<li>offering the bridge as a public service</li>\n' +
+					'</ol>\n',
+				'm.mentions': {},
+				msgtype: 'm.text'
+			},
+			room_id: '!cBxtVRxDlZvSVhJXVK:cadence.moe',
+			sender: '@Milan:tchncs.de',
+			type: 'm.room.message',
+		}, {}, {
+			api: {
+				getStateEvent: async () => ({displayname: "Milan"})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Milan",
+				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n1. bridgeing specific channels with existing matrix rooms\n  2. optionally maybe entire "servers"\n2. offering the bridge as a public service`,
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: m.emote plaintext works", async t => {
 	t.deepEqual(
 		await eventToMessage({
