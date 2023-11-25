@@ -20,3 +20,7 @@ test("api path: existing query parameters with mxid", t => {
 test("api path: real world mxid", t => {
 	t.equal(path("/hello/world", "@cookie_monster:cadence.moe"), "/hello/world?user_id=%40cookie_monster%3Acadence.moe")
 })
+
+test("api path: extras number works", t => {
+	t.equal(path(`/client/v3/rooms/!example/timestamp_to_event`, null, {ts: 1687324651120}), "/client/v3/rooms/!example/timestamp_to_event?ts=1687324651120")
+})

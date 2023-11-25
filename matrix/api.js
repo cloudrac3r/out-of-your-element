@@ -19,15 +19,17 @@ const makeTxnId = sync.require("./txnid")
  * @returns {string} the new endpoint
  */
 function path(p, mxid, otherParams = {}) {
-	if (!mxid) return p
 	const u = new URL(p, "http://localhost")
-	u.searchParams.set("user_id", mxid)
+	if (mxid) u.searchParams.set("user_id", mxid)
 	for (const entry of Object.entries(otherParams)) {
 		if (entry[1] != undefined) {
 			u.searchParams.set(entry[0], entry[1])
 		}
 	}
-	return u.pathname + "?" + u.searchParams.toString()
+	let result = u.pathname
+	const str = u.searchParams.toString()
+	if (str) result += "?" + str
+	return result
 }
 
 /**
