@@ -1,6 +1,7 @@
 const {test} = require("supertape")
 const tryToCatch = require("try-to-catch")
 const assert = require("assert")
+const data = require("../../test/data")
 const {userToSimName} = require("./user-to-mxid")
 
 test("user2name: cannot create user for a webhook", async t => {
@@ -38,4 +39,8 @@ test("user2name: uses ID if name becomes too short", t => {
 
 test("user2name: uses ID when name has only disallowed characters", t => {
    t.equal(userToSimName({username: "!@#$%^&*", discriminator: "0001", id: "9"}), "9")
+})
+
+test("user2name: works on special user", t => {
+	t.equal(userToSimName(data.user.clyde_ai), "clyde_ai")
 })

@@ -5,6 +5,10 @@ const assert = require("assert")
 const passthrough = require("../../passthrough")
 const {select} = passthrough
 
+const SPECIAL_USER_MAPPINGS = new Map([
+	["1081004946872352958", ["clyde_ai", "clyde"]]
+])
+
 /**
  * Downcased and stripped username. Can only include a basic set of characters.
  * https://spec.matrix.org/v1.6/appendices/#user-identifiers
@@ -30,7 +34,7 @@ function downcaseUsername(user) {
 /** @param {string[]} preferences */
 function* generateLocalpartAlternatives(preferences) {
 	const best = preferences[0]
-	assert.ok(best)
+	assert(best)
 	// First, suggest the preferences...
 	for (const localpart of preferences) {
 		yield localpart
@@ -50,15 +54,18 @@ function* generateLocalpartAlternatives(preferences) {
  * @returns {string}
  */
 function userToSimName(user) {
-	assert.notEqual(user.discriminator, "0000", "cannot create user for a webhook")
+	if (!SPECIAL_USER_MAPPINGS.has(user.id)) { // skip this check for known special users
+		assert.notEqual(user.discriminator, "0000", `cannot create user for a webhook: ${JSON.stringify(user)}`)
+	}
 
 	// 1. Is sim user already registered?
 	const existing = select("sim", "sim_name", {user_id: user.id}).pluck().get()
 	if (existing) return existing
 
 	// 2. Register based on username (could be new or old format)
+	// (Unless it's a special user, in which case copy their provided mappings.)
 	const downcased = downcaseUsername(user)
-	const preferences = [downcased]
+	const preferences = SPECIAL_USER_MAPPINGS.get(user.id) || [downcased]
 	if (user.discriminator.length === 4) { // Old style tag? If user.username is unavailable, try the full tag next
 		preferences.push(downcased + user.discriminator)
 	}

@@ -183,6 +183,23 @@ module.exports = {
 			safety_alerts_channel_id: null
 		}
 	},
+	user: {
+		clyde_ai: {
+			id: "1081004946872352958",
+			username: "clyde",
+			avatar: "a_6170487d32fdfe9f988720ad80e6ab8c",
+			discriminator: "0000",
+			public_flags: 0,
+			premium_type: 2,
+			flags: 0,
+			bot: true,
+			banner: null,
+			accent_color: null,
+			global_name: "Clyde",
+			avatar_decoration_data: null,
+			banner_color: null
+		}
+	},
 	member: {
 		kumaccino: {
 			avatar: null,
