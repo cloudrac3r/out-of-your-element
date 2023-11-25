@@ -176,7 +176,7 @@ test("message2event: spoiler attachment", async t => {
 		msgtype: "m.text",
 		body: "📄 Uploaded SPOILER file: https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci (74 KB)",
 		format: "org.matrix.custom.html",
-		formatted_body: "<blockquote>📄 Uploaded SPOILER file: <span data-mx-spoiler><a href=\"https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci\">View</a></span> (74 KB)</blockquote>"
+		formatted_body: "<blockquote>📄 Uploaded SPOILER file: <a href=\"https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci\">https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci</a> (74 KB)</blockquote>"
 	}])
 })
 

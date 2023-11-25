@@ -107,7 +107,7 @@ async function attachmentToEvent(mentions, attachment) {
 			msgtype: "m.text",
 			body: `${emoji} Uploaded SPOILER file: ${attachment.url} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${attachment.url}"><span data-mx-spoiler>${attachment.url}</span></a> (${pb(attachment.size)})</blockquote>`
+			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${attachment.url}">${attachment.url}</a> (${pb(attachment.size)})</blockquote>`
 		}
 	}
 	// for large files, always link them instead of uploading so I don't use up all the space in the content repo
