@@ -2179,7 +2179,7 @@ test("event2message: guessed @mentions may join members to mention", async t => 
 			sender: "@cadence:cadence.moe",
 			content: {
 				msgtype: "m.text",
-				body: "@subtext: what food would you like to order?"
+				body: "hey @subtext, what food would you like to order?"
 			},
 			event_id: "$u5gSwSzv_ZQS3eM00mnTBCor8nx_A_AwuQz7e59PZk8",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
@@ -2202,7 +2202,7 @@ test("event2message: guessed @mentions may join members to mention", async t => 
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "<@321876634777218072> what food would you like to order?",
+				content: "hey <@321876634777218072>, what food would you like to order?",
 				avatar_url: undefined
 			}],
 			ensureJoined: [subtext.user]

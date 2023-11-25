@@ -15,6 +15,8 @@ const channelWebhook = sync.require("./channel-webhook")
 const eventToMessage = sync.require("../converters/event-to-message")
 /** @type {import("../../matrix/api")}) */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../d2m/actions/register-user")} */
+const registerUser = sync.require("../../d2m/actions/register-user")
 
 /**
  * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[], pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer | Readable})[]}} message
@@ -73,7 +75,7 @@ async function sendEvent(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	let {messagesToEdit, messagesToSend, messagesToDelete} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow})
+	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow})
 
 	messagesToEdit = await Promise.all(messagesToEdit.map(async e => {
 		e.message = await resolvePendingFiles(e.message)
@@ -105,6 +107,10 @@ async function sendEvent(event) {
 
 		eventPart = 1
 		messageResponses.push(messageResponse)
+	}
+
+	for (const user of ensureJoined) {
+		registerUser.ensureSimJoined(user, event.room_id)
 	}
 
 	return messageResponses
