@@ -90,7 +90,7 @@ async function getEvent(roomID, eventID) {
  */
 async function getEventForTimestamp(roomID, ts) {
 	/** @type {{event_id: string, origin_server_ts: number}} */
-	const root = await mreq.mreq("GET", path(`/client/v3/rooms/${roomID}/timestamp_to_event`, null, {ts}))
+	const root = await mreq.mreq("GET", path(`/client/v1/rooms/${roomID}/timestamp_to_event`, null, {ts}))
 	return root
 }
 
