@@ -2211,6 +2211,33 @@ test("event2message: guessed @mentions may join members to mention", async t => 
 	t.equal(called, 1, "searchGuildMembers should be called once")
 })
 
+test("event2message: guessed @mentions work with other matrix bridge old users", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "extremity#0: zenosia#0717:  back me up on this sentiment, if not necessarily the phrasing",
+				format: "org.matrix.custom.html",
+			formatted_body: "<a href=\"https://matrix.to/#/@_discord_114147806469554185:cadence.moe\">extremity#0</a>: <a href=\"https://matrix.to/#/@_discordpuppet_176943908762006200:cadence.moe\">zenosia#0717</a>:  back me up on this sentiment, if not necessarily the phrasing"
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@114147806469554185> <@176943908762006200> back me up on this sentiment, if not necessarily the phrasing",
+				avatar_url: undefined
+			}],
+			ensureJoined: [] // we already think it worked on Matrix side due to the pill, so no need for the OOYE sim user to join the room to indicate success.
+		}
+	)
+})
+
 slow()("event2message: unknown emoji in the end is reuploaded as a sprite sheet", async t => {
 	const messages = await eventToMessage({
 		type: "m.room.message",

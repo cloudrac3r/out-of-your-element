@@ -390,10 +390,19 @@ async function eventToMessage(event, guild, di) {
 
 			// Handling mentions of Discord users
 			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
-				if (!utils.eventSenderIsFromDiscord(mxid)) return whole
-				const userID = select("sim", "user_id", {mxid: mxid}).pluck().get()
-				if (!userID) return whole
-				return `${attributeValue} data-user-id="${userID}">`
+				if (utils.eventSenderIsFromDiscord(mxid)) {
+					// Handle mention of an OOYE sim user by their mxid
+					const userID = select("sim", "user_id", {mxid: mxid}).pluck().get()
+					if (!userID) return whole
+					return `${attributeValue} data-user-id="${userID}">`
+				} else {
+					// Handle mention of a Matrix user by their mxid
+					// Check if this Matrix user is actually the sim user from another old bridge in the room?
+					const match = mxid.match(/[^:]*discord[^:]*_([0-9]{6,}):/) // try to match @_discord_123456, @_discordpuppet_123456, etc.
+					if (match) return `${attributeValue} data-user-id="${match[1]}">`
+					// Nope, just a real Matrix user.
+					return whole
+				}
 			})
 
 			// Handling mentions of Discord rooms
