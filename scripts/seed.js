@@ -71,7 +71,7 @@ async function uploadAutoEmoji(guild, name, filename) {
 	try {
 		await api.register(reg.sender_localpart)
 	} catch (e) {
-		if (e.data?.error !== "Internal server error") throw e // "Internal server error" is the only OK error because Synapse says this if you try to register the same username twice.
+		if (e.errcode === "M_USER_IN_USE" || e.data?.error !== "Internal server error") throw e // "Internal server error" is the only OK error because Synapse says this if you try to register the same username twice.
 	}
 
 	// upload initial images...
