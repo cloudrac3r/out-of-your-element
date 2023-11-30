@@ -24,7 +24,12 @@ const discord = {
 	]),
 	application: {
 		id: "684280192553844747"
-	}
+	},
+	channels: new Map([
+		["497161350934560778", {
+			guild_id: "497159726455455754"
+		}]
+	])
 }
 
 Object.assign(passthrough, { discord, config, sync, db })

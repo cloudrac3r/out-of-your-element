@@ -269,12 +269,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 */
 	async function transformContentMessageLinks(content) {
 		let offset = 0
-		for (const match of [...content.matchAll(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/([0-9]+)\/([0-9]+)\/([0-9]+)/g)]) {
+		for (const match of [...content.matchAll(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/[0-9]+\/([0-9]+)\/([0-9]+)/g)]) {
 			assert(typeof match.index === "number")
-			const channelID = match[2]
-			const messageID = match[3]
-			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
+			const [_, channelID, messageID] = match
 			let result
+
+			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 			if (roomID) {
 				const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
 				if (eventID && roomID) {
@@ -287,6 +287,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			} else {
 				result = `${match[0]} [event is from another server]`
 			}
+
 			content = content.slice(0, match.index + offset) + result + content.slice(match.index + match[0].length + offset)
 			offset += result.length - match[0].length
 		}

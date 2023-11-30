@@ -11,7 +11,9 @@ const entities = require("entities")
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
 /** @type {import("../converters/utils")} */
-const utils = sync.require("../converters/utils")
+const mxUtils = sync.require("../converters/utils")
+/** @type {import("../../discord/utils")} */
+const dUtils = sync.require("../../discord/utils")
 /** @type {import("./emoji-sheet")} */
 const emojiSheet = sync.require("./emoji-sheet")
 
@@ -102,6 +104,7 @@ turndownService.addRule("inlineLink", {
 
 	replacement: function (content, node) {
 		if (node.getAttribute("data-user-id")) return `<@${node.getAttribute("data-user-id")}>`
+		if (node.getAttribute("data-message-id")) return `https://discord.com/channels/${node.getAttribute("data-guild-id")}/${node.getAttribute("data-channel-id")}/${node.getAttribute("data-message-id")}`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
 		let brackets = ["", ""]
@@ -162,7 +165,7 @@ turndownService.addRule("emoji", {
 			return `<::>`
 		} else {
 			// We prefer not to upload this as a sprite sheet because the emoji is not at the end of the message, it is in the middle.
-			return `[${node.getAttribute("title")}](${utils.getPublicUrlForMxc(mxcUrl)})`
+			return `[${node.getAttribute("title")}](${mxUtils.getPublicUrlForMxc(mxcUrl)})`
 		}
 	}
 })
@@ -276,7 +279,7 @@ async function eventToMessage(event, guild, di) {
 	// Try to extract an accurate display name and avatar URL from the member event
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
-	if (member.avatar_url) avatarURL = utils.getPublicUrlForMxc(member.avatar_url) || undefined
+	if (member.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(member.avatar_url) || undefined
 	// If the display name is too long to be put into the webhook (80 characters is the maximum),
 	// put the excess characters into displayNameRunoff, later to be put at the top of the message
 	let [displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
@@ -390,7 +393,7 @@ async function eventToMessage(event, guild, di) {
 
 			// Handling mentions of Discord users
 			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
-				if (utils.eventSenderIsFromDiscord(mxid)) {
+				if (mxUtils.eventSenderIsFromDiscord(mxid)) {
 					// Handle mention of an OOYE sim user by their mxid
 					const userID = select("sim", "user_id", {mxid: mxid}).pluck().get()
 					if (!userID) return whole
@@ -405,12 +408,42 @@ async function eventToMessage(event, guild, di) {
 				}
 			})
 
-			// Handling mentions of Discord rooms
-			input = input.replace(/("https:\/\/matrix.to\/#\/(![^"]+)")>/g, (whole, attributeValue, roomID) => {
+			// Handling mentions of rooms and room-messages
+			let offset = 0
+			for (const match of [...input.matchAll(/("https:\/\/matrix.to\/#\/(![^"/?]+)(?:\/(\$[^"/?]+))?(?:\?[^"]*)?")>/g)]) {
+				assert(typeof match.index === "number")
+				const [_, attributeValue, roomID, eventID] = match
+				let result
+
+				// Don't process links that are part of the reply fallback, they'll be removed entirely by turndown
+				if (input.slice(match.index + match[0].length + offset).startsWith("In reply to")) continue
+
 				const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
-				if (!channelID) return whole
-				return `${attributeValue} data-channel-id="${channelID}">`
-			})
+				if (!channelID) continue
+				if (!eventID) {
+					// 1: It's a room link, so <#link> to the channel
+					result = `${attributeValue} data-channel-id="${channelID}">`
+				} else {
+					// Linking to a particular event with a discord.com/channels/guildID/channelID/messageID link
+					// Need to know the guildID and messageID
+					const guildID = discord.channels.get(channelID)?.["guild_id"]
+					if (!guildID) continue
+					const messageID = select("event_message", "message_id", {event_id: eventID}).pluck().get()
+					if (messageID) {
+						// 2: Linking to a known event
+						result = `${attributeValue} data-channel-id="${channelID}" data-guild-id="${guildID}" data-message-id="${messageID}">`
+					} else {
+						// 3: Linking to an unknown event that OOYE didn't originally bridge - we can guess messageID from the timestamp
+						const originalEvent = await di.api.getEvent(roomID, eventID)
+						if (!originalEvent) continue
+						const guessedMessageID = dUtils.timestampToSnowflakeInexact(originalEvent.origin_server_ts)
+						result = `${attributeValue} data-channel-id="${channelID}" data-guild-id="${guildID}" data-message-id="${guessedMessageID}">`
+					}
+				}
+
+				input = input.slice(0, match.index + offset) + result + input.slice(match.index + match[0].length + offset)
+				offset += result.length - match[0].length
+			}
 
 			// Stripping colons after mentions
 			input = input.replace(/( data-user-id.*?<\/a>):?/g, "$1")
@@ -430,7 +463,7 @@ async function eventToMessage(event, guild, di) {
 				beforeTag = beforeTag || ""
 				afterContext = afterContext || ""
 				afterTag = afterTag || ""
-				if (!utils.BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !utils.BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
+				if (!mxUtils.BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !mxUtils.BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
 					return beforeContext + "<br>" + afterContext
 				} else {
 					return whole
@@ -480,13 +513,13 @@ async function eventToMessage(event, guild, di) {
 		const filename = event.content.body
 		if ("url" in event.content) {
 			// Unencrypted
-			const url = utils.getPublicUrlForMxc(event.content.url)
+			const url = mxUtils.getPublicUrlForMxc(event.content.url)
 			assert(url)
 			attachments.push({id: "0", filename})
 			pendingFiles.push({name: filename, url})
 		} else {
 			// Encrypted
-			const url = utils.getPublicUrlForMxc(event.content.file.url)
+			const url = mxUtils.getPublicUrlForMxc(event.content.file.url)
 			assert(url)
 			assert.equal(event.content.file.key.alg, "A256CTR")
 			attachments.push({id: "0", filename})
@@ -494,7 +527,7 @@ async function eventToMessage(event, guild, di) {
 		}
 	} else if (event.type === "m.sticker") {
 		content = ""
-		const url = utils.getPublicUrlForMxc(event.content.url)
+		const url = mxUtils.getPublicUrlForMxc(event.content.url)
 		assert(url)
 		let filename = event.content.body
 		if (event.type === "m.sticker") {

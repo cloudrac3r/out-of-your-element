@@ -1701,7 +1701,7 @@ test("event2message: mentioning bridged rooms works", async t => {
 				msgtype: "m.text",
 				body: "wrong body",
 				format: "org.matrix.custom.html",
-				formatted_body: `I'm just <a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe">worm-form</a> testing channel mentions`
+				formatted_body: `I'm just <a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe?via=cadence.moe">worm-farm</a> testing channel mentions`
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
@@ -1719,6 +1719,112 @@ test("event2message: mentioning bridged rooms works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <#1100319550446252084> testing channel mentions",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: mentioning known bridged events works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `it was uploaded earlier in <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zXSlyI78DQqQwwfPUSzZ1b-nXzbUrCDljJgnGDdoI10?via=cadence.moe">amanda-spam</a>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "it was uploaded earlier in https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: mentioning unknown bridged events works", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `it was uploaded years ago in <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW0?via=cadence.moe">amanda-spam</a>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				async getEvent(roomID, eventID) {
+					called++
+					t.equal(roomID, "!CzvdIdUQXgUjDVKxeU:cadence.moe")
+					t.equal(eventID, "$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW0")
+					return {
+						origin_server_ts: 1599813121000
+					}
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "it was uploaded years ago in https://discord.com/channels/497159726455455754/497161350934560778/753895613661184000",
+				avatar_url: undefined
+			}]
+		}
+	)
+	t.equal(called, 1, "getEvent should be called once")
+})
+
+test("event2message: link to event in an unknown room", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'ah yeah, here\'s where the bug was reported: <a href="https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org">https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org</a>'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "ah yeah, here's where the bug was reported: [https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org](<https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org>)",
 				avatar_url: undefined
 			}]
 		}
