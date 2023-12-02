@@ -1725,7 +1725,67 @@ test("event2message: mentioning bridged rooms works", async t => {
 	)
 })
 
-test("event2message: mentioning known bridged events works", async t => {
+test("event2message: mentioning known bridged events works (plaintext body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "it was uploaded earlier in https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zXSlyI78DQqQwwfPUSzZ1b-nXzbUrCDljJgnGDdoI10?via=cadence.moe, take a look!"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "it was uploaded earlier in https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020, take a look!",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: mentioning known bridged events works (partially formatted body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `it was uploaded earlier in https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zXSlyI78DQqQwwfPUSzZ1b-nXzbUrCDljJgnGDdoI10?via=cadence.moe`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "it was uploaded earlier in https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: mentioning known bridged events works (formatted body)", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			content: {

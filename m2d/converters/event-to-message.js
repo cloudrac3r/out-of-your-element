@@ -260,6 +260,62 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
 }
 
 /**
+ * @param {string} input
+ * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
+ */
+async function handleRoomOrMessageLinks(input, di) {
+	let offset = 0
+	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/(![^"/, ?)]+)(?:\/(\$[^"/ ?)]+))?(?:\?[^",:!? )]*)?)(">|[, )]|$)/g)]) {
+		assert(typeof match.index === "number")
+		const [_, attributeValue, roomID, eventID, endMarker] = match
+		let result
+
+		const resultType = endMarker === '">' ? "html" : "plain"
+		const MAKE_RESULT = {
+			ROOM_LINK: {
+				html: channelID => `${attributeValue}" data-channel-id="${channelID}">`,
+				plain: channelID => `<#${channelID}>${endMarker}`
+			},
+			MESSAGE_LINK: {
+				html: (guildID, channelID, messageID) => `${attributeValue}" data-channel-id="${channelID}" data-guild-id="${guildID}" data-message-id="${messageID}">`,
+				plain: (guildID, channelID, messageID) => `https://discord.com/channels/${guildID}/${channelID}/${messageID}${endMarker}`
+			}
+		}
+
+		// Don't process links that are part of the reply fallback, they'll be removed entirely by turndown
+		if (input.slice(match.index + match[0].length + offset).startsWith("In reply to")) continue
+
+		const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
+		if (!channelID) continue
+		if (!eventID) {
+			// 1: It's a room link, so <#link> to the channel
+			result = MAKE_RESULT.ROOM_LINK[resultType](channelID)
+		} else {
+			// Linking to a particular event with a discord.com/channels/guildID/channelID/messageID link
+			// Need to know the guildID and messageID
+			const guildID = discord.channels.get(channelID)?.["guild_id"]
+			if (!guildID) continue
+			const messageID = select("event_message", "message_id", {event_id: eventID}).pluck().get()
+			if (messageID) {
+				// 2: Linking to a known event
+				result = MAKE_RESULT.MESSAGE_LINK[resultType](guildID, channelID, messageID)
+			} else {
+				// 3: Linking to an unknown event that OOYE didn't originally bridge - we can guess messageID from the timestamp
+				const originalEvent = await di.api.getEvent(roomID, eventID)
+				if (!originalEvent) continue
+				const guessedMessageID = dUtils.timestampToSnowflakeInexact(originalEvent.origin_server_ts)
+				result = MAKE_RESULT.MESSAGE_LINK[resultType](guildID, channelID, guessedMessageID)
+			}
+		}
+
+		input = input.slice(0, match.index + offset) + result + input.slice(match.index + match[0].length + offset)
+		offset += result.length - match[0].length
+	}
+
+	return input
+}
+
+/**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer}} di simple-as-nails dependency injection for the matrix API
@@ -409,41 +465,7 @@ async function eventToMessage(event, guild, di) {
 			})
 
 			// Handling mentions of rooms and room-messages
-			let offset = 0
-			for (const match of [...input.matchAll(/("https:\/\/matrix.to\/#\/(![^"/?]+)(?:\/(\$[^"/?]+))?(?:\?[^"]*)?")>/g)]) {
-				assert(typeof match.index === "number")
-				const [_, attributeValue, roomID, eventID] = match
-				let result
-
-				// Don't process links that are part of the reply fallback, they'll be removed entirely by turndown
-				if (input.slice(match.index + match[0].length + offset).startsWith("In reply to")) continue
-
-				const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
-				if (!channelID) continue
-				if (!eventID) {
-					// 1: It's a room link, so <#link> to the channel
-					result = `${attributeValue} data-channel-id="${channelID}">`
-				} else {
-					// Linking to a particular event with a discord.com/channels/guildID/channelID/messageID link
-					// Need to know the guildID and messageID
-					const guildID = discord.channels.get(channelID)?.["guild_id"]
-					if (!guildID) continue
-					const messageID = select("event_message", "message_id", {event_id: eventID}).pluck().get()
-					if (messageID) {
-						// 2: Linking to a known event
-						result = `${attributeValue} data-channel-id="${channelID}" data-guild-id="${guildID}" data-message-id="${messageID}">`
-					} else {
-						// 3: Linking to an unknown event that OOYE didn't originally bridge - we can guess messageID from the timestamp
-						const originalEvent = await di.api.getEvent(roomID, eventID)
-						if (!originalEvent) continue
-						const guessedMessageID = dUtils.timestampToSnowflakeInexact(originalEvent.origin_server_ts)
-						result = `${attributeValue} data-channel-id="${channelID}" data-guild-id="${guildID}" data-message-id="${guessedMessageID}">`
-					}
-				}
-
-				input = input.slice(0, match.index + offset) + result + input.slice(match.index + match[0].length + offset)
-				offset += result.length - match[0].length
-			}
+			input = await handleRoomOrMessageLinks(input, di)
 
 			// Stripping colons after mentions
 			input = input.replace(/( data-user-id.*?<\/a>):?/g, "$1")
@@ -503,6 +525,8 @@ async function eventToMessage(event, guild, di) {
 			if (event.content.msgtype === "m.emote") {
 				content = `* ${displayName} ${content}`
 			}
+
+			content = await handleRoomOrMessageLinks(content, di)
 
 			// Markdown needs to be escaped, though take care not to escape the middle of links
 			// @ts-ignore bad type from turndown
