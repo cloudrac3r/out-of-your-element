@@ -869,6 +869,51 @@ module.exports = {
 			],
 			guild_id: '1100319549670301727'
 		},
+		attachment_with_description: {
+			id: "1187111292243288194",
+			type: 0,
+			content: "",
+			channel_id: "1100319550446252084",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				discriminator: "0",
+				public_flags: 0,
+				premium_type: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [
+				{
+					id: "1187111291932905554",
+					filename: "image.png",
+					size: 50208,
+					url: "https://cdn.discordapp.com/attachments/1100319550446252084/1187111291932905554/image.png?ex=6595b28b&is=65833d8b&hm=6a3c07328749b9d0d1a612ea0cbf1711a7fe29aeaa833c12a6eb6d5db1a87ea4&",
+					proxy_url: "https://media.discordapp.net/attachments/1100319550446252084/1187111291932905554/image.png?ex=6595b28b&is=65833d8b&hm=6a3c07328749b9d0d1a612ea0cbf1711a7fe29aeaa833c12a6eb6d5db1a87ea4&",
+					width: 412,
+					height: 228,
+					description: "here is my description!",
+					content_type: "image/png",
+					placeholder: "C/gBBIDPqKiim3h8hpBMv8RvVw==",
+					placeholder_version: 1
+				}
+			],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-12-20T19:16:27.532000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		skull_webp_attachment_with_content: {
 			type: 0,
 			tts: false,
