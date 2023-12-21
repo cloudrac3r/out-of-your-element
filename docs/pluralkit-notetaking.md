@@ -69,7 +69,19 @@ I'll get this data by calling the PK API for each message: https://api.pluralkit
 
 ## Special code paths for PK users
 
-TBD
+When a message is deleted, re-evaluate speedbump mode if necessary, and store who the PK webhook is for this channel if exists.
+
+When a message is received and the speedbump is enabled, put it into a queue to be sent a few seconds later.
+
+When a message is deleted, remove it from the queue.
+
+When a message is received, if it's from a webhook, and the webhook is in the "speedbump_webhook" table, and the webhook user ID is the public PK instance, then look up member details in the PK API, and use a different MXID mapping algorithm based on those details.
+
+### Edits should Just Work without any special code paths
+
+Proxied messages are edited by sending "pk;edit blah blah" as a reply to the message to edit. PK will delete the edit command and use the webhook edit endpoint to update the message.
+
+OOYE's speedbump will prevent the edit command appearing at all on Matrix-side, and OOYE already understands how to do webhook edits.
 
 ## Database schema
 
@@ -77,7 +89,8 @@ TBD
 
 ## Unsolved problems
 
-- How does message editing work?
 - Improve the contents of PK's reply embeds to be the actual reply text, not the OOYE context preamble
+- Possibly change OOYE's reply context to be an embed (for visual consistency with replies from PK users)
+- Possibly extract information from OOYE's reply embed and transform it into an mx-reply structure for Matrix users
 - Unused or removed system members should be removed from the member list too.
 - When a Discord user leaves a server, all their system members should leave the member list too. (I also have to solve this for regular non-PK users.)
