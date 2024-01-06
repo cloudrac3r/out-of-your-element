@@ -448,7 +448,8 @@ async function eventToMessage(event, guild, di) {
 			}
 
 			// Handling mentions of Discord users
-			input = input.replace(/("https:\/\/matrix.to\/#\/(@[^"]+)")>/g, (whole, attributeValue, mxid) => {
+			input = input.replace(/("https:\/\/matrix.to\/#\/((?:@|%40)[^"]+)")>/g, (whole, attributeValue, mxid) => {
+				mxid = decodeURIComponent(mxid)
 				if (mxUtils.eventSenderIsFromDiscord(mxid)) {
 					// Handle mention of an OOYE sim user by their mxid
 					const userID = select("sim", "user_id", {mxid: mxid}).pluck().get()

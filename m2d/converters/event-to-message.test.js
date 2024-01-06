@@ -1663,6 +1663,38 @@ test("event2message: mentioning discord users works", async t => {
 	)
 })
 
+
+test("event2message: mentioning discord users works when URL encoded", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "Crunch God a sample message",
+				format: "org.matrix.custom.html",
+				formatted_body: `<a href="https://matrix.to/#/%40_ooye_bojack_horseman%3Acadence.moe">Crunch God</a> a sample message`,
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@771520384671416320> a sample message",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: mentioning matrix users works", async t => {
 	t.deepEqual(
 		await eventToMessage({
