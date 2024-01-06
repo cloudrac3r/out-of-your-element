@@ -127,7 +127,7 @@ async function attachmentToEvent(mentions, attachment) {
 			msgtype: "m.image",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
 			external_url: attachment.url,
-			body: attachment.filename,
+			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
 				mimetype: attachment.content_type,
@@ -174,7 +174,7 @@ async function attachmentToEvent(mentions, attachment) {
 			msgtype: "m.file",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
 			external_url: attachment.url,
-			body: attachment.filename,
+			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
 				mimetype: attachment.content_type,
