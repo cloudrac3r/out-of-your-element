@@ -2143,7 +2143,7 @@ test("event2message: text attachments work", async t => {
 				username: "cadence [they]",
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
-				attachments: [{id: "0", filename: "chiki-powerups.txt"}],
+				attachments: [{id: "0", description: undefined, filename: "chiki-powerups.txt"}],
 				pendingFiles: [{name: "chiki-powerups.txt", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/zyThGlYQxvlvBVbVgKDDbiHH"}]
 			}]
 		}
@@ -2157,6 +2157,7 @@ test("event2message: image attachments work", async t => {
 			sender: "@cadence:cadence.moe",
 			content: {
 				body: "cool cat.png",
+				filename: "cool cat.png",
 				info: {
 					size: 43170,
 					mimetype: "image/png",
@@ -2178,7 +2179,43 @@ test("event2message: image attachments work", async t => {
 				username: "cadence [they]",
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
-				attachments: [{id: "0", filename: "cool cat.png"}],
+				attachments: [{id: "0", description: undefined, filename: "cool cat.png"}],
+				pendingFiles: [{name: "cool cat.png", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
+			}]
+		}
+	)
+})
+
+test("event2message: image attachments can have a custom description", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "Cat emoji surrounded by pink hearts",
+				filename: "cool cat.png",
+				info: {
+					size: 43170,
+					mimetype: "image/png",
+					w: 480,
+					h: 480,
+					"xyz.amorgan.blurhash": "URTHsVaTpdj2eKZgkkkXp{pHl7feo@lSl9Z$"
+				},
+				msgtype: "m.image",
+				url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"
+			},
+			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				attachments: [{id: "0", description: "Cat emoji surrounded by pink hearts", filename: "cool cat.png"}],
 				pendingFiles: [{name: "cool cat.png", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
 			}]
 		}
@@ -2228,7 +2265,7 @@ test("event2message: encrypted image attachments work", async t => {
 				username: "cadence [they]",
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
-				attachments: [{id: "0", filename: "image.png"}],
+				attachments: [{id: "0", description: undefined, filename: "image.png"}],
 				pendingFiles: [{
 					name: "image.png",
 					url: "https://matrix.cadence.moe/_matrix/media/r0/download/heyquark.com/LOGkUTlVFrqfiExlGZNgCJJX",

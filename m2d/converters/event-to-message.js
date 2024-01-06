@@ -535,19 +535,22 @@ async function eventToMessage(event, guild, di) {
 		}
 	} else if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
 		content = ""
-		const filename = event.content.body
+		const filename = event.content.filename || event.content.body
+		// A written `event.content.body` will be bridged to Discord's image `description` which is like alt text.
+		// Bridging as description rather than message content in order to match Matrix clients (Element, Neochat) which treat this as alt text or title text.
+		const description = (event.content.body !== event.content.filename && event.content.filename && event.content.body) || undefined
 		if ("url" in event.content) {
 			// Unencrypted
 			const url = mxUtils.getPublicUrlForMxc(event.content.url)
 			assert(url)
-			attachments.push({id: "0", filename})
+			attachments.push({id: "0", description, filename})
 			pendingFiles.push({name: filename, url})
 		} else {
 			// Encrypted
 			const url = mxUtils.getPublicUrlForMxc(event.content.file.url)
 			assert(url)
 			assert.equal(event.content.file.key.alg, "A256CTR")
-			attachments.push({id: "0", filename})
+			attachments.push({id: "0", description, filename})
 			pendingFiles.push({name: filename, url, key: event.content.file.key.k, iv: event.content.file.iv})
 		}
 	} else if (event.type === "m.sticker") {

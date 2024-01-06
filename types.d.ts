@@ -91,6 +91,7 @@ export namespace Event {
 	export type M_Room_Message_File = {
 		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
 		body: string
+		filename?: string
 		url: string
 		info?: any
 		"m.relates_to"?: {
@@ -107,6 +108,7 @@ export namespace Event {
 	export type M_Room_Message_Encrypted_File = {
 		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
 		body: string
+		filename?: string
 		file: {
 			url: string
 			iv: string
