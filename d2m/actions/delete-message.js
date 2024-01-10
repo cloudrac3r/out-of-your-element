@@ -13,10 +13,11 @@ async function deleteMessage(data) {
 	if (!roomID) return
 
 	const eventsToRedact = select("event_message", "event_id", {message_id: data.id}).pluck().all()
+	db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(data.id)
+	db.prepare("DELETE FROM event_message WHERE message_id = ?").run(data.id)
 	for (const eventID of eventsToRedact) {
 		// Unfortunately, we can't specify a sender to do the redaction as, unless we find out that info via the audit logs
 		await api.redactEvent(roomID, eventID)
-		db.prepare("DELETE FROM event_message WHERE event_id = ?").run(eventID)
 	}
 }
 

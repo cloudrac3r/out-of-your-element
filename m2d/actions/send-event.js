@@ -96,6 +96,8 @@ async function sendEvent(event) {
 	}
 
 	for (const id of messagesToDelete) {
+		db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(id)
+		db.prepare("DELETE FROM event_message WHERE message_id = ?").run(id)
 		await channelWebhook.deleteMessageWithWebhook(channelID, id, threadID)
 	}
 
