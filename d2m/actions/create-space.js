@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
+const deepEqual = require("deep-equal")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
@@ -199,22 +200,33 @@ async function syncSpaceFully(guildID) {
 
 /**
  * @param {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData | import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} data
+ * @param {boolean} checkBeforeSync false to always send new state, true to check the current state and only apply if state would change
  */
-async function syncSpaceExpressions(data) {
+async function syncSpaceExpressions(data, checkBeforeSync) {
 	// No need for kstate here. Each of these maps to a single state event, which will always overwrite what was there before. I can just send the state event.
 
 	const spaceID = select("guild_space", "space_id", {guild_id: data.guild_id}).pluck().get()
 	if (!spaceID) return
 
-	if ("emojis" in data && data.emojis.length) {
-		const content = await expression.emojisToState(data.emojis)
-		api.sendState(spaceID, "im.ponies.room_emotes", "moe.cadence.ooye.pack.emojis", content)
+	/**
+	 * @typedef {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData & import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} Expressions
+	 * @param {string} spaceID
+	 * @param {Expressions extends any ? keyof Expressions : never} key
+	 * @param {string} eventKey
+	 * @param {(emojis: any[]) => any} fn
+	 */
+	async function update(spaceID, key, eventKey, fn) {
+		if (!(key in data) || !data[key].length) return
+		const content = await fn(data[key])
+		if (checkBeforeSync) {
+			const existing = await api.getStateEvent(spaceID, "im.ponies.room_emotes", eventKey)
+			if (deepEqual(existing, content, {strict: true})) return
+		}
+		api.sendState(spaceID, "im.ponies.room_emotes", eventKey, content)
 	}
 
-	if ("stickers" in data && data.stickers.length) {
-		const content = await expression.stickersToState(data.stickers)
-		api.sendState(spaceID, "im.ponies.room_emotes", "moe.cadence.ooye.pack.stickers", content)
-	}
+	update(spaceID, "emojis", "moe.cadence.ooye.pack.emojis", expression.emojisToState)
+	update(spaceID, "stickers", "moe.cadence.ooye.pack.stickers", expression.stickersToState)
 }
 
 module.exports.createSpace = createSpace

@@ -42,6 +42,7 @@ const utils = {
 				client.channels.set(thread.id, thread)
 			}
 			if (listen === "full") {
+				eventDispatcher.checkMissedExpressions(message.d)
 				eventDispatcher.checkMissedMessages(client, message.d)
 			}
 

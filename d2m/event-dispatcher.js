@@ -126,6 +126,16 @@ module.exports = {
 	},
 
 	/**
+	 * When logging back in, check if we missed any changes to emojis or stickers. Apply the changes if so.
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayGuildCreateDispatchData} guild
+	 */
+	async checkMissedExpressions(guild) {
+		const data = {guild_id: guild.id, ...guild}
+		createSpace.syncSpaceExpressions(data, true)
+	},
+
+	/**
 	 * Announces to the parent room that the thread room has been created.
 	 * See notes.md, "Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement"
 	 * @param {import("./discord-client")} client
@@ -262,6 +272,6 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayGuildEmojisUpdateDispatchData | DiscordTypes.GatewayGuildStickersUpdateDispatchData} data
 	 */
 	async onExpressionsUpdate(client, data) {
-		await createSpace.syncSpaceExpressions(data)
+		await createSpace.syncSpaceExpressions(data, false)
 	}
 }

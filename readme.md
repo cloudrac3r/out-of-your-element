@@ -162,6 +162,7 @@ Follow these steps:
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
 * (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
+* (0) deep-equal: It's already pulled in by supertape.
 * (1) discord-markdown: This is my fork!
 * (0) giframe: This is my fork!
 * (1) heatsync: Module hot-reloader that I trust.
@@ -169,7 +170,7 @@ Follow these steps:
 * (1) html-template-tag: This is my fork!
 * (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
 * (70) matrix-appservice: I wish it didn't pull in express :(
-* (0) minimist: It's already pulled in by better-sqlite3->prebuild-install
+* (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
 * (0) mixin-deep: This is my fork! (It fixes a bug in regular mixin-deep.)
 * (3) node-fetch@2: I like it and it does what I want.
 * (0) pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
