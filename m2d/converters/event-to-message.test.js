@@ -713,6 +713,74 @@ test("event2message: rich reply to a sim user", async t => {
 	)
 })
 
+test("event2message: rich reply to a rich reply to a multi-line message should correctly strip reply fallback", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "> <@cadence:cadence.moe> I just checked in a fix that will probably work, can you try reproducing this on the latest `main` branch and see if I fixed it?\n\nwill try later (tomorrow if I don't forgor)",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!cBxtVRxDlZvSVhJXVK:cadence.moe/$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0?via=matrix.org&via=cadence.moe&via=syndicated.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br />I just checked in a fix that will probably work, can you try reproducing this on the latest <code>main</code> branch and see if I fixed it?</blockquote></mx-reply>will try later (tomorrow if I don't forgor)",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0"
+					}
+				},
+				msgtype: "m.text"
+			},
+			origin_server_ts: 1704857452930,
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {},
+			event_id: "$Q5kNrPxGs31LfWOhUul5I03jNjlxKOwRmWVuivaqCHY",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0", {
+					"type": "m.room.message",
+					"sender": "@cadence:cadence.moe",
+					"content": {
+						"msgtype": "m.text",
+						"body": "> <@solonovamax:matrix.org> multipart messages will be deleted if the message is edited to require less space\n>  \n> \n> steps to reproduce:\n> \n> 1. send a message that is longer than 2000 characters (discord character limit)\n>   - bot will split message into two messages on discord\n> 2. edit message to be under 2000 characters (discord character limit)\n>   - bot will delete one of the messages on discord, and then edit the other one to include the edited content\n>   - the bot will *then* delete the message on matrix (presumably) because one of the messages on discord was deleted (by \n\nI just checked in a fix that will probably work, can you try reproducing this on the latest `main` branch and see if I fixed it?",
+						"format": "org.matrix.custom.html",
+						"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!cBxtVRxDlZvSVhJXVK:cadence.moe/$u4OD19vd2GETkOyhgFVla92oDKI4ojwBf2-JeVCG7EI?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@solonovamax:matrix.org\">@solonovamax:matrix.org</a><br /><p>multipart messages will be deleted if the message is edited to require less space</p>\n<p>steps to reproduce:</p>\n<ol>\n<li>send a message that is longer than 2000 characters (discord character limit)</li>\n</ol>\n<ul>\n<li>bot will split message into two messages on discord</li>\n</ul>\n<ol start=\"2\">\n<li>edit message to be under 2000 characters (discord character limit)</li>\n</ol>\n<ul>\n<li>bot will delete one of the messages on discord, and then edit the other one to include the edited content</li>\n<li>the bot will <em>then</em> delete the message on matrix (presumably) because one of the messages on discord was deleted (by</li>\n</ul>\n</blockquote></mx-reply>I just checked in a fix that will probably work, can you try reproducing this on the latest <code>main</code> branch and see if I fixed it?",
+						"m.relates_to": {
+							"m.in_reply_to": {
+								"event_id": "$u4OD19vd2GETkOyhgFVla92oDKI4ojwBf2-JeVCG7EI"
+							}
+						}
+					},
+					"origin_server_ts": 1704855484532,
+					"unsigned": {
+						"age": 19069564
+					},
+					"event_id": "$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0",
+					"room_id": "!cBxtVRxDlZvSVhJXVK:cadence.moe"
+				})
+			},
+			snow: {
+				guild: {
+					searchGuildMembers: (_, options) => {
+						t.fail(`should not search guild members, but actually searched for: ${options.query}`)
+						return []
+					}
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
+					+ "\n> I just checked in a fix that will probably work..."
+					+ "\nwill try later (tomorrow if I don't forgor)",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: rich reply to an already-edited message will quote the new message content", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -793,21 +861,21 @@ test("event2message: rich reply to an already-edited message will quote the new 
 test("event2message: should avoid using blockquote contents as reply preview in rich reply to a sim user", async t => {
 	t.deepEqual(
 		await eventToMessage({
-		type: "m.room.message",
-		sender: "@cadence:cadence.moe",
-		content: {
-			msgtype: "m.text",
-			body: "> <@_ooye_kyuugryphon:cadence.moe> > well, you said this, so...\n> \n> that can't be true! there's no way :o\n\nI agree!",
-			format: "org.matrix.custom.html",
-			formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br><blockquote>well, you said this, so...<br /></blockquote><br />that can't be true! there's no way :o</blockquote></mx-reply>I agree!",
-			"m.relates_to": {
-				"m.in_reply_to": {
-					event_id: "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@_ooye_kyuugryphon:cadence.moe> > well, you said this, so...\n> \n> that can't be true! there's no way :o\n\nI agree!",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br><blockquote>well, you said this, so...<br /></blockquote><br />that can't be true! there's no way :o</blockquote></mx-reply>I agree!",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
 				}
-			}
-		},
-		event_id: "$BpGx8_vqHyN6UQDARPDU51ftrlRBhleutRSgpAJJ--g",
-		room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
+			},
+			event_id: "$BpGx8_vqHyN6UQDARPDU51ftrlRBhleutRSgpAJJ--g",
+			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
 		}, data.guild.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
