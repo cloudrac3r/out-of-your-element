@@ -1,3 +1,5 @@
+// @ts-check
+
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 const util = require("util")
@@ -47,27 +49,33 @@ module.exports = {
 		if (Date.now() - lastReportedEvent < 5000) return
 		lastReportedEvent = Date.now()
 
-		const channelID = gatewayMessage.d.channel_id
+		const channelID = gatewayMessage.d["channel_id"]
 		if (!channelID) return
 		const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!roomID) return
 
-		let stackLines = e.stack.split("\n")
-		let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
-		if (cloudstormLine !== -1) {
-			stackLines = stackLines.slice(0, cloudstormLine - 2)
+		let stackLines = null
+		if (e.stack) {
+			stackLines = e.stack.split("\n")
+			let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
+			if (cloudstormLine !== -1) {
+				stackLines = stackLines.slice(0, cloudstormLine - 2)
+			}
 		}
+		let formattedBody = "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
+			+ `<br>Gateway event: ${gatewayMessage.t}`
+			+ `<br>${e.toString()}`
+		if (stackLines) {
+			formattedBody += `<br><details><summary>Error trace</summary>`
+				+ `<pre>${stackLines.join("\n")}</pre></details>`
+		}
+		formattedBody += `<details><summary>Original payload</summary>`
+			+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`,
 		api.sendEvent(roomID, "m.room.message", {
 			msgtype: "m.text",
 			body: "\u26a0 Bridged event from Discord not delivered. See formatted content for full details.",
 			format: "org.matrix.custom.html",
-			formatted_body: "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
-				+ `<br>Gateway event: ${gatewayMessage.t}`
-				+ `<br>${e.toString()}`
-				+ `<br><details><summary>Error trace</summary>`
-				+ `<pre>${stackLines.join("\n")}</pre></details>`
-				+ `<details><summary>Original payload</summary>`
-				+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`,
+			formatted_body: formattedBody,
 			"moe.cadence.ooye.error": {
 				source: "discord",
 				payload: gatewayMessage
@@ -91,7 +99,7 @@ module.exports = {
 		const prepared = select("event_message", "event_id", {}, "WHERE message_id = ?").pluck()
 		for (const channel of guild.channels.concat(guild.threads)) {
 			if (!bridgedChannels.includes(channel.id)) continue
-			if (!channel.last_message_id) continue
+			if (!("last_message_id" in channel) || !channel.last_message_id) continue
 			const latestWasBridged = prepared.get(channel.last_message_id)
 			if (latestWasBridged) continue
 
@@ -116,7 +124,6 @@ module.exports = {
 			for (let i = Math.min(messages.length, latestBridgedMessageIndex)-1; i >= 0; i--) {
 				const simulatedGatewayDispatchData = {
 					guild_id: guild.id,
-					mentions: [],
 					backfill: true,
 					...messages[i]
 				}
@@ -127,7 +134,6 @@ module.exports = {
 
 	/**
 	 * When logging back in, check if we missed any changes to emojis or stickers. Apply the changes if so.
-	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayGuildCreateDispatchData} guild
 	 */
 	async checkMissedExpressions(guild) {
@@ -142,7 +148,8 @@ module.exports = {
 	 * @param {DiscordTypes.APIThreadChannel} thread
 	 */
 	async onThreadCreate(client, thread) {
-		const parentRoomID = select("channel_room", "room_id", {channel_id: thread.parent_id}).pluck().get()
+		const channelID = thread.parent_id || undefined
+		const parentRoomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
@@ -192,10 +199,10 @@ module.exports = {
 				return
 			}
 		}
-		/** @type {DiscordTypes.APIGuildChannel} */
 		const channel = client.channels.get(message.channel_id)
-		if (!channel.guild_id) return // Nothing we can do in direct messages.
+		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
+		assert(guild)
 
 		await sendMessage.sendMessage(message, guild),
 		await discordCommandHandler.execute(message, channel, guild)
@@ -217,11 +224,12 @@ module.exports = {
 		// If the message content is a string then it includes all interesting fields and is meaningful.
 		if (typeof data.content === "string") {
 			/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
+			// @ts-ignore
 			const message = data
-			/** @type {DiscordTypes.APIGuildChannel} */
 			const channel = client.channels.get(message.channel_id)
-			if (!channel.guild_id) return // Nothing we can do in direct messages.
+			if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)
+			assert(guild)
 			await editMessage.editMessage(message, guild)
 		}
 	},
