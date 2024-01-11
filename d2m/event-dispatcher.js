@@ -252,6 +252,14 @@ module.exports = {
 		await deleteMessage.deleteMessage(data)
 	},
 
+		/**
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayMessageDeleteBulkDispatchData} data
+	 */
+		async onMessageDeleteBulk(client, data) {
+			await deleteMessage.deleteMessageBulk(data)
+		},
+
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayTypingStartDispatchData} data

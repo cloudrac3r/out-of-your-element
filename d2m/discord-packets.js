@@ -153,6 +153,9 @@ const utils = {
 				} else if (message.t === "MESSAGE_DELETE") {
 					await eventDispatcher.onMessageDelete(client, message.d)
 
+				} else if (message.t === "MESSAGE_DELETE_BULK") {
+					await eventDispatcher.onMessageDeleteBulk(client, message.d)
+
 				} else if (message.t === "TYPING_START") {
 					await eventDispatcher.onTypingStart(client, message.d)
 
