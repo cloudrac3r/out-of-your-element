@@ -39,7 +39,7 @@ async function mreq(method, url, body, extra = {}) {
 	const res = await fetch(baseUrl + url, opts)
 	const root = await res.json()
 
-	if (!res.ok || root.errcode) throw new MatrixServerError(root, opts)
+	if (!res.ok || root.errcode) throw new MatrixServerError(root, {baseUrl, url, ...opts})
 	return root
 }
 

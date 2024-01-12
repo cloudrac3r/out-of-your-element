@@ -219,7 +219,13 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 		if (!(key in data) || !data[key].length) return
 		const content = await fn(data[key])
 		if (checkBeforeSync) {
-			const existing = await api.getStateEvent(spaceID, "im.ponies.room_emotes", eventKey)
+			let existing
+			try {
+				existing = await api.getStateEvent(spaceID, "im.ponies.room_emotes", eventKey)
+			} catch (e) {
+				// State event not found. This space doesn't have any existing emojis. We create a dummy empty event for comparison's sake.
+				existing = fn([])
+			}
 			if (deepEqual(existing, content, {strict: true})) return
 		}
 		api.sendState(spaceID, "im.ponies.room_emotes", eventKey, content)
