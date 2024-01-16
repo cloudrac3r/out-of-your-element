@@ -437,7 +437,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Then embeds
 	for (const embed of message.embeds || []) {
 		if (embed.type === "image") {
-			continue // Matrix's own image embeds are fine.
+			continue // Matrix's own URL previews are fine for images.
 		}
 
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once

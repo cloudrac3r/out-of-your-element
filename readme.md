@@ -53,7 +53,7 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 
 ## Efficiency details
 
-Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
+Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached in memory. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
 
 The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. Some event IDs are actually stored as xxhash integers to reduce storage requirements even more. On my personal instance of OOYE, every 100,000 messages require 16.1 MB of storage space in the SQLite database.
 
@@ -61,11 +61,11 @@ Only necessary data and columns are queried from the database. We only contact t
 
 File uploads (like avatars from bridged members) are checked locally and deduplicated. Only brand new files are uploaded to the homeserver. This saves loads of space in the homeserver's media repo, especially for Synapse.
 
-Switching to [WAL mode](https://www.sqlite.org/wal.html) could improve your database access speed even more. Run `node scripts/wal.js` if you want to switch to WAL mode.
+Switching to [WAL mode](https://www.sqlite.org/wal.html) could improve your database access speed even more. Run `node scripts/wal.js` if you want to switch to WAL mode. This will also enable `synchronous = NORMAL`.
 
 # Setup
 
-If you get stuck, you're welcome to message @cadence:cadence.moe to ask for help setting up OOYE!
+If you get stuck, you're welcome to message [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe) or [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) to ask for help setting up OOYE!
 
 You'll need:
 

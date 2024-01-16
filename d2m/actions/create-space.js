@@ -22,7 +22,7 @@ const ks = sync.require("../../matrix/kstate")
 const inflightSpaceCreate = new Map()
 
 /**
- * @param {import("discord-api-types/v10").RESTGetAPIGuildResult} guild
+ * @param {DiscordTypes.RESTGetAPIGuildResult} guild
  * @param {any} kstate
  */
 async function createSpace(guild, kstate) {
@@ -199,7 +199,7 @@ async function syncSpaceFully(guildID) {
 }
 
 /**
- * @param {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData | import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} data
+ * @param {DiscordTypes.GatewayGuildEmojisUpdateDispatchData | DiscordTypes.GatewayGuildStickersUpdateDispatchData} data
  * @param {boolean} checkBeforeSync false to always send new state, true to check the current state and only apply if state would change
  */
 async function syncSpaceExpressions(data, checkBeforeSync) {
@@ -209,11 +209,11 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 	if (!spaceID) return
 
 	/**
-	 * @typedef {import("discord-api-types/v10").GatewayGuildEmojisUpdateDispatchData & import("discord-api-types/v10").GatewayGuildStickersUpdateDispatchData} Expressions
+	 * @typedef {DiscordTypes.GatewayGuildEmojisUpdateDispatchData & DiscordTypes.GatewayGuildStickersUpdateDispatchData} Expressions
 	 * @param {string} spaceID
 	 * @param {Expressions extends any ? keyof Expressions : never} key
 	 * @param {string} eventKey
-	 * @param {(emojis: any[]) => any} fn
+	 * @param {typeof expression["emojisToState"] | typeof expression["stickersToState"]} fn
 	 */
 	async function update(spaceID, key, eventKey, fn) {
 		if (!(key in data) || !data[key].length) return
