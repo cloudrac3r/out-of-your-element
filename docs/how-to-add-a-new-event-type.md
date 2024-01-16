@@ -201,15 +201,15 @@ Good to go.
       at module.exports (out-of-your-element/node_modules/try-to-catch/lib/try-to-catch.js:7:29)
 ```
 
-Oh, this was actually an accident, I didn't make it fail for demonstration purposes! Let's see what this bug is. It's returning the right number of IDs, but 2 out of the 3 are incorrect. The green `-` lines are "expected" and the red `+` lines are "actual". I should check where that wrong ID `$51f...` got taken from.
+Oh no! (I promise I didn't make it fail for demonstration purposes, this was actually an accident!) Let's see what this bug is. It's returning the right number of IDs, but 2 out of the 3 are incorrect. The green `-` lines are "expected" and the red `+` lines are "actual". The wrong ID `$51f...` must have been taken from _somewhere_ in the test data, so I'll first search the codebase and find where it came from:
 
-```
-  - snip - ooye-test-data.sql
+```sql
+-- snipped from ooye-test-data.sql
 ('$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA', 'm.room.message', 'm.text', '1141501302736695316', 0, 1),
 ('$51f4yqHinwnSbPEQ9dCgoyy4qiIJSX0QYYVUnvwyTCI', 'm.room.message', 'm.image', '1141501302736695316', 1, 1),
 ```
 
-Context: This Discord message `1141501302736695316` is actually part of 2 different Matrix events, `$mtR...` and `$51f...`. This often happens when a Discord user uploads an image with a caption. Matrix doesn't support combined image+text events, so the image and the text have to be bridged to separate events. We should consider the text to be the primary part, and pin that, and consider the image to be the secondary part, and not pin that.
+Explanation: This Discord message `1141501302736695316` is actually part of 2 different Matrix events, `$mtR...` and `$51f...`. This often happens when a Discord user uploads an image with a caption. Matrix doesn't support combined image+text events, so the image and the text have to be bridged to separate events. We should consider the text to be the primary part, and pin that, and consider the image to be the secondary part, and not pin that.
 
 We already have a column `part` in the `event_message` table for this reason! When `part = 0`, that's the primary part. I'll edit the converter to actually use that column:
 
@@ -269,7 +269,7 @@ index 83c31cd..4de84d9 100644
                                         await eventDispatcher.onThreadCreate(client, message.d)
 ```
 
-`event-dispatcher.js` will now check if the event seems reasonable and is allowed in this context. For example, we can only update pins if the channel is actually bridged somewhere. This should be another quick check which passes to an action to do the API calls:
+`event-dispatcher.js` will now check if the event seems reasonable and is allowed in this context. For example, we can only update pins if the channel is actually bridged somewhere. After the check, we'll call the action:
 
 ```diff
 diff --git a/d2m/event-dispatcher.js b/d2m/event-dispatcher.js
@@ -304,7 +304,7 @@ index 0f9f1e6..6e91e9e 100644
          * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
 ```
 
-And now I can create the `update-pins.js` action:
+And now I can write the `update-pins.js` action:
 
 ```diff
 diff --git a/d2m/actions/update-pins.js b/d2m/actions/update-pins.js
@@ -339,6 +339,74 @@ index 0000000..40cc358
 
 I try to keep as much logic as possible out of the actions and in the converters. This should mean I *never have to unit test the actions themselves.* The actions will be tested manually with the real bot.
 
+## See if it works
+
+```
+node start.js
+```
+
+We can try these things and see if they are bridged to Matrix:
+
+- Pin a recent message on Discord-side
+- Pin an old message on Discord-side
+- Unpin a message on Discord-side
+
+It works like I'd expect!
+
+## Order of pinned messages
+
+I expected that to be the end of the guide, but after some time, I noticed a new problem: The pins are in reverse order. How could this happen?
+
+[After some investigation,](https://gitdab.com/cadence/out-of-your-element/issues/16) it turns out Discord puts the most recently pinned message at the start of the array and displays the array in forwards order, while Matrix puts the most recently pinned message at the end of the array and displays the array in reverse order.
+
+We'll fix this by reversing the order of the list of pins before we store it. I'll do this in the converter.
+
+```diff
+diff --git a/d2m/converters/pins-to-list.js b/d2m/converters/pins-to-list.js
+index f401de2..047bb9f 100644
+--- a/d2m/converters/pins-to-list.js
++++ b/d2m/converters/pins-to-list.js
+@@ -12,6 +12,7 @@ function pinsToList(pins) {
+                const eventID = select("event_message", "event_id", {message_id: message.id, part: 0}).pluck().get()
+                if (eventID) result.push(eventID)
+        }
++       result.reverse()
+        return result
+ }
+```
+
+Since the results have changed, I'll need to update the test so it expects the new result:
+
+```diff
+diff --git a/d2m/converters/pins-to-list.test.js b/d2m/converters/pins-to-list.test.js
+index c2e3774..92e5678 100644
+--- a/d2m/converters/pins-to-list.test.js
++++ b/d2m/converters/pins-to-list.test.js
+@@ -5,8 +5,8 @@ const {pinsToList} = require("./pins-to-list")
+ test("pins2list: converts known IDs, ignores unknown IDs", t => {
+        const result = pinsToList(data.pins.faked)
+        t.deepEqual(result, [
+-               "$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg",
+-               "$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA",
+-               "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4"
++               "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4",
++               "$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA",
++               "$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg"
+        ])
+ })
+```
+
+```
+><> $ npm t
+
+  144 tests
+  232 passed
+
+  Pass!
+```
+
+Next time a message is pinned or unpinned on Discord, the order should be updated on Matrix.
+
 ## Notes on missed events
 
 Note that this will only sync pins _when the pins change._ Existing pins from Discord will not be backfilled to Matrix rooms. If I wanted, there's a couple of ways I could address this:
@@ -346,4 +414,4 @@ Note that this will only sync pins _when the pins change._ Existing pins from Di
 * I could create a one-shot script in `scripts/update-pins.js` which will sync pins for _all_ Discord channels right away. I can run this after finishing the feature, or if the bot has been offline for some time.
 * I could create a database table that holds the timestamp of the most recently detected pin for each channel - the `last_pin_timestamp` field from the gateway. Every time the bot starts, it would automatically compare the database table against every channel, and if the pins have changed since it last looked, it could automatically update them.
 
-I already have a mechanism for backfilling missed messages when the bridge starts up. Option 2 there would add a similar feature for backfilling missed pins. That could be worth considering, but it's less important and more complex. Perhaps we'll come back to it.
+I already have code to backfill missed messages when the bridge starts up. The second option above would add a similar feature for backfilling missed pins. It would be worth considering.

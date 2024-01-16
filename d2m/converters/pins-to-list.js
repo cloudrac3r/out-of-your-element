@@ -12,6 +12,7 @@ function pinsToList(pins) {
 		const eventID = select("event_message", "event_id", {message_id: message.id, part: 0}).pluck().get()
 		if (eventID) result.push(eventID)
 	}
+	result.reverse()
 	return result
 }
 
