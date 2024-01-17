@@ -43,6 +43,7 @@ const utils = {
 			}
 			if (listen === "full") {
 				eventDispatcher.checkMissedExpressions(message.d)
+				eventDispatcher.checkMissedPins(client, message.d)
 				eventDispatcher.checkMissedMessages(client, message.d)
 			}
 
@@ -92,6 +93,13 @@ const utils = {
 
 		} else if (message.t === "CHANNEL_UPDATE" || message.t === "THREAD_UPDATE") {
 			client.channels.set(message.d.id, message.d)
+
+
+		} else if (message.t === "CHANNEL_PINS_UPDATE") {
+			const channel = client.channels.get(message.d.channel_id)
+			if (channel) {
+				channel["last_pin_timestamp"] = message.d.last_pin_timestamp
+			}
 
 
 		} else if (message.t === "GUILD_DELETE") {

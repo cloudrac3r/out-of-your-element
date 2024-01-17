@@ -34,7 +34,7 @@ function getPermissions(userRoles, guildRoles, userID, channelOverwrites) {
 			// Role deny
 			overwrite => userRoles.includes(overwrite.id) && (allowed &= ~BigInt(overwrite.deny)),
 			// Role allow
-			overwrite => userRoles.includes(overwrite.id) && (allowed |= ~BigInt(overwrite.allow)),
+			overwrite => userRoles.includes(overwrite.id) && (allowed |= BigInt(overwrite.allow)),
 			// User deny
 			overwrite => overwrite.id === userID && (allowed &= ~BigInt(overwrite.deny)),
 			// User allow

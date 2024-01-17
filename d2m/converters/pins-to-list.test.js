@@ -6,7 +6,7 @@ test("pins2list: converts known IDs, ignores unknown IDs", t => {
 	const result = pinsToList(data.pins.faked)
 	t.deepEqual(result, [
 		"$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4",
-		"$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuAno",
+		"$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA",
 		"$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg"
 	])
 })

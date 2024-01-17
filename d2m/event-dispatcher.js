@@ -25,8 +25,14 @@ const createSpace = sync.require("./actions/create-space")
 const updatePins = sync.require("./actions/update-pins")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
+/** @type {import("../discord/utils")} */
+const utils = sync.require("../discord/utils")
 /** @type {import("../discord/discord-command-handler")}) */
 const discordCommandHandler = sync.require("../discord/discord-command-handler")
+
+/** @type {any} */ // @ts-ignore bad types from semaphore
+const Semaphore = require("@chriscdn/promise-semaphore")
+const checkMissedPinsSema = new Semaphore()
 
 let lastReportedEvent = 0
 
@@ -103,6 +109,14 @@ module.exports = {
 			const latestWasBridged = prepared.get(channel.last_message_id)
 			if (latestWasBridged) continue
 
+			// Permissions check
+			const member = guild.members.find(m => m.user?.id === client.user.id)
+			if (!member) return
+			if (!("permission_overwrites" in channel)) continue
+			const permissions = utils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
+			const wants = BigInt(1 << 10) | BigInt(1 << 16) // VIEW_CHANNEL + READ_MESSAGE_HISTORY
+			if ((permissions & wants) !== wants) continue // We don't have permission to look back in this channel
+
 			/** More recent messages come first. */
 			// console.log(`[check missed messages] in ${channel.id} (${guild.name} / ${channel.name}) because its last message ${channel.last_message_id} is not in the database`)
 			let messages
@@ -128,6 +142,34 @@ module.exports = {
 					...messages[i]
 				}
 				await module.exports.onMessageCreate(client, simulatedGatewayDispatchData)
+			}
+		}
+	},
+
+	/**
+	 * When logging back in, check if the pins on Matrix-side are up to date. If they aren't, update all pins.
+	 * Rather than query every room on Matrix-side, we cache the latest pinned message in the database and compare against that.
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayGuildCreateDispatchData} guild
+	 */
+	async checkMissedPins(client, guild) {
+		if (guild.unavailable) return
+		const member = guild.members.find(m => m.user?.id === client.user.id)
+		if (!member) return
+		for (const channel of guild.channels) {
+			if (!("last_pin_timestamp" in channel) || !channel.last_pin_timestamp) continue // Only care about channels that have pins
+			if (!("permission_overwrites" in channel)) continue
+			const lastPin = updatePins.convertTimestamp(channel.last_pin_timestamp)
+
+			// Permissions check
+			const permissions = utils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
+			const wants = BigInt(1 << 10) | BigInt(1 << 16) // VIEW_CHANNEL + READ_MESSAGE_HISTORY
+			if ((permissions & wants) !== wants) continue // We don't have permission to look up the pins in this channel
+
+			const row = select("channel_room", ["room_id", "last_bridged_pin_timestamp"], {channel_id: channel.id}).get()
+			if (!row) continue // Only care about already bridged channels
+			if (row.last_bridged_pin_timestamp == null || lastPin > row.last_bridged_pin_timestamp) {
+				checkMissedPinsSema.request(() => updatePins.updatePins(channel.id, row.room_id, lastPin))
 			}
 		}
 	},
@@ -183,7 +225,8 @@ module.exports = {
 	async onChannelPinsUpdate(client, data) {
 		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 		if (!roomID) return // No target room to update pins in
-		await updatePins.updatePins(data.channel_id, roomID)
+		const convertedTimestamp = updatePins.convertTimestamp(data.last_pin_timestamp)
+		await updatePins.updatePins(data.channel_id, roomID, convertedTimestamp)
 	},
 
 	/**

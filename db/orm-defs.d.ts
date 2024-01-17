@@ -6,6 +6,7 @@ export type Models = {
 		nick: string | null
 		thread_parent: string | null
 		custom_avatar: string | null
+		last_bridged_pin_timestamp: number | null
 	}
 
 	event_message: {
