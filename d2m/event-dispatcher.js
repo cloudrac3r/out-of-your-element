@@ -26,9 +26,11 @@ const updatePins = sync.require("./actions/update-pins")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 /** @type {import("../discord/utils")} */
-const utils = sync.require("../discord/utils")
+const dUtils = sync.require("../discord/utils")
 /** @type {import("../discord/discord-command-handler")}) */
 const discordCommandHandler = sync.require("../discord/discord-command-handler")
+/** @type {import("../m2d/converters/utils")} */
+const mxUtils = require("../m2d/converters/utils")
 
 /** @type {any} */ // @ts-ignore bad types from semaphore
 const Semaphore = require("@chriscdn/promise-semaphore")
@@ -68,20 +70,17 @@ module.exports = {
 				stackLines = stackLines.slice(0, cloudstormLine - 2)
 			}
 		}
-		let formattedBody = "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
-			+ `<br>Gateway event: ${gatewayMessage.t}`
-			+ `<br>${e.toString()}`
+
+		const builder = new mxUtils.MatrixStringBuilder()
+		builder.addLine("\u26a0 Bridged event from Discord not delivered", "\u26a0 <strong>Bridged event from Discord not delivered</strong>")
+		builder.addLine(`Gateway event: ${gatewayMessage.t}`)
+		builder.addLine(e.toString())
 		if (stackLines) {
-			formattedBody += `<br><details><summary>Error trace</summary>`
-				+ `<pre>${stackLines.join("\n")}</pre></details>`
+			builder.addLine(`Error trace:\n${stackLines.join("\n")}`, `<details><summary>Error trace</summary><pre>${stackLines.join("\n")}</pre></details>`)
 		}
-		formattedBody += `<details><summary>Original payload</summary>`
-			+ `<pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`,
+		builder.addLine("", `<details><summary>Original payload</summary><pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`)
 		api.sendEvent(roomID, "m.room.message", {
-			msgtype: "m.text",
-			body: "\u26a0 Bridged event from Discord not delivered. See formatted content for full details.",
-			format: "org.matrix.custom.html",
-			formatted_body: formattedBody,
+			...builder.get(),
 			"moe.cadence.ooye.error": {
 				source: "discord",
 				payload: gatewayMessage
@@ -113,7 +112,7 @@ module.exports = {
 			const member = guild.members.find(m => m.user?.id === client.user.id)
 			if (!member) return
 			if (!("permission_overwrites" in channel)) continue
-			const permissions = utils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
+			const permissions = dUtils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
 			const wants = BigInt(1 << 10) | BigInt(1 << 16) // VIEW_CHANNEL + READ_MESSAGE_HISTORY
 			if ((permissions & wants) !== wants) continue // We don't have permission to look back in this channel
 
@@ -162,7 +161,7 @@ module.exports = {
 			const lastPin = updatePins.convertTimestamp(channel.last_pin_timestamp)
 
 			// Permissions check
-			const permissions = utils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
+			const permissions = dUtils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
 			const wants = BigInt(1 << 10) | BigInt(1 << 16) // VIEW_CHANNEL + READ_MESSAGE_HISTORY
 			if ((permissions & wants) !== wants) continue // We don't have permission to look up the pins in this channel
 

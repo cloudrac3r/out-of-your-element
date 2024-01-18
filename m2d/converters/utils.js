@@ -72,7 +72,7 @@ class MatrixStringBuilder {
 
 	/**
 	 * @param {string} body
-	 * @param {string} formattedBody
+	 * @param {string} [formattedBody]
 	 * @param {any} [condition]
 	 */
 	add(body, formattedBody, condition = true) {
