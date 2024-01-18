@@ -43,7 +43,7 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		channel: node => {
 			const row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
 			if (!row) {
-				return `<#${node.id}>` // fallback for when this channel is not bridged
+				return `#[channel-from-an-unknown-server]` // fallback for when this channel is not bridged
 			} else if (useHTML) {
 				return `<a href="https://matrix.to/#/${row.room_id}">#${row.nick || row.name}</a>`
 			} else {

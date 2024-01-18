@@ -495,6 +495,47 @@ module.exports = {
 			attachments: [],
 			guild_id: "112760669178241024"
 		},
+		unknown_room_mention: {
+			type: 0,
+			tts: false,
+			timestamp: "2023-07-10T20:04:25.939000+00:00",
+			referenced_message: null,
+			pinned: false,
+			nonce: "1128054139385806848",
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2015-11-11T09:55:40.321000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				avatar: null
+			},
+			id: "1128054143064494233",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "<#555>",
+			components: [],
+			channel_id: "266767590641238027",
+			author: {
+				username: "kumaccino",
+				public_flags: 128,
+				id: "113340068197859328",
+				global_name: "kumaccino",
+				discriminator: "0",
+				avatar_decoration: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39"
+			},
+			attachments: [],
+			guild_id: "112760669178241024"
+		},
 		simple_role_mentions: {
 			id: "1162374402785153106",
 			type: 0,

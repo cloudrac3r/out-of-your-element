@@ -73,6 +73,16 @@ test("message2event: simple room mention", async t => {
 	}])
 })
 
+test("message2event: unknown room mention", async t => {
+	const events = await messageToEvent(data.message.unknown_room_mention, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "#[channel-from-an-unknown-server]"
+	}])
+})
+
 test("message2event: simple role mentions", async t => {
 	const events = await messageToEvent(data.message.simple_role_mentions, data.guild.general, {})
 	t.deepEqual(events, [{
