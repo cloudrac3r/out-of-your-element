@@ -42,7 +42,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1145688633186193481', '1100319550446252084'),
 ('1162005526675193909', '1162005314908999790'),
 ('1162625810109317170', '497161350934560778'),
-('1158842413025071135', '176333891320283136');
+('1158842413025071135', '176333891320283136'),
+('1197612733600895076', '112760669178241024');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),
@@ -67,7 +68,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo', 'm.room.message', 'm.text', '1162005526675193909', 0, 0, 0),
 ('$0wEdIP8fhTq-P68xwo_gyUw-Zv0KA2aS2tfhdFSrLZc', 'm.room.message', 'm.text', '1162625810109317170', 1, 1, 1),
 ('$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ', 'm.room.message', 'm.notice', '1162625810109317170', 1, 0, 1),
-('$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo', 'm.room.message', 'm.text', '1158842413025071135', 0, 0, 1);
+('$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo', 'm.room.message', 'm.text', '1158842413025071135', 0, 0, 1),
+('$7tJoMw1h44n2gxgLUE1T_YinGrLbK0x-TDY1z6M7GBw', 'm.room.message', 'm.text', '1197612733600895076', 0, 0, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
@@ -84,7 +86,8 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg', 'mxc://cadence.moe/zAXdQriaJuLZohDDmacwWWDR'),
 ('https://cdn.discordapp.com/emojis/1125827250609201255.png', 'mxc://cadence.moe/pgdGTxAyEltccRgZKxdqzHHP'),
 ('https://cdn.discordapp.com/avatars/320067006521147393/5fc4ad85c1ea876709e9a7d3374a78a1.png?size=1024', 'mxc://cadence.moe/JPzSmALLirnIprlSMKohSSoX'),
-('https://cdn.discordapp.com/emojis/288858540888686602.png', 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO');
+('https://cdn.discordapp.com/emojis/288858540888686602.png', 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO'),
+('https://cdn.discordapp.com/attachments/112760669178241024/1197621094786531358/Ins_1960637570.mp4', 'mxc://cadence.moe/kMqLycqMURhVpwleWkmASpnU');
 
 INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('230201364309868544', 'hippo', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),

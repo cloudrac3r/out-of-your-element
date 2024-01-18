@@ -362,6 +362,41 @@ test("message2event: simple reply to matrix user, reply fallbacks disabled", asy
 	}])
 })
 
+test("message2event: reply with a video", async t => {
+	const events = await messageToEvent(data.message.reply_with_video, data.guild.general, {
+		api: {
+			getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$7tJoMw1h44n2gxgLUE1T_YinGrLbK0x-TDY1z6M7GBw", {
+				type: "m.room.message",
+				content: {
+					msgtype: "m.text",
+					body: 'deadpicord "extremity you woke up at 4 am"'
+				},
+				sender: "@_ooye_extremity:cadence.moe"
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.video",
+		body: "Ins_1960637570.mp4",
+		filename: "Ins_1960637570.mp4",
+		url: "mxc://cadence.moe/kMqLycqMURhVpwleWkmASpnU",
+		external_url: "https://cdn.discordapp.com/attachments/112760669178241024/1197621094786531358/Ins_1960637570.mp4?ex=65bbee8f&is=65a9798f&hm=ae14f7824c3d526c5e11c162e012e1ee405fd5776e1e9302ed80ccd86503cfda&",
+		info: {
+			h: 854,
+			mimetype: "video/mp4",
+			size: 860559,
+			w: 480,
+		},
+		"m.mentions": {},
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$7tJoMw1h44n2gxgLUE1T_YinGrLbK0x-TDY1z6M7GBw"
+			}
+		}
+	}])
+})
+
 test("message2event: simple reply in thread to a matrix user's reply", async t => {
 	const events = await messageToEvent(data.message.simple_reply_to_reply_in_thread, data.guild.general, {}, {
 		api: {

@@ -1245,6 +1245,101 @@ module.exports = {
 			attachments: [],
 			guild_id: "112760669178241024"
 		},
+		reply_with_video: {
+			id: "1197621094983676007",
+			type: 19,
+			content: "",
+			channel_id: "112760669178241024",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				discriminator: "0",
+				public_flags: 0,
+				premium_type: 2,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [
+				{
+					id: "1197621094786531358",
+					filename: "Ins_1960637570.mp4",
+					size: 860559,
+					url: "https://cdn.discordapp.com/attachments/112760669178241024/1197621094786531358/Ins_1960637570.mp4?ex=65bbee8f&is=65a9798f&hm=ae14f7824c3d526c5e11c162e012e1ee405fd5776e1e9302ed80ccd86503cfda&",
+					proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1197621094786531358/Ins_1960637570.mp4?ex=65bbee8f&is=65a9798f&hm=ae14f7824c3d526c5e11c162e012e1ee405fd5776e1e9302ed80ccd86503cfda&",
+					width: 480,
+					height: 854,
+					content_type: "video/mp4",
+					placeholder: "wvcFBABod4gIl3enl6iqfM+s+A==",
+					placeholder_version: 1
+				}
+			],
+			embeds: [],
+			mentions: [
+				{
+					id: "114147806469554185",
+					username: "extremity",
+					avatar: "e0394d500407a8fa93774e1835b8b03a",
+					discriminator: "0",
+					public_flags: 768,
+					premium_type: 2,
+					flags: 768,
+					banner: null,
+					accent_color: null,
+					global_name: "Extremity",
+					avatar_decoration_data: null,
+					banner_color: null
+				}
+			],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-01-18T19:18:39.768000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			message_reference: {
+				channel_id: "112760669178241024",
+				message_id: "1197612733600895076",
+				guild_id: "112760669178241024"
+			},
+			referenced_message: {
+				id: "1197612733600895076",
+				type: 0,
+				content: 'deadpicord "extremity you wake up at 4am"',
+				channel_id: "112760669178241024",
+				author: {
+					id: "114147806469554185",
+					username: "extremity",
+					avatar: "e0394d500407a8fa93774e1835b8b03a",
+					discriminator: "0",
+					public_flags: 768,
+					premium_type: 2,
+					flags: 768,
+					banner: null,
+					accent_color: null,
+					global_name: "Extremity",
+					avatar_decoration_data: null,
+					banner_color: null
+				},
+				attachments: [],
+				embeds: [],
+				mentions: [],
+				mention_roles: [],
+				pinned: false,
+				mention_everyone: false,
+				tts: false,
+				timestamp: "2024-01-18T18:45:26.259000+00:00",
+				edited_timestamp: null,
+				flags: 0,
+				components: []
+			}
+		},
 		simple_reply_to_reply_in_thread: {
 			type: 19,
 			tts: false,
