@@ -543,10 +543,6 @@ test("event2message: lists have appropriate line breaks", async t => {
 			room_id: '!cBxtVRxDlZvSVhJXVK:cadence.moe',
 			sender: '@Milan:tchncs.de',
 			type: 'm.room.message',
-		}, {}, {
-			api: {
-				getStateEvent: async () => ({displayname: "Milan"})
-			}
 		}),
 		{
 			ensureJoined: [],
@@ -759,6 +755,7 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 			},
 			snow: {
 				guild: {
+					/* c8 ignore next 4 */
 					searchGuildMembers: (_, options) => {
 						t.fail(`should not search guild members, but actually searched for: ${options.query}`)
 						return []
