@@ -32,6 +32,7 @@ async function compositeMatrixEmojis(mxcs) {
 			// @ts-ignore the signal is slightly different from the type it wants (still works fine)
 			const res = await fetch(url, {agent: false, signal: abortController.signal})
 			const {stream, mime} = await streamMimeType.getMimeType(res.body)
+			assert(["image/png", "image/jpeg", "image/webp", "image/gif"].includes(mime), `Mime type ${mime} is impossible for emojis`)
 
 			if (mime === "image/png" || mime === "image/jpeg" || mime === "image/webp") {
 				/** @type {{info: sharp.OutputInfo, buffer: Buffer}} */
@@ -64,10 +65,6 @@ async function compositeMatrixEmojis(mxcs) {
 					.toBuffer({resolveWithObject: true})
 				return buffer.data
 
-			} else {
-				// unsupported mime type
-				console.error(`I don't know what a ${mime} emoji is.`)
-				return null
 			}
 		} finally {
 			abortController.abort()
