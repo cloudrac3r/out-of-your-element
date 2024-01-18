@@ -1,24 +1,9 @@
 // @ts-check
 
-const DiscordTypes = require("discord-api-types/v10")
-const Ty = require("../../types")
-const assert = require("assert").strict
+const stream = require("stream")
 const {PNG} = require("pngjs")
 
-const passthrough = require("../../passthrough")
-const {sync, db, discord, select} = passthrough
-/** @type {import("../../matrix/file")} */
-const file = sync.require("../../matrix/file")
-//** @type {import("../../matrix/mreq")} */
-const mreq = sync.require("../../matrix/mreq")
-
 const SIZE = 160 // Discord's display size on 1x displays is 160
-
-const INFO = {
-	mimetype: "image/png",
-	w: SIZE,
-	h: SIZE
-}
 
 /**
  * @typedef RlottieWasm
@@ -34,16 +19,11 @@ const Rlottie = (async () => {
 })()
 
 /**
- * @param {DiscordTypes.APIStickerItem} stickerItem
- * @returns {Promise<{mxc_url: string, info: typeof INFO}>}
+ * @param {string} text
+ * @returns {Promise<import("stream").Readable>}
  */
-async function convert(stickerItem) {
-	const existingMxc = select("lottie", "mxc_url", {sticker_id: stickerItem.id}).pluck().get()
-	if (existingMxc) return {mxc_url: existingMxc, info: INFO}
+async function convert(text) {
 	const r = await Rlottie
-	const res = await fetch(file.DISCORD_IMAGES_BASE + file.sticker(stickerItem))
-	if (res.status !== 200) throw new Error("Sticker data file not found.")
-	const text = await res.text()
 	/** @type RlottieWasm */
 	const rh = new r.RlottieWasm()
 	const status = rh.load(text)
@@ -58,17 +38,12 @@ async function convert(stickerItem) {
 		inputHasAlpha: true,
 	})
 	png.data = Buffer.from(rendered)
-	// @ts-ignore wrong type from pngjs
-	const readablePng = png.pack()
-	/** @type {Ty.R.FileUploaded} */
-	const root = await mreq.mreq("POST", "/media/v3/upload", readablePng, {
-		headers: {
-			"Content-Type": INFO.mimetype
-		}
-	})
-	assert(root.content_uri)
-	db.prepare("INSERT INTO lottie (sticker_id, mxc_url) VALUES (?, ?)").run(stickerItem.id, root.content_uri)
-	return {mxc_url: root.content_uri, info: INFO}
+	// The transform stream is necessary because PNG requires me to pipe it somewhere before this event loop ends
+	const resultStream = png.pack()
+	const p = new stream.PassThrough()
+	resultStream.pipe(p)
+	return p
 }
 
 module.exports.convert = convert
+module.exports.SIZE = SIZE

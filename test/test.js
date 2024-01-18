@@ -60,6 +60,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../d2m/actions/register-user.test")
 	require("../d2m/converters/edit-to-changes.test")
 	require("../d2m/converters/emoji-to-key.test")
+	require("../d2m/converters/lottie.test")
 	require("../d2m/converters/message-to-event.test")
 	require("../d2m/converters/message-to-event.embeds.test")
 	require("../d2m/converters/pins-to-list.test")
