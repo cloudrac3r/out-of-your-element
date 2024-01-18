@@ -224,6 +224,21 @@ test("message2event: stickers", async t => {
 	}])
 })
 
+test("message2event: lottie sticker", async t => {
+	const events = await messageToEvent(data.message.lottie_sticker, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.sticker",
+		"m.mentions": {},
+		body: "8",
+		info: {
+			mimetype: "image/png",
+			w: 160,
+			h: 160
+		},
+		url: "mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR"
+	}])
+})
+
 test("message2event: skull webp attachment with content", async t => {
 	const events = await messageToEvent(data.message.skull_webp_attachment_with_content, data.guild.general, {})
 	t.deepEqual(events, [{

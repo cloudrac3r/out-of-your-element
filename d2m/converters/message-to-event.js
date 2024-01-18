@@ -497,25 +497,17 @@ async function messageToEvent(message, guild, options = {}, di) {
 	if (message.sticker_items) {
 		const stickerEvents = await Promise.all(message.sticker_items.map(async stickerItem => {
 			const format = file.stickerFormat.get(stickerItem.format_type)
+			assert(format?.mime)
 			if (format?.mime === "lottie") {
-				try {
-					const {mxc_url, info} = await lottie.convert(stickerItem)
-					return {
-						$type: "m.sticker",
-						"m.mentions": mentions,
-						body: stickerItem.name,
-						info,
-						url: mxc_url
-					}
-				} catch (e) {
-					return {
-						$type: "m.room.message",
-						"m.mentions": mentions,
-						msgtype: "m.notice",
-						body: `Failed to convert Lottie sticker:\n${e.toString()}\n${e.stack}`
-					}
+				const {mxc_url, info} = await lottie.convert(stickerItem)
+				return {
+					$type: "m.sticker",
+					"m.mentions": mentions,
+					body: stickerItem.name,
+					info,
+					url: mxc_url
 				}
-			} else if (format?.mime) {
+			} else {
 				let body = stickerItem.name
 				const sticker = guild.stickers.find(sticker => sticker.id === stickerItem.id)
 				if (sticker && sticker.description) body += ` - ${sticker.description}`
@@ -528,12 +520,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 					},
 					url: await file.uploadDiscordFileToMxc(file.sticker(stickerItem))
 				}
-			}
-			return {
-				$type: "m.room.message",
-				"m.mentions": mentions,
-				msgtype: "m.notice",
-				body: `Unsupported sticker format ${format?.mime}. Name: ${stickerItem.name}`
 			}
 		}))
 		events.push(...stickerEvents)
