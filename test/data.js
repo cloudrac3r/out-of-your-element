@@ -1331,6 +1331,38 @@ module.exports = {
 				name: "pomu puff"
 			}]
 		},
+		lottie_sticker: {
+			id: "1106366167788044450",
+			type: 0,
+			content: "",
+			channel_id: "122155380120748034",
+			author: {
+				id: "113340068197859328",
+				username: "Cookie 🍪",
+				global_name: null,
+				display_name: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "7766",
+				public_flags: 128,
+				avatar_decoration: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-05-11T23:44:09.690000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			sticker_items: [{
+				id: "860171525772279849",
+				format_type: 3,
+				name: "8"
+			}]
+		},
 		message_in_thread: {
 			type: 0,
 			tts: false,

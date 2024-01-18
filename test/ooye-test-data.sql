@@ -103,6 +103,9 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
 ('!CzvdIdUQXgUjDVKxeU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU');
 
+INSERT INTO lottie (sticker_id, mxc_url) VALUES
+('860171525772279849', 'mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR');
+
 INSERT INTO "auto_emoji" ("name","emoji_id","guild_id") VALUES
 ('L1','1144820033948762203','529176156398682115'),
 ('L2','1144820084079087647','529176156398682115'),
