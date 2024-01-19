@@ -16,6 +16,7 @@ async function migrate(db) {
 	let migrationRan = false
 
 	for (const filename of files) {
+		/* c8 ignore next - we can't unit test this, but it's run on every real world bridge startup */
 		if (progress >= filename) continue
 		console.log(`Applying database migration ${filename}`)
 		if (filename.endsWith(".sql")) {
