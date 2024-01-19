@@ -13,8 +13,8 @@ const api = sync.require("../../matrix/api")
 const file = sync.require("../../matrix/file")
 /** @type {import("./create-room")} */
 const createRoom = sync.require("./create-room")
-/** @type {import("../converters/expression")} */
-const expression = sync.require("../converters/expression")
+/** @type {import("./expression")} */
+const expression = sync.require("./expression")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
 

@@ -1,10 +1,9 @@
 // @ts-check
 
-const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {sync, db} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 
