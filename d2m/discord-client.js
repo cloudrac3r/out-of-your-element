@@ -47,7 +47,16 @@ class DiscordClient {
 		if (listen !== "no") {
 			this.cloud.on("event", message => discordPackets.onPacket(this, message, listen))
 		}
-		this.cloud.on("error", console.error)
+
+		const addEventLogger = (eventName, logName) => {
+			this.cloud.on(eventName, (...args) => {
+				const d = new Date().toISOString().slice(0, 19)
+				console.error(`[${d} Client ${logName}]`, ...args)
+			})
+		}
+		addEventLogger("error", "Error")
+		addEventLogger("disconnected", "Disconnected")
+		addEventLogger("ready", "Ready")
 	}
 }
 

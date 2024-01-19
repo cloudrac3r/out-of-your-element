@@ -581,10 +581,6 @@ test("event2message: ordered list start attribute works", async t => {
 			room_id: '!cBxtVRxDlZvSVhJXVK:cadence.moe',
 			sender: '@Milan:tchncs.de',
 			type: 'm.room.message',
-		}, {}, {
-			api: {
-				getStateEvent: async () => ({displayname: "Milan"})
-			}
 		}),
 		{
 			ensureJoined: [],
@@ -2194,7 +2190,7 @@ test("event2message: mentioning events falls back to original link when the chan
 			}
 		}, {}, {
 			api: {
-				/* c8 skip next 3 */
+				/* c8 ignore next 3 */
 				async getEvent() {
 					t.fail("getEvent should not be called because it should quit early due to no channel-guild")
 				}

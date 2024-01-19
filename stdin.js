@@ -17,6 +17,7 @@ const file = sync.require("./matrix/file")
 const sendEvent = sync.require("./m2d/actions/send-event")
 const eventDispatcher = sync.require("./d2m/event-dispatcher")
 const updatePins = sync.require("./d2m/actions/update-pins")
+const speedbump = sync.require("./d2m/actions/speedbump")
 const ks = sync.require("./matrix/kstate")
 const guildID = "112760669178241024"
 

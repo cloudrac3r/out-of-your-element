@@ -85,7 +85,9 @@ OOYE's speedbump will prevent the edit command appearing at all on Matrix-side, 
 
 ## Database schema
 
-TBD
+* channel_room
+	+ speedbump_id - the ID of the webhook that may be proxying in this channel
+	+ speedbump_checked - time in unix seconds when the webhooks were last queried
 
 ## Unsolved problems
 

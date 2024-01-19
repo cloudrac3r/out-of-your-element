@@ -31,6 +31,8 @@ const dUtils = sync.require("../discord/utils")
 const discordCommandHandler = sync.require("../discord/discord-command-handler")
 /** @type {import("../m2d/converters/utils")} */
 const mxUtils = require("../m2d/converters/utils")
+/** @type {import("./actions/speedbump")} */
+const speedbump = sync.require("./actions/speedbump")
 
 /** @type {any} */ // @ts-ignore bad types from semaphore
 const Semaphore = require("@chriscdn/promise-semaphore")
@@ -236,9 +238,12 @@ module.exports = {
 		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
 		if (message.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
-			if (row) {
-				// The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-				return
+			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
+		} else {
+			const speedbumpID = select("channel_room", "speedbump_id", {channel_id: message.channel_id}).pluck().get()
+			if (speedbumpID) {
+				const affected = await speedbump.doSpeedbump(message.id)
+				if (affected) return
 			}
 		}
 		const channel = client.channels.get(message.channel_id)
@@ -299,6 +304,7 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessageDeleteDispatchData} data
 	 */
 	async onMessageDelete(client, data) {
+		speedbump.onMessageDelete(data.id)
 		await deleteMessage.deleteMessage(data)
 	},
 
