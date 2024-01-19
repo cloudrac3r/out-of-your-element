@@ -301,8 +301,12 @@ async function handleRoomOrMessageLinks(input, di) {
 				result = MAKE_RESULT.MESSAGE_LINK[resultType](guildID, channelID, messageID)
 			} else {
 				// 3: Linking to an unknown event that OOYE didn't originally bridge - we can guess messageID from the timestamp
-				const originalEvent = await di.api.getEvent(roomID, eventID)
-				if (!originalEvent) continue
+				let originalEvent
+				try {
+					originalEvent = await di.api.getEvent(roomID, eventID)
+				} catch (e) {
+					continue // Our homeserver doesn't know about the event, so can't resolve it to a Discord link
+				}
 				const guessedMessageID = dUtils.timestampToSnowflakeInexact(originalEvent.origin_server_ts)
 				result = MAKE_RESULT.MESSAGE_LINK[resultType](guildID, channelID, guessedMessageID)
 			}
@@ -318,7 +322,7 @@ async function handleRoomOrMessageLinks(input, di) {
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: typeof fetch}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
@@ -393,8 +397,43 @@ async function eventToMessage(event, guild, di) {
 		await (async () => {
 			const repliedToEventId = event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
-			let repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
-			if (!repliedToEvent) return
+			let repliedToEvent
+			try {
+				repliedToEvent = await di.api.getEvent(event.room_id, repliedToEventId)
+			} catch (e) {
+				// Original event isn't on our homeserver, so we'll *partially* trust the client's reply fallback.
+				// We'll trust the fallback's quoted content and put it in the reply preview, but we won't trust the authorship info on it.
+
+				// (But if the fallback's quoted content doesn't exist, we give up. There's nothing for us to quote.)
+				if (event.content["format"] !== "org.matrix.custom.html" || typeof event.content["formatted_body"] !== "string") {
+					const lines = event.content.body.split("\n")
+					let stage = 0
+					for (let i = 0; i < lines.length; i++) {
+						if (stage >= 0 && lines[i][0] === ">") stage = 1
+						if (stage >= 1 && lines[i].trim() === "") stage = 2
+						if (stage === 2 && lines[i].trim() !== "") {
+							event.content.body = lines.slice(i).join("\n")
+							break
+						}
+					}
+					return
+				}
+				const mxReply = event.content["formatted_body"]
+				const quoted = mxReply.match(/^<mx-reply><blockquote>.*?In reply to.*?<br>(.*)<\/blockquote><\/mx-reply>/)?.[1]
+				if (!quoted) return
+				const contentPreviewChunks = chunk(
+					entities.decodeHTML5Strict( // Remove entities like &amp; &quot;
+						quoted.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
+							.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
+							.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
+							.replace(/<[^>]+>/g, "") // Completely strip all HTML tags and formatting.
+					), 50)
+				replyLine = "> " + contentPreviewChunks[0]
+				if (contentPreviewChunks.length > 1) replyLine = replyLine.replace(/[,.']$/, "") + "..."
+				replyLine += "\n"
+				return
+			}
+
 			// @ts-ignore
 			const autoEmoji = new Map(select("auto_emoji", ["name", "emoji_id"], {}, "WHERE name = 'L1' OR name = 'L2'").raw().all())
 			replyLine = `<:L1:${autoEmoji.get("L1")}><:L2:${autoEmoji.get("L2")}>`
@@ -408,7 +447,11 @@ async function eventToMessage(event, guild, di) {
 				replyLine += `<@${authorID}>`
 			} else {
 				let senderName = select("member_cache", "displayname", {mxid: repliedToEvent.sender}).pluck().get()
-				if (!senderName) senderName = sender.match(/@([^:]*)/)?.[1] || sender
+				if (!senderName) {
+					const match = sender.match(/@([^:]*)/)
+					assert(match)
+					senderName = match[1]
+				}
 				replyLine += `Ⓜ️**${senderName}**`
 			}
 			// If the event has been edited, the homeserver will include the relation in `unsigned`.
@@ -507,7 +550,7 @@ async function eventToMessage(event, guild, di) {
 				if (!match[0].includes("data-mx-emoticon")) break
 				const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
 				if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])
-				if (typeof match.index !== "number") break
+				assert(typeof match.index === "number", "Your JavaScript implementation does not comply with TC39: https://tc39.es/ecma262/multipage/text-processing.html#sec-regexpbuiltinexec")
 				last = match.index
 			}
 
@@ -563,8 +606,11 @@ async function eventToMessage(event, guild, di) {
 			if (event.content.info?.mimetype?.includes("/")) {
 				mimetype = event.content.info.mimetype
 			} else {
-				const res = await fetch(url, {method: "HEAD"})
-				mimetype = res.headers.get("content-type") || "image/webp"
+				const res = await di.fetch(url, {method: "HEAD"})
+				if (res.status === 200) {
+					mimetype = res.headers.get("content-type")
+				}
+				if (!mimetype) throw new Error(`Server error ${res.status} or missing content-type while detecting sticker mimetype`)
 			}
 			filename += "." + mimetype.split("/")[1]
 		}

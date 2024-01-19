@@ -3,7 +3,7 @@ const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
 const data = require("../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
-const {db, select} = require("../../passthrough")
+const {db, select, discord} = require("../../passthrough")
 
 /* c8 ignore next 7 */
 function slow() {
@@ -853,6 +853,151 @@ test("event2message: rich reply to an already-edited message will quote the new 
 			}]
 		}
 	)
+})
+
+test("event2message: rich reply to a missing event will quote from formatted_body without a link", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe>\n> > She *sells* *sea*shells by the *sea*shore.\n> But who *sees* the *sea*shells she *sells* sitting sideways?\n\nWhat a tongue-bender...",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>"
+					+ "<blockquote>She <em>sells</em> <em>sea</em>shells by the <em>sea</em>shore.</blockquote>But who <em>sees</em> the <em>sea</em>shells she <em>sells</em> sitting sideways?"
+					+ "</blockquote></mx-reply>What a tongue-bender...",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup"
+					}
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				async getEvent(roomID, eventID) {
+					called++
+					t.equal(roomID, "!fGgIymcYWOqjbSRUdV:cadence.moe")
+					t.equal(eventID, "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup")
+					throw new Error("missing event or something")
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> But who sees the seashells she sells sitting..."
+					+ "\nWhat a tongue-bender...",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+	t.equal(called, 1, "getEvent should be called once")
+})
+
+test("event2message: rich reply to a missing event without formatted_body will use plaintext body and strip reply fallback", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe> Slow news day.\n\nTesting this reply, ignore",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup"
+					}
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				async getEvent(roomID, eventID) {
+					called++
+					t.equal(roomID, "!fGgIymcYWOqjbSRUdV:cadence.moe")
+					t.equal(eventID, "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup")
+					throw new Error("missing event or something")
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "Testing this reply, ignore",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+	t.equal(called, 1, "getEvent should be called once")
+})
+
+test("event2message: rich reply to a missing event and no reply fallback will not generate a reply", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "Testing this reply, ignore.",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "Testing this reply, ignore.",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup"
+					}
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				async getEvent(roomID, eventID) {
+					called++
+					t.equal(roomID, "!fGgIymcYWOqjbSRUdV:cadence.moe")
+					t.equal(eventID, "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cmadeup")
+					throw new Error("missing event or something")
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "Testing this reply, ignore.",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU"
+			}]
+		}
+	)
+	t.equal(called, 1, "getEvent should be called once")
 })
 
 test("event2message: should avoid using blockquote contents as reply preview in rich reply to a sim user", async t => {
@@ -1822,6 +1967,35 @@ test("event2message: mentioning bridged rooms works", async t => {
 	)
 })
 
+test("event2message: mentioning bridged rooms works (plaintext body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: `I'm just https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe?via=cadence.moe testing channel mentions`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "I'm just <#1100319550446252084> testing channel mentions",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: mentioning known bridged events works (plaintext body)", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -1913,7 +2087,7 @@ test("event2message: mentioning known bridged events works (formatted body)", as
 	)
 })
 
-test("event2message: mentioning unknown bridged events works", async t => {
+test("event2message: mentioning unknown bridged events can approximate with timestamps", async t => {
 	let called = 0
 	t.deepEqual(
 		await eventToMessage({
@@ -1955,6 +2129,88 @@ test("event2message: mentioning unknown bridged events works", async t => {
 		}
 	)
 	t.equal(called, 1, "getEvent should be called once")
+})
+
+test("event2message: mentioning events falls back to original link when server doesn't know about it", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `it was uploaded years ago in <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW1?via=cadence.moe">amanda-spam</a>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOV",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				async getEvent(roomID, eventID) {
+					called++
+					t.equal(roomID, "!CzvdIdUQXgUjDVKxeU:cadence.moe")
+					t.equal(eventID, "$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW1")
+					throw new Error("missing event or something")
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "it was uploaded years ago in [amanda-spam](<https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW1?via=cadence.moe>)",
+				avatar_url: undefined
+			}]
+		}
+	)
+	t.equal(called, 1, "getEvent should be called once")
+})
+
+test("event2message: mentioning events falls back to original link when the channel-guild isn't in cache", async t => {
+	t.equal(select("channel_room", "channel_id", {room_id: "!tnedrGVYKFNUdnegvf:tchncs.de"}).pluck().get(), "489237891895768942", "consistency check: this channel-room needs to be in the database for the test to make sense")
+	t.equal(discord.channels.get("489237891895768942"), undefined, "consistency check: this channel needs to not be in client cache for the test to make sense")
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `it was uploaded years ago in <a href="https://matrix.to/#/!tnedrGVYKFNUdnegvf:tchncs.de/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW2?via=tchncs.de">ex-room-doesnt-exist-any-more</a>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOX",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				/* c8 skip next 3 */
+				async getEvent() {
+					t.fail("getEvent should not be called because it should quit early due to no channel-guild")
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "it was uploaded years ago in [ex-room-doesnt-exist-any-more](<https://matrix.to/#/!tnedrGVYKFNUdnegvf:tchncs.de/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW2?via=tchncs.de>)",
+				avatar_url: undefined
+			}]
+		}
+	)
 })
 
 test("event2message: link to event in an unknown room", async t => {
@@ -2380,6 +2636,79 @@ test("event2message: stickers work", async t => {
 			}]
 		}
 	)
+})
+
+test("event2message: stickers fetch mimetype from server when mimetype not provided", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.sticker",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "YESYESYES",
+				url: "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf"
+			},
+			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, {}, {
+			async fetch(url, options) {
+				called++
+				t.equal(url, "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf")
+				t.equal(options.method, "HEAD")
+				return {
+					status: 200,
+					headers: new Map([
+						["content-type", "image/gif"]
+					])
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: undefined,
+				attachments: [{id: "0", filename: "YESYESYES.gif"}],
+				pendingFiles: [{name: "YESYESYES.gif", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf"}]
+			}]
+		}
+	)
+	t.equal(called, 1, "sticker headers should be fetched")
+})
+
+test("event2message: stickers with unknown mimetype are not allowed", async t => {
+	let called = 0
+	try {
+		await eventToMessage({
+			type: "m.sticker",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "something",
+				url: "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJe"
+			},
+			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, {}, {
+			async fetch(url, options) {
+				called++
+				t.equal(url, "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJe")
+				t.equal(options.method, "HEAD")
+				return {
+					status: 404,
+					headers: new Map([
+						["content-type", "application/json"]
+					])
+				}
+			}
+		})
+		/* c8 ignore next */
+		t.fail("should throw an error")
+	} catch (e) {
+		t.match(e.toString(), "mimetype")
+	}
 })
 
 test("event2message: static emojis work", async t => {
