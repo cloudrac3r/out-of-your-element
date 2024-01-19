@@ -32,13 +32,13 @@ What does it look like on Discord-side?
 
 This is an API request to get the pinned messages. To update this, an API request will pin or unpin any specific message, adding or removing it from the list.
 
-## What will the converter look like?
+## What will the converter do?
 
 The converter will be very different in both directions.
 
-For d2m, we will get the list of pinned messages, we will convert each message ID into the ID of an event we already have, and then we will set the entire `m.room.pinned_events` state to that list.
+**For d2m, we will get the list of pinned messages, we will convert each message ID into the ID of an event we already have, and then we will set the entire `m.room.pinned_events` state to that list.**
 
-For m2d, we will have to diff the list of pinned messages against the previous version of the list, and for each event that was pinned or unpinned, we will send an API request to Discord to change its state.
+**For m2d, we will have to diff the list of pinned messages against the previous version of the list, and for each event that was pinned or unpinned, we will send an API request to Discord to change its st**ate.
 
 ## Missing messages
 
@@ -53,7 +53,7 @@ In this situation we need to stop and think about the possible paths forward we 
 
 The latter method would still make the message appear at the bottom of the timeline for most Matrix clients, since for most the timestamp doesn't determine the actual _order._ It would then be confusing why an odd message suddenly appeared, because a pins change isn't that noticable in the room.
 
-To avoid this problem, I'll just go with the former method and ignore the message, so Matrix will only have some of the pins that Discord has. We will need to watch out if a Matrix user edits this list of partial pins, because if we _only_ pinned things on Discord that were pinned on Matrix, those partial pins Discord would be lost from Discord side.
+To avoid this problem, I'll just go with the former method and ignore the message, so Matrix will only have some of the pins that Discord has. We will need to watch out if a Matrix user edits this list of partial pins, because if we _only_ pinned things on Discord that were pinned on Matrix, then pins Matrix doesn't know about would be lost from Discord side.
 
 In this situation I will prefer to keep the pins list inconsistent between both sides and only bridge _changes_ to the list.
 
@@ -61,7 +61,9 @@ If you were implementing this for real, you might have made different decisions 
 
 ## Test data for the d2m converter
 
-Let's start writing the d2m converter. It's helpful to write unit tests for Out Of Your Element, since this lets you check if it worked without having to start up a local copy of the bridge or play around with the interface.
+Let's start writing the d2m converter. It's helpful to write automated tests for Out Of Your Element, since this lets you check if it worked without having to start up a local copy of the bridge or mess around with the interface.
+
+To test the Discord-to-Matrix pin converter, we'll need some samples of Discord message objects. Then we can put these sample message objects through the converter and check what comes out the other side.
 
 Normally for getting test data, I would `curl` the Discord API to grab some real data and put it into `data.js` (and possibly also `ooye-test-data.sql`. But this time, I'll fabricate some test data. Here it is:
 
@@ -74,7 +76,7 @@ Normally for getting test data, I would `curl` the Discord API to grab some real
 ]
 ```
 
-"These aren't message objects!" I hear you cry. Correct. I already know that my implementation is not going to care about any properties on these message object other than the IDs, so I'm just making a list of IDs to save time.
+"These aren't message objects!" I hear you cry. Correct. I already know that my implementation is not going to care about any properties on these message object other than the IDs, so to save time, I'm just making a list of IDs.
 
 These IDs were carefully chosen. The first three are already in `ooye-test-data.sql` and are associated with event IDs. This is great, because in our test case, the Discord IDs will be converted to those event IDs. The fourth ID doesn't exist on Matrix-side. This is to test that partial pins are handled as expected, like I wrote in the previous section.
 
@@ -104,7 +106,7 @@ index c36f252..4919beb 100644
 
 ## Writing the d2m converter
 
-We can write a function that operates on this data to convert it to events. This is a _converter,_ not an _action._ it won't _do_ anything by itself. So it goes in the converters folder. The actual function is pretty simple since I've already planned what to do:
+We can write a function that operates on this data to convert it to events. This is a _converter,_ not an _action._ It won't _do_ anything by itself. So it goes in the converters folder. I've already planned (in the "What will the converter do?" section) what to do, so writing the function is pretty simple:
 
 ```diff
 diff --git a/d2m/converters/pins-to-list.js b/d2m/converters/pins-to-list.js
@@ -133,9 +135,36 @@ index 0000000..e4107be
 +module.exports.pinsToList = pinsToList
 ```
 
+### Explaining the code
+
+All converters have a `function` which does the work, and the function is added to `module.exports` so that other files can use it.
+
+Importing `select` from `passthrough` lets us do database access. Calling the `select` function can select from OOYE's own SQLite database. If you want to see what's in the database, look at `ooye-test-data.sql` for test data, or open `ooye.db` for real data from your own bridge.
+
+The comments `// @ts-check`, `/** @type ... */`, and `/** @param ... */` provide type-based autosuggestions when editing in Visual Studio Code.
+
+Here's the code I haven't yet discussed:
+
+```js
+function pinsToList(pins) {
+	const result = []
+	for (const message of pins) {
+		const eventID = select("event_message", "event_id", {message_id: message.id}).pluck().get()
+		if (eventID) result.push(eventID)
+	}
+	return result
+}
+```
+
+It will go through each `message` in `pins`. For each message, it will look up the corresponding Matrix event in the database, and if found, it will add it to `result`.
+
+The `select` line will run this SQL: `SELECT event_id FROM event_message WHERE message_id = {the message ID}` and will return the event ID as a string or null.
+
+For any database experts worried about an SQL query inside a loop, the N+1 problem does not apply to SQLite because the queries are executed in the same process rather than crossing a process (and network) boundary. https://www.sqlite.org/np1queryprob.html
+
 ## Test case for the d2m converter
 
-There's not much room for bugs in this function. A single manual test that it works would be good enough for me. But since this is an example of how you can add your own, let's add a test case for this. We'll take the data we just prepared and process it through the function we just wrote:
+There's not much room for bugs in this function. A single manual test that it works would be good enough for me. But since this is an example of how you can add your own, let's add a test case for this. The testing code will take the data we just prepared and process it through the `pinsToList` function we just wrote. Then, it will check the result is what we expected.
 
 ```diff
 diff --git a/d2m/converters/pins-to-list.test.js b/d2m/converters/pins-to-list.test.js
@@ -177,6 +206,18 @@ index 5cc851e..280503d 100644
 
 Good to go.
 
+### Explaining the code
+
+`require("supertape")` is a library that helps with testing and printing test results. `data = require("../../test/data")` is the file we edited earlier in the "Test data for the d2m converter" section. `require("./pins-to-list")` is the function we want to test.
+
+Here is how you declare a test: `test("pins2list: converts known IDs, ignores unknown IDs", t => {` The string describes what you are trying to test and it will be displayed if the test fails.
+
+`result = pinsToList(data.pins.faked)` is calling the implementation function we wrote.
+
+`t.deepEqual(actual, expected)` will check whether the `actual` result value is the same as our `expected` result value. If it's not, it'll mark that as a failed test.
+
+### Run the test!
+
 ```
 ><> $ npm t
 
@@ -209,7 +250,11 @@ Oh no! (I promise I didn't make it fail for demonstration purposes, this was act
 ('$51f4yqHinwnSbPEQ9dCgoyy4qiIJSX0QYYVUnvwyTCI', 'm.room.message', 'm.image', '1141501302736695316', 1, 1),
 ```
 
-Explanation: This Discord message `1141501302736695316` is actually part of 2 different Matrix events, `$mtR...` and `$51f...`. This often happens when a Discord user uploads an image with a caption. Matrix doesn't support combined image+text events, so the image and the text have to be bridged to separate events. We should consider the text to be the primary part, and pin that, and consider the image to be the secondary part, and not pin that.
+Explanation: This Discord message `1141501302736695316` is actually part of 2 different Matrix events, `$mtR...` and `$51f...`. This often happens when a Discord user uploads an image with a caption. Matrix doesn't support combined image+text events, so the image and the text have to be bridged to separate events.
+
+In the current code, `pinsToList` is picking ALL the associated event IDs, and then `.get` is forcing it to limit that list to 1. It doesn't care which, so it's essentially random which event it wants to pin.
+
+We should make a decision on which event is more important. You can make whatever decision you want - you could even make it pin every event associated with a message - but I've decided that the text should be the primary part and be pinned, and the image should be considered a secondary part and left unpinned.
 
 We already have a column `part` in the `event_message` table for this reason! When `part = 0`, that's the primary part. I'll edit the converter to actually use that column:
 
@@ -228,6 +273,8 @@ index e4107be..f401de2 100644
         }
         return result
 ```
+
+As long as the database is consistent, this new `select` will return at most 1 event, always choosing the primary part.
 
 ```
 ><> $ npm t
@@ -341,6 +388,8 @@ I try to keep as much logic as possible out of the actions and in the converters
 
 ## See if it works
 
+Since the automated tests pass, let's start up the bridge and run our nice new code:
+
 ```
 node start.js
 ```
@@ -359,7 +408,7 @@ I expected that to be the end of the guide, but after some time, I noticed a new
 
 [After some investigation,](https://gitdab.com/cadence/out-of-your-element/issues/16) it turns out Discord puts the most recently pinned message at the start of the array and displays the array in forwards order, while Matrix puts the most recently pinned message at the end of the array and displays the array in reverse order.
 
-We'll fix this by reversing the order of the list of pins before we store it. I'll do this in the converter.
+We can fix this by reversing the order of the list of pins before we store it. The converter can do this:
 
 ```diff
 diff --git a/d2m/converters/pins-to-list.js b/d2m/converters/pins-to-list.js
@@ -405,7 +454,7 @@ index c2e3774..92e5678 100644
   Pass!
 ```
 
-Next time a message is pinned or unpinned on Discord, the order should be updated on Matrix.
+Next time a message is pinned or unpinned on Discord, OOYE should update the order of all the pins on Matrix.
 
 ## Notes on missed events
 
