@@ -34,6 +34,26 @@ export type WebhookCreds = {
 	token: string
 }
 
+export type PkMember = {
+	id: string
+	uuid: string
+	name: string
+	display_name: string | null
+	color: string | null
+	birthday: string | null
+	pronouns: string | null
+	avatar_url: string | null
+	webhook_avatar_url: string | null
+	banner: string | null
+	description: string | null
+	created: string | null
+	keep_proxy: boolean
+	tts: boolean
+	autoproxy_enabled: boolean | null
+	message_count: number | null
+	last_message_timestamp: string
+}
+
 export namespace Event {
 	export type Outer<T> = {
 		type: string

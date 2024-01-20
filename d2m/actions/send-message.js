@@ -10,6 +10,8 @@ const messageToEvent = sync.require("../converters/message-to-event")
 const api = sync.require("../../matrix/api")
 /** @type {import("./register-user")} */
 const registerUser = sync.require("./register-user")
+/** @type {import("./register-pk-user")} */
+const registerPkUser = sync.require("./register-pk-user")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
 /** @type {import("../../discord/utils")} */
@@ -18,8 +20,9 @@ const dUtils = sync.require("../../discord/utils")
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
  * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {{speedbump_id: string, speedbump_webhook_id: string} | null} row data about the webhook which is proxying messages in this channel
  */
-async function sendMessage(message, guild) {
+async function sendMessage(message, guild, row) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 
 	let senderMxid = null
@@ -28,6 +31,13 @@ async function sendMessage(message, guild) {
 			senderMxid = await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
 		} else { // well, good enough...
 			senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
+		}
+	} else if (row && row.speedbump_webhook_id === message.webhook_id) {
+		// Handle the PluralKit public instance
+		if (row.speedbump_id === "466378653216014359") {
+			const root = await registerPkUser.fetchMessage(message.id)
+			assert(root.member) // Member is null if member was deleted. We just got this message, so member surely exists.
+			senderMxid = await registerPkUser.syncUser(root.member, roomID)
 		}
 	}
 

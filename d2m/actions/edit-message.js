@@ -1,18 +1,32 @@
 // @ts-check
 
+const assert = require("assert").strict
+
 const passthrough = require("../../passthrough")
 const {sync, db, select} = passthrough
 /** @type {import("../converters/edit-to-changes")} */
 const editToChanges = sync.require("../converters/edit-to-changes")
+/** @type {import("./register-pk-user")} */
+const registerPkUser = sync.require("./register-pk-user")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
  * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {{speedbump_id: string, speedbump_webhook_id: string} | null} row data about the webhook which is proxying messages in this channel
  */
-async function editMessage(message, guild) {
-	const {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promotions} = await editToChanges.editToChanges(message, guild, api)
+async function editMessage(message, guild, row) {
+	let {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promotions} = await editToChanges.editToChanges(message, guild, api)
+
+	if (row && row.speedbump_webhook_id === message.webhook_id) {
+		// Handle the PluralKit public instance
+		if (row.speedbump_id === "466378653216014359") {
+			const root = await registerPkUser.fetchMessage(message.id)
+			assert(root.member)
+			senderMxid = await registerPkUser.ensureSimJoined(root.member, roomID)
+		}
+	}
 
 	// 1. Replace all the things.
 	for (const {oldID, newContent} of eventsToReplace) {

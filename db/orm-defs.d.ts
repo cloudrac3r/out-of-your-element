@@ -8,6 +8,7 @@ export type Models = {
 		custom_avatar: string | null
 		last_bridged_pin_timestamp: number | null
 		speedbump_id: string | null
+		speedbump_webhook_id: string | null
 		speedbump_checked: number | null
 	}
 

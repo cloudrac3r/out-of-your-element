@@ -236,22 +236,22 @@ module.exports = {
 	 */
 	async onMessageCreate(client, message) {
 		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
-		if (message.webhook_id) {
-			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
-			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-		} else {
-			const speedbumpID = select("channel_room", "speedbump_id", {channel_id: message.channel_id}).pluck().get()
-			if (speedbumpID) {
-				const affected = await speedbump.doSpeedbump(message.id)
-				if (affected) return
-			}
-		}
 		const channel = client.channels.get(message.channel_id)
 		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
 		assert(guild)
 
-		await sendMessage.sendMessage(message, guild),
+		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: message.channel_id}).get()
+		if (message.webhook_id) {
+			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
+			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
+		} else if (row) {
+			const affected = await speedbump.doSpeedbump(message.id)
+			if (affected) return
+		}
+
+		// @ts-ignore
+		await sendMessage.sendMessage(message, guild, row),
 		await discordCommandHandler.execute(message, channel, guild)
 	},
 
@@ -260,13 +260,16 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessageUpdateDispatchData} data
 	 */
 	async onMessageUpdate(client, data) {
+		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: data.channel_id}).get()
 		if (data.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
-			if (row) {
-				// The update was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-				return
-			}
+			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
+		} else if (row) {
+			// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
+			const affected = await speedbump.doSpeedbump(data.id)
+			if (affected) return
 		}
+
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.
 		if (typeof data.content === "string") {
@@ -277,7 +280,8 @@ module.exports = {
 			if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)
 			assert(guild)
-			await editMessage.editMessage(message, guild)
+			// @ts-ignore
+			await editMessage.editMessage(message, guild, row)
 		}
 	},
 

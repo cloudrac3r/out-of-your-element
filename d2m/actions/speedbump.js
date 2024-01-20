@@ -22,8 +22,10 @@ async function updateCache(channelID, speedbumpID, speedbumpChecked) {
 	const now = Math.floor(Date.now() / 1000)
 	if (speedbumpChecked && now - speedbumpChecked < SPEEDBUMP_UPDATE_FREQUENCY) return
 	const webhooks = await discord.snow.webhook.getChannelWebhooks(channelID)
-	const found = webhooks.find(b => KNOWN_BOTS.has(b.application_id))?.application_id || null
-	db.prepare("UPDATE channel_room SET speedbump_id = ?, speedbump_checked = ? WHERE channel_id = ?").run(found, now, channelID)
+	const found = webhooks.find(b => KNOWN_BOTS.has(b.application_id))
+	const foundApplication = found?.application_id
+	const foundWebhook = found?.id
+	db.prepare("UPDATE channel_room SET speedbump_id = ?, speedbump_webhook_id = ?, speedbump_checked = ? WHERE channel_id = ?").run(foundApplication, foundWebhook, now, channelID)
 }
 
 /** @type {Set<string>} set of messageID */

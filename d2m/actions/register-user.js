@@ -123,7 +123,7 @@ async function memberToStateContent(user, member, guildID) {
 	return content
 }
 
-function hashProfileContent(content) {
+function _hashProfileContent(content) {
 	const unsignedHash = hasher.h64(`${content.displayname}\u0000${content.avatar_url}`)
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 	return signedHash
@@ -142,7 +142,7 @@ function hashProfileContent(content) {
 async function syncUser(user, member, guildID, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guildID)
-	const currentHash = hashProfileContent(content)
+	const currentHash = _hashProfileContent(content)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
 	if (existingHash !== currentHash) {
@@ -179,6 +179,7 @@ async function syncAllUsersInRoom(roomID) {
 }
 
 module.exports._memberToStateContent = memberToStateContent
+module.exports._hashProfileContent = _hashProfileContent
 module.exports.ensureSim = ensureSim
 module.exports.ensureSimJoined = ensureSimJoined
 module.exports.syncUser = syncUser
