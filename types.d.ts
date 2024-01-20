@@ -21,6 +21,7 @@ export type AppServiceRegistrationConfig = {
 		max_file_size: number
 		server_name: string
 		server_origin: string
+		content_length_workaround: boolean
 		invite: string[]
 	}
 	old_bridge?: {

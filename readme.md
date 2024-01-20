@@ -164,6 +164,7 @@ Follow these steps:
 * (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) deep-equal: It's already pulled in by supertape.
 * (1) discord-markdown: This is my fork!
+* (0) get-stream: Only needed if content_length_workaround is true.
 * (0) giframe: This is my fork!
 * (1) heatsync: Module hot-reloader that I trust.
 * (0) entities: Looks fine. No dependencies.

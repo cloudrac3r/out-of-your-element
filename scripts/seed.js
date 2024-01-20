@@ -71,7 +71,17 @@ async function uploadAutoEmoji(guild, name, filename) {
 	try {
 		await api.register(reg.sender_localpart)
 	} catch (e) {
-		if (e.errcode === "M_USER_IN_USE" || e.data?.error !== "Internal server error") throw e // "Internal server error" is the only OK error because Synapse says this if you try to register the same username twice.
+		if (e.errcode === "M_USER_IN_USE" || e.data?.error === "Internal server error") {
+			// "Internal server error" is the only OK error because older versions of Synapse say this if you try to register the same username twice.
+		} else if (e.data?.error?.includes("Content-Length")) {
+			die(`OOYE cannot stream uploads to Synapse. Please choose one of these workarounds:`
+				+ `\n  * Run an nginx reverse proxy to Synapse, and point registration.yaml's`
+				+ `\n    \`server_origin\` to nginx`
+				+ `\n  * Set \`content_length_workaround: true\` in registration.yaml (this will`
+				+ `\n    halve the speed of bridging d->m files)`)
+		} else {
+			throw e
+		}
 	}
 
 	// upload initial images...
