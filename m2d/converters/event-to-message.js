@@ -322,7 +322,7 @@ async function handleRoomOrMessageLinks(input, di) {
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: typeof fetch}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"]}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */

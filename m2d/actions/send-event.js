@@ -75,7 +75,7 @@ async function sendEvent(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow})
+	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow, fetch})
 
 	messagesToEdit = await Promise.all(messagesToEdit.map(async e => {
 		e.message = await resolvePendingFiles(e.message)
