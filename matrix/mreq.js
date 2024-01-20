@@ -48,6 +48,14 @@ async function mreq(method, url, body, extra = {}) {
 	const root = await res.json()
 
 	if (!res.ok || root.errcode) {
+		if (root.error?.includes("Content-Length")) {
+			console.error(`OOYE cannot stream uploads to Synapse. Please choose one of these workarounds:`
+				+ `\n  * Run an nginx reverse proxy to Synapse, and point registration.yaml's`
+				+ `\n    \`server_origin\` to nginx`
+				+ `\n  * Set \`content_length_workaround: true\` in registration.yaml (this will`
+				+ `\n    halve the speed of bridging d->m files)`)
+			throw new Error("Synapse is not accepting stream uploads, see the message above.")
+		}
 		delete opts.headers.Authorization
 		throw new MatrixServerError(root, {baseUrl, url, ...opts})
 	}
