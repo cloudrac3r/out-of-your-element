@@ -96,6 +96,10 @@ Follow these steps:
 	* $ `npm run addbot`
 	* $ `./addbot.sh`
 
+Now any message on Discord will create the corresponding rooms on Matrix-side. After the rooms have been created, Matrix and Discord users can chat back and forth.
+
+To get into the rooms on your Matrix account, either add yourself to `invite` in `registration.yaml`, or use the `//invite [your mxid here]` command on Discord.
+
 # Development setup
 
 * Be sure to install dependencies with `--save-dev` so you can run the tests.

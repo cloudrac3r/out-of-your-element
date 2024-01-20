@@ -21,4 +21,4 @@ ooye:
   content_length_workaround: false
   invite:
     # uncomment this to auto-invite the named user to newly created spaces and mark them as admin (PL 100) everywhere
-    # - @cadence:cadence.moe
+    # - '@cadence:cadence.moe'
