@@ -1925,7 +1925,34 @@ test("event2message: mentioning matrix users works", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "I'm just [▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
+				content: "I'm just [@▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: mentioning matrix users works even when Element disambiguates the user", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "unascribed @unascribed:sleeping.town: if you want to run some experimental software, `11864f80cf` branch of OOYE has _vastly_ improved handling of PluralKit users. feel free to try it out, if you find bugs I'd appreciate you letting me know (just tag me at the place in chat where something went wrong)",
+				format: "org.matrix.custom.html",
+				formatted_body: "<a href=\"https://matrix.to/#/@unascribed:sleeping.town\">unascribed @unascribed:sleeping.town</a>: if you want to run some experimental software, <code>11864f80cf</code> branch of OOYE has <em>vastly</em> improved handling of PluralKit users. feel free to try it out, if you find bugs I'd appreciate you letting me know (just tag me at the place in chat where something went wrong)"
+			},
+			event_id: "$17qTyvkDykSp_4Wkjeuh9Y6j9hPe20ZY_E6V3UKAyUE",
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "[@unascribed](<https://matrix.to/#/@unascribed:sleeping.town>) if you want to run some experimental software, `11864f80cf` branch of OOYE has _vastly_ improved handling of PluralKit users. feel free to try it out, if you find bugs I'd appreciate you letting me know (just tag me at the place in chat where something went wrong)",
 				avatar_url: undefined
 			}]
 		}
@@ -2264,7 +2291,7 @@ test("event2message: colon after mentions is stripped", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "<@114147806469554185> hey, I'm just [▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
+				content: "<@114147806469554185> hey, I'm just [@▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
 				avatar_url: undefined
 			}]
 		}

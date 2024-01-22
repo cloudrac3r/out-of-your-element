@@ -92,8 +92,10 @@ async function ensureSimJoined(pkMessage, roomID) {
  * @param {Ty.PkMessage} pkMessage
  */
 async function memberToStateContent(pkMessage) {
-	const systemname = pkMessage.system.tag || ""
-	const displayname = (pkMessage.member.display_name || pkMessage.member.name) + systemname
+	let displayname = (pkMessage.member.display_name || pkMessage.member.name)
+	if (pkMessage.system.tag) {
+		displayname = displayname + " " + pkMessage.system.tag
+	}
 	const avatar = pkMessage.member.avatar_url || pkMessage.member.webhook_avatar_url || pkMessage.system.avatar_url
 
 	const content = {
