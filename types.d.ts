@@ -34,6 +34,19 @@ export type WebhookCreds = {
 	token: string
 }
 
+export type PkSystem = {
+	id: string
+	uuid: string
+	name: string | null
+	description: string | null
+	tag: string | null
+	pronouns: string | null
+	avatar_url: string | null
+	banner: string | null
+	color: string | null
+	created: string | null
+}
+
 export type PkMember = {
 	id: string
 	uuid: string
@@ -52,6 +65,11 @@ export type PkMember = {
 	autoproxy_enabled: boolean | null
 	message_count: number | null
 	last_message_timestamp: string
+}
+
+export type PkMessage = {
+	system: PkSystem
+	member: PkMember
 }
 
 export namespace Event {

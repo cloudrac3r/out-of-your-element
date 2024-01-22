@@ -36,8 +36,13 @@ async function sendMessage(message, guild, row) {
 		// Handle the PluralKit public instance
 		if (row.speedbump_id === "466378653216014359") {
 			const root = await registerPkUser.fetchMessage(message.id)
-			assert(root.member) // Member is null if member was deleted. We just got this message, so member surely exists.
-			senderMxid = await registerPkUser.syncUser(root.member, roomID)
+			// Member is null if member was deleted. We just got this message, so member surely exists.
+			if (!root.member) {
+				const e = new Error("PK API did not return a member")
+				e["response"] = root
+				throw e
+			}
+			senderMxid = await registerPkUser.syncUser(root, roomID)
 		}
 	}
 
