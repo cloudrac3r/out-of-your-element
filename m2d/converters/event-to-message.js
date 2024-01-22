@@ -108,9 +108,9 @@ turndownService.addRule("inlineLink", {
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
 		let brackets = ["", ""]
-		if (href.startsWith("https://matrix.to")) brackets = ["<", ">"]
-		if (href.startsWith("https://matrix.to/#/@")) content = "@" + content
 		content = content.replace(/ @.*/, "")
+		if (href.startsWith("https://matrix.to")) brackets = ["<", ">"]
+		if (href.startsWith("https://matrix.to/#/@") && content[0] !== "@") content = "@" + content
 		return "[" + content + "](" + brackets[0] + href + brackets[1] + ")"
 	}
 })
