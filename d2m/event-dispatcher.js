@@ -241,11 +241,13 @@ module.exports = {
 		const guild = client.guilds.get(channel.guild_id)
 		assert(guild)
 
-		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: message.channel_id}).get()
 		if (message.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-		} else if (row) {
+		}
+
+		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: message.channel_id}).get()
+		if (row && row.speedbump_id) {
 			const affected = await speedbump.doSpeedbump(message.id)
 			if (affected) return
 		}
@@ -260,11 +262,13 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessageUpdateDispatchData} data
 	 */
 	async onMessageUpdate(client, data) {
-		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: data.channel_id}).get()
 		if (data.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-		} else if (row) {
+		}
+
+		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: data.channel_id}).get()
+		if (row) {
 			// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
 			const affected = await speedbump.doSpeedbump(data.id)
 			if (affected) return

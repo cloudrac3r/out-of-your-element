@@ -11,7 +11,7 @@ const speedbump = sync.require("./speedbump")
  * @param {import("discord-api-types/v10").GatewayMessageDeleteDispatchData} data
  */
 async function deleteMessage(data) {
-	const row = select("channel_room", ["room_id", "speedbump_id", "speedbump_checked"], {channel_id: data.channel_id}).get()
+	const row = select("channel_room", ["room_id", "speedbump_checked"], {channel_id: data.channel_id}).get()
 	if (!row) return
 
 	const eventsToRedact = select("event_message", "event_id", {message_id: data.id}).pluck().all()
@@ -22,7 +22,7 @@ async function deleteMessage(data) {
 		await api.redactEvent(row.room_id, eventID)
 	}
 
-	speedbump.updateCache(data.channel_id, row.speedbump_id, row.speedbump_checked)
+	speedbump.updateCache(data.channel_id, row.speedbump_checked)
 }
 
 /**

@@ -15,12 +15,11 @@ const KNOWN_BOTS = new Set([
 /**
  * Fetch new speedbump data for the channel and put it in the database as cache
  * @param {string} channelID
- * @param {string?} speedbumpID
- * @param {number?} speedbumpChecked
+ * @param {number?} lastChecked
  */
-async function updateCache(channelID, speedbumpID, speedbumpChecked) {
+async function updateCache(channelID, lastChecked) {
 	const now = Math.floor(Date.now() / 1000)
-	if (speedbumpChecked && now - speedbumpChecked < SPEEDBUMP_UPDATE_FREQUENCY) return
+	if (lastChecked && now - lastChecked < SPEEDBUMP_UPDATE_FREQUENCY) return
 	const webhooks = await discord.snow.webhook.getChannelWebhooks(channelID)
 	const found = webhooks.find(b => KNOWN_BOTS.has(b.application_id))
 	const foundApplication = found?.application_id
