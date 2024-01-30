@@ -42,7 +42,7 @@ async function sendMessage(message, guild, row) {
 				e["response"] = root
 				throw e
 			}
-			senderMxid = await registerPkUser.syncUser(root, roomID)
+			senderMxid = await registerPkUser.syncUser(message.author, root, roomID)
 		}
 	}
 

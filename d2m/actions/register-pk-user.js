@@ -15,6 +15,13 @@ const file = sync.require("../../matrix/file")
 const registerUser = sync.require("./register-user")
 
 /**
+ * @typedef WebhookAuthor Discord API message->author. A webhook as an author.
+ * @prop {string} username
+ * @prop {string?} avatar
+ * @prop {string} id
+ */
+
+/**
  * A sim is an account that is being simulated by the bridge to copy events from the other side.
  * @param {Ty.PkMessage} pkMessage
  * @returns mxid
@@ -90,16 +97,15 @@ async function ensureSimJoined(pkMessage, roomID) {
 
 /**
  * @param {Ty.PkMessage} pkMessage
+ * @param {WebhookAuthor} author
  */
-async function memberToStateContent(pkMessage) {
-	let displayname = (pkMessage.member.display_name || pkMessage.member.name)
-	if (pkMessage.system.tag) {
-		displayname = displayname + " " + pkMessage.system.tag
-	}
-	const avatar = pkMessage.member.avatar_url || pkMessage.member.webhook_avatar_url || pkMessage.system.avatar_url
+async function memberToStateContent(pkMessage, author) {
+	// We prefer to use the member's avatar URL data since the image upload can be cached across channels,
+	// unlike the userAvatar URL which is unique per channel, due to the webhook ID being in the URL.
+	const avatar = pkMessage.member.avatar_url || pkMessage.member.webhook_avatar_url || pkMessage.system.avatar_url || file.userAvatar(author)
 
 	const content = {
-		displayname,
+		displayname: author.username,
 		membership: "join",
 		"moe.cadence.ooye.pk_member": pkMessage.member
 	}
@@ -114,12 +120,13 @@ async function memberToStateContent(pkMessage) {
  * 2. Make an object of what the new room member state content would be, including uploading the profile picture if it hasn't been done before
  * 3. Compare against the previously known state content, which is helpfully stored in the database
  * 4. If the state content has changed, send it to Matrix and update it in the database for next time
+ * @param {WebhookAuthor} author
  * @param {Ty.PkMessage} pkMessage
  * @returns {Promise<string>} mxid of the updated sim
  */
-async function syncUser(pkMessage, roomID) {
+async function syncUser(author, pkMessage, roomID) {
 	const mxid = await ensureSimJoined(pkMessage, roomID)
-	const content = await memberToStateContent(pkMessage)
+	const content = await memberToStateContent(pkMessage, author)
 	const currentHash = registerUser._hashProfileContent(content)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
