@@ -122,10 +122,14 @@ async function memberToStateContent(pkMessage, author) {
  * 4. If the state content has changed, send it to Matrix and update it in the database for next time
  * @param {WebhookAuthor} author
  * @param {Ty.PkMessage} pkMessage
+ * @param {string} roomID
  * @returns {Promise<string>} mxid of the updated sim
  */
 async function syncUser(author, pkMessage, roomID) {
 	const mxid = await ensureSimJoined(pkMessage, roomID)
+	// Update the sim_proxy table, so mentions can look up the original sender later
+	db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id) VALUES (?, ?)").run(pkMessage.member.id, pkMessage.sender)
+	// Sync the member state
 	const content = await memberToStateContent(pkMessage, author)
 	const currentHash = registerUser._hashProfileContent(content)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()

@@ -21,7 +21,11 @@ INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
 ('112890272819507200', '.wing.', '_ooye_.wing.', '@_ooye_.wing.:cadence.moe'),
 ('114147806469554185', 'extremity', '_ooye_extremity', '@_ooye_extremity:cadence.moe'),
 ('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
-('1109360903096369153', 'amanda', '_ooye_amanda', '@_ooye_amanda:cadence.moe');
+('1109360903096369153', 'amanda', '_ooye_amanda', '@_ooye_amanda:cadence.moe'),
+('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '_ooye__pk_zoego', '@_ooye__pk_zoego:cadence.moe');
+
+INSERT INTO sim_proxy (user_id, proxy_owner_id) VALUES
+('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '196188877885538304');
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL);

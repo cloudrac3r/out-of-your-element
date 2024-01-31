@@ -63,6 +63,11 @@ export type Models = {
 		hashed_profile_content: number
 	}
 
+	sim_proxy: {
+		user_id: string
+		proxy_owner_id: string
+	}
+
 	webhook: {
 		channel_id: string
 		webhook_id: string
@@ -100,3 +105,4 @@ export type Prepared<Row> = {
 export type AllKeys<U> = U extends any ? keyof U : never
 export type PickTypeOf<T, K extends AllKeys<T>> = T extends { [k in K]?: any } ? T[K] : never
 export type Merge<U> = {[x in AllKeys<U>]: PickTypeOf<U, x>}
+export type Nullable<T> = {[k in keyof T]: T[k] | null}

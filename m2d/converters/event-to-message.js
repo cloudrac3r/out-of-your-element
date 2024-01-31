@@ -239,6 +239,16 @@ function splitDisplayName(displayName) {
 }
 
 /**
+ * Convert a Matrix user ID into a Discord user ID for mentioning, where if the user is a PK proxy, it will mention the proxy owner.
+ * @param {string} mxid
+ */
+function getUserOrProxyOwnerID(mxid) {
+	const row = from("sim").join("sim_proxy", "user_id", "left").select("user_id", "proxy_owner_id").where({mxid}).get()
+	if (!row) return null
+	return row.proxy_owner_id || row.user_id
+}
+
+/**
  * At the time of this executing, we know what the end of message emojis are, and we know that at least one of them is unknown.
  * This function will strip them from the content and generate the correct pending file of the sprite sheet.
  * @param {string} content
@@ -444,11 +454,11 @@ async function eventToMessage(event, guild, di) {
 				replyLine += `https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			}
 			const sender = repliedToEvent.sender
-			const authorID = select("sim", "user_id", {mxid: repliedToEvent.sender}).pluck().get()
+			const authorID = getUserOrProxyOwnerID(sender)
 			if (authorID) {
 				replyLine += `<@${authorID}>`
 			} else {
-				let senderName = select("member_cache", "displayname", {mxid: repliedToEvent.sender}).pluck().get()
+				let senderName = select("member_cache", "displayname", {mxid: sender}).pluck().get()
 				if (!senderName) {
 					const match = sender.match(/@([^:]*)/)
 					assert(match)
@@ -497,7 +507,7 @@ async function eventToMessage(event, guild, di) {
 				mxid = decodeURIComponent(mxid)
 				if (mxUtils.eventSenderIsFromDiscord(mxid)) {
 					// Handle mention of an OOYE sim user by their mxid
-					const userID = select("sim", "user_id", {mxid: mxid}).pluck().get()
+					const userID = getUserOrProxyOwnerID(mxid)
 					if (!userID) return whole
 					return `${attributeValue} data-user-id="${userID}">`
 				} else {

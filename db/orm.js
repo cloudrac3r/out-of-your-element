@@ -38,6 +38,8 @@ class From {
 		/** @private @type {Table[]} */
 		this.tables = [table]
 		/** @private */
+		this.directions = []
+		/** @private */
 		this.sql = ""
 		/** @private */
 		this.cols = []
@@ -53,12 +55,14 @@ class From {
 	 * @template {keyof U.Models} Table2
 	 * @param {Table2} table
 	 * @param {Col & (keyof U.Models[Table2])} col
+	 * @param {"inner" | "left"} [direction]
 	 */
-	join(table, col) {
+	join(table, col, direction = "inner") {
 		/** @type {From<Table | Table2, keyof U.Merge<U.Models[Table | Table2]>>} */
 		// @ts-ignore
 		const r = this
 		r.tables.push(table)
+		r.directions.push(direction.toUpperCase())
 		r.using.push(col)
 		return r
 	}
@@ -112,7 +116,8 @@ class From {
 		for (let i = 1; i < this.tables.length; i++) {
 			const table = this.tables[i]
 			const col = this.using[i-1]
-			sql += `INNER JOIN ${table} USING (${col}) `
+			const direction = this.directions[i-1]
+			sql += `${direction} JOIN ${table} USING (${col}) `
 		}
 		sql += this.sql
 		/** @type {U.Prepared<Pick<U.Merge<U.Models[Table]>, Col>>} */

@@ -44,3 +44,12 @@ test("orm: from: where and pluck works", t => {
 	const subtypes = from("event_message").where({message_id: "1141501302736695316"}).pluck("event_subtype").all()
 	t.deepEqual(subtypes.sort(), ["m.image", "m.text"])
 })
+
+test("orm: from: join direction works", t => {
+	const hasOwner = from("sim").join("sim_proxy", "user_id", "left").select("user_id", "proxy_owner_id").where({sim_name: "_pk_zoego"}).get()
+	t.deepEqual(hasOwner, {user_id: "43d378d5-1183-47dc-ab3c-d14e21c3fe58", proxy_owner_id: "196188877885538304"})
+	const hasNoOwner = from("sim").join("sim_proxy", "user_id", "left").select("user_id", "proxy_owner_id").where({sim_name: "crunch_god"}).get()
+	t.deepEqual(hasNoOwner, {user_id: "820865262526005258", proxy_owner_id: null})
+	const hasNoOwnerInner = from("sim").join("sim_proxy", "user_id", "inner").select("user_id", "proxy_owner_id").where({sim_name: "crunch_god"}).get()
+	t.deepEqual(hasNoOwnerInner, null)
+})

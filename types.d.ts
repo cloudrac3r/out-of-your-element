@@ -70,6 +70,7 @@ export type PkMember = {
 export type PkMessage = {
 	system: PkSystem
 	member: PkMember
+	sender: string
 }
 
 export namespace Event {
