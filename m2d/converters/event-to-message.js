@@ -32,7 +32,7 @@ const markdownEscapes = [
 	[/^>/g, '\\>'],
 	[/_/g, '\\_'],
 	[/^(\d+)\. /g, '$1\\. ']
- ]
+]
 
 const turndownService = new TurndownService({
 	hr: "----",
@@ -103,7 +103,15 @@ turndownService.addRule("inlineLink", {
 	},
 
 	replacement: function (content, node) {
-		if (node.getAttribute("data-user-id")) return `<@${node.getAttribute("data-user-id")}>`
+		if (node.getAttribute("data-user-id")) {
+			const user_id = node.getAttribute("data-user-id")
+			const row = select("sim_proxy", ["displayname", "proxy_owner_id"], {user_id}).get()
+			if (row) {
+				return `**@${row.displayname}** (<@${row.proxy_owner_id}>)`
+			} else {
+				return `<@${user_id}>`
+			}
+		}
 		if (node.getAttribute("data-message-id")) return `https://discord.com/channels/${node.getAttribute("data-guild-id")}/${node.getAttribute("data-channel-id")}/${node.getAttribute("data-message-id")}`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
@@ -507,9 +515,9 @@ async function eventToMessage(event, guild, di) {
 				mxid = decodeURIComponent(mxid)
 				if (mxUtils.eventSenderIsFromDiscord(mxid)) {
 					// Handle mention of an OOYE sim user by their mxid
-					const userID = getUserOrProxyOwnerID(mxid)
-					if (!userID) return whole
-					return `${attributeValue} data-user-id="${userID}">`
+					const id = select("sim", "user_id", {mxid}).pluck().get()
+					if (!id) return whole
+					return `${attributeValue} data-user-id="${id}">`
 				} else {
 					// Handle mention of a Matrix user by their mxid
 					// Check if this Matrix user is actually the sim user from another old bridge in the room?

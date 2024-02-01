@@ -66,6 +66,7 @@ export type Models = {
 	sim_proxy: {
 		user_id: string
 		proxy_owner_id: string
+		displayname: string
 	}
 
 	webhook: {
