@@ -128,7 +128,7 @@ async function memberToStateContent(pkMessage, author) {
 async function syncUser(author, pkMessage, roomID) {
 	const mxid = await ensureSimJoined(pkMessage, roomID)
 	// Update the sim_proxy table, so mentions can look up the original sender later
-	db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id) VALUES (?, ?)").run(pkMessage.member.id, pkMessage.sender)
+	db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id) VALUES (?, ?)").run(pkMessage.member.uuid, pkMessage.sender)
 	// Sync the member state
 	const content = await memberToStateContent(pkMessage, author)
 	const currentHash = registerUser._hashProfileContent(content)
