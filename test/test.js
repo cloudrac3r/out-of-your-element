@@ -69,4 +69,5 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../d2m/converters/user-to-mxid.test")
 	require("../m2d/converters/event-to-message.test")
 	require("../m2d/converters/utils.test")
+	require("../m2d/converters/emoji-sheet.test")
 })()

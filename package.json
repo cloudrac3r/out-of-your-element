@@ -30,7 +30,7 @@
     "minimist": "^1.2.8",
     "mixin-deep": "github:cloudrac3r/mixin-deep#v3.0.0",
     "node-fetch": "^2.6.7",
-    "pngjs": "^7.0.0",
+    "pngjs": "github:cloudrac3r/pngjs#v7.0.1",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.32.6",
     "snowtransfer": "^0.9.0",
