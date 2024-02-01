@@ -252,6 +252,15 @@ async function messageToEvent(message, guild, options = {}, di) {
 		if (row) {
 			repliedToEventRow = row
 		}
+	} else if (dUtils.isWebhookMessage(message) && message.embeds[0]?.author?.name?.endsWith("↩️") && message.embeds[0].description?.startsWith("**[Reply to:]")) {
+		const match = message.embeds[0].description.match(/\/channels\/[0-9]*\/[0-9]*\/([0-9]{2,})/)
+		if (match) {
+			const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id").select("event_id", "room_id", "source").and("WHERE message_id = ? AND part = 0").get(match[1])
+			if (row) {
+				message.embeds.shift()
+				repliedToEventRow = row
+			}
+		}
 	}
 	if (repliedToEventRow && repliedToEventRow.source === 0) { // reply was originally from Matrix
 		// Need to figure out who sent that event...
