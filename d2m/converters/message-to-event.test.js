@@ -397,6 +397,46 @@ test("message2event: reply with a video", async t => {
 	}])
 })
 
+test("message2event: voice message", async t => {
+	const events = await messageToEvent(data.message.voice_message)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+      body: "voice-message.ogg",
+      external_url: "https://cdn.discordapp.com/attachments/1099031887500034088/1112476845502365786/voice-message.ogg?ex=65c92d4c&is=65b6b84c&hm=0654bab5027474cbe23875954fa117cf44d8914c144cd151879590fa1baf8b1c&",
+      filename: "voice-message.ogg",
+      info: {
+        duration: 3960.0000381469727,
+        mimetype: "audio/ogg",
+        size: 10584,
+		},
+      "m.mentions": {},
+      msgtype: "m.audio",
+      url: "mxc://cadence.moe/MRRPDggXQMYkrUjTpxQbmcxB"
+	}])
+})
+
+test("message2event: misc file", async t => {
+	const events = await messageToEvent(data.message.misc_file)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "final final final revised draft",
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+      body: "the.yml",
+      external_url: "https://cdn.discordapp.com/attachments/122155380120748034/1174514575220158545/the.yml?ex=65cd6270&is=65baed70&hm=8c5f1b571784e3c7f99628492298815884e351ae0dc7c2ae40dd22d97caf27d9&",
+      filename: "the.yml",
+		info: {
+			mimetype: "text/plain; charset=utf-8",
+			size: 2274
+		},
+      "m.mentions": {},
+      msgtype: "m.file",
+      url: "mxc://cadence.moe/HnQIYQmmlIKwOQsbFsIGpzPP"
+	}])
+})
+
 test("message2event: simple reply in thread to a matrix user's reply", async t => {
 	const events = await messageToEvent(data.message.simple_reply_to_reply_in_thread, data.guild.general, {}, {
 		api: {

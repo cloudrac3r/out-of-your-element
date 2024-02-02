@@ -1924,7 +1924,7 @@ test("event2message: mentioning PK discord users works", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "I'm just <@196188877885538304> testing mentions",
+				content: "I'm just **@Azalea &flwr; 🌺** (<@196188877885538304>) testing mentions",
 				avatar_url: undefined
 			}]
 		}
@@ -2845,7 +2845,7 @@ test("event2message: unknown emojis in the middle are linked", async t => {
 	)
 })
 
-test("event2message: guessed @mentions may join members to mention", async t => {
+test("event2message: guessed @mentions in plaintext may join members to mention", async t => {
 	let called = 0
 	const subtext = {
 		user: {
@@ -2885,6 +2885,56 @@ test("event2message: guessed @mentions may join members to mention", async t => 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "hey <@321876634777218072>, what food would you like to order?",
+				avatar_url: undefined
+			}],
+			ensureJoined: [subtext.user]
+		}
+	)
+	t.equal(called, 1, "searchGuildMembers should be called once")
+})
+
+test("event2message: guessed @mentions in formatted body may join members to mention", async t => {
+	let called = 0
+	const subtext = {
+		user: {
+			id: "321876634777218072",
+			username: "subtextual",
+			global_name: "subtext",
+			discriminator: "0"
+		}
+	}
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<strong><em>HEY @SUBTEXT, WHAT FOOD WOULD YOU LIKE TO ORDER??</em></strong>"
+			},
+			event_id: "$u5gSwSzv_ZQS3eM00mnTBCor8nx_A_AwuQz7e59PZk8",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, {
+			id: "112760669178241024"
+		}, {
+			snow: {
+				guild: {
+					async searchGuildMembers(guildID, options) {
+						called++
+						t.equal(guildID, "112760669178241024")
+						t.deepEqual(options, {query: "SUBTEXT"})
+						return [subtext]
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "**_HEY <@321876634777218072>, WHAT FOOD WOULD YOU LIKE TO ORDER??_**",
 				avatar_url: undefined
 			}],
 			ensureJoined: [subtext.user]

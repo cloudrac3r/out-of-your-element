@@ -48,6 +48,12 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 		t.pass("it did not throw an error")
 	})
 	await p
+
+	test("migrate: migration works the second time", async t => {
+		await migrate.migrate(db)
+		t.pass("it did not throw an error")
+	})
+
 	db.exec(fs.readFileSync(join(__dirname, "ooye-test-data.sql"), "utf8"))
 	require("../db/orm.test")
 	require("../discord/utils.test")
@@ -63,6 +69,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../d2m/converters/lottie.test")
 	require("../d2m/converters/message-to-event.test")
 	require("../d2m/converters/message-to-event.embeds.test")
+	require("../d2m/converters/message-to-event.pk.test")
 	require("../d2m/converters/pins-to-list.test")
 	require("../d2m/converters/remove-reaction.test")
 	require("../d2m/converters/thread-to-announcement.test")

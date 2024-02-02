@@ -39,6 +39,7 @@ async function runSingleTest(t, url, totalSize) {
 		res.body.emit("end")
 	})
 	t.equal(result.subarray(1, 4).toString("ascii"), "PNG", `result was not a PNG file: ${result.toString("base64")}`)
+	/* c8 ignore next 5 */
 	if (meter.bytes < totalSize / 4) { // should download less than 25% of each file
 		t.pass("intentionally read partial file")
 	} else {

@@ -1340,6 +1340,89 @@ module.exports = {
 				components: []
 			}
 		},
+		voice_message: {
+			id: "1112476845783388160",
+			type: 0,
+			content: "",
+			channel_id: "1099031887500034088",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "0",
+				public_flags: 128,
+				premium_type: 0,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [
+				{
+					id: "1112476845502365786",
+					filename: "voice-message.ogg",
+					size: 10584,
+					url: "https://cdn.discordapp.com/attachments/1099031887500034088/1112476845502365786/voice-message.ogg?ex=65c92d4c&is=65b6b84c&hm=0654bab5027474cbe23875954fa117cf44d8914c144cd151879590fa1baf8b1c&",
+					proxy_url: "https://media.discordapp.net/attachments/1099031887500034088/1112476845502365786/voice-message.ogg?ex=65c92d4c&is=65b6b84c&hm=0654bab5027474cbe23875954fa117cf44d8914c144cd151879590fa1baf8b1c&",
+					duration_secs: 3.9600000381469727,
+					waveform: "AAgXAAwAPBsCAAAAInEDFwAAAAAbMwATEBAAAAAAAAAAAAAAAA==",
+					content_type: "audio/ogg"
+				}
+			],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-05-28T20:25:48.855000+00:00",
+			edited_timestamp: null,
+			flags: 8192,
+			components: []
+		},
+		misc_file: {
+			id: "1174514575819931718",
+			type: 0,
+			content: "final final final revised draft",
+			channel_id: "122155380120748034",
+			author: {
+				id: "142843483923677184",
+				username: "huck",
+				avatar: "a_1c7fda09a242d714570b4c828ef07504",
+				discriminator: "0",
+				public_flags: 512,
+				premium_type: 2,
+				flags: 512,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [
+				{
+					id: "1174514575220158545",
+					filename: "the.yml",
+					size: 2274,
+					url: "https://cdn.discordapp.com/attachments/122155380120748034/1174514575220158545/the.yml?ex=65cd6270&is=65baed70&hm=8c5f1b571784e3c7f99628492298815884e351ae0dc7c2ae40dd22d97caf27d9&",
+					proxy_url: "https://media.discordapp.net/attachments/122155380120748034/1174514575220158545/the.yml?ex=65cd6270&is=65baed70&hm=8c5f1b571784e3c7f99628492298815884e351ae0dc7c2ae40dd22d97caf27d9&",
+					content_type: "text/plain; charset=utf-8",
+					content_scan_version: 0
+				}
+			],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-11-16T01:01:36.301000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		simple_reply_to_reply_in_thread: {
 			type: 19,
 			tts: false,
@@ -1679,6 +1762,47 @@ module.exports = {
 			edited_timestamp: null,
 			flags: 0,
 			components: []
+		}
+	},
+	pk_message: {
+		pk_reply: {
+			id: "1202543812644306965",
+			type: 0,
+			content: "this is a reply",
+			channel_id: "1160894080998461480",
+			author: {
+				id: "1195662438662680720",
+				username: "special name",
+				avatar: "6b44a106659e78a2550474c61889194d",
+				discriminator: "0000",
+				public_flags: 0,
+				flags: 0,
+				bot: true,
+				global_name: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					description: "**[Reply to:](https://discord.com/channels/1160893336324931584/1160894080998461480/1202543413652881428)** now for my next experiment:",
+					author: {
+						name: "cadence [they] ↩️",
+						icon_url: "https://cdn.discordapp.com/avatars/1162510387057545227/af0ead3b92cf6e448fdad80b4e7fc9e5.png",
+						proxy_icon_url: "https://images-ext-1.discordapp.net/external/wWslraV-s-bLDwphL64YxeDm30M7PIhQQy0EQa8jpDc/https/cdn.discordapp.com/avatars/1162510387057545227/af0ead3b92cf6e448fdad80b4e7fc9e5.png"
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-02-01T09:19:47.118000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "466378653216014359",
+			webhook_id: "1195662438662680720"
 		}
 	},
 	message_with_embeds: {

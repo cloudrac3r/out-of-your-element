@@ -5,6 +5,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const {Readable} = require("stream")
 const chunk = require("chunk-text")
 const TurndownService = require("turndown")
+const domino = require("domino")
 const assert = require("assert").strict
 const entities = require("entities")
 
@@ -38,7 +39,7 @@ const turndownService = new TurndownService({
 	hr: "----",
 	headingStyle: "atx",
 	preformattedCode: true,
-	codeBlockStyle: "fenced",
+	codeBlockStyle: "fenced"
 })
 
 /**
@@ -340,6 +341,33 @@ async function handleRoomOrMessageLinks(input, di) {
 }
 
 /**
+ * @param {string} content
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"]}} di
+ */
+async function checkWrittenMentions(content, guild, di) {
+	let writtenMentionMatch = content.match(/(?:^|[^"[<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // /d flag for indices requires node.js 16+
+	if (writtenMentionMatch) {
+		const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
+		if (results[0]) {
+			assert(results[0].user)
+			return {
+				// @ts-ignore - typescript doesn't know about indices yet
+				content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `<@${results[0].user.id}>` + content.slice(writtenMentionMatch.indices[1][1]),
+				ensureJoined: results[0].user
+			}
+		}
+	}
+}
+
+const attachmentEmojis = new Map([
+	["m.image", "🖼️"],
+	["m.video", "🎞️"],
+	["m.audio", "🎶"],
+	["m.file", "📄"]
+])
+
+/**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"]}} di simple-as-nails dependency injection for the matrix API
@@ -380,12 +408,10 @@ async function eventToMessage(event, guild, di) {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
 		// this event ---is an edit of--> original event ---is a reply to--> past event
 		await (async () => {
-			if (!event.content["m.new_content"]) return
+			// Check if there is an edit
 			const relatesTo = event.content["m.relates_to"]
-			if (!relatesTo) return
+			if (!event.content["m.new_content"] || !relatesTo || relatesTo.rel_type !== "m.replace") return
 			// Check if we have a pointer to what was edited
-			const relType = relatesTo.rel_type
-			if (relType !== "m.replace") return
 			const originalEventId = relatesTo.event_id
 			if (!originalEventId) return
 			messageIDsToEdit = select("event_message", "message_id", {event_id: originalEventId}, "ORDER BY part").pluck().all()
@@ -480,12 +506,7 @@ async function eventToMessage(event, guild, di) {
 				repliedToEvent.content = repliedToEvent.content["m.new_content"]
 			}
 			let contentPreview
-			const fileReplyContentAlternative =
-				( repliedToEvent.content.msgtype === "m.image" ? "🖼️"
-				: repliedToEvent.content.msgtype === "m.video" ? "🎞️"
-				: repliedToEvent.content.msgtype === "m.audio" ? "🎶"
-				: repliedToEvent.content.msgtype === "m.file" ? "📄"
-				: null)
+			const fileReplyContentAlternative = attachmentEmojis.get(repliedToEvent.content.msgtype)
 			if (fileReplyContentAlternative) {
 				contentPreview = " " + fileReplyContentAlternative
 			} else {
@@ -574,8 +595,35 @@ async function eventToMessage(event, guild, di) {
 				last = match.index
 			}
 
+			// Handling written @mentions: we need to look for candidate Discord members to join to the room
+			// This shouldn't apply to code blocks, links, or inside attributes. So editing the HTML tree instead of regular expressions is a sensible choice here.
+			// We're using the domino parser because Turndown uses the same and can reuse this tree.
+			const doc = domino.createDocument(
+				// DOM parsers arrange elements in the <head> and <body>. Wrapping in a custom element ensures elements are reliably arranged in a single element.
+				'<x-turndown id="turndown-root">' + input + '</x-turndown>'
+			);
+			const root = doc.getElementById("turndown-root");
+			async function forEachNode(node) {
+				for (; node; node = node.nextSibling) {
+					if (node.nodeType === 3 && node.nodeValue.includes("@")) {
+						const result = await checkWrittenMentions(node.nodeValue, guild, di)
+						if (result) {
+							node.nodeValue = result.content
+							ensureJoined.push(result.ensureJoined)
+						}
+					}
+					if (node.nodeType === 1 && ["CODE", "PRE", "A"].includes(node.tagName)) {
+						// don't recurse into code or links
+					} else {
+						// do recurse into everything else
+						await forEachNode(node.firstChild)
+					}
+				}
+			}
+			await forEachNode(root)
+
 			// @ts-ignore bad type from turndown
-			content = turndownService.turndown(input)
+			content = turndownService.turndown(root)
 
 			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")
@@ -591,6 +639,12 @@ async function eventToMessage(event, guild, di) {
 			}
 
 			content = await handleRoomOrMessageLinks(content, di)
+
+			const result = await checkWrittenMentions(content, guild, di)
+			if (result) {
+				content = result.content
+				ensureJoined.push(result.ensureJoined)
+			}
 
 			// Markdown needs to be escaped, though take care not to escape the middle of links
 			// @ts-ignore bad type from turndown
@@ -639,18 +693,6 @@ async function eventToMessage(event, guild, di) {
 	}
 
 	content = displayNameRunoff + replyLine + content
-
-	// Handling written @mentions: we need to look for candidate Discord members to join to the room
-	let writtenMentionMatch = content.match(/(?:^|[^"[<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // /d flag for indices requires node.js 16+
-	if (writtenMentionMatch) {
-		const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
-		if (results[0]) {
-			assert(results[0].user)
-			// @ts-ignore - typescript doesn't know about indices yet
-			content = content.slice(0, writtenMentionMatch.indices[1][0]-1) + `<@${results[0].user.id}>` + content.slice(writtenMentionMatch.indices[1][1])
-			ensureJoined.push(results[0].user)
-		}
-	}
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
