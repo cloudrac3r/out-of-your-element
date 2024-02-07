@@ -2943,6 +2943,45 @@ test("event2message: guessed @mentions in formatted body may join members to men
 	t.equal(called, 1, "searchGuildMembers should be called once")
 })
 
+test("event2message: guessed @mentions feature will not activate on links or code", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body @subtext wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'in link <a href="https://example.com/social/@subtext">view timeline</a>'
+					+ ' in autolink https://example.com/social/@subtext'
+					+ ' in pre-code <pre><code>@subtext</code></pre>'
+			},
+			event_id: "$u5gSwSzv_ZQS3eM00mnTBCor8nx_A_AwuQz7e59PZk8",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, {}, {
+			snow: {
+				guild: {
+					/* c8 ignore next 4 */
+					async searchGuildMembers() {
+						t.fail("the feature activated when it wasn't supposed to")
+						return []
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "in link [view timeline](https://example.com/social/@subtext) in autolink https://example.com/social/@subtext in pre-code```\n@subtext\n```",
+				avatar_url: undefined
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
 test("event2message: guessed @mentions work with other matrix bridge old users", async t => {
 	t.deepEqual(
 		await eventToMessage({
