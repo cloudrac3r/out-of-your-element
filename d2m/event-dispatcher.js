@@ -246,11 +246,8 @@ module.exports = {
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 		}
 
-		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: message.channel_id}).get()
-		if (row && row.speedbump_id) {
-			const affected = await speedbump.doSpeedbump(message.id)
-			if (affected) return
-		}
+		const {affected, row} = await speedbump.maybeDoSpeedbump(message.channel_id, message.id)
+		if (affected) return
 
 		// @ts-ignore
 		await sendMessage.sendMessage(message, guild, row),
@@ -267,12 +264,8 @@ module.exports = {
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 		}
 
-		const row = select("channel_room", ["speedbump_id", "speedbump_webhook_id"], {channel_id: data.channel_id}).get()
-		if (row) {
-			// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
-			const affected = await speedbump.doSpeedbump(data.id)
-			if (affected) return
-		}
+		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
+		if (affected) return
 
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.

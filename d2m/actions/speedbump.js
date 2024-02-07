@@ -2,7 +2,7 @@
 
 const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
-const {discord, db} = passthrough
+const {discord, select, db} = passthrough
 
 const SPEEDBUMP_SPEED = 4000 // 4 seconds delay
 const SPEEDBUMP_UPDATE_FREQUENCY = 2 * 60 * 60 // 2 hours
@@ -33,11 +33,27 @@ const bumping = new Set()
 /**
  * Slow down a message. After it passes the speedbump, return whether it's okay or if it's been deleted.
  * @param {string} messageID
+ * @returns whether it was deleted
  */
 async function doSpeedbump(messageID) {
 	bumping.add(messageID)
 	await new Promise(resolve => setTimeout(resolve, SPEEDBUMP_SPEED))
 	return !bumping.delete(messageID)
+}
+
+/**
+ * Check whether to slow down a message, and do it. After it passes the speedbump, return whether it's okay or if it's been deleted.
+ * @param {string} channelID
+ * @param {string} messageID
+ * @returns whether it was deleted, and data about the channel's (not thread's) speedbump
+ */
+async function maybeDoSpeedbump(channelID, messageID) {
+	let row = select("channel_room", ["thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: channelID}).get()
+	if (row?.thread_parent) row = select("channel_room", ["thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: row.thread_parent}).get() // webhooks belong to the channel, not the thread
+	if (!row) return {affected: false, row: null}// not affected, no speedbump
+	// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
+	const affected = await doSpeedbump(messageID)
+	return {affected, row} // maybe affected, and there is a speedbump
 }
 
 /**
@@ -49,4 +65,5 @@ function onMessageDelete(messageID) {
 
 module.exports.updateCache = updateCache
 module.exports.doSpeedbump = doSpeedbump
+module.exports.maybeDoSpeedbump = maybeDoSpeedbump
 module.exports.onMessageDelete = onMessageDelete

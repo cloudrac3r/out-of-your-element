@@ -2,9 +2,9 @@
 
 <img src="docs/img/icon.png" height="128" width="128">
 
-Modern Matrix-to-Discord appservice bridge.
+Modern Matrix-to-Discord appservice bridge, created by [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe)
 
-Created by [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) // Discuss in [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe)
+[![Releases](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=plastic&color=green)](https://gitdab.com/cadence/out-of-your-element/releases) [![Discuss on Matrix](https://img.shields.io/badge/discuss-%23out--of--your--element-white?style=plastic)](https://matrix.to/#/#out-of-your-element:cadence.moe)
 
 ## Docs
 
@@ -76,7 +76,8 @@ Follow these steps:
 
 1. [Get Node.js version 18 or later](https://nodejs.org/en/download/releases) (the version is required by the better-sqlite3 and matrix-appservice dependencies)
 
-1. Clone this repo and checkout a specific tag. (Development happens on main. Stabler versions are tagged.)
+1. Clone this repo and checkout a specific tag. (Development happens on main. Stable versions are tagged.)
+	* The latest release tag is ![](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=flat-square&label=%20&color=black).
 
 1. Install dependencies: `npm install --save-dev` (omit --save-dev if you will not run the automated tests)
 
