@@ -2,6 +2,8 @@
 
 const fetch = require("node-fetch").default
 const mixin = require("mixin-deep")
+const stream = require("stream")
+const getStream = require("get-stream")
 
 const passthrough = require("../passthrough")
 const { sync } = passthrough
@@ -27,9 +29,15 @@ class MatrixServerError extends Error {
  * @param {any} [extra]
  */
 async function mreq(method, url, body, extra = {}) {
+	if (body == undefined || Object.is(body.constructor, Object)) {
+		body = JSON.stringify(body)
+	} else if (body instanceof stream.Readable && reg.ooye.content_length_workaround) {
+		body = await getStream.buffer(body)
+	}
+
 	const opts = mixin({
 		method,
-		body: (body == undefined || Object.is(body.constructor, Object)) ? JSON.stringify(body) : body,
+		body,
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
 		}
@@ -39,7 +47,18 @@ async function mreq(method, url, body, extra = {}) {
 	const res = await fetch(baseUrl + url, opts)
 	const root = await res.json()
 
-	if (!res.ok || root.errcode) throw new MatrixServerError(root, {baseUrl, url, ...opts})
+	if (!res.ok || root.errcode) {
+		if (root.error?.includes("Content-Length")) {
+			console.error(`OOYE cannot stream uploads to Synapse. Please choose one of these workarounds:`
+				+ `\n  * Run an nginx reverse proxy to Synapse, and point registration.yaml's`
+				+ `\n    \`server_origin\` to nginx`
+				+ `\n  * Set \`content_length_workaround: true\` in registration.yaml (this will`
+				+ `\n    halve the speed of bridging d->m files)`)
+			throw new Error("Synapse is not accepting stream uploads, see the message above.")
+		}
+		delete opts.headers.Authorization
+		throw new MatrixServerError(root, {baseUrl, url, ...opts})
+	}
 	return root
 }
 
