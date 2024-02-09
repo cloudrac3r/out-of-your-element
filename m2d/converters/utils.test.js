@@ -3,8 +3,21 @@
 const e = new Error("Custom error")
 
 const {test} = require("supertape")
-const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder} = require("./utils")
+const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers} = require("./utils")
 const util = require("util")
+
+/** @param {string[]} mxids */
+function joinedList(mxids) {
+	/** @type {{[mxid: string]: {display_name: null, avatar_url: null}}} */
+	const joined = {}
+	for (const mxid of mxids) {
+		joined[mxid] = {
+			display_name: null,
+			avatar_url: null
+		}
+	}
+	return {joined}
+}
 
 test("sender type: matrix user", t => {
 	t.notOk(eventSenderIsFromDiscord("@cadence:cadence.moe"))
@@ -73,4 +86,69 @@ test("MatrixStringBuilder: complete code coverage", t => {
 		format: "org.matrix.custom.html",
 		formatted_body: "Line 1<p>Line 2</p>Line 3<p>Line 4</p>"
 	})
+})
+
+test("getViaServers: returns the server name if the room only has sim users", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe"])
+	})
+	t.deepEqual(result, ["cadence.moe"])
+})
+
+test("getViaServers: also returns the most popular servers in order", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid"])
+	})
+	t.deepEqual(result, ["cadence.moe", "thecollective.invalid", "selfhosted.invalid"])
+})
+
+test("getViaServers: does not return IP address servers", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:45.77.232.172:8443", "@cadence:[::1]:8443", "@cadence:123example.456example.invalid"])
+	})
+	t.deepEqual(result, ["cadence.moe", "123example.456example.invalid"])
+})
+
+test("getViaServers: also returns the highest power level user (100)", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({
+			users: {
+				"@moderator:tractor.invalid": 50,
+				"@singleuser:selfhosted.invalid": 100,
+				"@_ooye_bot:cadence.moe": 100
+			}
+		}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@moderator:tractor.invalid"])
+	})
+	t.deepEqual(result, ["cadence.moe", "selfhosted.invalid", "thecollective.invalid", "tractor.invalid"])
+})
+
+test("getViaServers: also returns the highest power level user (50)", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({
+			users: {
+				"@moderator:tractor.invalid": 50,
+				"@_ooye_bot:cadence.moe": 100
+			}
+		}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@singleuser:selfhosted.invalid"])
+	})
+	t.deepEqual(result, ["cadence.moe", "tractor.invalid", "thecollective.invalid", "selfhosted.invalid"])
+})
+
+test("getViaServers: returns at most 4 results", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({
+			users: {
+				"@moderator:tractor.invalid": 50,
+				"@singleuser:selfhosted.invalid": 100,
+				"@_ooye_bot:cadence.moe": 100
+			}
+		}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@cadence:123example.456example.invalid"])
+	})
+	t.deepEqual(result.length, 4)
 })

@@ -127,8 +127,74 @@ class MatrixStringBuilder {
 	}
 }
 
+/**
+ * Room IDs are not routable on their own. Room permalinks need a list of servers to try. The client is responsible for coming up with a list of servers.
+ * https://spec.matrix.org/v1.9/appendices/#routing
+ * https://gitdab.com/cadence/out-of-your-element/issues/11
+ * @param {string} roomID
+ * @param {{[K in "getStateEvent" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
+ */
+async function getViaServers(roomID, api) {
+	const candidates = []
+	const {joined} = await api.getJoinedMembers(roomID)
+	// Candidate 0: The bot's own server name
+	candidates.push(reg.ooye.server_name)
+	// Candidate 1: Highest joined non-sim non-bot power level user in the room
+	// https://github.com/matrix-org/matrix-react-sdk/blob/552c65db98b59406fb49562e537a2721c8505517/src/utils/permalinks/Permalinks.ts#L172
+	try {
+		/** @type {{users?: {[mxid: string]: number}}} */
+		const powerLevels = await api.getStateEvent(roomID, "m.room.power_levels", "")
+		if (powerLevels.users) {
+			const sorted = Object.entries(powerLevels.users).sort((a, b) => b[1] - a[1]) // Highest...
+			for (const power of sorted) {
+				const mxid = power[0]
+				if (!(mxid in joined)) continue // joined...
+				if (userRegex.some(r => mxid.match(r))) continue // non-sim non-bot...
+				const match = mxid.match(/:(.*)/)
+				assert(match)
+				if (!candidates.includes(match[1])) {
+					candidates.push(match[1])
+					break
+				}
+			}
+		}
+	} catch (e) {
+		// power levels event not found
+	}
+	// Candidates 2-3: Most popular servers in the room
+	/** @type {Map<string, number>} */
+	const servers = new Map()
+	// We can get the most popular servers if we know the members, so let's process those...
+	Object.keys(joined)
+		.filter(mxid => !mxid.startsWith("@_")) // Quick check
+		.filter(mxid => !userRegex.some(r => mxid.match(r))) // Full check
+		.slice(0, 1000) // Just sample the first thousand real members
+		.map(mxid => {
+			const match = mxid.match(/:(.*)/)
+			assert(match)
+			return match[1]
+		})
+		.filter(server => !server.match(/([a-f0-9:]+:+)+[a-f0-9]+/)) // No IPv6 servers
+		.filter(server => !server.match(/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/)) // No IPv4 servers
+		// I don't care enough to check ACLs
+		.forEach(server => {
+			const existing = servers.get(server)
+			if (!existing) servers.set(server, 1)
+			else servers.set(server, existing + 1)
+		})
+	const serverList = [...servers.entries()].sort((a, b) => b[1] - a[1])
+	for (const server of serverList) {
+		if (!candidates.includes(server[0])) {
+			candidates.push(server[0])
+			if (candidates.length >= 4) break // Can have at most 4 candidate via servers
+		}
+	}
+	return candidates
+}
+
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash
 module.exports.MatrixStringBuilder = MatrixStringBuilder
+module.exports.getViaServers = getViaServers
