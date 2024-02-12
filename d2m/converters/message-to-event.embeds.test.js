@@ -75,22 +75,48 @@ test("message2event embeds: image embed and attachment", async t => {
 })
 
 test("message2event embeds: blockquote in embed", async t => {
-	const events = await messageToEvent(data.message_with_embeds.blockquote_in_embed, data.guild.general)
+	let called = 0
+	const events = await messageToEvent(data.message_with_embeds.blockquote_in_embed, data.guild.general, {}, {
+		api: {
+			async getStateEvent(roomID, type, key) {
+				called++
+				t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {
+					users: {
+						"@_ooye_bot:cadence.moe": 100
+					}
+				}
+			},
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:example.invalid": {display_name: null, avatar_url: null}
+					}
+				}
+			}
+		}
+	})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.text",
 		body: ":emoji: **4 |** #wonderland",
 		format: "org.matrix.custom.html",
-		formatted_body: `<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO\" title=\":emoji:\" alt=\":emoji:\"> <strong>4 |</strong> <a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe\">#wonderland</a>`,
+		formatted_body: `<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO\" title=\":emoji:\" alt=\":emoji:\"> <strong>4 |</strong> <a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe?via=cadence.moe&via=example.invalid\">#wonderland</a>`,
 		"m.mentions": {}
 	}, {
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "> ## ⏺️ minimus https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo\n> \n> reply draft\n> > The following is a message composed via consensus of the Stinker Council.\n> > \n> > For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.\n> > \n> > Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.\n> > \n> > There will be no further communication.\n> \n> [Go to Message](https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo)",
+		body: "> ## ⏺️ minimus https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid\n> \n> reply draft\n> > The following is a message composed via consensus of the Stinker Council.\n> > \n> > For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.\n> > \n> > Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.\n> > \n> > There will be no further communication.\n> \n> [Go to Message](https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid)",
 		format: "org.matrix.custom.html",
-		formatted_body: "<blockquote><p><strong><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo\">⏺️ minimus</a></strong></p><p>reply draft<br><blockquote>The following is a message composed via consensus of the Stinker Council.<br><br>For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.<br><br>Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.<br><br>There will be no further communication.</blockquote></p><p><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo\">Go to Message</a></p></blockquote>",
+		formatted_body: "<blockquote><p><strong><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid\">⏺️ minimus</a></strong></p><p>reply draft<br><blockquote>The following is a message composed via consensus of the Stinker Council.<br><br>For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.<br><br>Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.<br><br>There will be no further communication.</blockquote></p><p><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid \">Go to Message</a></p></blockquote>",
 		"m.mentions": {}
 	}])
+	t.equal(called, 2)
 })
 
 test("message2event embeds: crazy html is all escaped", async t => {

@@ -62,15 +62,41 @@ test("message2event: simple user mention", async t => {
 })
 
 test("message2event: simple room mention", async t => {
-	const events = await messageToEvent(data.message.simple_room_mention, data.guild.general, {})
+	let called = 0
+	const events = await messageToEvent(data.message.simple_room_mention, data.guild.general, {}, {
+		api: {
+			async getStateEvent(roomID, type, key) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {
+					users: {
+						"@_ooye_bot:cadence.moe": 100
+					}
+				}
+			},
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:matrix.org": {display_name: null, avatar_url: null}
+					}
+				}
+			}
+		}
+	})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
 		body: "#main",
 		format: "org.matrix.custom.html",
-		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe">#main</a>'
+		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&via=matrix.org">#main</a>'
 	}])
+	t.equal(called, 2)
 })
 
 test("message2event: unknown room mention", async t => {
