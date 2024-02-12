@@ -128,7 +128,9 @@ class MatrixStringBuilder {
 }
 
 /**
- * Room IDs are not routable on their own. Room permalinks need a list of servers to try. The client is responsible for coming up with a list of servers.
+ * Context: Room IDs are not routable on their own. Room permalinks need a list of servers to try. The client is responsible for coming up with a list of servers.
+ * ASSUMPTION 1: The bridge bot is a member of the target room and can therefore access its power levels and member list for calculation.
+ * ASSUMPTION 2: Because the bridge bot is a member of the target room, the target room is bridged.
  * https://spec.matrix.org/v1.9/appendices/#routing
  * https://gitdab.com/cadence/out-of-your-element/issues/11
  * @param {string} roomID
@@ -192,9 +194,29 @@ async function getViaServers(roomID, api) {
 	return candidates
 }
 
+/**
+ * Context: Room IDs are not routable on their own. Room permalinks need a list of servers to try. The client is responsible for coming up with a list of servers.
+ * ASSUMPTION 1: The bridge bot is a member of the target room and can therefore access its power levels and member list for calculation.
+ * ASSUMPTION 2: Because the bridge bot is a member of the target room, the target room is bridged.
+ * https://spec.matrix.org/v1.9/appendices/#routing
+ * https://gitdab.com/cadence/out-of-your-element/issues/11
+ * @param {string} roomID
+ * @param {{[K in "getStateEvent" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
+ * @returns {Promise<URLSearchParams>}
+ */
+async function getViaServersQuery(roomID, api) {
+	const list = await getViaServers(roomID, api)
+	const qs = new URLSearchParams()
+	for (const server of list) {
+		qs.append("via", server)
+	}
+	return qs
+}
+
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash
 module.exports.MatrixStringBuilder = MatrixStringBuilder
 module.exports.getViaServers = getViaServers
+module.exports.getViaServersQuery = getViaServersQuery

@@ -264,6 +264,7 @@ module.exports = {
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 		}
 
+		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
 		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
 		if (affected) return
 
@@ -273,6 +274,7 @@ module.exports = {
 			/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 			// @ts-ignore
 			const message = data
+
 			const channel = client.channels.get(message.channel_id)
 			if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 			const guild = client.guilds.get(channel.guild_id)

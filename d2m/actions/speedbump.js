@@ -50,8 +50,7 @@ async function doSpeedbump(messageID) {
 async function maybeDoSpeedbump(channelID, messageID) {
 	let row = select("channel_room", ["thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: channelID}).get()
 	if (row?.thread_parent) row = select("channel_room", ["thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: row.thread_parent}).get() // webhooks belong to the channel, not the thread
-	if (!row) return {affected: false, row: null}// not affected, no speedbump
-	// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
+	if (!row?.speedbump_webhook_id) return {affected: false, row: null} // not affected, no speedbump
 	const affected = await doSpeedbump(messageID)
 	return {affected, row} // maybe affected, and there is a speedbump
 }

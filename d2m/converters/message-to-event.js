@@ -39,15 +39,15 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 				return `@${username}:`
 			}
 		},
-		/** @param {{id: string, type: "discordChannel"}} node */
+		// FIXME: type
+		/** @param {{id: string, type: "discordChannel", row: any, via: URLSearchParams}} node */
 		channel: node => {
-			const row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
-			if (!row) {
+			if (!node.row) {
 				return `#[channel-from-an-unknown-server]` // fallback for when this channel is not bridged
 			} else if (useHTML) {
-				return `<a href="https://matrix.to/#/${row.room_id}">#${row.nick || row.name}</a>`
+				return `<a href="https://matrix.to/#/${node.row.room_id}?${node.via.toString()}">#${node.row.nick || node.row.name}</a>`
 			} else {
-				return `#${row.nick || row.name}`
+				return `#${node.row.nick || node.row.name}`
 			}
 		},
 		/** @param {{animated: boolean, name: string, id: string, type: "discordEmoji"}} node */
@@ -332,12 +332,27 @@ async function messageToEvent(message, guild, options = {}, di) {
 			return emojiToKey.emojiToKey({id, name, animated}) // Register the custom emoji if needed
 		}))
 
-		let html = markdown.toHTML(content, {
+		async function transformParsedVia(parsed) {
+			for (const node of parsed) {
+				if (node.type === "discordChannel") {
+					node.row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
+					if (node.row?.room_id) {
+						node.via = await mxUtils.getViaServersQuery(node.row.room_id, di.api)
+					}
+				}
+				if (Array.isArray(node.content)) {
+					await transformParsedVia(node.content)
+				}
+			}
+			return parsed
+		}
+
+		let html = await markdown.toHtmlWithPostParser(content, transformParsedVia, {
 			discordCallback: getDiscordParseCallbacks(message, guild, true),
 			...customOptions
 		}, customParser, customHtmlOutput)
 
-		let body = markdown.toHTML(content, {
+		let body = await markdown.toHtmlWithPostParser(content, transformParsedVia, {
 			discordCallback: getDiscordParseCallbacks(message, guild, false),
 			discordOnly: true,
 			escapeHTML: false,
@@ -347,6 +362,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		return {body, html}
 	}
 
+	// FIXME: What was the scanMentions parameter supposed to activate? It's unused.
 	async function addTextEvent(body, html, msgtype, {scanMentions}) {
 		// Star * prefix for fallback edits
 		if (options.includeEditFallbackStar) {
