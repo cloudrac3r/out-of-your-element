@@ -9,9 +9,9 @@ test("message2event embeds: nothing but a field", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.notice",
-		body: "> ### Amanda 🎵#2192 :online:"
-			+ "\n> willow tree, branch 0"
-			+ "\n> **❯ Uptime:**\n> 3m 55s\n> **❯ Memory:**\n> 64.45MB",
+		body: "| ### Amanda 🎵#2192 :online:"
+			+ "\n| willow tree, branch 0"
+			+ "\n| **❯ Uptime:**\n| 3m 55s\n| **❯ Memory:**\n| 64.45MB",
 		format: "org.matrix.custom.html",
 		formatted_body: '<blockquote><p><strong>Amanda 🎵#2192 <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ\" title=\":online:\" alt=\":online:\">'
 			+ '<br>willow tree, branch 0</strong>'
@@ -26,14 +26,14 @@ test("message2event embeds: reply with just an embed", async t => {
 		$type: "m.room.message",
 		msgtype: "m.notice",
 		"m.mentions": {},
-		body: "> ## ⏺️ dynastic (@dynastic) https://twitter.com/i/user/719631291747078145"
-			+ "\n> \n> ## https://twitter.com/i/status/1707484191963648161"
-			+ "\n> \n> does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
-			+ "\n> \n> ### Retweets"
-			+ "\n> 119"
-			+ "\n> \n> ### Likes"
-			+ "\n> 5581"
-			+ "\n> — Twitter",
+		body: "| ## ⏺️ dynastic (@dynastic) https://twitter.com/i/user/719631291747078145"
+			+ "\n| \n| ## https://twitter.com/i/status/1707484191963648161"
+			+ "\n| \n| does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
+			+ "\n| \n| ### Retweets"
+			+ "\n| 119"
+			+ "\n| \n| ### Likes"
+			+ "\n| 5581"
+			+ "\n| — Twitter",
 		format: "org.matrix.custom.html",
 		formatted_body: '<blockquote><p><strong><a href="https://twitter.com/i/user/719631291747078145">⏺️ dynastic (@dynastic)</a></strong></p>'
 			+ '<p><strong><a href="https://twitter.com/i/status/1707484191963648161">https://twitter.com/i/status/1707484191963648161</a></strong>'
@@ -111,7 +111,7 @@ test("message2event embeds: blockquote in embed", async t => {
 	}, {
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "> ## ⏺️ minimus https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid\n> \n> reply draft\n> > The following is a message composed via consensus of the Stinker Council.\n> > \n> > For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.\n> > \n> > Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.\n> > \n> > There will be no further communication.\n> \n> [Go to Message](https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid)",
+		body: "| ## ⏺️ minimus https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid\n| \n| reply draft\n| > The following is a message composed via consensus of the Stinker Council.\n| > \n| > For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.\n| > \n| > Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.\n| > \n| > There will be no further communication.\n| \n| [Go to Message](https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid)",
 		format: "org.matrix.custom.html",
 		formatted_body: "<blockquote><p><strong><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid\">⏺️ minimus</a></strong></p><p>reply draft<br><blockquote>The following is a message composed via consensus of the Stinker Council.<br><br>For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.<br><br>Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.<br><br>There will be no further communication.</blockquote></p><p><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&via=example.invalid \">Go to Message</a></p></blockquote>",
 		"m.mentions": {}
@@ -124,12 +124,12 @@ test("message2event embeds: crazy html is all escaped", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "> ## ⏺️ <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;) https://a.co/&amp;<script>"
-			+ "\n> \n> ## <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;) https://a.co/&amp;<script>"
-			+ "\n> \n> <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
-			+ "\n> \n> ### <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
-			+ "\n> <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
-			+ "\n> — <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
+		body: "| ## ⏺️ <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;) https://a.co/&amp;<script>"
+			+ "\n| \n| ## <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;) https://a.co/&amp;<script>"
+			+ "\n| \n| <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+			+ "\n| \n| ### <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+			+ "\n| <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)"
+			+ "\n| — <strong>[<span data-mx-color='#123456'>Hey<script>](https://a.co/&amp;)",
 		format: "org.matrix.custom.html",
 		formatted_body: `<blockquote>`
 			+ `<p><strong><a href="https://a.co/&amp;amp;&lt;script&gt;">⏺️ &lt;strong&gt;[&lt;span data-mx-color=&#39;#123456&#39;&gt;Hey&lt;script&gt;](https://a.co/&amp;amp;)</a></strong></p>`

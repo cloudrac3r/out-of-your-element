@@ -520,7 +520,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		if (embed.footer?.text) rep.addLine(`— ${embed.footer.text}`, tag`— ${embed.footer.text}`)
 		let {body, formatted_body: html} = rep.get()
-		body = body.split("\n").map(l => "> " + l).join("\n")
+		body = body.split("\n").map(l => "| " + l).join("\n")
 		html = `<blockquote>${html}</blockquote>`
 
 		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
