@@ -162,32 +162,8 @@ turndownService.addRule("emoji", {
 
 	replacement: function (content, node) {
 		const mxcUrl = node.getAttribute("src")
-		// Get the known emoji from the database. (We may not be able to actually use this if it was from another server.)
-		const row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrl}).get()
-		// Also guess a suitable emoji based on the ID (if available) or name
-		let guess = null
 		const guessedName = node.getAttribute("title").replace(/^:|:$/g, "")
-		for (const guild of discord.guilds.values()) {
-			/** @type {{name: string, id: string, animated: number}[]} */
-			// @ts-ignore
-			const emojis = guild.emojis
-			const match = emojis.find(e => e.id === row?.emoji_id) || emojis.find(e => e.name === guessedName) || emojis.find(e => e.name?.toLowerCase() === guessedName.toLowerCase())
-			if (match) {
-				guess = match
-				break
-			}
-		}
-		if (guess) {
-			// We know an emoji, and we can use it
-			const animatedChar = guess.animated ? "a" : ""
-			return `<${animatedChar}:${guess.name}:${guess.id}>`
-		} else if (endOfMessageEmojis.includes(mxcUrl)) {
-			// We can't locate or use a suitable emoji. After control returns, it will rewind over this, delete this section, and upload the emojis as a sprite sheet.
-			return `<::>`
-		} else {
-			// We prefer not to upload this as a sprite sheet because the emoji is not at the end of the message, it is in the middle.
-			return `[${node.getAttribute("title")}](${mxUtils.getPublicUrlForMxc(mxcUrl)})`
-		}
+		return convertEmoji(mxcUrl, guessedName, true, true)
 	}
 })
 
@@ -215,6 +191,52 @@ turndownService.addRule("fencedCodeBlock", {
 		)
 	}
 })
+
+/**
+ * @param {string | null} mxcUrl
+ * @param {string | null} nameForGuess without colons
+ * @param {boolean} allowSpriteSheetIndicator
+ * @param {boolean} allowLink
+ * @returns {string} discord markdown that represents the custom emoji in some form
+ */
+function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink) {
+	// Get the known emoji from the database.
+	let row
+	if (mxcUrl) row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrl}).get()
+	if (!row && nameForGuess) {
+		// We don't know the emoji, but we could guess a suitable emoji based on the name
+		const nameForGuessLower = nameForGuess.toLowerCase()
+		for (const guild of discord.guilds.values()) {
+			/** @type {{name: string, id: string, animated: number}[]} */
+			// @ts-ignore
+			const emojis = guild.emojis
+			const found = emojis.find(e => e.name?.toLowerCase() === nameForGuessLower)
+			if (found) {
+				row = {
+					animated: found.animated,
+					emoji_id: found.id,
+					name: found.name
+				}
+				break
+			}
+		}
+	}
+	if (row) {
+		// We know an emoji, and we can use it
+		const animatedChar = row.animated ? "a" : ""
+		return `<${animatedChar}:${row.name}:${row.emoji_id}>`
+	} else if (allowSpriteSheetIndicator && mxcUrl && endOfMessageEmojis.includes(mxcUrl)) {
+		// We can't locate or use a suitable emoji. After control returns, it will rewind over this, delete this section, and upload the emojis as a sprite sheet.
+		return `<::>`
+	} else if (allowLink && mxcUrl && nameForGuess) {
+		// We prefer not to upload this as a sprite sheet because the emoji is not at the end of the message, it is in the middle.
+		return `[:${nameForGuess}:](${mxUtils.getPublicUrlForMxc(mxcUrl)})`
+	} else if (nameForGuess) {
+		return `:${nameForGuess}:`
+	} else {
+		return ""
+	}
+}
 
 /**
  * @param {string} roomID
@@ -530,21 +552,9 @@ async function eventToMessage(event, guild, di) {
 				repliedToContent = repliedToContent.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
 				repliedToContent = repliedToContent.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
 				repliedToContent = repliedToContent.replace(/<img([^>]*)>/g, (_, att) => { // Convert Matrix emoji images into Discord emoji markdown
-					if (!att.includes("data-mx-emoticon")) return ""
-					// Try to get the equivalent Discord emoji, if there is a src and if we know about it
 					const mxcUrlMatch = att.match(/\bsrc="(mxc:\/\/[^"]+)"/)
-					if (mxcUrlMatch) {
-						const row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrlMatch[1]}).get()
-						if (row) {
-							const animatedChar = row.animated ? "a" : ""
-							return `<${animatedChar}:${row.name}:${row.emoji_id}>`
-						}
-					}
-					// Emoji is unknown or inaccessible, try substituting the title text instead
 					const titleTextMatch = att.match(/\btitle=":?([^:"]+)/)
-					if (titleTextMatch) return `:${titleTextMatch[1]}:`
-					// Otherwise we can't use the emoji.
-					return ""
+					return convertEmoji(mxcUrlMatch?.[1], titleTextMatch?.[1], false, false)
 				})
 				repliedToContent = repliedToContent.replace(/<[^:>][^>]*>/g, "") // Completely strip all HTML tags and formatting.
 				repliedToContent = entities.decodeHTML5Strict(repliedToContent) // Remove entities like &amp; &quot;

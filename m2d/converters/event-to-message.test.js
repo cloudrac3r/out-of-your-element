@@ -1339,7 +1339,7 @@ test("event2message: reply preview converts emoji formatting when replying to a 
 	)
 })
 
-test("event2message: reply preview uses emoji title text when replying to an unknown custom emoji", async t => {
+test("event2message: reply preview can guess custom emoji based on the name if it is unknown", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			type: "m.room.message",
@@ -1378,7 +1378,54 @@ test("event2message: reply preview uses emoji title text when replying to an unk
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> :hippo:"
+					+ "\n> <:hippo:230201364309868544>"
+					+ "\nreply",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: reply preview uses emoji title text when replying to an unknown custom emoji", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@cadence:cadence.moe> :svkftngur_gkdne:\n\nreply",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AHKNeXoRlprdULRMalhqfCdj\" title=\":svkftngur_gkdne:\" alt=\":svkftngur_gkdne:\" /></blockquote></mx-reply>reply",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs"
+					}
+				}
+			},
+			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
+			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: ":svkftngur_gkdne:",
+						format: "org.matrix.custom.html",
+						formatted_body: "<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AHKNeXoRlprdULRMalhqfCdj\" title=\":svkftngur_gkdne:\" alt=\":svkftngur_gkdne:\">"
+					}
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
+					+ "\n> :svkftngur_gkdne:"
 					+ "\nreply",
 				avatar_url: undefined
 			}]
