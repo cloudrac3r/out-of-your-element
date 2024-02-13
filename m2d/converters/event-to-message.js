@@ -522,17 +522,40 @@ async function eventToMessage(event, guild, di) {
 			} else if (repliedToEvent.unsigned?.redacted_because) {
 				contentPreview = " (in reply to a deleted message)"
 			} else {
-				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
-				const contentPreviewChunks = chunk(
-					entities.decodeHTML5Strict( // Remove entities like &amp; &quot;
-						repliedToContent.replace(/.*<\/mx-reply>/s, "") // Remove everything before replies, so just use the actual message body
-						.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
-						.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
-						.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
-						.replace(/<[^>]+>/g, "") // Completely strip all HTML tags and formatting.
-					), 50)
-				contentPreview = ":\n> " + contentPreviewChunks[0]
-				if (contentPreviewChunks.length > 1) contentPreview = contentPreview.replace(/[,.']$/, "") + "..."
+				// Generate a reply preview for a standard message
+				/** @type {string} */
+				let repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
+				repliedToContent = repliedToContent.replace(/.*<\/mx-reply>/s, "") // Remove everything before replies, so just use the actual message body
+				repliedToContent = repliedToContent.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
+				repliedToContent = repliedToContent.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
+				repliedToContent = repliedToContent.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
+				repliedToContent = repliedToContent.replace(/<img([^>]*)>/g, (_, att) => { // Convert Matrix emoji images into Discord emoji markdown
+					if (!att.includes("data-mx-emoticon")) return ""
+					// Try to get the equivalent Discord emoji, if there is a src and if we know about it
+					const mxcUrlMatch = att.match(/\bsrc="(mxc:\/\/[^"]+)"/)
+					if (mxcUrlMatch) {
+						const row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrlMatch[1]}).get()
+						if (row) {
+							const animatedChar = row.animated ? "a" : ""
+							return `<${animatedChar}:${row.name}:${row.emoji_id}>`
+						}
+					}
+					// Emoji is unknown or inaccessible, try substituting the title text instead
+					const titleTextMatch = att.match(/\btitle=":?([^:"]+)/)
+					if (titleTextMatch) return `:${titleTextMatch[1]}:`
+					// Otherwise we can't use the emoji.
+					return ""
+				})
+				repliedToContent = repliedToContent.replace(/<[^:>][^>]*>/g, "") // Completely strip all HTML tags and formatting.
+				repliedToContent = entities.decodeHTML5Strict(repliedToContent) // Remove entities like &amp; &quot;
+				const contentPreviewChunks = chunk(repliedToContent, 50)
+				if (contentPreviewChunks.length) {
+					contentPreview = ":\n> " + contentPreviewChunks[0]
+					if (contentPreviewChunks.length > 1) contentPreview = contentPreview.replace(/[,.']$/, "") + "..."
+				} else {
+					console.log("Unable to generate reply preview for this replied-to event because we stripped all of it:", repliedToEvent)
+					contentPreview = ""
+				}
 			}
 			replyLine = `> ${replyLine}${contentPreview}\n`
 		})()
