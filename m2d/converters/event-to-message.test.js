@@ -234,6 +234,37 @@ test("event2message: spoilers work", async t => {
 	)
 })
 
+test("event2message: spoiler reasons work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `<span data-mx-spoiler="cw crossword spoilers you'll never believe. don't tell anybody">zoe kills a 5 letter noun at the end</span>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "\\(cw crossword spoilers you'll never believe. don't tell anybody\\) ||zoe kills a 5 letter noun at the end||",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: markdown syntax is escaped", async t => {
 	t.deepEqual(
 		await eventToMessage({
