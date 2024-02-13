@@ -96,7 +96,7 @@ test("message2event: simple room mention", async t => {
 		format: "org.matrix.custom.html",
 		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&via=matrix.org">#main</a>'
 	}])
-	t.equal(called, 2)
+	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
 })
 
 test("message2event: unknown room mention", async t => {
@@ -134,15 +134,41 @@ test("message2event: manually constructed unknown roles should use fallback", as
 })
 
 test("message2event: simple message link", async t => {
-	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {})
+	let called = 0
+	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {}, {
+		api: {
+			async getStateEvent(roomID, type, key) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {
+					users: {
+						"@_ooye_bot:cadence.moe": 100
+					}
+				}
+			},
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:super.invalid": {display_name: null, avatar_url: null}
+					}
+				}
+			}
+		}
+	})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg",
+		body: "https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg?via=cadence.moe&via=super.invalid",
 		format: "org.matrix.custom.html",
-		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg</a>'
+		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg?via=cadence.moe&amp;via=super.invalid">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg?via=cadence.moe&amp;via=super.invalid</a>'
 	}])
+	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
 })
 
 test("message2event: message link that OOYE doesn't know about", async t => {
@@ -156,6 +182,27 @@ test("message2event: message link that OOYE doesn't know about", async t => {
 					event_id: "$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U",
 					origin_server_ts: 1613287812754
 				}
+			},
+			async getStateEvent(roomID, type, key) { // for ?via calculation
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {
+					users: {
+						"@_ooye_bot:cadence.moe": 100
+					}
+				}
+			},
+			async getJoinedMembers(roomID) { // for ?via calculation
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:matrix.org": {display_name: null, avatar_url: null}
+					}
+				}
 			}
 		}
 	})
@@ -164,12 +211,12 @@ test("message2event: message link that OOYE doesn't know about", async t => {
 		"m.mentions": {},
 		msgtype: "m.text",
 		body: "Me: I'll scroll up to find a certain message I'll send\n_scrolls up and clicks message links for god knows how long_\n_completely forgets what they were looking for and simply begins scrolling up to find some fun moments_\n_stumbles upon:_ "
-			+ "https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U",
+			+ "https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U?via=cadence.moe&via=matrix.org",
 		format: "org.matrix.custom.html",
 		formatted_body: "Me: I'll scroll up to find a certain message I'll send<br><em>scrolls up and clicks message links for god knows how long</em><br><em>completely forgets what they were looking for and simply begins scrolling up to find some fun moments</em><br><em>stumbles upon:</em> "
-			+ '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U</a>'
+			+ '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U?via=cadence.moe&amp;via=matrix.org</a>'
 	}])
-	t.equal(called, 1, "getEventForTimestamp should be called once")
+	t.equal(called, 3, "getEventForTimestamp, getStateEvent, and getJoinedMembers should be called once each")
 })
 
 test("message2event: message link from another server", async t => {

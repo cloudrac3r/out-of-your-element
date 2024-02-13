@@ -29,16 +29,34 @@ function mockGetEvent(t, roomID_in, eventID_in, outer) {
 	}
 }
 
+const viaApi = {
+	async getStateEvent(roomID, type, key) {
+		return {
+			users: {
+				"@_ooye_bot:cadence.moe": 100
+			}
+		}
+	},
+	async getJoinedMembers(roomID) {
+		return {
+			joined: {
+				"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+				"@user:matrix.org": {display_name: null, avatar_url: null}
+			}
+		}
+	}
+}
+
 test("thread2announcement: no known creator, no branched from event", async t => {
 	const content = await threadToAnnouncement("!parent", "!thread", null, {
 		name: "test thread",
 		id: "-1"
-	})
+	}, {api: viaApi})
 	t.deepEqual(content, {
 		msgtype: "m.text",
-		body: "Thread started: test thread https://matrix.to/#/!thread",
+		body: "Thread started: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
 		format: "org.matrix.custom.html",
-		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread">test thread</a>`,
+		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {}
 	})
 })
@@ -47,12 +65,12 @@ test("thread2announcement: known creator, no branched from event", async t => {
 	const content = await threadToAnnouncement("!parent", "!thread", "@_ooye_crunch_god:cadence.moe", {
 		name: "test thread",
 		id: "-1"
-	})
+	}, {api: viaApi})
 	t.deepEqual(content, {
 		msgtype: "m.emote",
-		body: "started a thread: test thread https://matrix.to/#/!thread",
+		body: "started a thread: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
 		format: "org.matrix.custom.html",
-		formatted_body: `started a thread: <a href="https://matrix.to/#/!thread">test thread</a>`,
+		formatted_body: `started a thread: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {}
 	})
 })
@@ -70,14 +88,15 @@ test("thread2announcement: no known creator, branched from discord event", async
 					msgtype: 'm.text',
 					body: 'testing testing testing'
 				}
-			})
+			}),
+			...viaApi
 		}
 	})
 	t.deepEqual(content, {
 		msgtype: "m.text",
-		body: "Thread started: test thread https://matrix.to/#/!thread",
+		body: "Thread started: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
 		format: "org.matrix.custom.html",
-		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread">test thread</a>`,
+		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {},
 		"m.relates_to": {
 			"m.in_reply_to": {
@@ -100,14 +119,15 @@ test("thread2announcement: known creator, branched from discord event", async t 
 					msgtype: 'm.text',
 					body: 'testing testing testing'
 				}
-			})
+			}),
+			...viaApi
 		}
 	})
 	t.deepEqual(content, {
 		msgtype: "m.emote",
-		body: "started a thread: test thread https://matrix.to/#/!thread",
+		body: "started a thread: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
 		format: "org.matrix.custom.html",
-		formatted_body: `started a thread: <a href="https://matrix.to/#/!thread">test thread</a>`,
+		formatted_body: `started a thread: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {},
 		"m.relates_to": {
 			"m.in_reply_to": {
@@ -130,14 +150,15 @@ test("thread2announcement: no known creator, branched from matrix event", async 
 					body: "so can you reply to my webhook uwu"
 				},
 				sender: "@cadence:cadence.moe"
-			})
+			}),
+			...viaApi
 		}
 	})
 	t.deepEqual(content, {
 		msgtype: "m.text",
-		body: "Thread started: test thread https://matrix.to/#/!thread",
+		body: "Thread started: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
 		format: "org.matrix.custom.html",
-		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread">test thread</a>`,
+		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {
 			user_ids: ["@cadence:cadence.moe"]
 		},

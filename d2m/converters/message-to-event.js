@@ -39,13 +39,12 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 				return `@${username}:`
 			}
 		},
-		// FIXME: type
-		/** @param {{id: string, type: "discordChannel", row: any, via: URLSearchParams}} node */
+		/** @param {{id: string, type: "discordChannel", row: {room_id: string, name: string, nick: string?}?, via: string}} node */
 		channel: node => {
 			if (!node.row) {
 				return `#[channel-from-an-unknown-server]` // fallback for when this channel is not bridged
 			} else if (useHTML) {
-				return `<a href="https://matrix.to/#/${node.row.room_id}?${node.via.toString()}">#${node.row.nick || node.row.name}</a>`
+				return `<a href="https://matrix.to/#/${node.row.room_id}?${node.via}">#${node.row.nick || node.row.name}</a>`
 			} else {
 				return `#${node.row.nick || node.row.name}`
 			}
@@ -283,6 +282,20 @@ async function messageToEvent(message, guild, options = {}, di) {
 		addMention(repliedToEventSenderMxid)
 	}
 
+	/** @type {Map<string, Promise<string>>} */
+	const viaMemo = new Map()
+	/**
+	 * @param {string} roomID
+	 * @returns {Promise<string>} string encoded URLSearchParams
+	 */
+	function getViaServersMemo(roomID) {
+		// @ts-ignore
+		if (viaMemo.has(roomID)) return viaMemo.get(roomID)
+		const promise = mxUtils.getViaServersQuery(roomID, di.api).then(p => p.toString())
+		viaMemo.set(roomID, promise)
+		return promise
+	}
+
 	/**
 	 * Translate Discord message links to Matrix event links.
 	 * If OOYE has handled this message in the past, this is an instant database lookup.
@@ -299,12 +312,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 			if (roomID) {
 				const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
+				const via = await getViaServersMemo(roomID)
 				if (eventID && roomID) {
-					result = `https://matrix.to/#/${roomID}/${eventID}`
+					result = `https://matrix.to/#/${roomID}/${eventID}?${via}`
 				} else {
 					const ts = dUtils.snowflakeToTimestampExact(messageID)
 					const {event_id} = await di.api.getEventForTimestamp(roomID, ts)
-					result = `https://matrix.to/#/${roomID}/${event_id}`
+					result = `https://matrix.to/#/${roomID}/${event_id}?${via}`
 				}
 			} else {
 				result = `${match[0]} [event is from another server]`
@@ -341,7 +355,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				if (node.type === "discordChannel") {
 					node.row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
 					if (node.row?.room_id) {
-						node.via = await mxUtils.getViaServersQuery(node.row.room_id, di.api)
+						node.via = await getViaServersMemo(node.row.room_id)
 					}
 				}
 				if (Array.isArray(node.content)) {

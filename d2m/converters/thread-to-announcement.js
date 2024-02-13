@@ -6,6 +6,8 @@ const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
 /** @type {import("../../matrix/read-registration")} */
 const reg = sync.require("../../matrix/read-registration.js")
+/** @type {import("../../m2d/converters/utils")} */
+const mxUtils = sync.require("../../m2d/converters/utils")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
@@ -29,8 +31,9 @@ async function threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thr
 
 	const msgtype = creatorMxid ? "m.emote" : "m.text"
 	const template = creatorMxid ? "started a thread:" : "Thread started:"
-	let body = `${template} ${thread.name} https://matrix.to/#/${threadRoomID}`
-	let html = `${template} <a href="https://matrix.to/#/${threadRoomID}">${thread.name}</a>`
+	const via = await mxUtils.getViaServersQuery(threadRoomID, di.api)
+	let body = `${template} ${thread.name} https://matrix.to/#/${threadRoomID}?${via.toString()}`
+	let html = `${template} <a href="https://matrix.to/#/${threadRoomID}?${via.toString()}">${thread.name}</a>`
 
 	return {
 		msgtype,
