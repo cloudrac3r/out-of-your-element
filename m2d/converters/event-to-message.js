@@ -509,6 +509,8 @@ async function eventToMessage(event, guild, di) {
 			const fileReplyContentAlternative = attachmentEmojis.get(repliedToEvent.content.msgtype)
 			if (fileReplyContentAlternative) {
 				contentPreview = " " + fileReplyContentAlternative
+			} else if (repliedToEvent.unsigned?.redacted_because) {
+				contentPreview = " (in reply to a deleted message)"
 			} else {
 				const repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 				const contentPreviewChunks = chunk(

@@ -1778,6 +1778,61 @@ test("event2message: with layered rich replies, the preview should only be the r
 	)
 })
 
+test("event2message: rich reply to a deleted event", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@ampflower:matrix.org",
+			content: {
+				msgtype: "m.text",
+				body: "> <@ampflower:matrix.org> \n\nHuh it did the same thing here too",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@ampflower:matrix.org\">@ampflower:matrix.org</a><br></blockquote></mx-reply>Huh it did the same thing here too",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU"
+					}
+				}
+			},
+			event_id: "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
+		 }, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU", {
+					type: "m.room.message",
+					sender: "@ampflower:matrix.org",
+					content: {},
+					origin_server_ts: 1707798292953,
+					unsigned: {
+						redacted_because: {
+							type: "m.room.redaction",
+							room_id: "!TqlyQmifxGUggEmdBN:cadence.moe",
+							sender: "@_ooye_bot:cadence.moe",
+							content: {},
+							redacts: "$uyOzmYhqcgF5i0bZb4MrAIEKEvzDOLgXdlRr1zfvWo0",
+							origin_server_ts: 1707798294565,
+							event_id: "$enCV-40Sut8llwALAV0T3qjwK7MvO9jgY9C4DHbxKXA",
+							user_id: "@_ooye_bot:cadence.moe",
+						},
+					},
+					user_id: "@ampflower:matrix.org"
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Ampflower 🌺",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**Ampflower 🌺** (in reply to a deleted message)"
+					+ "\nHuh it did the same thing here too",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/PRfhXYBTOalvgQYtmCLeUXko"
+			}]
+		}
+	)
+})
+
 test("event2message: raw mentioning discord users in plaintext body works", async t => {
 	t.deepEqual(
 		await eventToMessage({

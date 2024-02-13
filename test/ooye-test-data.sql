@@ -115,7 +115,8 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
 ('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
 ('!CzvdIdUQXgUjDVKxeU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!cBxtVRxDlZvSVhJXVK:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL);
+('!cBxtVRxDlZvSVhJXVK:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL),
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko');
 
 INSERT INTO lottie (sticker_id, mxc_url) VALUES
 ('860171525772279849', 'mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR');
