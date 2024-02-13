@@ -162,3 +162,17 @@ test("getViaServers: returns results even when power levels can't be fetched", a
 	})
 	t.deepEqual(result.length, 4)
 })
+
+test("getViaServers: only considers power levels of currently joined members", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => ({
+			users: {
+				"@moderator:tractor.invalid": 50,
+				"@former_moderator:missing.invalid": 100,
+				"@_ooye_bot:cadence.moe": 100
+			}
+		}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@singleuser:selfhosted.invalid"])
+	})
+	t.deepEqual(result, ["cadence.moe", "tractor.invalid", "thecollective.invalid", "selfhosted.invalid"])
+})
