@@ -1433,6 +1433,99 @@ test("event2message: reply preview uses emoji title text when replying to an unk
 	)
 })
 
+test("event2message: reply preview ignores garbage image", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@cadence:cadence.moe> I am having AAAA a nice day\n\nreply",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>I am having <img src=\"mxc://cadence.moe/AAAA\" /> a nice day</blockquote></mx-reply>reply",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs"
+					}
+				}
+			},
+			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
+			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: "I am having AAAA a nice day",
+						format: "org.matrix.custom.html",
+						formatted_body: "I am having <img src=\"mxc://cadence.moe/AAAA\" > a nice day"
+					}
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
+					+ "\n> I am having  a nice day"
+					+ "\nreply",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: reply to empty message doesn't show an extra line or anything", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "> <@cadence:cadence.moe> \n\nreply",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br></blockquote></mx-reply>reply",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs"
+					}
+				}
+			},
+			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
+			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
+					type: "m.room.message",
+					sender: "@cadence:cadence.moe",
+					content: {
+						msgtype: "m.text",
+						body: "",
+						format: "org.matrix.custom.html",
+						formatted_body: ""
+					}
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**"
+					+ "\nreply",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: editing a rich reply to a sim user", async t => {
 	const eventsFetched = []
 	t.deepEqual(
