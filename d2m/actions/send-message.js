@@ -39,7 +39,8 @@ async function sendMessage(message, guild, row) {
 			// Member is null if member was deleted. We just got this message, so member surely exists.
 			if (!root.member) {
 				const e = new Error("PK API did not return a member")
-				e["response"] = root
+				message["__pk_response__"] = root
+				console.error(root)
 				throw e
 			}
 			senderMxid = await registerPkUser.syncUser(message.author, root, roomID)
