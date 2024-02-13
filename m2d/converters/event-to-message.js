@@ -33,6 +33,12 @@ const markdownEscapes = [
 	[/^>/g, '\\>'],
 	[/_/g, '\\_'],
 	[/^(\d+)\. /g, '$1\\. ']
+	/*
+		Strikethrough is deliberately not escaped. Usually when Matrix users type ~~ it's not because they wanted to send ~~,
+		it's because they wanted strikethrough and it didn't work because their client doesn't support it.
+		As bridge developers, we can choose between "messages should look as similar as possible" vs "it was most likely intended to be strikethrough".
+		I went with the latter. Even though the appearance doesn't match, I'd rather it displayed as originally intended for 80% of the readers than for 0%.
+	*/
 ]
 
 const turndownService = new TurndownService({
@@ -91,7 +97,11 @@ turndownService.addRule("spoiler", {
 	},
 
 	replacement: function (content, node) {
-		return "||" + content + "||"
+		if (node.getAttribute("data-mx-spoiler")) {
+			// escape parentheses so it can't become a link
+			return `\\(${node.getAttribute("data-mx-spoiler")}\\) ||${content}||`
+		}
+		return `||${content}||`
 	}
 })
 
@@ -629,6 +639,9 @@ async function eventToMessage(event, guild, di) {
 
 			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")
+
+			// If there's a blockquote at the start of the message body and this message is a reply, they should be visually separated
+			if (replyLine && content.startsWith("> ")) content = "\n" + content
 
 			// SPRITE SHEET EMOJIS FEATURE:
 			content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
