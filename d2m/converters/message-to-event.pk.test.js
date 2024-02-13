@@ -29,8 +29,8 @@ function mockGetEvent(t, roomID_in, eventID_in, outer) {
 	}
 }
 
-test("message2event: pk reply is converted to native matrix reply", async t => {
-	const events = await messageToEvent(data.pk_message.pk_reply, {}, {}, {
+test("message2event: pk reply to matrix is converted to native matrix reply", async t => {
+	const events = await messageToEvent(data.pk_message.pk_reply_to_matrix, {}, {}, {
 		api: {
 			getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU", {
 				type: "m.room.message",
@@ -58,6 +58,36 @@ test("message2event: pk reply is converted to native matrix reply", async t => {
 		"m.relates_to": {
 			"m.in_reply_to": {
 				event_id: "$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU"
+			}
+		}
+	}])
+})
+
+test("message2event: pk reply to discord is converted to native matrix reply", async t => {
+	const events = await messageToEvent(data.pk_message.pk_reply_to_discord, {}, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU", {
+				type: "m.room.message",
+				sender: "@_ooye_.wing.:cadence.moe",
+				content: {
+					msgtype: "m.text",
+					body: "some text"
+				}
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {},
+		body: "> wing: some text\n\nthis is a reply",
+		format: "org.matrix.custom.html",
+		formatted_body: '<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA">In reply to</a> wing<br>'
+			+ "some text</blockquote></mx-reply>"
+			+ "this is a reply",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA"
 			}
 		}
 	}])

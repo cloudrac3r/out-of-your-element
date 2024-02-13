@@ -1765,7 +1765,7 @@ module.exports = {
 		}
 	},
 	pk_message: {
-		pk_reply: {
+		pk_reply_to_matrix: {
 			id: "1202543812644306965",
 			type: 0,
 			content: "this is a reply",
@@ -1789,6 +1789,45 @@ module.exports = {
 						name: "cadence [they] ↩️",
 						icon_url: "https://cdn.discordapp.com/avatars/1162510387057545227/af0ead3b92cf6e448fdad80b4e7fc9e5.png",
 						proxy_icon_url: "https://images-ext-1.discordapp.net/external/wWslraV-s-bLDwphL64YxeDm30M7PIhQQy0EQa8jpDc/https/cdn.discordapp.com/avatars/1162510387057545227/af0ead3b92cf6e448fdad80b4e7fc9e5.png"
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-02-01T09:19:47.118000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "466378653216014359",
+			webhook_id: "1195662438662680720"
+		},
+		pk_reply_to_discord: {
+			id: "1202543812644306965",
+			type: 0,
+			content: "this is a reply",
+			channel_id: "1160894080998461480",
+			author: {
+				id: "1195662438662680720",
+				username: "special name",
+				avatar: "6b44a106659e78a2550474c61889194d",
+				discriminator: "0000",
+				public_flags: 0,
+				flags: 0,
+				bot: true,
+				global_name: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					description: "**[Reply to:](https://discord.com/channels/112760669178241024/112760669178241024/1141501302736695316)** some text",
+					author: {
+						name: "wing ↩️",
+						icon_url: "https://cdn.discordapp.com/avatars/112890272819507200/47db1be7ab77e1d812a4573177af0692.png",
+						proxy_icon_url: "https://images-ext-1.discordapp.net/external/wWslraV-s-bLDwphL64YxeDm30M7PIhQQy0EQa8jpDc/https/cdn.discordapp.com/avatars/112890272819507200/47db1be7ab77e1d812a4573177af0692.png"
 					}
 				}
 			],

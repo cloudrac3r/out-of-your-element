@@ -261,10 +261,14 @@ async function messageToEvent(message, guild, options = {}, di) {
 					we generate a partial referenced_message based on what PK provided. we don't need everything, since this will only be used for further message-to-event converting.
 					the following properties are necessary:
 					- content: used for generating the reply fallback
+					- author: used for the top of the reply fallback (only used for discord authors. for matrix authors, repliedToEventSenderMxid is set.)
 				*/
-				// @ts-ignore
 				message.referenced_message = {
-					content: message.embeds[0].description.replace(/^.*?\)\*\*\s*/, "")
+					content: message.embeds[0].description.replace(/^.*?\)\*\*\s*/, ""),
+					// @ts-ignore
+					author: {
+						username: message.embeds[0].author.name.replace(/\s*↩️\s*$/, "")
+					}
 				}
 				message.embeds.shift()
 				repliedToEventRow = row
