@@ -87,7 +87,7 @@ turndownService.addRule("blockquote", {
 
 turndownService.addRule("spoiler", {
 	filter: function (node, options) {
-		return node.hasAttribute("data-mx-spoiler")
+		return node.tagName === "SPAN" && node.hasAttribute("data-mx-spoiler")
 	},
 
 	replacement: function (content, node) {
