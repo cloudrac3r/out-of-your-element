@@ -152,3 +152,13 @@ test("getViaServers: returns at most 4 results", async t => {
 	})
 	t.deepEqual(result.length, 4)
 })
+
+test("getViaServers: returns results even when power levels can't be fetched", async t => {
+	const result = await getViaServers("!baby", {
+		getStateEvent: async () => {
+			throw new Error("event not found or something")
+		},
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@cadence:123example.456example.invalid"])
+	})
+	t.deepEqual(result.length, 4)
+})
