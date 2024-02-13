@@ -1778,6 +1778,60 @@ test("event2message: with layered rich replies, the preview should only be the r
 	)
 })
 
+test("event2message: if event is a reply and starts with a quote, they should be separated by a blank line, so that they don't visually merge together", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@aflower:syndicated.gay",
+			content: {
+				body: "> <@aflower:syndicated.gay> i have a feeling that clients are *meant to* strip these reply fallbacks too, just that none of them, in reality, do\n\n>To strip the fallback on the <code>body</code>, the client should iterate over each line of the string, removing any lines that start with the fallback prefix (&quot;&gt; &ldquo;, including the space, without quotes) and stopping when a line is encountered without the prefix. This prefix is known as the &ldquo;fallback prefix sequence&rdquo;.",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$tTYQcke93fwocsc1K6itwUq85EG0RZ0ksCuIglKioks\">In reply to</a> <a href=\"https://matrix.to/#/@aflower:syndicated.gay\">@aflower:syndicated.gay</a><br/>i have a feeling that clients are <em>meant to</em> strip these reply fallbacks too, just that none of them, in reality, do</blockquote></mx-reply><blockquote>\n<p>To strip the fallback on the <code>body</code>, the client should iterate over each line of the string, removing any lines that start with the fallback prefix (&quot;&gt; “, including the space, without quotes) and stopping when a line is encountered without the prefix. This prefix is known as the “fallback prefix sequence”.</p>\n</blockquote>",
+				"im.nheko.relations.v1.relations": [
+					{
+						event_id: "$tTYQcke93fwocsc1K6itwUq85EG0RZ0ksCuIglKioks",
+						rel_type: "im.nheko.relations.v1.in_reply_to"
+					}
+				],
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$tTYQcke93fwocsc1K6itwUq85EG0RZ0ksCuIglKioks"
+					}
+				},
+				msgtype: "m.text"
+			},
+			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe",
+			event_id: "$nCvtZeBFedYuEavt4OftloCHc0kaFW2ktHCfIOklhjU",
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$tTYQcke93fwocsc1K6itwUq85EG0RZ0ksCuIglKioks", {
+					sender: "@aflower:syndicated.gay",
+					type: "m.room.message",
+					content: {
+						body: "i have a feeling that clients are *meant to* strip these reply fallbacks too, just that none of them, in reality, do",
+						format: "org.matrix.custom.html",
+						formatted_body: "i have a feeling that clients are <em>meant to</em> strip these reply fallbacks too, just that none of them, in reality, do",
+						msgtype: "m.text"
+					}
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Rose",
+				content: "> <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**Rose**:"
+					+ "\n> i have a feeling that clients are meant to strip..."
+					+ "\n"
+					+ "\n> To strip the fallback on the `body`, the client should iterate over each line of the string, removing any lines that start with the fallback prefix (\"> “, including the space, without quotes) and stopping when a line is encountered without the prefix. This prefix is known as the “fallback prefix sequence”.",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP"
+			}]
+		}
+	)
+})
+
 test("event2message: rich reply to a deleted event", async t => {
 	t.deepEqual(
 		await eventToMessage({
