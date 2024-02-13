@@ -105,7 +105,17 @@ test("message2event: unknown room mention", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "#[channel-from-an-unknown-server]"
+		body: "#unknown-channel [channel from an unbridged server]"
+	}])
+})
+
+test("message2event: unbridged room mention", async t => {
+	const events = await messageToEvent(data.message.unbridged_room_mention, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "#bad-boots-prison [channel not bridged]"
 	}])
 })
 

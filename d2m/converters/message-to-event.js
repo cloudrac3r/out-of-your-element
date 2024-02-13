@@ -41,8 +41,13 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		},
 		/** @param {{id: string, type: "discordChannel", row: {room_id: string, name: string, nick: string?}?, via: string}} node */
 		channel: node => {
-			if (!node.row) {
-				return `#[channel-from-an-unknown-server]` // fallback for when this channel is not bridged
+			if (!node.row) { // fallback for when this channel is not bridged
+				const channel = discord.channels.get(node.id)
+				if (channel) {
+					return `#${channel.name} [channel not bridged]`
+				} else {
+					return `#unknown-channel [channel from an unbridged server]`
+				}
 			} else if (useHTML) {
 				return `<a href="https://matrix.to/#/${node.row.room_id}?${node.via}">#${node.row.nick || node.row.name}</a>`
 			} else {

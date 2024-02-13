@@ -29,6 +29,10 @@ const discord = {
 	channels: new Map([
 		["497161350934560778", {
 			guild_id: "497159726455455754"
+		}],
+		["498323546729086986", {
+			guild_id: "497159726455455754",
+			name: "bad-boots-prison"
 		}]
 	])
 }
