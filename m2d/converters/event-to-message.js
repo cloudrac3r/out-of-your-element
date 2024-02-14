@@ -126,6 +126,7 @@ turndownService.addRule("inlineLink", {
 		if (node.getAttribute("data-message-id")) return `https://discord.com/channels/${node.getAttribute("data-guild-id")}/${node.getAttribute("data-channel-id")}/${node.getAttribute("data-message-id")}`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
+		if (href === content) return href
 		let brackets = ["", ""]
 		content = content.replace(/ @.*/, "")
 		if (href.startsWith("https://matrix.to")) brackets = ["<", ">"]
