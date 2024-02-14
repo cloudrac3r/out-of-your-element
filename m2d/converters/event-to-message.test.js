@@ -172,6 +172,33 @@ test("event2message: links in plaintext body are not broken", async t => {
 	)
 })
 
+test("event2message: links in formatted body where the text & href are the same, just post the link once", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			content: {
+				body: "https://privatebin.net/?9111cb16f28da21b#62CKkEr6WvXZ1gQv2M6agazsA7tGYX8ZP8drETYujYZr",
+				format: "org.matrix.custom.html",
+				formatted_body: "<a href=\"https://privatebin.net/?9111cb16f28da21b#62CKkEr6WvXZ1gQv2M6agazsA7tGYX8ZP8drETYujYZr\">https://privatebin.net/?9111cb16f28da21b#62CKkEr6WvXZ1gQv2M6agazsA7tGYX8ZP8drETYujYZr</a>",
+				msgtype: "m.text"
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$p3AOv1eReiSH0g06_8AZ0WH0qSeaGdqwHhiNx_hz-bs",
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "https://privatebin.net/?9111cb16f28da21b#62CKkEr6WvXZ1gQv2M6agazsA7tGYX8ZP8drETYujYZr",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: basic html is converted to markdown", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -2664,7 +2691,7 @@ test("event2message: link to event in an unknown room", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "ah yeah, here's where the bug was reported: [https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org](<https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org>)",
+				content: "ah yeah, here's where the bug was reported: <https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org>",
 				avatar_url: undefined
 			}]
 		}
