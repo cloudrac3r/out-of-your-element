@@ -50,9 +50,9 @@ test("message2event: pk reply to matrix is converted to native matrix reply", as
 			]
 		},
 		msgtype: "m.text",
-		body: "> cadence: now for my next experiment:\n\nthis is a reply",
+		body: "> cadence [they]: now for my next experiment:\n\nthis is a reply",
 		format: "org.matrix.custom.html",
-		formatted_body: '<mx-reply><blockquote><a href="https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">cadence</a><br>'
+		formatted_body: '<mx-reply><blockquote><a href="https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">cadence [they]</a><br>'
 			+ "now for my next experiment:</blockquote></mx-reply>"
 			+ "this is a reply",
 		"m.relates_to": {
@@ -88,6 +88,46 @@ test("message2event: pk reply to discord is converted to native matrix reply", a
 		"m.relates_to": {
 			"m.in_reply_to": {
 				event_id: "$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA"
+			}
+		}
+	}])
+})
+
+test("message2event: pk reply to matrix attachment is converted to native matrix reply", async t => {
+	const events = await messageToEvent(data.pk_message.pk_reply_to_matrix_attachment, {}, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$OEEK-Wam2FTh6J-6kVnnJ6KnLA_lLRnLTHatKKL62-Y", {
+				sender: "@ampflower:matrix.org",
+				type: "m.room.message",
+				content: {
+					body: "catnod.gif",
+					filename: "catnod.gif",
+					info: {
+						h: 128,
+						mimetype: "image/gif",
+						size: 20816,
+						w: 128
+					},
+					msgtype: "m.image",
+					url: "mxc://matrix.org/jtzXIawXCkFIHSsMUNsKkUJX"
+				}
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {
+			user_ids: ["@ampflower:matrix.org"]
+		},
+		body: "> Ampflower 🌺: [Media]\n\nCat nod",
+		format: "org.matrix.custom.html",
+		formatted_body: '<mx-reply><blockquote><a href="https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$OEEK-Wam2FTh6J-6kVnnJ6KnLA_lLRnLTHatKKL62-Y">In reply to</a> <a href="https://matrix.to/#/@ampflower:matrix.org">Ampflower 🌺</a><br>'
+			+ "[Media]</blockquote></mx-reply>"
+			+ "Cat nod",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$OEEK-Wam2FTh6J-6kVnnJ6KnLA_lLRnLTHatKKL62-Y"
 			}
 		}
 	}])

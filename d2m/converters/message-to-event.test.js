@@ -553,9 +553,9 @@ test("message2event: simple reply in thread to a matrix user's reply", async t =
 			user_ids: ["@cadence:cadence.moe"]
 		},
 		msgtype: "m.text",
-      body: "> cadence: What about them?\n\nWell, they don't seem to...",
+      body: "> cadence [they]: What about them?\n\nWell, they don't seem to...",
       format: "org.matrix.custom.html",
-      formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe/$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">cadence</a><br>What about them?</blockquote></mx-reply>Well, they don't seem to...",
+      formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe/$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">cadence [they]</a><br>What about them?</blockquote></mx-reply>Well, they don't seem to...",
 	}])
 })
 

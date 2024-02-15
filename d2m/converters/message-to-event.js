@@ -256,26 +256,35 @@ async function messageToEvent(message, guild, options = {}, di) {
 		if (row) {
 			repliedToEventRow = row
 		}
-	} else if (dUtils.isWebhookMessage(message) && message.embeds[0]?.author?.name?.endsWith("↩️") && message.embeds[0].description?.startsWith("**[Reply to:]")) {
-		const match = message.embeds[0].description.match(/\/channels\/[0-9]*\/[0-9]*\/([0-9]{2,})/)
-		if (match) {
-			const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id").select("event_id", "room_id", "source").and("WHERE message_id = ? AND part = 0").get(match[1])
-			if (row) {
-				/*
-					we generate a partial referenced_message based on what PK provided. we don't need everything, since this will only be used for further message-to-event converting.
-					the following properties are necessary:
-					- content: used for generating the reply fallback
-					- author: used for the top of the reply fallback (only used for discord authors. for matrix authors, repliedToEventSenderMxid is set.)
-				*/
-				message.referenced_message = {
-					content: message.embeds[0].description.replace(/^.*?\)\*\*\s*/, ""),
-					// @ts-ignore
-					author: {
-						username: message.embeds[0].author.name.replace(/\s*↩️\s*$/, "")
+	} else if (dUtils.isWebhookMessage(message) && message.embeds[0]?.author?.name?.endsWith("↩️")) {
+		// It could be a PluralKit emulated reply, let's see if it has a message link
+		const isEmulatedReplyToText = message.embeds[0].description?.startsWith("**[Reply to:]")
+		const isEmulatedReplyToAttachment = message.embeds[0].description?.startsWith("*[(click to see attachment")
+		if (isEmulatedReplyToText || isEmulatedReplyToAttachment) {
+			assert(message.embeds[0].description)
+			const match = message.embeds[0].description.match(/\/channels\/[0-9]*\/[0-9]*\/([0-9]{2,})/)
+			if (match) {
+				const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id").select("event_id", "room_id", "source").and("WHERE message_id = ? AND part = 0").get(match[1])
+				if (row) {
+					/*
+						we generate a partial referenced_message based on what PK provided. we don't need everything, since this will only be used for further message-to-event converting.
+						the following properties are necessary:
+						- content: used for generating the reply fallback
+						- author: used for the top of the reply fallback (only used for discord authors. for matrix authors, repliedToEventSenderMxid is set.)
+					*/
+					const emulatedMessageContent =
+						( isEmulatedReplyToAttachment ? "[Media]"
+						: message.embeds[0].description.replace(/^.*?\)\*\*\s*/, ""))
+					message.referenced_message = {
+						content: emulatedMessageContent,
+						// @ts-ignore
+						author: {
+							username: message.embeds[0].author.name.replace(/\s*↩️\s*$/, "")
+						}
 					}
+					message.embeds.shift()
+					repliedToEventRow = row
 				}
-				message.embeds.shift()
-				repliedToEventRow = row
 			}
 		}
 	}
@@ -407,7 +416,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			if (repliedToEventRow?.source === 0 && repliedToEventSenderMxid) {
 				const match = repliedToEventSenderMxid.match(/^@([^:]*)/)
 				assert(match)
-				repliedToDisplayName = match[1] || "a Matrix user" // grab the localpart as the display name, whatever
+				repliedToDisplayName = message.referenced_message?.author.username || match[1] || "a Matrix user" // grab the localpart as the display name, whatever
 				repliedToUserHtml = `<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
 			} else {
 				repliedToDisplayName = message.referenced_message?.author.global_name || message.referenced_message?.author.username || "a Discord user"
