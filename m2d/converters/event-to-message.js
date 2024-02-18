@@ -209,14 +209,19 @@ function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink
 	// Get the known emoji from the database.
 	let row
 	if (mxcUrl) row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrl}).get()
+	// Now we have to search all servers to see if we're able to send this emoji.
+	if (row) {
+		const found = [...discord.guilds.values()].find(g => g.emojis.find(e => e.id === row.id))
+		if (!found) row = null
+	}
+	// Or, if we don't have an emoji right now, we search for the name instead.
 	if (!row && nameForGuess) {
-		// We don't know the emoji, but we could guess a suitable emoji based on the name
 		const nameForGuessLower = nameForGuess.toLowerCase()
 		for (const guild of discord.guilds.values()) {
 			/** @type {{name: string, id: string, animated: number}[]} */
 			// @ts-ignore
 			const emojis = guild.emojis
-			const found = emojis.find(e => e.name?.toLowerCase() === nameForGuessLower)
+			const found = emojis.find(e => e.id === row?.id || e.name?.toLowerCase() === nameForGuessLower)
 			if (found) {
 				row = {
 					animated: found.animated,
@@ -643,19 +648,6 @@ async function eventToMessage(event, guild, di) {
 			// input = input.replace(/ /g, "&nbsp;")
 			// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
 
-			// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
-			// First we need to determine which emojis are at the end.
-			endOfMessageEmojis = []
-			let match
-			let last = input.length
-			while ((match = input.slice(0, last).match(/<img [^>]*>\s*$/))) {
-				if (!match[0].includes("data-mx-emoticon")) break
-				const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
-				if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])
-				assert(typeof match.index === "number", "Your JavaScript implementation does not comply with TC39: https://tc39.es/ecma262/multipage/text-processing.html#sec-regexpbuiltinexec")
-				last = match.index
-			}
-
 			// Handling written @mentions: we need to look for candidate Discord members to join to the room
 			// This shouldn't apply to code blocks, links, or inside attributes. So editing the HTML tree instead of regular expressions is a sensible choice here.
 			// We're using the domino parser because Turndown uses the same and can reuse this tree.
@@ -700,6 +692,19 @@ async function eventToMessage(event, guild, di) {
 				}
 			}
 			await forEachNode(root)
+
+			// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
+			// First we need to determine which emojis are at the end.
+			endOfMessageEmojis = []
+			let match
+			let last = input.length
+			while ((match = input.slice(0, last).match(/<img [^>]*>\s*$/))) {
+				if (!match[0].includes("data-mx-emoticon")) break
+				const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
+				if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])
+				assert(typeof match.index === "number", "Your JavaScript implementation does not comply with TC39: https://tc39.es/ecma262/multipage/text-processing.html#sec-regexpbuiltinexec")
+				last = match.index
+			}
 
 			// @ts-ignore bad type from turndown
 			content = turndownService.turndown(root)
