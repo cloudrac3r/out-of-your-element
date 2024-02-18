@@ -1,7 +1,7 @@
 const assert = require("assert").strict
 const {test} = require("supertape")
 const {_convertImageStream} = require("./emoji-sheet")
-const fetch = require("node-fetch")
+const fs = require("fs")
 const {Transform} = require("stream").Transform
 
 /* c8 ignore next 7 */
@@ -25,18 +25,16 @@ class Meter extends Transform {
 
 /**
  * @param {import("supertape").Test} t
- * @param {string} url
+ * @param {string} path
  * @param {number} totalSize
  */
-async function runSingleTest(t, url, totalSize) {
-	const abortController = new AbortController()
-	const res = await fetch("https://ezgif.com/images/format-demo/butterfly.png", {agent: false, signal: abortController.signal})
+async function runSingleTest(t, path, totalSize) {
+	const file = fs.createReadStream(path)
 	const meter = new Meter()
-	const p = res.body.pipe(meter)
+	const p = file.pipe(meter)
 	const result = await _convertImageStream(p, () => {
-		abortController.abort()
-		res.body.pause()
-		res.body.emit("end")
+		file.pause()
+		file.emit("end")
 	})
 	t.equal(result.subarray(1, 4).toString("ascii"), "PNG", `result was not a PNG file: ${result.toString("base64")}`)
 	/* c8 ignore next 5 */
@@ -48,9 +46,9 @@ async function runSingleTest(t, url, totalSize) {
 }
 
 slow()("emoji-sheet: only partial file is read for APNG", async t => {
-	await runSingleTest(t, "https://ezgif.com/images/format-demo/butterfly.png", 2438998)
+	await runSingleTest(t, "test/res/butterfly.png", 2438998)
 })
 
 slow()("emoji-sheet: only partial file is read for GIF", async t => {
-	await runSingleTest(t, "https://ezgif.com/images/format-demo/butterfly.gif", 781223)
+	await runSingleTest(t, "test/res/butterfly.gif", 781223)
 })

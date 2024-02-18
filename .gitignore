@@ -3,3 +3,4 @@ config.js
 registration.yaml
 coverage
 db/ooye.db*
+test/res/butterfly*

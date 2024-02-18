@@ -7,6 +7,9 @@ const migrate = require("../db/migrate")
 const HeatSync = require("heatsync")
 const {test} = require("supertape")
 const data = require("./data")
+/** @type {import("node-fetch").default} */
+// @ts-ignore
+const fetch = require("node-fetch")
 
 const config = require("../config")
 const passthrough = require("../passthrough")
@@ -60,6 +63,27 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	})
 
 	db.exec(fs.readFileSync(join(__dirname, "ooye-test-data.sql"), "utf8"))
+
+	/* c8 ignore start - maybe download some more test files in slow mode */
+	if (process.argv.includes("--slow")) {
+		test("test files: download", async t => {
+			function download(url, to) {
+				return new Promise(async resolve => {
+					if (fs.existsSync(to)) return resolve(null)
+					const res = await fetch(url)
+					res.body.pipe(fs.createWriteStream(to, {encoding: "binary"}))
+					res.body.once("finish", resolve)
+				})
+			}
+			await Promise.all([
+				download("https://ezgif.com/images/format-demo/butterfly.png", "test/res/butterfly.png"),
+				download("https://ezgif.com/images/format-demo/butterfly.gif", "test/res/butterfly.gif")
+			])
+			t.pass("downloaded")
+		})
+	}
+	/* c8 ignore end */
+
 	require("../db/orm.test")
 	require("../discord/utils.test")
 	require("../matrix/kstate.test")

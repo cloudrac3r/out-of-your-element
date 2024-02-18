@@ -52,7 +52,7 @@
   "scripts": {
     "addbot": "node addbot.js",
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot",
-    "test-slow": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js -- --slow | tap-dot",
+    "test-slow": "cross-env FORCE_COLOR=true SUPERTAPE_TIMEOUT=6000 supertape --no-check-assertions-count --format tap test/test.js -- --slow | tap-dot",
     "cover": "c8 --skip-full -x db/migrations -x matrix/file.js -x matrix/api.js -x matrix/mreq.js -r html -r text supertape --no-check-assertions-count --format fail test/test.js -- --slow"
   }
 }
