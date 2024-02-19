@@ -517,21 +517,16 @@ test("event2message: code blocks work", async t => {
 test("event2message: code block contents are formatted correctly and not escaped", async t => {
 	t.deepEqual(
 		await eventToMessage({
-			"type": "m.room.message",
-			"sender": "@cadence:cadence.moe",
-			"content": {
-				"msgtype": "m.text",
-				"body": "wrong body",
-				"format": "org.matrix.custom.html",
-				"formatted_body": "<pre><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n_input_ = input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n</code></pre>\n<p><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,</code></p>\n"
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<pre><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n_input_ = input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n</code></pre>\n<p><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,</code></p>\n"
 			},
-			"origin_server_ts": 1693031482275,
-			"unsigned": {
-				"age": 99,
-				"transaction_id": "m1693031482146.511"
-			},
-			"event_id": "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -540,6 +535,75 @@ test("event2message: code block contents are formatted correctly and not escaped
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "```\ninput = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n_input_ = input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n```\n\n`input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,`",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: code blocks are uploaded as attachments instead if they contain incompatible backticks", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'So if you run code like this<pre><code class="language-java">System.out.println("```");</code></pre>it should print a markdown formatted code block'
+			},
+			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "So if you run code like this `[inline_code.java]` it should print a markdown formatted code block",
+				attachments: [{id: "0", filename: "inline_code.java"}],
+				pendingFiles: [{name: "inline_code.java", buffer: Buffer.from('System.out.println("```");')}],
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: characters are encoded properly in code blocks", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: '<pre><code class="rs language-rs">fn extract_diff(chat_response: &amp;str) -&gt; Result&lt;String&gt; {'
+					+ '\n    let fragments = regex!(r#"^```diff.*?^(.*?)^```.*?($|\\z)"#sm)'
+					+ '\n        .captures_iter(chat_response)'
+					+ '\n        .map(|c| c.get(1).unwrap().as_str())'
+					+ '\n        .collect::&lt;String&gt;();'
+			  		+ '\n</code></pre>'
+			},
+			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "`[inline_code.rs]`",
+				attachments: [{id: "0", filename: "inline_code.rs"}],
+				pendingFiles: [{name: "inline_code.rs", buffer: Buffer.from(
+					'fn extract_diff(chat_response: &str) -> Result<String> {'
+					+ '\n    let fragments = regex!(r#"^```diff.*?^(.*?)^```.*?($|\\z)"#sm)'
+					+ '\n        .captures_iter(chat_response)'
+					+ '\n        .map(|c| c.get(1).unwrap().as_str())'
+					+ '\n        .collect::<String>();'
+				)}],
 				avatar_url: undefined
 			}]
 		}

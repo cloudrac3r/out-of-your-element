@@ -181,7 +181,7 @@ turndownService.addRule("fencedCodeBlock", {
 		const className = node.firstChild.getAttribute("class") || ""
 		const language = (className.match(/language-(\S+)/) || [null, ""])[1]
 		const code = node.firstChild
-		const visibleCode = code.childNodes.map(c => c.nodeName === "BR" ? "\n" : c.textContent).join("").replace(/\n*$/g, "")
+		const visibleCode = getCodeContent(code)
 
 		var fence = "```"
 
@@ -192,6 +192,11 @@ turndownService.addRule("fencedCodeBlock", {
 		)
 	}
 })
+
+/** @param {{ childNodes: Node[]; }} preCode the <code> directly inside the <pre> */
+function getCodeContent(preCode) {
+	return preCode.childNodes.map(c => c.nodeName === "BR" ? "\n" : c.textContent).join("").replace(/\n*$/g, "")
+}
 
 /**
  * @param {string | null} mxcUrl
@@ -308,7 +313,7 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
 	const buffer = await emojiSheet.compositeMatrixEmojis(endOfMessageEmojis)
 	// Attach it
 	const name = "emojis.png"
-	attachments.push({id: "0", name})
+	attachments.push({id: String(attachments.length), name})
 	pendingFiles.push({name, buffer})
 	return content
 }
@@ -391,6 +396,16 @@ async function checkWrittenMentions(content, guild, di) {
 			}
 		}
 	}
+}
+
+/**
+ * @param {Element} node
+ * @param {string[]} tagNames allcaps tag names
+ * @returns {any | undefined} the node you were checking for, or undefined
+ */
+function nodeIsChildOf(node, tagNames) {
+	// @ts-ignore
+	for (; node; node = node.parentNode) if (tagNames.includes(node.tagName)) return node
 }
 
 const attachmentEmojis = new Map([
@@ -651,19 +666,37 @@ async function eventToMessage(event, guild, di) {
 			const root = doc.getElementById("turndown-root");
 			async function forEachNode(node) {
 				for (; node; node = node.nextSibling) {
-					if (node.nodeType === 3 && node.nodeValue.includes("@")) {
+					// Check written mentions
+					if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
 						const result = await checkWrittenMentions(node.nodeValue, guild, di)
 						if (result) {
 							node.nodeValue = result.content
 							ensureJoined.push(result.ensureJoined)
 						}
 					}
-					if (node.nodeType === 1 && ["CODE", "PRE", "A"].includes(node.tagName)) {
-						// don't recurse into code or links
-					} else {
-						// do recurse into everything else
-						await forEachNode(node.firstChild)
+					// Check for incompatible backticks in code blocks
+					let preNode
+					if (node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))) {
+						if (preNode.firstChild?.nodeName === "CODE") {
+							const ext = (preNode.firstChild.className.match(/language-(\S+)/) || [null, "txt"])[1]
+							const filename = `inline_code.${ext}`
+							// Build the replacement <code> node
+							const replacementCode = doc.createElement("code")
+							replacementCode.textContent = `[${filename}]`
+							// Build its containing <span> node
+							const replacement = doc.createElement("span")
+							replacement.appendChild(doc.createTextNode(" "))
+							replacement.appendChild(replacementCode)
+							replacement.appendChild(doc.createTextNode(" "))
+							// Replace the code block with the <span>
+							preNode.replaceWith(replacement)
+							// Upload the code as an attachment
+							const content = getCodeContent(preNode.firstChild)
+							attachments.push({id: String(attachments.length), filename})
+							pendingFiles.push({name: filename, buffer: Buffer.from(content, "utf8")})
+						}
 					}
+					await forEachNode(node.firstChild)
 				}
 			}
 			await forEachNode(root)
