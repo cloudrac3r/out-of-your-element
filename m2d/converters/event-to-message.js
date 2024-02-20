@@ -126,12 +126,10 @@ turndownService.addRule("inlineLink", {
 		if (node.getAttribute("data-message-id")) return `https://discord.com/channels/${node.getAttribute("data-guild-id")}/${node.getAttribute("data-channel-id")}/${node.getAttribute("data-message-id")}`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
-		let brackets = ["", ""]
 		content = content.replace(/ @.*/, "")
-		if (href.startsWith("https://matrix.to")) brackets = ["<", ">"]
-		if (href === content) return brackets[0] + href + brackets[1]
+		if (href === content) return href
 		if (href.startsWith("https://matrix.to/#/@") && content[0] !== "@") content = "@" + content
-		return "[" + content + "](" + brackets[0] + href + brackets[1] + ")"
+		return "[" + content + "](" + href + ")"
 	}
 })
 
@@ -709,6 +707,9 @@ async function eventToMessage(event, guild, di) {
 			// @ts-ignore bad type from turndown
 			content = turndownService.turndown(root)
 
+			// Put < > around any surviving matrix.to links to hide the URL previews
+			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/, "<$&>")
+
 			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")
 
@@ -725,7 +726,8 @@ async function eventToMessage(event, guild, di) {
 				content = `* ${displayName} ${content}`
 			}
 
-			content = await handleRoomOrMessageLinks(content, di)
+			content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
+			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
 
 			const result = await checkWrittenMentions(content, guild, di)
 			if (result) {

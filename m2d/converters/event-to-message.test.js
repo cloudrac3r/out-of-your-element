@@ -2731,7 +2731,7 @@ test("event2message: mentioning events falls back to original link when the chan
 	)
 })
 
-test("event2message: link to event in an unknown room", async t => {
+test("event2message: link to event in an unknown room (href link)", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			content: {
@@ -2741,13 +2741,61 @@ test("event2message: link to event in an unknown room", async t => {
 				formatted_body: 'ah yeah, here\'s where the bug was reported: <a href="https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org">https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org</a>'
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
-			origin_server_ts: 1688301929913,
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
 			sender: "@cadence:cadence.moe",
 			type: "m.room.message",
-			unsigned: {
-				age: 405299
-			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "ah yeah, here's where the bug was reported: <https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org>",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: link to event in an unknown room (bare link)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "PK API failure, tho idk how you'd handle that https://matrix.to/#/!SeYQChwXBnZaQLoZfI:sleeping.town/$AAPZ56B2P7TfROYPTtuoJjgvXmaBM11NoNceM8GCJ7s",
+				msgtype: "m.text"
+			},
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			event_id: "$-UwntiHseGfch1GMjTROIgDbgLGIOwMx0vJdTi-dmok",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "PK API failure, tho idk how you'd handle that <https://matrix.to/#/!SeYQChwXBnZaQLoZfI:sleeping.town/$AAPZ56B2P7TfROYPTtuoJjgvXmaBM11NoNceM8GCJ7s>",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
+test("event2message: link to event in an unknown room (plaintext)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "ah yeah, here's where the bug was reported: https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
 		}),
 		{
 			ensureJoined: [],
