@@ -3522,7 +3522,7 @@ test("event2message: guessed @mentions work with other matrix bridge old users",
 	)
 })
 
-slow()("event2message: unknown emoji in the end is reuploaded as a sprite sheet", async t => {
+slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet", async t => {
 	const messages = await eventToMessage({
 		type: "m.room.message",
 		sender: "@cadence:cadence.moe",
@@ -3544,6 +3544,31 @@ slow()("event2message: unknown emoji in the end is reuploaded as a sprite sheet"
 		content: "a b",
 		fileName: "emojis.png",
 		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALkklEQVR4nM1ZeWyUxxV/azAGwn0JMJUppPhce++1Oc1i"
+	})
+})
+
+slow()("event2message: known emoji from an unreachable server at the end is reuploaded as a sprite sheet", async t => {
+	const messages = await eventToMessage({
+		type: "m.room.message",
+		sender: "@cadence:cadence.moe",
+		content: {
+			msgtype: "m.text",
+			body: "wrong body",
+			format: "org.matrix.custom.html",
+			formatted_body: 'a b <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/bZFuuUSEebJYXUMSxuuSuLTa\" title=\":emoji_from_unreachable_server:\" alt=\":emoji_from_unreachable_server:\">'
+		},
+		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+	})
+	const testResult = {
+		content: messages.messagesToSend[0].content,
+		fileName: messages.messagesToSend[0].pendingFiles[0].name,
+		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
+	}
+	t.deepEqual(testResult, {
+		content: "a b",
+		fileName: "emojis.png",
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAOnUlEQVR4nM1aCXCb1Z3/kig+5NjWaeu+LOuWLFnHJ8l2"
 	})
 })
 

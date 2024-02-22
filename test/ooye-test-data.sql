@@ -104,6 +104,7 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('230201364309868544', 'hippo', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),
 ('393635038903926784', 'hipposcope', 1, 'mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc'),
+('457898385297815911', 'emoji_from_unreachable_server', 0, 'mxc://cadence.moe/bZFuuUSEebJYXUMSxuuSuLTa'),
 ('362741439211503616', 'bn_re', 0, 'mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT'),
 ('551636841284108289', 'ae_botrac4r', 0, 'mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs'),
 ('975572106295259148', 'brillillillilliant_move', 0, 'mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik'),
