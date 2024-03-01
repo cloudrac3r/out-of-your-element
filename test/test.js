@@ -2,6 +2,7 @@
 
 const fs = require("fs")
 const {join} = require("path")
+const stp = require("stream").promises
 const sqlite = require("better-sqlite3")
 const migrate = require("../db/migrate")
 const HeatSync = require("heatsync")
@@ -10,6 +11,7 @@ const data = require("./data")
 /** @type {import("node-fetch").default} */
 // @ts-ignore
 const fetch = require("node-fetch")
+const {green} = require("colorette")
 
 const config = require("../config")
 const passthrough = require("../passthrough")
@@ -50,6 +52,48 @@ const file = sync.require("../matrix/file")
 file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 
 ;(async () => {
+	/* c8 ignore start - maybe download some more test files in slow mode */
+	if (process.argv.includes("--slow")) {
+		test("test files: download", async t => {
+			/** @param {{url: string, to: string}[]} files */
+			async function allReporter(files) {
+				return new Promise(resolve => {
+					let resolved = 0
+					const report = files.map(file => file.to.split("/").slice(-1)[0][0])
+					files.map(download).forEach((p, i) => {
+						p.then(() => {
+							report[i] = green(".")
+							process.stderr.write("\r" + report.join(""))
+							if (++resolved === files.length) resolve(null)
+						})
+					})
+				})
+			}
+			async function download({url, to}) {
+				if (await fs.existsSync(to)) return
+				const res = await fetch(url)
+				await stp.pipeline(res.body, fs.createWriteStream(to, {encoding: "binary"}))
+			}
+			await allReporter([
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy", to: "test/res/RLMgJGfgTPjIQtvvWZsYjhjy.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/bZFuuUSEebJYXUMSxuuSuLTa", to: "test/res/bZFuuUSEebJYXUMSxuuSuLTa.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/qWmbXeRspZRLPcjseyLmeyXC", to: "test/res/qWmbXeRspZRLPcjseyLmeyXC.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA", to: "test/res/wcouHVjbKJJYajkhJLsyeJAA.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/WbYqNlACRuicynBfdnPYtmvc", to: "test/res/WbYqNlACRuicynBfdnPYtmvc.gif"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/HYcztccFIPgevDvoaWNsEtGJ", to: "test/res/HYcztccFIPgevDvoaWNsEtGJ.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix", to: "test/res/lHfmJpzgoNyNtYHdAmBHxXix.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU", to: "test/res/MtRdXixoKjKKOyHJGWLsWLNU.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/HXfFuougamkURPPMflTJRxGc", to: "test/res/HXfFuougamkURPPMflTJRxGc.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX", to: "test/res/ikYKbkhGhMERAuPPbsnQzZiX.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ", to: "test/res/AYPpqXzVJvZdzMQJGjioIQBZ.png"},
+				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj", to: "test/res/UVuzvpVUhqjiueMxYXJiFEAj.png"},
+				{url: "https://ezgif.com/images/format-demo/butterfly.gif", to: "test/res/butterfly.gif"},
+				{url: "https://ezgif.com/images/format-demo/butterfly.gif", to: "test/res/butterfly.png"},
+			])
+		}, {timeout: 60000})
+	}
+	/* c8 ignore end */
+
 	const p = migrate.migrate(db)
 	test("migrate: migration works", async t => {
 		await p
@@ -63,26 +107,6 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	})
 
 	db.exec(fs.readFileSync(join(__dirname, "ooye-test-data.sql"), "utf8"))
-
-	/* c8 ignore start - maybe download some more test files in slow mode */
-	if (process.argv.includes("--slow")) {
-		test("test files: download", async t => {
-			function download(url, to) {
-				return new Promise(async resolve => {
-					if (fs.existsSync(to)) return resolve(null)
-					const res = await fetch(url)
-					res.body.pipe(fs.createWriteStream(to, {encoding: "binary"}))
-					res.body.once("finish", resolve)
-				})
-			}
-			await Promise.all([
-				download("https://ezgif.com/images/format-demo/butterfly.png", "test/res/butterfly.png"),
-				download("https://ezgif.com/images/format-demo/butterfly.gif", "test/res/butterfly.gif")
-			])
-			t.pass("downloaded")
-		})
-	}
-	/* c8 ignore end */
 
 	require("../db/orm.test")
 	require("../discord/utils.test")

@@ -304,8 +304,9 @@ function getUserOrProxyOwnerID(mxid) {
  * @param {string} content
  * @param {{id: string, name: string}[]} attachments
  * @param {({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} pendingFiles
+ * @param {(mxc: string) => Promise<Buffer | undefined>} mxcDownloader function that will download the mxc URLs and convert to uncompressed PNG data. use `getAndConvertEmoji` or a mock.
  */
-async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles) {
+async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, mxcDownloader) {
 	if (!content.includes("<::>")) return content // No unknown emojis, nothing to do
 	// Remove known and unknown emojis from the end of the message
 	const r = /<a?:[a-zA-Z0-9_]*:[0-9]*>\s*$/
@@ -313,7 +314,7 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
 		content = content.replace(r, "")
 	}
 	// Create a sprite sheet of known and unknown emojis from the end of the message
-	const buffer = await emojiSheet.compositeMatrixEmojis(endOfMessageEmojis)
+	const buffer = await emojiSheet.compositeMatrixEmojis(endOfMessageEmojis, mxcDownloader)
 	// Attach it
 	const name = "emojis.png"
 	attachments.push({id: String(attachments.length), name})
@@ -421,7 +422,7 @@ const attachmentEmojis = new Map([
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"]}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"], mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
@@ -717,7 +718,7 @@ async function eventToMessage(event, guild, di) {
 			if (replyLine && content.startsWith("> ")) content = "\n" + content
 
 			// SPRITE SHEET EMOJIS FEATURE:
-			content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles)
+			content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, di?.mxcDownloader)
 		} else {
 			// Looks like we're using the plaintext body!
 			content = event.content.body

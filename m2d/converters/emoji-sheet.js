@@ -1,6 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
+const fs = require("fs")
 const {pipeline} = require("stream").promises
 const sharp = require("sharp")
 const {GIFrame} = require("giframe")
@@ -16,27 +17,11 @@ const IMAGES_ACROSS = Math.floor(RESULT_WIDTH / SIZE)
 /**
  * Composite a bunch of Matrix emojis into a kind of spritesheet image to upload to Discord.
  * @param {string[]} mxcs mxc URLs, in order
+ * @param {(mxc: string) => Promise<Buffer | undefined>} mxcDownloader function that will download the mxc URLs and convert to uncompressed PNG data. use `getAndConvertEmoji` or a mock.
  * @returns {Promise<Buffer>} PNG image
  */
-async function compositeMatrixEmojis(mxcs) {
-	const buffers = await Promise.all(mxcs.map(async mxc => {
-		const abortController = new AbortController()
-
-		const url = utils.getPublicUrlForMxc(mxc)
-		assert(url)
-
-		/** @type {import("node-fetch").Response} */
-		// If it turns out to be a GIF, we want to abandon the connection without downloading the whole thing.
-		// If we were using connection pooling, we would be forced to download the entire GIF.
-		// So we set no agent to ensure we are not connection pooling.
-		// @ts-ignore the signal is slightly different from the type it wants (still works fine)
-		const res = await fetch(url, {agent: false, signal: abortController.signal})
-		return convertImageStream(res.body, () => {
-			abortController.abort()
-			res.body.pause()
-			res.body.emit("end")
-		})
-	}))
+async function compositeMatrixEmojis(mxcs, mxcDownloader) {
+	const buffers = await Promise.all(mxcs.map(mxcDownloader))
 
 	// Calculate the size of the final composited image
 	const totalWidth = Math.min(buffers.length, IMAGES_ACROSS) * SIZE
@@ -63,6 +48,49 @@ async function compositeMatrixEmojis(mxcs) {
 		.png()
 		.toBuffer({resolveWithObject: true})
 	return output.data
+}
+
+/**
+ * Downloads the emoji from the web and converts to uncompressed PNG data.
+ * @param {string} mxc a single mxc:// URL
+ * @returns {Promise<Buffer | undefined>} uncompressed PNG data, or undefined if the downloaded emoji is not valid
+ */
+async function getAndConvertEmoji(mxc) {
+	const abortController = new AbortController()
+
+	const url = utils.getPublicUrlForMxc(mxc)
+	assert(url)
+
+	/** @type {import("node-fetch").Response} */
+	// If it turns out to be a GIF, we want to abandon the connection without downloading the whole thing.
+	// If we were using connection pooling, we would be forced to download the entire GIF.
+	// So we set no agent to ensure we are not connection pooling.
+	// @ts-ignore the signal is slightly different from the type it wants (still works fine)
+	const res = await fetch(url, {agent: false, signal: abortController.signal})
+	return convertImageStream(res.body, () => {
+		abortController.abort()
+		res.body.pause()
+		res.body.emit("end")
+	})
+}
+
+/**
+ * MOCK: Gets the emoji from the filesystem and converts to uncompressed PNG data.
+ * @param {string} mxc a single mxc:// URL
+ * @returns {Promise<Buffer | undefined>} uncompressed PNG data, or undefined if the downloaded emoji is not valid
+*/
+async function _mockGetAndConvertEmoji(mxc) {
+	const id = mxc.match(/\/([^./]*)$/)?.[1]
+	let s
+	if (fs.existsSync(`test/res/${id}.png`)) {
+		s = fs.createReadStream(`test/res/${id}.png`)
+	} else {
+		s = fs.createReadStream(`test/res/${id}.gif`)
+	}
+	return convertImageStream(s, () => {
+		s.pause()
+		s.emit("end")
+	})
 }
 
 /**
@@ -128,4 +156,6 @@ async function convertImageStream(streamIn, stopStream) {
 }
 
 module.exports.compositeMatrixEmojis = compositeMatrixEmojis
+module.exports.getAndConvertEmoji = getAndConvertEmoji
+module.exports._mockGetAndConvertEmoji = _mockGetAndConvertEmoji
 module.exports._convertImageStream = convertImageStream

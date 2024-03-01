@@ -1,6 +1,7 @@
 const assert = require("assert").strict
 const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
+const {_mockGetAndConvertEmoji} = require("./emoji-sheet")
 const data = require("../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {db, select, discord} = require("../../passthrough")
@@ -3534,7 +3535,7 @@ slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet"
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	})
+	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3559,7 +3560,7 @@ slow()("event2message: known emoji from an unreachable server at the end is reup
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	})
+	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3584,7 +3585,7 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	})
+	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3609,7 +3610,7 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 		},
 		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
 		room_id: "!maggESguZBqGBZtSnr:cadence.moe"
-	})
+	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3618,6 +3619,6 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 	t.deepEqual(testResult, {
 		content: "testing",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAASAAAAAwCAYAAACxIqevAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAgAElEQVR4nOV9B1xUV9r3JMbEGBQLbRodhukDg2jWZP02"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAYAAAABgCAYAAAAU9KWJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAgAElEQVR4nOx9B3xT1/W/UkImYKZtLdt4a0uWMaQkzS9t"
 	})
 })
