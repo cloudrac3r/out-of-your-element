@@ -2662,6 +2662,88 @@ module.exports = {
 				name: "pomu puff"
 			}]
 		},
+		edited_content_with_sticker_and_attachments_but_all_parts_equal_0: {
+			id: "1106366167788044451",
+			type: 0,
+			content: "only the content can be edited",
+			channel_id: "122155380120748034",
+			author: {
+				id: "113340068197859328",
+				username: "Cookie 🍪",
+				global_name: null,
+				display_name: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "7766",
+				public_flags: 128,
+				avatar_decoration: null
+			},
+			attachments: [{
+				id: "1106366167486038016",
+				filename: "image.png",
+				size: 127373,
+				url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
+				proxy_url: "https://media.discordapp.net/attachments/122155380120748034/1106366167486038016/image.png",
+				width: 333,
+				height: 287,
+				content_type: "image/png"
+			}],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-05-11T23:44:09.690000+00:00",
+			edited_timestamp: "2023-05-11T23:44:19.690000+00:00",
+			flags: 0,
+			components: [],
+			sticker_items: [{
+				id: "1106323941183717586",
+				format_type: 1,
+				name: "pomu puff"
+			}]
+		},
+		edited_content_with_sticker_and_attachments_but_all_parts_equal_1: {
+			id: "1106366167788044452",
+			type: 0,
+			content: "only the content can be edited",
+			channel_id: "122155380120748034",
+			author: {
+				id: "113340068197859328",
+				username: "Cookie 🍪",
+				global_name: null,
+				display_name: null,
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "7766",
+				public_flags: 128,
+				avatar_decoration: null
+			},
+			attachments: [{
+				id: "1106366167486038016",
+				filename: "image.png",
+				size: 127373,
+				url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
+				proxy_url: "https://media.discordapp.net/attachments/122155380120748034/1106366167486038016/image.png",
+				width: 333,
+				height: 287,
+				content_type: "image/png"
+			}],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-05-11T23:44:09.690000+00:00",
+			edited_timestamp: "2023-05-11T23:44:19.690000+00:00",
+			flags: 0,
+			components: [],
+			sticker_items: [{
+				id: "1106323941183717586",
+				format_type: 1,
+				name: "pomu puff"
+			}]
+		},
 		edit_of_reply_to_skull_webp_attachment_with_content: {
 			type: 19,
 			tts: false,

@@ -1,3 +1,4 @@
+const assert = require("assert")
 const {kstateToState, stateToKState, diffKState, kstateStripConditionals} = require("./kstate")
 const {test} = require("supertape")
 
@@ -161,4 +162,30 @@ test("diffKState: power levels are mixed together", t => {
 		}
 	})
 	t.notDeepEqual(original, result)
+})
+
+test("diffKState: cannot merge power levels if original power levels are missing", t => {
+	const original = {}
+	assert.throws(() =>
+		diffKState(original, {
+			"m.room.power_levels/": {
+				"events": {
+					"m.room.avatar": 0
+				}
+			}
+		})
+	, /original power level data is missing/)
+	t.pass()
+})
+
+test("diffKState: kstate keys must contain a slash separator", t => {
+	assert.throws(() =>
+		diffKState({
+			"m.room.name/": {name: "test name"},
+		}, {
+			"m.room.name/": {name: "test name"},
+			"new": {a: 2}
+		})
+	, /does not contain a slash separator/)
+	t.pass()
 })

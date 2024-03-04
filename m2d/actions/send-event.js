@@ -17,8 +17,8 @@ const eventToMessage = sync.require("../converters/event-to-message")
 const api = sync.require("../../matrix/api")
 /** @type {import("../../d2m/actions/register-user")} */
 const registerUser = sync.require("../../d2m/actions/register-user")
-/** @type {import("../converters/emoji-sheet")} */
-const emojiSheet = sync.require("../converters/emoji-sheet")
+/** @type {import("../actions/emoji-sheet")} */
+const emojiSheet = sync.require("../actions/emoji-sheet")
 
 /**
  * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[], pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer | Readable})[]}} message

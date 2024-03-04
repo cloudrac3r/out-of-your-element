@@ -33,6 +33,8 @@ INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 
 INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1106366167788044450', '122155380120748034'),
+('1106366167788044451', '122155380120748034'),
+('1106366167788044452', '122155380120748034'),
 ('1126786462646550579', '112760669178241024'),
 ('1128084748338741392', '112760669178241024'),
 ('1128084851279536279', '112760669178241024'),
@@ -68,6 +70,12 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4', 'm.room.message', 'm.text', '1106366167788044450', 0, 1, 1),
 ('$Ijf1MFCD39ktrNHxrA-i2aKoRWNYdAV2ZXYQeiZIgEU', 'm.room.message', 'm.image', '1106366167788044450', 1, 1, 0),
 ('$f9cjKiacXI9qPF_nUAckzbiKnJEi0LM399kOkhdd8f8', 'm.sticker', NULL, '1106366167788044450', 1, 0, 0),
+('$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd999', 'm.room.message', 'm.text', '1106366167788044451', 0, 0, 1),
+('$Ijf1MFCD39ktrNHxrA-i2aKoRWNYdAV2ZXYQeiZI999', 'm.room.message', 'm.image', '1106366167788044451', 0, 0, 1),
+('$f9cjKiacXI9qPF_nUAckzbiKnJEi0LM399kOkhdd999', 'm.sticker', NULL, '1106366167788044451', 0, 0, 1),
+('$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd111', 'm.room.message', 'm.text', '1106366167788044452', 1, 1, 1),
+('$Ijf1MFCD39ktrNHxrA-i2aKoRWNYdAV2ZXYQeiZI111', 'm.room.message', 'm.image', '1106366167788044452', 1, 1, 1),
+('$f9cjKiacXI9qPF_nUAckzbiKnJEi0LM399kOkhdd111', 'm.sticker', NULL, '1106366167788044452', 1, 1, 1),
 ('$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04', 'm.room.message', 'm.text', '1144865310588014633', 0, 0, 1),
 ('$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8', 'm.room.message', 'm.text', '1144874214311067708', 0, 0, 0),
 ('$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs', 'm.room.message', 'm.text', '1145688633186193479', 0, 0, 0),

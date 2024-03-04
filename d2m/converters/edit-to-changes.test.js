@@ -175,3 +175,63 @@ test("edit2changes: edit of reply to skull webp attachment with content", async 
 		}
 	}])
 })
+
+test("edit2changes: edits the text event when multiple rows have part = 0 (should never happen in real life, but make sure the safety net works)", async t => {
+	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments_but_all_parts_equal_0, data.guild.general, {})
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToSend, [])
+	t.deepEqual(eventsToReplace, [{
+		oldID: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd999",
+		newContent: {
+			$type: "m.room.message",
+			msgtype: "m.text",
+			body: "* only the content can be edited",
+			"m.mentions": {},
+			// *** Replaced With: ***
+			"m.new_content": {
+				msgtype: "m.text",
+				body: "only the content can be edited",
+				"m.mentions": {}
+			},
+			"m.relates_to": {
+				rel_type: "m.replace",
+				event_id: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd999"
+			}
+		}
+	}])
+})
+
+test("edit2changes: promotes the text event when multiple rows have part = 1 (should never happen in real life, but make sure the safety net works)", async t => {
+	const {eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments_but_all_parts_equal_1, data.guild.general, {})
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToSend, [])
+	t.deepEqual(eventsToReplace, [{
+		oldID: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd111",
+		newContent: {
+			$type: "m.room.message",
+			msgtype: "m.text",
+			body: "* only the content can be edited",
+			"m.mentions": {},
+			// *** Replaced With: ***
+			"m.new_content": {
+				msgtype: "m.text",
+				body: "only the content can be edited",
+				"m.mentions": {}
+			},
+			"m.relates_to": {
+				rel_type: "m.replace",
+				event_id: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd111"
+			}
+		}
+	}])
+	t.deepEqual(promotions, [
+		{
+			column: "part",
+			eventID: "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd111"
+		},
+		{
+			column: "reaction_part",
+			eventID: "$f9cjKiacXI9qPF_nUAckzbiKnJEi0LM399kOkhdd111"
+		}
+	])
+})

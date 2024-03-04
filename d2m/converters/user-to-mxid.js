@@ -60,7 +60,7 @@ function userToSimName(user) {
 
 	// 1. Is sim user already registered?
 	const existing = select("sim", "sim_name", {user_id: user.id}).pluck().get()
-	if (existing) return existing
+	assert.equal(existing, null, "Shouldn't try to create a new name for an existing sim")
 
 	// 2. Register based on username (could be new or old format)
 	// (Unless it's a special user, in which case copy their provided mappings.)

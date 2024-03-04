@@ -54,6 +54,6 @@
     "addbot": "node addbot.js",
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot",
     "test-slow": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap --no-worker test/test.js -- --slow | tap-dot",
-    "cover": "c8 --skip-full -x db/migrations -x matrix/file.js -x matrix/api.js -x matrix/mreq.js -r html -r text supertape --no-check-assertions-count --format fail test/test.js -- --slow"
+    "cover": "c8 --skip-full -x db/migrations -x matrix/file.js -x matrix/api.js -x matrix/mreq.js -x d2m/converters/rlottie-wasm.js -r html -r text supertape --no-check-assertions-count --format fail --no-worker test/test.js -- --slow"
   }
 }

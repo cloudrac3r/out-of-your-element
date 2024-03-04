@@ -78,10 +78,14 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 				return `@${role.name}:`
 			}
 		},
-		everyone: node =>
-			"@room",
-		here: node =>
-			"@here"
+		everyone: () => {
+			if (message.mention_everyone) return "@room"
+			return "@everyone"
+		},
+		here: () => {
+			if (message.mention_everyone) return "@room"
+			return "@here"
+		}
 	}
 }
 
@@ -199,6 +203,7 @@ async function attachmentToEvent(mentions, attachment) {
 async function messageToEvent(message, guild, options = {}, di) {
 	const events = []
 
+	/* c8 ignore next 7 */
 	if (message.type === DiscordTypes.MessageType.ThreadCreated) {
 		// This is the kind of message that appears when somebody makes a thread which isn't close enough to the message it's based off.
 		// It lacks the lines and the pill, so it looks kind of like a member join message, and it says:

@@ -1,6 +1,5 @@
-const assert = require("assert").strict
 const {test} = require("supertape")
-const {_convertImageStream} = require("./emoji-sheet")
+const {convertImageStream} = require("./emoji-sheet")
 const fs = require("fs")
 const {Transform} = require("stream").Transform
 
@@ -33,7 +32,7 @@ async function runSingleTest(t, path, totalSize, sizeCheck) {
 	const file = fs.createReadStream(path)
 	const meter = new Meter()
 	const p = file.pipe(meter)
-	const result = await _convertImageStream(p, () => {
+	const result = await convertImageStream(p, () => {
 		file.pause()
 		file.emit("end")
 	})

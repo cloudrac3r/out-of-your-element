@@ -1,10 +1,11 @@
 const assert = require("assert").strict
+const fs = require("fs")
 const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
-const {_mockGetAndConvertEmoji} = require("./emoji-sheet")
+const {convertImageStream} = require("./emoji-sheet")
 const data = require("../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
-const {db, select, discord} = require("../../passthrough")
+const {select, discord} = require("../../passthrough")
 
 /* c8 ignore next 7 */
 function slow() {
@@ -45,6 +46,25 @@ function sameFirstContentAndWhitespace(t, a, b) {
 	const a2 = JSON.stringify(a.messagesToSend[0].content)
 	const b2 = JSON.stringify(b.messagesToSend[0].content)
 	t.equal(a2, b2)
+}
+
+/**
+ * MOCK: Gets the emoji from the filesystem and converts to uncompressed PNG data.
+ * @param {string} mxc a single mxc:// URL
+ * @returns {Promise<Buffer | undefined>} uncompressed PNG data, or undefined if the downloaded emoji is not valid
+*/
+async function mockGetAndConvertEmoji(mxc) {
+	const id = mxc.match(/\/([^./]*)$/)?.[1]
+	let s
+	if (fs.existsSync(`test/res/${id}.png`)) {
+		s = fs.createReadStream(`test/res/${id}.png`)
+	} else {
+		s = fs.createReadStream(`test/res/${id}.gif`)
+	}
+	return convertImageStream(s, () => {
+		s.pause()
+		s.emit("end")
+	})
 }
 
 test("event2message: body is used when there is no formatted_body", async t => {
@@ -3535,7 +3555,7 @@ slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet"
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
+	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3560,7 +3580,7 @@ slow()("event2message: known emoji from an unreachable server at the end is reup
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
+	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3585,7 +3605,7 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
+	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -3610,7 +3630,7 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 		},
 		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
 		room_id: "!maggESguZBqGBZtSnr:cadence.moe"
-	}, {}, {mxcDownloader: _mockGetAndConvertEmoji})
+	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,

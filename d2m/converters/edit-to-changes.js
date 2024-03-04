@@ -93,7 +93,11 @@ async function editToChanges(message, guild, api) {
 				// We can choose an existing event to promote. Bigger order is better.
 				const order = e => 2*+(e.event_type === "m.room.message") + 1*+(e.event_subtype === "m.text")
 				eventsToReplace.sort((a, b) => order(b) - order(a))
-				promotions.push({column, eventID: eventsToReplace[0].old.event_id})
+				if (column === "part") {
+					promotions.push({column, eventID: eventsToReplace[0].old.event_id}) // part should be the first one
+				} else {
+					promotions.push({column, eventID: eventsToReplace[eventsToReplace.length - 1].old.event_id}) // reaction_part should be the last one
+				}
 			} else {
 				// No existing events to promote, but new events are being sent. Whatever gets sent will be the next part = 0.
 				promotions.push({column, nextEvent: true})

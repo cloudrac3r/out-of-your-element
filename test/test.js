@@ -49,6 +49,7 @@ passthrough.from = orm.from
 passthrough.select = orm.select
 
 const file = sync.require("../matrix/file")
+/* c8 ignore next */
 file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 
 ;(async () => {
@@ -88,7 +89,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ", to: "test/res/AYPpqXzVJvZdzMQJGjioIQBZ.png"},
 				{url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj", to: "test/res/UVuzvpVUhqjiueMxYXJiFEAj.png"},
 				{url: "https://ezgif.com/images/format-demo/butterfly.gif", to: "test/res/butterfly.gif"},
-				{url: "https://ezgif.com/images/format-demo/butterfly.gif", to: "test/res/butterfly.png"},
+				{url: "https://ezgif.com/images/format-demo/butterfly.png", to: "test/res/butterfly.png"},
 			])
 		}, {timeout: 60000})
 	}

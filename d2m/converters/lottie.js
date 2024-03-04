@@ -1,5 +1,6 @@
 // @ts-check
 
+const assert = require("assert")
 const stream = require("stream")
 const {PNG} = require("pngjs")
 
@@ -27,7 +28,7 @@ async function convert(text) {
 	/** @type RlottieWasm */
 	const rh = new r.RlottieWasm()
 	const status = rh.load(text)
-	if (!status) throw new Error(`Rlottie unable to load ${text.length} byte data file.`)
+	assert(status, `Rlottie unable to load ${text.length} byte data file.`)
 	const rendered = rh.render(0, SIZE, SIZE)
 	let png = new PNG({
 		width: SIZE,
@@ -38,11 +39,9 @@ async function convert(text) {
 		inputHasAlpha: true,
 	})
 	png.data = Buffer.from(rendered)
-	// The transform stream is necessary because PNG requires me to pipe it somewhere before this event loop ends
-	const resultStream = png.pack()
-	const p = new stream.PassThrough()
-	resultStream.pipe(p)
-	return p
+	// png.pack() is a bad stream and will throw away any data it sends if it's not connected to a destination straight away.
+	// We use Duplex.from to convert it into a good stream.
+	return stream.Duplex.from(png.pack())
 }
 
 module.exports.convert = convert
