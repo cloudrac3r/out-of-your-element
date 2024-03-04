@@ -264,8 +264,8 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 }
 
 /**
- * Splits a display name into one chunk containing <=80 characters, and another chunk containing the rest of the characters. Splits on
- * whitespace if possible.
+ * Splits a display name into one chunk containing <=80 characters (80 being how many characters Discord allows for the name of a webhook),
+ * and another chunk containing the rest of the characters. Splits on whitespace if possible.
  * These chunks, respectively, go in the display name, and at the top of the message.
  * If the second part isn't empty, it'll also contain boldening markdown and a line break at the end, so that regardless of its value it
  * can be prepended to the message content as-is.
