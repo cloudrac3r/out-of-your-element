@@ -27,7 +27,6 @@ test("message2event embeds: reply with just an embed", async t => {
 		msgtype: "m.notice",
 		"m.mentions": {},
 		body: "| ## ⏺️ dynastic (@dynastic) https://twitter.com/i/user/719631291747078145"
-			+ "\n| \n| ## https://twitter.com/i/status/1707484191963648161"
 			+ "\n| \n| does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
 			+ "\n| \n| ### Retweets"
 			+ "\n| 119"
@@ -35,8 +34,7 @@ test("message2event embeds: reply with just an embed", async t => {
 			+ "\n| 5581"
 			+ "\n| — Twitter",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><p><strong><a href="https://twitter.com/i/user/719631291747078145">⏺️ dynastic (@dynastic)</a></strong></p>'
-			+ '<p><strong><a href="https://twitter.com/i/status/1707484191963648161">https://twitter.com/i/status/1707484191963648161</a></strong>'
+		formatted_body: '<blockquote><p><strong><a href="https://twitter.com/i/user/719631291747078145">⏺️ dynastic (@dynastic)</a></strong>'
 			+ '</p><p>does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?'
 			+ '</p><p><strong>Retweets</strong><br>119</p><p><strong>Likes</strong><br>5581</p>— Twitter</blockquote>'
 	}])
@@ -138,6 +136,54 @@ test("message2event embeds: crazy html is all escaped", async t => {
 			+ `<p><strong>&lt;strong&gt;[&lt;span data-mx-color='#123456'&gt;Hey&lt;script&gt;](<a href=\"https://a.co/&amp;amp\">https://a.co/&amp;amp</a>;)</strong>`
 			+ `<br>&lt;strong&gt;<a href="https://a.co/&amp;amp;">&lt;span data-mx-color='#123456'&gt;Hey&lt;script&gt;</a></p>`
 			+ `— &lt;strong&gt;[&lt;span data-mx-color=&#39;#123456&#39;&gt;Hey&lt;script&gt;](https://a.co/&amp;amp;)</blockquote>`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: title without url", async t => {
+	const events = await messageToEvent(data.message_with_embeds.title_without_url, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| ## Hi, I'm Amanda!\n| \n| I condone pirating music!",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><strong>Hi, I'm Amanda!</strong></p><p>I condone pirating music!</p></blockquote>`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: url without title", async t => {
+	const events = await messageToEvent(data.message_with_embeds.url_without_title, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| I condone pirating music!",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p>I condone pirating music!</p></blockquote>`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: author without url", async t => {
+	const events = await messageToEvent(data.message_with_embeds.author_without_url, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| ## Amanda\n| \n| I condone pirating music!",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><strong>Amanda</strong></p><p>I condone pirating music!</p></blockquote>`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: author url without name", async t => {
+	const events = await messageToEvent(data.message_with_embeds.author_url_without_name, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| I condone pirating music!",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p>I condone pirating music!</p></blockquote>`,
 		"m.mentions": {}
 	}])
 })

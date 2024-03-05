@@ -517,7 +517,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// Author and URL into a paragraph
 		let authorNameText = embed.author?.name || ""
 		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // using the emoji instead of an image
-		if (authorNameText || embed.author?.url) {
+		if (authorNameText) {
 			if (embed.author?.url) {
 				const authorURL = await transformContentMessageLinks(embed.author.url)
 				rep.addParagraph(`## ${authorNameText} ${authorURL}`, tag`<strong><a href="${authorURL}">${authorNameText}</a></strong>`)
@@ -534,8 +534,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 			} else {
 				rep.addParagraph(`## ${body}`, `<strong>${html}</strong>`)
 			}
-		} else if (embed.url) {
-			rep.addParagraph(`## ${embed.url}`, tag`<strong><a href="${embed.url}">${embed.url}</a></strong>`)
 		}
 
 		if (embed.description) {

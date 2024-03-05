@@ -2282,6 +2282,246 @@ module.exports = {
 			edited_timestamp: null,
 			flags: 0,
 			components: []
+		},
+		title_without_url: {
+			guild_id: "497159726455455754",
+			mentions: [],
+			id: "1141934888862351440",
+			type: 20,
+			content: "",
+			channel_id: "497161350934560778",
+			author: {
+				id: "1109360903096369153",
+				username: "Amanda 🎵",
+				avatar: "d56cd1b26e043ae512edae2214962faa",
+				discriminator: "2192",
+				public_flags: 524288,
+				flags: 524288,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					color: 3092790,
+					title: "Hi, I'm Amanda!",
+					description: "I condone pirating music!"
+				}
+			],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-08-18T03:21:33.629000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "1109360903096369153",
+			interaction: {
+				id: "1141934887608254475",
+				type: 2,
+				name: "stats",
+				user: {
+					id: "320067006521147393",
+					username: "papiophidian",
+					avatar: "47a19b0445069b826e136da4df4259bb",
+					discriminator: "0",
+					public_flags: 4194880,
+					flags: 4194880,
+					banner: null,
+					accent_color: null,
+					global_name: "PapiOphidian",
+					avatar_decoration_data: null,
+					banner_color: null
+				}
+			},
+			webhook_id: "1109360903096369153"
+		},
+		url_without_title: {
+			guild_id: "497159726455455754",
+			mentions: [],
+			id: "1141934888862351440",
+			type: 20,
+			content: "",
+			channel_id: "497161350934560778",
+			author: {
+				id: "1109360903096369153",
+				username: "Amanda 🎵",
+				avatar: "d56cd1b26e043ae512edae2214962faa",
+				discriminator: "2192",
+				public_flags: 524288,
+				flags: 524288,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					color: 3092790,
+					url: "https://amanda.moe",
+					description: "I condone pirating music!"
+				}
+			],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-08-18T03:21:33.629000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "1109360903096369153",
+			interaction: {
+				id: "1141934887608254475",
+				type: 2,
+				name: "stats",
+				user: {
+					id: "320067006521147393",
+					username: "papiophidian",
+					avatar: "47a19b0445069b826e136da4df4259bb",
+					discriminator: "0",
+					public_flags: 4194880,
+					flags: 4194880,
+					banner: null,
+					accent_color: null,
+					global_name: "PapiOphidian",
+					avatar_decoration_data: null,
+					banner_color: null
+				}
+			},
+			webhook_id: "1109360903096369153"
+		},
+		author_without_url: {
+			guild_id: "497159726455455754",
+			mentions: [],
+			id: "1141934888862351440",
+			type: 20,
+			content: "",
+			channel_id: "497161350934560778",
+			author: {
+				id: "1109360903096369153",
+				username: "Amanda 🎵",
+				avatar: "d56cd1b26e043ae512edae2214962faa",
+				discriminator: "2192",
+				public_flags: 524288,
+				flags: 524288,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					color: 3092790,
+					author: {
+						name: "Amanda"
+					},
+					description: "I condone pirating music!"
+				}
+			],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-08-18T03:21:33.629000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "1109360903096369153",
+			interaction: {
+				id: "1141934887608254475",
+				type: 2,
+				name: "stats",
+				user: {
+					id: "320067006521147393",
+					username: "papiophidian",
+					avatar: "47a19b0445069b826e136da4df4259bb",
+					discriminator: "0",
+					public_flags: 4194880,
+					flags: 4194880,
+					banner: null,
+					accent_color: null,
+					global_name: "PapiOphidian",
+					avatar_decoration_data: null,
+					banner_color: null
+				}
+			},
+			webhook_id: "1109360903096369153"
+		},
+		author_url_without_name: {
+			guild_id: "497159726455455754",
+			mentions: [],
+			id: "1141934888862351440",
+			type: 20,
+			content: "",
+			channel_id: "497161350934560778",
+			author: {
+				id: "1109360903096369153",
+				username: "Amanda 🎵",
+				avatar: "d56cd1b26e043ae512edae2214962faa",
+				discriminator: "2192",
+				public_flags: 524288,
+				flags: 524288,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "rich",
+					color: 3092790,
+					author: {
+						url: "https://amanda.moe"
+					},
+					description: "I condone pirating music!"
+				}
+			],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-08-18T03:21:33.629000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			application_id: "1109360903096369153",
+			interaction: {
+				id: "1141934887608254475",
+				type: 2,
+				name: "stats",
+				user: {
+					id: "320067006521147393",
+					username: "papiophidian",
+					avatar: "47a19b0445069b826e136da4df4259bb",
+					discriminator: "0",
+					public_flags: 4194880,
+					flags: 4194880,
+					banner: null,
+					accent_color: null,
+					global_name: "PapiOphidian",
+					avatar_decoration_data: null,
+					banner_color: null
+				}
+			},
+			webhook_id: "1109360903096369153"
 		}
 	},
 	message_update: {
