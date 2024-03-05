@@ -514,6 +514,15 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
 		const rep = new mxUtils.MatrixStringBuilder()
 
+		// Provider
+		if (embed.provider?.name) {
+			if (embed.provider.url) {
+				rep.addParagraph(`via ${embed.provider.name} ${embed.provider.url}`, tag`<sub><a href="${embed.provider.url}">${embed.provider.name}</a></sub>`)
+			} else {
+				rep.addParagraph(`via ${embed.provider.name}`, tag`<sub>${embed.provider.name}</sub>`)
+			}
+		}
+
 		// Author and URL into a paragraph
 		let authorNameText = embed.author?.name || ""
 		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // using the emoji instead of an image
@@ -536,7 +545,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		}
 
-		if (embed.description) {
+		let embedTypeShouldShowDescription = embed.type !== "video" // Discord doesn't display descriptions for videos
+		if (embed.provider?.name === "YouTube") embedTypeShouldShowDescription = true // But I personally like showing the descriptions for YouTube videos specifically
+		if (embed.description && embedTypeShouldShowDescription) {
 			const {body, html} = await transformContent(embed.description)
 			rep.addParagraph(body, html)
 		}
@@ -550,7 +561,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 			rep.addParagraph(fieldRep.get().body, fieldRep.get().formatted_body)
 		}
 
-		if (embed.image?.url) rep.addParagraph(`📸 ${embed.image.url}`)
+		let chosenImage = embed.image?.url
+		// the thumbnail seems to be used for "article" type but displayed big at the bottom by discord
+		if (embed.type === "article" && embed.thumbnail?.url && !chosenImage) chosenImage = embed.thumbnail.url
+		if (chosenImage) rep.addParagraph(`📸 ${chosenImage}`)
+
 		if (embed.video?.url) rep.addParagraph(`🎞️ ${embed.video.url}`)
 
 		if (embed.footer?.text) rep.addLine(`— ${embed.footer.text}`, tag`— ${embed.footer.text}`)

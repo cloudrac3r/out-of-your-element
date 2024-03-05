@@ -187,3 +187,98 @@ test("message2event embeds: author url without name", async t => {
 		"m.mentions": {}
 	}])
 })
+
+test("message2event embeds: vx image", async t => {
+	const events = await messageToEvent(data.message_with_embeds.vx_image, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://vxtwitter.com/TomorrowCorp/status/1760330671074287875 we got a release date!!!",
+		format: "org.matrix.custom.html",
+		formatted_body: '<a href="https://vxtwitter.com/TomorrowCorp/status/1760330671074287875">https://vxtwitter.com/TomorrowCorp/status/1760330671074287875</a> we got a release date!!!',
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| via vxTwitter / fixvx https://github.com/dylanpdx/BetterTwitFix"
+			+ "\n| "
+			+ "\n| ## Twitter https://twitter.com/tomorrowcorp/status/1760330671074287875"
+			+ "\n| "
+			+ "\n| ## Tomorrow Corporation (@TomorrowCorp) https://vxtwitter.com/TomorrowCorp/status/1760330671074287875"
+			+ "\n| "
+			+ "\n| Mark your calendar with a wet black stain! World of Goo 2 releases on May 23, 2024 on Nintendo Switch, Epic Games Store (Win/Mac), and http://WorldOfGoo2.com (Win/Mac/Linux)."
+			+ "\n| "
+			+ "\n| https://tomorrowcorporation.com/posts/world-of-goo-2-now-with-100-more-release-dates-and-platforms"
+			+ "\n| "
+			+ "\n| 💖 123 🔁 36"
+			+ "\n| "
+			+ "\n| 📸 https://pbs.twimg.com/media/GG3zUMGbIAAxs3h.jpg",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><sub><a href="https://github.com/dylanpdx/BetterTwitFix">vxTwitter / fixvx</a></sub>`
+			+ `</p><p><strong><a href="https://twitter.com/tomorrowcorp/status/1760330671074287875">Twitter</a></strong>`
+			+ `</p><p><strong><a href="https://vxtwitter.com/TomorrowCorp/status/1760330671074287875">Tomorrow Corporation (@TomorrowCorp)</a></strong>`
+			+ `</p><p>Mark your calendar with a wet black stain! World of Goo 2 releases on May 23, 2024 on Nintendo Switch, Epic Games Store (Win/Mac), and <a href="http://WorldOfGoo2.com">http://WorldOfGoo2.com</a> (Win/Mac/Linux).`
+			+ `<br><br><a href="https://tomorrowcorporation.com/posts/world-of-goo-2-now-with-100-more-release-dates-and-platforms">https://tomorrowcorporation.com/posts/world-of-goo-2-now-with-100-more-release-dates-and-platforms</a>`
+			+ `<br><br>💖 123 🔁 36`
+			+ `</p><p>📸 https://pbs.twimg.com/media/GG3zUMGbIAAxs3h.jpg</p></blockquote>`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: vx video", async t => {
+	const events = await messageToEvent(data.message_with_embeds.vx_video, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://vxtwitter.com/McDonalds/status/1759971752254341417",
+		format: "org.matrix.custom.html",
+		formatted_body: '<a href="https://vxtwitter.com/McDonalds/status/1759971752254341417">https://vxtwitter.com/McDonalds/status/1759971752254341417</a>',
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| via vxTwitter / fixvx https://github.com/dylanpdx/BetterTwitFix"
+			+ "\n| \n| ## McDonald’s🤝@studiopierrot"
+			+ "\n| \n| 💖 89 🔁 21 https://twitter.com/McDonalds/status/1759971752254341417"
+			+ "\n| \n| ## McDonald's (@McDonalds) https://vxtwitter.com/McDonalds/status/1759971752254341417"
+			+ "\n| \n| 🎞️ https://video.twimg.com/ext_tw_video/1759967449548541952/pu/vid/avc1/1280x720/XN1LFIJqAFBdtaoh.mp4?tag=12",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><sub><a href="https://github.com/dylanpdx/BetterTwitFix">vxTwitter / fixvx</a></sub>`
+			+ `</p><p><strong><a href="https://twitter.com/McDonalds/status/1759971752254341417">McDonald’s🤝@studiopierrot\n\n💖 89 🔁 21</a></strong>`
+			+ `</p><p><strong><a href="https://vxtwitter.com/McDonalds/status/1759971752254341417">McDonald's (@McDonalds)</a></strong>`
+			+ `</p><p>🎞️ https://video.twimg.com/ext_tw_video/1759967449548541952/pu/vid/avc1/1280x720/XN1LFIJqAFBdtaoh.mp4?tag=12</p></blockquote>`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: youtube video", async t => {
+	const events = await messageToEvent(data.message_with_embeds.youtube_video, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E\n\n\nJutomi I'm gonna make these sounds in your walls tonight",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E">https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E</a><br><br><br>Jutomi I'm gonna make these sounds in your walls tonight`,
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| via YouTube https://www.youtube.com"
+			+ "\n| \n| ## Happy O Funny https://www.youtube.com/channel/UCEpQ9aEb1NafpvWp5Aoizrg"
+      	+ "\n| \n| ## Shoebill stork clattering sounds like machine guun~!! (Japan Matsue... https://www.youtube.com/watch?v=kDMHHw8JqLE"
+			+ "\n| \n| twitter"
+			+ "\n| https://twitter.com/matsuevogelpark"
+			+ "\n| \n| The shoebill (Balaeniceps rex) also known as whalehead, whale-headed stork, or shoe-billed stork, is a very large stork-like bird. It derives its name from its enormous shoe-shaped bill"
+			+ "\n| some people also called them the living dinosaur~~"
+			+ "\n| \n| #shoebill #livingdinosaur #happyofunny #weirdcreature #weirdsoun..."
+			+ "\n| \n| 🎞️ https://www.youtube.com/embed/kDMHHw8JqLE",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><sub><a href="https://www.youtube.com">YouTube</a></sub></p>`
+			+ `<p><strong><a href="https://www.youtube.com/channel/UCEpQ9aEb1NafpvWp5Aoizrg">Happy O Funny</a></strong>`
+			+ `</p><p><strong><a href="https://www.youtube.com/watch?v=kDMHHw8JqLE">Shoebill stork clattering sounds like machine guun~!! (Japan Matsue...</a></strong>`
+			+ `</p><p>twitter<br><a href="https://twitter.com/matsuevogelpark">https://twitter.com/matsuevogelpark</a><br><br>The shoebill (Balaeniceps rex) also known as whalehead, whale-headed stork, or shoe-billed stork, is a very large stork-like bird. It derives its name from its enormous shoe-shaped bill<br>some people also called them the living dinosaur~~<br><br>#shoebill #livingdinosaur #happyofunny #weirdcreature #weirdsoun...`
+			+ `</p><p>🎞️ https://www.youtube.com/embed/kDMHHw8JqLE`
+			+ `</p></blockquote>`,
+		"m.mentions": {}
+	}])
+})

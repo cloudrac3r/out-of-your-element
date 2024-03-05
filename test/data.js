@@ -2123,6 +2123,185 @@ module.exports = {
 			attachments: [],
 			guild_id: "1150201337112449045"
 		},
+		vx_image: {
+			id: "1209926442981269544",
+			type: 0,
+			content: "https://vxtwitter.com/TomorrowCorp/status/1760330671074287875 we got a release date!!!",
+			channel_id: "288058913985789953",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "0",
+				public_flags: 128,
+				premium_type: 0,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "article",
+					url: "https://vxtwitter.com/TomorrowCorp/status/1760330671074287875",
+					title: "Tomorrow Corporation (@TomorrowCorp)",
+					description: "Mark your calendar with a wet black stain! World of Goo 2 releases on May 23, 2024 on Nintendo Switch, Epic Games Store (Win/Mac), and http://WorldOfGoo2.com (Win/Mac/Linux).\n" +
+						"\n" +
+						"https://tomorrowcorporation.com/posts/world-of-goo-2-now-with-100-more-release-dates-and-platforms\n" +
+						"\n" +
+						"💖 123 🔁 36",
+					color: 8388564,
+					author: {
+						name: "Twitter",
+						url: "https://twitter.com/tomorrowcorp/status/1760330671074287875"
+					},
+					provider: {
+						name: "vxTwitter / fixvx",
+						url: "https://github.com/dylanpdx/BetterTwitFix"
+					},
+					thumbnail: {
+						url: "https://pbs.twimg.com/media/GG3zUMGbIAAxs3h.jpg",
+						proxy_url: "https://images-ext-2.discordapp.net/external/eqA-NKoXzJ0Y_l-MlwN6shFDJibC0TbPxMNWSU5IpKY/https/pbs.twimg.com/media/GG3zUMGbIAAxs3h.jpg",
+						width: 1200,
+						height: 1200,
+						placeholder: "5SgKDwTIlqiPjIhzlspniIiNaN8It3AD",
+						placeholder_version: 1
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-02-21T18:15:43.353000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
+		vx_video: {
+			id: "1209804622206599190",
+			type: 0,
+			content: "https://vxtwitter.com/McDonalds/status/1759971752254341417",
+			channel_id: "112760669178241024",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "0",
+				public_flags: 128,
+				premium_type: 0,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "video",
+					url: "https://vxtwitter.com/McDonalds/status/1759971752254341417",
+					title: "McDonald's (@McDonalds)",
+					description: "McDonald’s🤝@studiopierrot\n\n💖 89 🔁 21",
+					color: 8388564,
+					author: {
+						name: "McDonald’s🤝@studiopierrot\n\n💖 89 🔁 21",
+						url: "https://twitter.com/McDonalds/status/1759971752254341417"
+					},
+					provider: {
+						name: "vxTwitter / fixvx",
+						url: "https://github.com/dylanpdx/BetterTwitFix"
+					},
+					video: {
+						url: "https://video.twimg.com/ext_tw_video/1759967449548541952/pu/vid/avc1/1280x720/XN1LFIJqAFBdtaoh.mp4?tag=12",
+						proxy_url: "https://images-ext-1.discordapp.net/external/TInoGDskHFBRSQR0ErWEmvmzi75EO28aSyiEXs3SB8E/%3Ftag%3D12/https/video.twimg.com/ext_tw_video/1759967449548541952/pu/vid/avc1/1280x720/XN1LFIJqAFBdtaoh.mp4",
+						width: 1280,
+						height: 720,
+						placeholder: "AggGBIAIp4iGeYdxjHgAAAAAAA==",
+						placeholder_version: 1
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-02-21T10:11:39.017000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
+		youtube_video: {
+			id: "1214383754479534100",
+			type: 0,
+			content: "https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E\n\n\nJutomi I'm gonna make these sounds in your walls tonight",
+			channel_id: "112760669178241024",
+			author: {
+				id: "1060361805152669766",
+				username: "occimyy",
+				avatar: "3bf268de3eab1c5441da9585534d8aa5",
+				discriminator: "0",
+				public_flags: 0,
+				premium_type: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "Occimyy",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "video",
+					url: "https://www.youtube.com/watch?v=kDMHHw8JqLE",
+					title: "Shoebill stork clattering sounds like machine guun~!! (Japan Matsue...",
+					description: "twitter\n" +
+						"https://twitter.com/matsuevogelpark\n" +
+						"\n" +
+						"The shoebill (Balaeniceps rex) also known as whalehead, whale-headed stork, or shoe-billed stork, is a very large stork-like bird. It derives its name from its enormous shoe-shaped bill\n" +
+						"some people also called them the living dinosaur~~\n" +
+						"\n" +
+						"#shoebill #livingdinosaur #happyofunny #weirdcreature #weirdsoun...",
+					color: 16711680,
+					author: {
+						name: "Happy O Funny",
+						url: "https://www.youtube.com/channel/UCEpQ9aEb1NafpvWp5Aoizrg"
+					},
+					provider: { name: "YouTube", url: "https://www.youtube.com" },
+					thumbnail: {
+						url: "https://i.ytimg.com/vi/kDMHHw8JqLE/maxresdefault.jpg",
+						proxy_url: "https://images-ext-1.discordapp.net/external/eEPOxZQXfTHqvPQJBWqsgG3wxTQN20b8LXqw3jSqyRM/https/i.ytimg.com/vi/kDMHHw8JqLE/maxresdefault.jpg",
+						width: 1280,
+						height: 720,
+						placeholder: "WAgSDIIIdIprl4h4h4dNoEoEaQ==",
+						placeholder_version: 1
+					},
+					video: {
+						url: "https://www.youtube.com/embed/kDMHHw8JqLE",
+						width: 1280,
+						height: 720,
+						placeholder: "WAgSDIIIdIprl4h4h4dNoEoEaQ==",
+						placeholder_version: 1
+					}
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-03-05T01:27:29.227000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		image_embed_and_attachment: {
 			id: "1157854642810654821",
 			type: 0,
