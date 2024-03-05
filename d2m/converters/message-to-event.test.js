@@ -789,3 +789,63 @@ test("message2event: crossposted announcements say where they are crossposted fr
 		formatted_body: "🔀 <strong>Chewey Bot Official Server #announcements</strong><br>All text based commands are now inactive on Chewey Bot<br>To continue using commands you'll need to use them as slash commands"
 	}])
 })
+
+test("message2event: @everyone", async t => {
+	const events = await messageToEvent(data.message_mention_everyone.at_everyone)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "@room",
+		"m.mentions": {
+			room: true
+		}
+	}])
+})
+
+test("message2event: @here", async t => {
+	const events = await messageToEvent(data.message_mention_everyone.at_here)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "@room",
+		"m.mentions": {
+			room: true
+		}
+	}])
+})
+
+test("message2event: @everyone without permission", async t => {
+	const events = await messageToEvent(data.message_mention_everyone.at_everyone_without_permission)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "@everyone <-- this is testing that it DOESN'T mention. if this mentions everyone then my apologies.",
+		format: "org.matrix.custom.html",
+		formatted_body: "@everyone &lt;-- this is testing that it DOESN'T mention. if this mentions everyone then my apologies.",
+		"m.mentions": {}
+	}])
+})
+
+test("message2event: @here without permission", async t => {
+	const events = await messageToEvent(data.message_mention_everyone.at_here_without_permission)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "@here <-- this is testing that it DOESN'T mention. if this mentions people then my apologies.",
+		format: "org.matrix.custom.html",
+		formatted_body: "@here &lt;-- this is testing that it DOESN'T mention. if this mentions people then my apologies.",
+		"m.mentions": {}
+	}])
+})
+
+test("message2event: @everyone within a link", async t => {
+	const events = await messageToEvent(data.message_mention_everyone.at_everyone_within_link)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://github.com/@everyone",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://github.com/@everyone">https://github.com/@everyone</a>`,
+		"m.mentions": {}
+	}])
+})

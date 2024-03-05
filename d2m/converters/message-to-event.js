@@ -249,6 +249,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 	let repliedToEventRow = null
 	let repliedToEventSenderMxid = null
 
+	if (message.mention_everyone) mentions.room = true
+
 	function addMention(mxid) {
 		if (!mentions.user_ids) mentions.user_ids = []
 		if (!mentions.user_ids.includes(mxid)) mentions.user_ids.push(mxid)
@@ -480,7 +482,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 	const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
-	if (matches.length && matches.some(m => m[1].match(/[a-z]/i))) {
+	if (matches.length && matches.some(m => m[1].match(/[a-z]/i) && m[1] !== "everyone" && m[1] !== "here")) {
 		const writtenMentionsText = matches.map(m => m[1].toLowerCase())
 		const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 		assert(roomID)
