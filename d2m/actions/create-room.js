@@ -12,6 +12,8 @@ const file = sync.require("../../matrix/file")
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
+/** @type {import("../../discord/utils")} */
+const utils = sync.require("../../discord/utils")
 /** @type {import("./create-space")}) */
 const createSpace = sync.require("./create-space") // watch out for the require loop
 
@@ -119,6 +121,9 @@ async function channelToKState(channel, guild) {
 		join_rules = {join_rule: PRIVACY_ENUMS.ROOM_JOIN_RULES[privacyLevel]}
 	}
 
+	const everyonePermissions = utils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
+	const everyoneCanMentionEveryone = utils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
+
 	const channelKState = {
 		"m.room.name/": {name: convertedName},
 		"m.room.topic/": {topic: convertedTopic},
@@ -136,7 +141,7 @@ async function channelToKState(channel, guild) {
 				"m.room.avatar": 0
 			},
 			notifications: {
-				room: 20 // TODO: Matrix users should have the same abilities as unprivileged Discord members. So make this automatically configured based on the guild or channel's default mention everyone permissions. That way if unprivileged Discord members can mention everyone, Matrix users can too.
+				room: everyoneCanMentionEveryone ? 0 : 20
 			},
 			users: reg.ooye.invite.reduce((a, c) => (a[c] = 100, a), {})
 		},

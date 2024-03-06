@@ -1,5 +1,6 @@
 // @ts-check
 
+const mixin = require("mixin-deep")
 const {channelToKState, _convertNameAndTopic} = require("./create-room")
 const {kstateStripConditionals} = require("../../matrix/kstate")
 const {test} = require("supertape")
@@ -36,6 +37,16 @@ test("channel2room: invite-only privacy room", async t => {
 	t.deepEqual(
 		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general).then(x => x.channelKState)),
 		testData.room.general
+	)
+})
+
+test("channel2room: room where limited people can mention everyone", async t => {
+	const limitedGuild = mixin({}, testData.guild.general)
+	limitedGuild.roles[0].permissions = (BigInt(limitedGuild.roles[0].permissions) - 131072n).toString()
+	const limitedRoom = mixin({}, testData.room.general, {"m.room.power_levels/": {notifications: {room: 20}}})
+	t.deepEqual(
+		kstateStripConditionals(await channelToKState(testData.channel.general, limitedGuild).then(x => x.channelKState)),
+		limitedRoom
 	)
 })
 

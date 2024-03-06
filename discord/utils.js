@@ -26,7 +26,7 @@ function getPermissions(userRoles, guildRoles, userID, channelOverwrites) {
 	}
 
 	if (channelOverwrites) {
-		/** @type {((overwrite: Required<DiscordTypes.APIGuildChannel>["permission_overwrites"][0]) => any)[]} */
+		/** @type {((overwrite: Required<DiscordTypes.APIOverwrite>) => any)[]} */
 		const actions = [
 			// Channel @everyone deny
 			overwrite => overwrite.id === everyoneID && (allowed &= ~BigInt(overwrite.deny)),

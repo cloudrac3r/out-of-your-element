@@ -47,6 +47,9 @@ module.exports = {
 				},
 				users: {
 					"@test_auto_invite:example.org": 100
+				},
+				notifications: {
+					room: 0
 				}
 			},
 			"chat.schildi.hide_ui/read_receipts": {hidden: true},
@@ -98,7 +101,6 @@ module.exports = {
 			icon: "a_f83622e09ead74f0c5c527fe241f8f8c",
 			emojis: [
 				{
-					version: 0,
 					roles: [],
 					require_colons: true,
 					name: "hippo",
@@ -108,7 +110,6 @@ module.exports = {
 					animated: false
 				},
 				{
-					version: 0,
 					roles: [],
 					require_colons: true,
 					name: "hipposcope",
@@ -121,7 +122,20 @@ module.exports = {
 			premium_subscription_count: 14,
 			roles: [
 				{
-					version: 1696964862461,
+					unicode_emoji: null,
+					tags: {},
+					position: 0,
+					permissions: '559623605575360',
+					name: '@everyone',
+					mentionable: false,
+					managed: false,
+					id: '112760669178241024',
+					icon: null,
+					hoist: false,
+					flags: 0,
+					color: 0
+				},
+				{
 					unicode_emoji: null,
 					tags: {},
 					position: 22,
@@ -135,7 +149,6 @@ module.exports = {
 					flags: 0,
 					color: 0
 				}, {
-					version: 1696964862776,
 					unicode_emoji: null,
 					tags: {},
 					position: 131,
@@ -149,7 +162,6 @@ module.exports = {
 					flags: 0,
 					color: 11076095
 				}, {
-					version: 1696964862698,
 					unicode_emoji: '🍂',
 					tags: {},
 					position: 102,
