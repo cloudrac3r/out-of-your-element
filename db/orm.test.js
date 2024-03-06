@@ -51,5 +51,5 @@ test("orm: from: join direction works", t => {
 	const hasNoOwner = from("sim").join("sim_proxy", "user_id", "left").select("user_id", "proxy_owner_id").where({sim_name: "crunch_god"}).get()
 	t.deepEqual(hasNoOwner, {user_id: "820865262526005258", proxy_owner_id: null})
 	const hasNoOwnerInner = from("sim").join("sim_proxy", "user_id", "inner").select("user_id", "proxy_owner_id").where({sim_name: "crunch_god"}).get()
-	t.deepEqual(hasNoOwnerInner, null)
+	t.deepEqual(hasNoOwnerInner, undefined)
 })

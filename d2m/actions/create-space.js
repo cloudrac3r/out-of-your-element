@@ -1,8 +1,8 @@
 // @ts-check
 
 const assert = require("assert").strict
+const {isDeepStrictEqual} = require("util")
 const DiscordTypes = require("discord-api-types/v10")
-const deepEqual = require("deep-equal")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
@@ -226,7 +226,7 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 				// State event not found. This space doesn't have any existing emojis. We create a dummy empty event for comparison's sake.
 				existing = fn([])
 			}
-			if (deepEqual(existing, content, {strict: true})) return
+			if (isDeepStrictEqual(existing, content)) return
 		}
 		api.sendState(spaceID, "im.ponies.room_emotes", eventKey, content)
 	}

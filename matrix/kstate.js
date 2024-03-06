@@ -2,7 +2,7 @@
 
 const assert = require("assert").strict
 const mixin = require("mixin-deep")
-const deepEqual = require("deep-equal")
+const {isDeepStrictEqual} = require("util")
 
 /** Mutates the input. */
 function kstateStripConditionals(kstate) {
@@ -51,14 +51,14 @@ function diffKState(actual, target) {
 			// Special handling for power levels, we want to deep merge the actual and target into the final state.
 			if (!(key in actual)) throw new Error(`want to apply a power levels diff, but original power level data is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
 			const temp = mixin({}, actual[key], target[key])
-			if (!deepEqual(actual[key], temp, {strict: true})) {
+			if (!isDeepStrictEqual(actual[key], temp)) {
 				// they differ. use the newly prepared object as the diff.
 				diff[key] = temp
 			}
 
 		} else if (key in actual) {
 			// diff
-			if (!deepEqual(actual[key], target[key], {strict: true})) {
+			if (!isDeepStrictEqual(actual[key], target[key])) {
 				// they differ. use the target as the diff.
 				diff[key] = target[key]
 			}

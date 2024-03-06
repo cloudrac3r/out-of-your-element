@@ -100,7 +100,7 @@ export type Prepared<Row> = {
 	safeIntegers: () => Prepared<{[K in keyof Row]: Row[K] extends number ? BigInt : Row[K]}>
 	raw: () => Prepared<Row[keyof Row][]>
 	all: (..._: any[]) => Row[]
-	get: (..._: any[]) => Row | null
+	get: (..._: any[]) => Row | null | undefined
 }
 
 export type AllKeys<U> = U extends any ? keyof U : never
