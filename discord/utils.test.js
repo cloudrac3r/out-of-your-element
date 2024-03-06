@@ -1,3 +1,4 @@
+const DiscordTypes = require("discord-api-types/v10")
 const {test} = require("supertape")
 const data = require("../test/data")
 const utils = require("./utils")
@@ -81,4 +82,28 @@ test("getPermissions: channel overwrite to allow role works", t => {
 	const permissions = utils.getPermissions(userRoles, guildRoles, userID, overwrites)
 	const want = BigInt(1 << 10 | 1 << 16)
 	t.equal((permissions & want), want)
+})
+
+test("hasSomePermissions: detects the permission", t => {
+	const userPermissions = DiscordTypes.PermissionFlagsBits.MentionEveryone | DiscordTypes.PermissionFlagsBits.BanMembers
+	const canRemoveMembers = utils.hasSomePermissions(userPermissions, ["KickMembers", "BanMembers"])
+	t.equal(canRemoveMembers, true)
+})
+
+test("hasSomePermissions: doesn't detect not the permission", t => {
+	const userPermissions = DiscordTypes.PermissionFlagsBits.MentionEveryone | DiscordTypes.PermissionFlagsBits.SendMessages
+	const canRemoveMembers = utils.hasSomePermissions(userPermissions, ["KickMembers", "BanMembers"])
+	t.equal(canRemoveMembers, false)
+})
+
+test("hasAllPermissions: detects the permissions", t => {
+	const userPermissions = DiscordTypes.PermissionFlagsBits.KickMembers | DiscordTypes.PermissionFlagsBits.BanMembers | DiscordTypes.PermissionFlagsBits.MentionEveryone
+	const canRemoveMembers = utils.hasAllPermissions(userPermissions, ["KickMembers", "BanMembers"])
+	t.equal(canRemoveMembers, true)
+})
+
+test("hasAllPermissions: doesn't detect not the permissions", t => {
+	const userPermissions = DiscordTypes.PermissionFlagsBits.MentionEveryone | DiscordTypes.PermissionFlagsBits.SendMessages | DiscordTypes.PermissionFlagsBits.KickMembers
+	const canRemoveMembers = utils.hasAllPermissions(userPermissions, ["KickMembers", "BanMembers"])
+	t.equal(canRemoveMembers, false)
 })
