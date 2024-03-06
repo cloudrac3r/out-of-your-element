@@ -115,8 +115,7 @@ module.exports = {
 			if (!member) return
 			if (!("permission_overwrites" in channel)) continue
 			const permissions = dUtils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
-			const wants = BigInt(1 << 10) | BigInt(1 << 16) // VIEW_CHANNEL + READ_MESSAGE_HISTORY
-			if ((permissions & wants) !== wants) continue // We don't have permission to look back in this channel
+			if (!dUtils.hasAllPermissions(permissions, ["ViewChannel", "ReadMessageHistory"])) continue // We don't have permission to look back in this channel
 
 			/** More recent messages come first. */
 			// console.log(`[check missed messages] in ${channel.id} (${guild.name} / ${channel.name}) because its last message ${channel.last_message_id} is not in the database`)
@@ -164,8 +163,7 @@ module.exports = {
 
 			// Permissions check
 			const permissions = dUtils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
-			const wants = BigInt(1 << 10) | BigInt(1 << 16) // VIEW_CHANNEL + READ_MESSAGE_HISTORY
-			if ((permissions & wants) !== wants) continue // We don't have permission to look up the pins in this channel
+			if (!dUtils.hasAllPermissions(permissions, ["ViewChannel", "ReadMessageHistory"])) continue // We don't have permission to look up the pins in this channel
 
 			const row = select("channel_room", ["room_id", "last_bridged_pin_timestamp"], {channel_id: channel.id}).get()
 			if (!row) continue // Only care about already bridged channels

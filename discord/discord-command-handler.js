@@ -137,7 +137,7 @@ const commands = [{
 			// Check CREATE_INSTANT_INVITE permission
 			assert(message.member)
 			const guildPermissions = utils.getPermissions(message.member.roles, guild.roles)
-			if (!(guildPermissions & BigInt(1))) {
+			if (!(guildPermissions & DiscordTypes.PermissionFlagsBits.CreateInstantInvite)) {
 				return discord.snow.channel.createMessage(channel.id, {
 					...ctx,
 					content: "You don't have permission to invite people to this Discord server."

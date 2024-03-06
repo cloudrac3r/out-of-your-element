@@ -12,7 +12,7 @@ const utils = sync.require("../../m2d/converters/utils")
  * @typedef ReactionRemoveRequest
  * @prop {string} eventID
  * @prop {string | null} mxid
- * @prop {BigInt} [hash]
+ * @prop {bigint} [hash]
  */
 
 /**
