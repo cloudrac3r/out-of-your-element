@@ -248,7 +248,7 @@ module.exports = {
 		if (affected) return
 
 		// @ts-ignore
-		await sendMessage.sendMessage(message, guild, row),
+		await sendMessage.sendMessage(message, channel, guild, row),
 		await discordCommandHandler.execute(message, channel, guild)
 	},
 

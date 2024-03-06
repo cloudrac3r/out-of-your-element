@@ -1,6 +1,7 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
+const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
 const { discord, sync, db } = passthrough
@@ -18,17 +19,18 @@ const createRoom = sync.require("../actions/create-room")
 const dUtils = sync.require("../../discord/utils")
 
 /**
- * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
- * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
+ * @param {DiscordTypes.APIGuildChannel} channel
+ * @param {DiscordTypes.APIGuild} guild
  * @param {{speedbump_id: string, speedbump_webhook_id: string} | null} row data about the webhook which is proxying messages in this channel
  */
-async function sendMessage(message, guild, row) {
+async function sendMessage(message, channel, guild, row) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 
 	let senderMxid = null
 	if (!dUtils.isWebhookMessage(message)) {
 		if (message.member) { // available on a gateway message create event
-			senderMxid = await registerUser.syncUser(message.author, message.member, message.guild_id, roomID)
+			senderMxid = await registerUser.syncUser(message.author, message.member, channel, guild, roomID)
 		} else { // well, good enough...
 			senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
 		}

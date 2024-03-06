@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const reg = require("../../matrix/read-registration")
 const DiscordTypes = require("discord-api-types/v10")
 const mixin = require("mixin-deep")
@@ -180,11 +180,12 @@ function _hashProfileContent(content, powerLevel) {
  * 5. If the state content or power level have changed, send them to Matrix and update them in the database for next time
  * @param {DiscordTypes.APIUser} user
  * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
- * @param {DiscordTypes.APIGuild} guild
  * @param {DiscordTypes.APIGuildChannel} channel
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {string} roomID
  * @returns {Promise<string>} mxid of the updated sim
  */
-async function syncUser(user, member, guild, channel, roomID) {
+async function syncUser(user, member, channel, guild, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guild.id)
 	const powerLevel = memberToPowerLevel(user, member, guild, channel)
@@ -204,6 +205,9 @@ async function syncUser(user, member, guild, channel, roomID) {
 	return mxid
 }
 
+/**
+ * @param {string} roomID
+ */
 async function syncAllUsersInRoom(roomID) {
 	const mxids = select("sim_member", "mxid", {room_id: roomID}).pluck().all()
 
@@ -228,7 +232,7 @@ async function syncAllUsersInRoom(roomID) {
 		assert.ok(user)
 
 		console.log(`[user sync] to matrix: ${user.username} in ${channel.name}`)
-		await syncUser(user, member, guild, channel, roomID)
+		await syncUser(user, member, channel, guild, roomID)
 	}
 }
 

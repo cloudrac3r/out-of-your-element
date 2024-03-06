@@ -63,7 +63,7 @@ function getPermissions(userRoles, guildRoles, userID, channelOverwrites) {
  */
 function hasPermission(resolvedPermissions, permissionToCheckFor) {
 	// Make sure permissionToCheckFor has exactly one permission in it
-	assert.equal(permissionToCheckFor.toString(2).match(/1/g), 1)
+	assert.equal(permissionToCheckFor.toString(2).match(/1/g)?.length, 1)
 	// Do the actual calculation
 	return (resolvedPermissions & permissionToCheckFor) === permissionToCheckFor
 }
