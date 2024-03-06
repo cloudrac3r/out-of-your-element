@@ -135,6 +135,9 @@ async function channelToKState(channel, guild) {
 			events: {
 				"m.room.avatar": 0
 			},
+			notifications: {
+				room: 20 // TODO: Matrix users should have the same abilities as unprivileged Discord members. So make this automatically configured based on the guild or channel's default mention everyone permissions. That way if unprivileged Discord members can mention everyone, Matrix users can too.
+			},
 			users: reg.ooye.invite.reduce((a, c) => (a[c] = 100, a), {})
 		},
 		"chat.schildi.hide_ui/read_receipts": {

@@ -131,7 +131,7 @@ async function syncUser(author, pkMessage, roomID) {
 	db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES (?, ?, ?)").run(pkMessage.member.uuid, pkMessage.sender, author.username)
 	// Sync the member state
 	const content = await memberToStateContent(pkMessage, author)
-	const currentHash = registerUser._hashProfileContent(content)
+	const currentHash = registerUser._hashProfileContent(content, 0)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
 	if (existingHash !== currentHash) {

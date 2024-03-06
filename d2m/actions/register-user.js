@@ -2,6 +2,8 @@
 
 const assert = require("assert")
 const reg = require("../../matrix/read-registration")
+const DiscordTypes = require("discord-api-types/v10")
+const mixin = require("mixin-deep")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
@@ -9,6 +11,8 @@ const {discord, sync, db, select} = passthrough
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
+/** @type {import("../../discord/utils")} */
+const utils = sync.require("../../discord/utils")
 /** @type {import("../converters/user-to-mxid")} */
 const userToMxid = sync.require("../converters/user-to-mxid")
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
@@ -18,7 +22,7 @@ require("xxhash-wasm")().then(h => hasher = h)
 
 /**
  * A sim is an account that is being simulated by the bridge to copy events from the other side.
- * @param {import("discord-api-types/v10").APIUser} user
+ * @param {DiscordTypes.APIUser} user
  * @returns mxid
  */
 async function createSim(user) {
@@ -46,7 +50,7 @@ async function createSim(user) {
 /**
  * Ensure a sim is registered for the user.
  * If there is already a sim, use that one. If there isn't one yet, register a new sim.
- * @param {import("discord-api-types/v10").APIUser} user
+ * @param {DiscordTypes.APIUser} user
  * @returns {Promise<string>} mxid
  */
 async function ensureSim(user) {
@@ -62,7 +66,7 @@ async function ensureSim(user) {
 
 /**
  * Ensure a sim is registered for the user and is joined to the room.
- * @param {import("discord-api-types/v10").APIUser} user
+ * @param {DiscordTypes.APIUser} user
  * @param {string} roomID
  * @returns {Promise<string>} mxid
  */
@@ -92,8 +96,8 @@ async function ensureSimJoined(user, roomID) {
 }
 
 /**
- * @param {import("discord-api-types/v10").APIUser} user
- * @param {Omit<import("discord-api-types/v10").APIGuildMember, "user">} member
+ * @param {DiscordTypes.APIUser} user
+ * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
  */
 async function memberToStateContent(user, member, guildID) {
 	let displayname = user.username
@@ -123,8 +127,46 @@ async function memberToStateContent(user, member, guildID) {
 	return content
 }
 
-function _hashProfileContent(content) {
-	const unsignedHash = hasher.h64(`${content.displayname}\u0000${content.avatar_url}`)
+/**
+ * https://gitdab.com/cadence/out-of-your-element/issues/9
+ * @param {DiscordTypes.APIUser} user
+ * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {DiscordTypes.APIGuildChannel} channel
+ * @returns {number} 0 to 100
+ */
+function memberToPowerLevel(user, member, guild, channel) {
+	const permissions = utils.getPermissions(member.roles, guild.roles, user.id, channel.permission_overwrites)
+	/*
+	 * PL 100 = Administrator = People who can brick the room. RATIONALE:
+	 * 	- Administrator.
+	 * 	- Manage Webhooks: People who remove the webhook can break the room.
+	 * 	- Manage Guild: People who can manage guild can add bots.
+	 * 	- Manage Channels: People who can manage the channel can delete it.
+	 * (Setting sim users to PL 100 is safe because even though we can't demote the sims we can use code to make the sims demote themselves.)
+	 */
+	if (guild.owner_id === user.id || utils.hasSomePermissions(permissions, ["Administrator", "ManageWebhooks", "ManageGuild", "ManageChannels"])) return 100
+	/*
+	 * PL 50 = Moderator = People who can manage people and messages in many ways. RATIONALE:
+	 * 	- Manage Messages: Can moderate by pinning or deleting the conversation.
+	 * 	- Manage Nicknames: Can moderate by removing inappropriate nicknames.
+	 * 	- Manage Threads: Can moderate by deleting conversations.
+	 * 	- Kick Members & Ban Members: Can moderate by removing disruptive people.
+	 * 	- Mute Members & Deafen Members: Can moderate by silencing disruptive people in ways they can't undo.
+	 * 	- Moderate Members.
+	 */
+	if (utils.hasSomePermissions(permissions, ["ManageMessages", "ManageNicknames", "ManageThreads", "KickMembers", "BanMembers", "MuteMembers", "DeafenMembers", "ModerateMembers"])) return 50
+	/* PL 20 = Mention Everyone for technical reasons. */
+	if (utils.hasSomePermissions(permissions, ["MentionEveryone"])) return 20
+	return 0
+}
+
+/**
+ * @param {any} content
+ * @param {number} powerLevel
+ */
+function _hashProfileContent(content, powerLevel) {
+	const unsignedHash = hasher.h64(`${content.displayname}\u0000${content.avatar_url}\u0000${powerLevel}`)
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 	return signedHash
 }
@@ -133,20 +175,30 @@ function _hashProfileContent(content) {
  * Sync profile data for a sim user. This function follows the following process:
  * 1. Join the sim to the room if needed
  * 2. Make an object of what the new room member state content would be, including uploading the profile picture if it hasn't been done before
- * 3. Compare against the previously known state content, which is helpfully stored in the database
- * 4. If the state content has changed, send it to Matrix and update it in the database for next time
- * @param {import("discord-api-types/v10").APIUser} user
- * @param {Omit<import("discord-api-types/v10").APIGuildMember, "user">} member
+ * 3. Calculate the power level the user should get based on their Discord permissions
+ * 4. Compare against the previously known state content, which is helpfully stored in the database
+ * 5. If the state content or power level have changed, send them to Matrix and update them in the database for next time
+ * @param {DiscordTypes.APIUser} user
+ * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {DiscordTypes.APIGuildChannel} channel
  * @returns {Promise<string>} mxid of the updated sim
  */
-async function syncUser(user, member, guildID, roomID) {
+async function syncUser(user, member, guild, channel, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
-	const content = await memberToStateContent(user, member, guildID)
-	const currentHash = _hashProfileContent(content)
+	const content = await memberToStateContent(user, member, guild.id)
+	const powerLevel = memberToPowerLevel(user, member, guild, channel)
+	const currentHash = _hashProfileContent(content, powerLevel)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
 	if (existingHash !== currentHash) {
+		// Update room member state
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
+		// Update power levels
+		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
+		mixin(powerLevelsStateContent, {users: {[mxid]: powerLevel}})
+		api.sendState(roomID, "m.room.power_levels", "", powerLevelsStateContent)
+		// Update cached hash
 		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}
 	return mxid
@@ -158,23 +210,25 @@ async function syncAllUsersInRoom(roomID) {
 	const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
 	assert.ok(typeof channelID === "string")
 
-	/** @ts-ignore @type {import("discord-api-types/v10").APIGuildChannel} */
+	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	const guildID = channel.guild_id
 	assert.ok(typeof guildID === "string")
+	/** @ts-ignore @type {DiscordTypes.APIGuild} */
+	const guild = discord.guilds.get(guildID)
 
 	for (const mxid of mxids) {
 		const userID = select("sim", "user_id", {mxid}).pluck().get()
 		assert.ok(typeof userID === "string")
 
-		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIGuildMember>} */
+		/** @ts-ignore @type {Required<DiscordTypes.APIGuildMember>} */
 		const member = await discord.snow.guild.getGuildMember(guildID, userID)
-		/** @ts-ignore @type {Required<import("discord-api-types/v10").APIUser>} user */
+		/** @ts-ignore @type {Required<DiscordTypes.APIUser>} user */
 		const user = member.user
 		assert.ok(user)
 
 		console.log(`[user sync] to matrix: ${user.username} in ${channel.name}`)
-		await syncUser(user, member, guildID, roomID)
+		await syncUser(user, member, guild, channel, roomID)
 	}
 }
 
