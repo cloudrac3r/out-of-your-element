@@ -384,19 +384,35 @@ async function handleRoomOrMessageLinks(input, di) {
 
 /**
  * @param {string} content
+ * @param {string} senderMxid
+ * @param {string} roomID
  * @param {DiscordTypes.APIGuild} guild
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"]}} di
  */
-async function checkWrittenMentions(content, guild, di) {
+async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
 	let writtenMentionMatch = content.match(/(?:^|[^"[<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // /d flag for indices requires node.js 16+
 	if (writtenMentionMatch) {
-		const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
-		if (results[0]) {
-			assert(results[0].user)
-			return {
-				// @ts-ignore - typescript doesn't know about indices yet
-				content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `<@${results[0].user.id}>` + content.slice(writtenMentionMatch.indices[1][1]),
-				ensureJoined: results[0].user
+		if (writtenMentionMatch[1] === "room") { // convert @room to @everyone
+			const powerLevels = await di.api.getStateEvent(roomID, "m.room.power_levels", "")
+			const userPower = powerLevels.users?.[senderMxid] || 0
+			if (userPower >= powerLevels.notifications?.room) {
+				return {
+					// @ts-ignore - typescript doesn't know about indices yet
+					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `@everyone` + content.slice(writtenMentionMatch.indices[1][1]),
+					ensureJoined: [],
+					allowedMentionsParse: ["everyone"]
+				}
+			}
+		} else {
+			const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
+			if (results[0]) {
+				assert(results[0].user)
+				return {
+					// @ts-ignore - typescript doesn't know about indices yet
+					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `<@${results[0].user.id}>` + content.slice(writtenMentionMatch.indices[1][1]),
+					ensureJoined: [results[0].user],
+					allowedMentionsParse: []
+				}
 			}
 		}
 	}
@@ -427,6 +443,7 @@ const attachmentEmojis = new Map([
 async function eventToMessage(event, guild, di) {
 	let displayName = event.sender
 	let avatarURL = undefined
+	const allowedMentionsParse = ["users", "roles"]
 	/** @type {string[]} */
 	let messageIDsToEdit = []
 	let replyLine = ""
@@ -656,10 +673,11 @@ async function eventToMessage(event, guild, di) {
 				for (; node; node = node.nextSibling) {
 					// Check written mentions
 					if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
-						const result = await checkWrittenMentions(node.nodeValue, guild, di)
+						const result = await checkWrittenMentions(node.nodeValue, event.sender, event.room_id, guild, di)
 						if (result) {
 							node.nodeValue = result.content
-							ensureJoined.push(result.ensureJoined)
+							ensureJoined.push(...result.ensureJoined)
+							allowedMentionsParse.push(...result.allowedMentionsParse)
 						}
 					}
 					// Check for incompatible backticks in code blocks
@@ -727,10 +745,11 @@ async function eventToMessage(event, guild, di) {
 			content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
 			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
 
-			const result = await checkWrittenMentions(content, guild, di)
+			const result = await checkWrittenMentions(content, event.sender, event.room_id, guild, di)
 			if (result) {
 				content = result.content
-				ensureJoined.push(result.ensureJoined)
+				ensureJoined.push(...result.ensureJoined)
+				allowedMentionsParse.push(...result.allowedMentionsParse)
 			}
 
 			// Markdown needs to be escaped, though take care not to escape the middle of links
@@ -787,7 +806,7 @@ async function eventToMessage(event, guild, di) {
 	const messages = chunks.map(content => ({
 		content,
 		allowed_mentions: {
-			parse: ["users", "roles"]
+			parse: allowedMentionsParse
 		},
 		username: displayNameShortened,
 		avatar_url: avatarURL

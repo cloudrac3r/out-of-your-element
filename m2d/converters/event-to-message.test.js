@@ -3786,6 +3786,174 @@ test("event2message: guessed @mentions work with other matrix bridge old users",
 	)
 })
 
+test("event2message: @room converts to @everyone and is allowed when the room doesn't restrict who can use it (plaintext body)", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "@room dinner's ready",
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}, data.guild.general, {
+			api: {
+				getStateEvent(roomID, type, key) {
+					called++
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					return {
+						users: {},
+						notifications: {
+							room: 0
+						}
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "@everyone dinner's ready",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles", "everyone"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
+test("event2message: @room converts to @everyone but is not allowed when the room restricts who can use it", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "@room dinner's ready"
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}, data.guild.general, {
+			api: {
+				getStateEvent(roomID, type, key) {
+					called++
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					return {
+						users: {},
+						notifications: {
+							room: 20
+						}
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "@room dinner's ready",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
+test("event2message: @room converts to @everyone and is allowed if the user has sufficient power to use it", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "@room dinner's ready"
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}, data.guild.general, {
+			api: {
+				getStateEvent(roomID, type, key) {
+					called++
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					return {
+						users: {
+							"@cadence:cadence.moe": 20
+						},
+						notifications: {
+							room: 20
+						}
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "@everyone dinner's ready",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles", "everyone"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
+test("event2message: @room in the middle of a link is not converted", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `<a href="https://github.com/@room/repositories">https://github.com/@room/repositories</a> https://github.com/@room/repositories`
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "https://github.com/@room/repositories https://github.com/@room/repositories",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
 slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet", async t => {
 	const messages = await eventToMessage({
 		type: "m.room.message",
