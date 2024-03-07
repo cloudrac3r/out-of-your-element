@@ -425,9 +425,6 @@ const attachmentEmojis = new Map([
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"], mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
-	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
-	let messages = []
-
 	let displayName = event.sender
 	let avatarURL = undefined
 	/** @type {string[]} */
@@ -786,11 +783,15 @@ async function eventToMessage(event, guild, di) {
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
-	messages = messages.concat(chunks.map(content => ({
+	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
+	const messages = chunks.map(content => ({
 		content,
+		allowed_mentions: {
+			parse: ["users", "roles"]
+		},
 		username: displayNameShortened,
 		avatar_url: avatarURL
-	})))
+	}))
 
 	if (attachments.length) {
 		// If content is empty (should be the case when uploading a file) then chunk-text will create 0 messages.
