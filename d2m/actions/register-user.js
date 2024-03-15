@@ -198,7 +198,8 @@ async function syncUser(user, member, channel, guild, roomID) {
 		// Update power levels
 		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
 		mixin(powerLevelsStateContent, {users: {[mxid]: powerLevel}})
-		api.sendState(roomID, "m.room.power_levels", "", powerLevelsStateContent)
+		if (powerLevel === 0) delete powerLevelsStateContent.users[mxid] // keep the event compact
+		await api.sendState(roomID, "m.room.power_levels", "", powerLevelsStateContent)
 		// Update cached hash
 		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}
