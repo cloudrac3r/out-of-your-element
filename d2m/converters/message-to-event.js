@@ -480,32 +480,35 @@ async function messageToEvent(message, guild, options = {}, di) {
 		message.content = "changed the channel name to **" + message.content + "**"
 	}
 
-	// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
-	const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
-	if (matches.length && matches.some(m => m[1].match(/[a-z]/i) && m[1] !== "everyone" && m[1] !== "here")) {
-		const writtenMentionsText = matches.map(m => m[1].toLowerCase())
-		const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
-		assert(roomID)
-		const {joined} = await di.api.getJoinedMembers(roomID)
-		for (const [mxid, member] of Object.entries(joined)) {
-			if (!userRegex.some(rx => mxid.match(rx))) {
-				const localpart = mxid.match(/@([^:]*)/)
-				assert(localpart)
-				const displayName = member.display_name || localpart[1]
-				if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
+
+	if (message.content) {
+		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
+		const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
+		if (matches.length && matches.some(m => m[1].match(/[a-z]/i) && m[1] !== "everyone" && m[1] !== "here")) {
+			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
+			const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
+			assert(roomID)
+			const {joined} = await di.api.getJoinedMembers(roomID)
+			for (const [mxid, member] of Object.entries(joined)) {
+				if (!userRegex.some(rx => mxid.match(rx))) {
+					const localpart = mxid.match(/@([^:]*)/)
+					assert(localpart)
+					const displayName = member.display_name || localpart[1]
+					if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
+				}
 			}
 		}
-	}
 
-	// Text content appears first
-	if (message.content) {
+		// Text content appears first
 		const {body, html} = await transformContent(message.content)
 		await addTextEvent(body, html, msgtype, {scanMentions: true})
 	}
 
 	// Then attachments
-	const attachmentEvents = await Promise.all(message.attachments.map(attachmentToEvent.bind(null, mentions)))
-	events.push(...attachmentEvents)
+	if (message.attachments) {
+		const attachmentEvents = await Promise.all(message.attachments.map(attachmentToEvent.bind(null, mentions)))
+		events.push(...attachmentEvents)
+	}
 
 	// Then embeds
 	for (const embed of message.embeds || []) {

@@ -235,3 +235,28 @@ test("edit2changes: promotes the text event when multiple rows have part = 1 (sh
 		}
 	])
 })
+
+test("edit2changes: generated embed", async t => {
+	const {eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_social_media_image, data.guild.general, {})
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToReplace, [])
+	t.deepEqual(eventsToSend, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| via hthrflwrs on cohost"
+			+ "\n| \n| ## This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO https://cohost.org/jkap/post/4794219-empty"
+			+ "\n| \n| 1v1 physical card game. Each player gets one standard deck of cards with a different backing to differentiate. Every turn proceeds as follows:"
+			+ "\n| \n|  * Both players draw eight cards"
+			+ "\n|  * Both players may choose up to eight cards to discard, then draw that number of cards to put back in their hand"
+			+ "\n|  * Both players present their best five-or-less-card pok...",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><sub>hthrflwrs on cohost</sub>`
+			+ `</p><p><strong><a href="https://cohost.org/jkap/post/4794219-empty">This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO</a></strong>`
+			+ `</p><p>1v1 physical card game. Each player gets one standard deck of cards with a different backing to differentiate. Every turn proceeds as follows:`
+			+ `<br><br><ul><li>Both players draw eight cards`
+			+ `</li><li>Both players may choose up to eight cards to discard, then draw that number of cards to put back in their hand`
+			+ `</li><li>Both players present their best five-or-less-card pok...</li></ul></p></blockquote>`,
+		"m.mentions": {}
+	}])
+	t.deepEqual(promotions, []) // TODO: it would be ideal to promote this to reaction_part = 0. this is OK to do because the main message won't have had any reactions yet.
+})

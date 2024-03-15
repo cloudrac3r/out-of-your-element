@@ -3,13 +3,22 @@
 const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select, from} = passthrough
+const {sync, select, from} = passthrough
 /** @type {import("./message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
-/** @type {import("../actions/register-user")} */
-const registerUser = sync.require("../actions/register-user")
-/** @type {import("../actions/create-room")} */
-const createRoom = sync.require("../actions/create-room")
+
+function eventCanBeEdited(ev) {
+	// Discord does not allow files, images, attachments, or videos to be edited.
+	if (ev.old.event_type === "m.room.message" && ev.old.event_subtype !== "m.text" && ev.old.event_subtype !== "m.emote" && ev.old.event_subtype !== "m.notice") {
+		return false
+	}
+	// Discord does not allow stickers to be edited.
+	if (ev.old.event_type === "m.sticker") {
+		return false
+	}
+	// Anything else is fair game.
+	return true
+}
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
@@ -19,12 +28,16 @@ const createRoom = sync.require("../actions/create-room")
  * @param {import("../../matrix/api")} api simple-as-nails dependency injection for the matrix API
  */
 async function editToChanges(message, guild, api) {
+	// If it is a user edit, allow deleting old messages (e.g. they might have removed text from an image). If it is the system adding a generated embed to a message, don't delete old messages since the system only sends partial data.
+
+	const isGeneratedEmbed = !("content" in message)
+
 	// Figure out what events we will be replacing
 
 	const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 	assert(roomID)
 	/** @type {string?} Null if we don't have a sender in the room, which will happen if it's a webhook's message. The bridge bot will do the edit instead. */
-	const senderMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id, room_id: roomID}).pluck("mxid").get() || null
+	const senderMxid = message.author && from("sim").join("sim_member", "mxid").where({user_id: message.author.id, room_id: roomID}).pluck("mxid").get() || null
 
 	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part", "reaction_part"], {message_id: message.id}).all()
 
@@ -48,7 +61,8 @@ async function editToChanges(message, guild, api) {
 	let eventsToRedact = []
 	/** 3. Events that are present in the new version only, and should be sent as new, with references back to the context */
 	let eventsToSend = []
-	//  4. Events that are matched and have definitely not changed, so they don't need to be edited or replaced at all. This is represented as nothing.
+	/**  4. Events that are matched and have definitely not changed, so they don't need to be edited or replaced at all. */
+	let unchangedEvents = []
 
 	function shift() {
 		newFallbackContent.shift()
@@ -81,22 +95,35 @@ async function editToChanges(message, guild, api) {
 		shift()
 	}
 	// Anything remaining in oldEventRows is present in the old version only and should be redacted.
-	eventsToRedact = oldEventRows
+	eventsToRedact = oldEventRows.map(e => ({old: e}))
+
+	// If this is a generated embed update, only allow the embeds to be updated, since the system only sends data about events. Ignore changes to other things.
+	if (isGeneratedEmbed) {
+		unchangedEvents.push(...eventsToRedact.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToRedact to unchangedEvents.
+		eventsToRedact = eventsToRedact.filter(e => e.old.event_subtype === "m.notice")
+	}
+
+	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!
+	// (Example: a MESSAGE_UPDATE for a text+image message - Discord does not allow the image to be changed, but the text might have been.)
+	// So we'll remove entries from eventsToReplace that *definitely* cannot have changed. (This is category 4 mentioned above.) Everything remaining *may* have changed.
+	unchangedEvents.push(...eventsToReplace.filter(ev => !eventCanBeEdited(ev))) // Move them from eventsToRedact to unchangedEvents.
+	eventsToReplace = eventsToReplace.filter(eventCanBeEdited)
 
 	// We want to maintain exactly one part = 0 and one reaction_part = 0 database row at all times.
 	/** @type {({column: string, eventID: string} | {column: string, nextEvent: true})[]} */
 	const promotions = []
 	for (const column of ["part", "reaction_part"]) {
+		const candidatesForParts = unchangedEvents.concat(eventsToReplace)
 		// If no events with part = 0 exist (or will exist), we need to do some management.
-		if (!eventsToReplace.some(e => e.old[column] === 0)) {
-			if (eventsToReplace.length) {
+		if (!candidatesForParts.some(e => e.old[column] === 0)) {
+			if (candidatesForParts.length) {
 				// We can choose an existing event to promote. Bigger order is better.
-				const order = e => 2*+(e.event_type === "m.room.message") + 1*+(e.event_subtype === "m.text")
-				eventsToReplace.sort((a, b) => order(b) - order(a))
+				const order = e => 2*+(e.event_type === "m.room.message") + 1*+(e.old.event_subtype === "m.text")
+				candidatesForParts.sort((a, b) => order(b) - order(a))
 				if (column === "part") {
-					promotions.push({column, eventID: eventsToReplace[0].old.event_id}) // part should be the first one
+					promotions.push({column, eventID: candidatesForParts[0].old.event_id}) // part should be the first one
 				} else {
-					promotions.push({column, eventID: eventsToReplace[eventsToReplace.length - 1].old.event_id}) // reaction_part should be the last one
+					promotions.push({column, eventID: candidatesForParts[candidatesForParts.length - 1].old.event_id}) // reaction_part should be the last one
 				}
 			} else {
 				// No existing events to promote, but new events are being sent. Whatever gets sent will be the next part = 0.
@@ -105,24 +132,8 @@ async function editToChanges(message, guild, api) {
 		}
 	}
 
-	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!
-	// (Example: a MESSAGE_UPDATE for a text+image message - Discord does not allow the image to be changed, but the text might have been.)
-	// So we'll remove entries from eventsToReplace that *definitely* cannot have changed. (This is category 4 mentioned above.) Everything remaining *may* have changed.
-	eventsToReplace = eventsToReplace.filter(ev => {
-		// Discord does not allow files, images, attachments, or videos to be edited.
-		if (ev.old.event_type === "m.room.message" && ev.old.event_subtype !== "m.text" && ev.old.event_subtype !== "m.emote" && ev.old.event_subtype !== "m.notice") {
-			return false
-		}
-		// Discord does not allow stickers to be edited.
-		if (ev.old.event_type === "m.sticker") {
-			return false
-		}
-		// Anything else is fair game.
-		return true
-	})
-
 	// Removing unnecessary properties before returning
-	eventsToRedact = eventsToRedact.map(e => e.event_id)
+	eventsToRedact = eventsToRedact.map(e => e.old.event_id)
 	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
 
 	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid, promotions}
