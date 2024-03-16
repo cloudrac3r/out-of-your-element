@@ -37,7 +37,7 @@ passthrough.discord = discord
 })()
 
 const events = new sqlite("scripts/events.db")
-const sql = "INSERT INTO \"update\" (json, " + interestingFields.join(", ") + ") VALUES (" + "?".repeat(interestingFields.length + 1).split("").join(", ") + ")"
+const sql = "INSERT INTO update_event (json, " + interestingFields.join(", ") + ") VALUES (" + "?".repeat(interestingFields.length + 1).split("").join(", ") + ")"
 console.log(sql)
 const prepared = events.prepare(sql)
 

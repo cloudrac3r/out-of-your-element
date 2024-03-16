@@ -268,7 +268,8 @@ module.exports = {
 
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.
-		if (typeof data.content === "string") {
+		// Otherwise, if there are embeds, then the system generated URL preview embeds.
+		if (typeof data.content === "string" || "embeds" in data) {
 			/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 			// @ts-ignore
 			const message = data

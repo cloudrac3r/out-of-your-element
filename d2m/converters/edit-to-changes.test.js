@@ -237,7 +237,15 @@ test("edit2changes: promotes the text event when multiple rows have part = 1 (sh
 })
 
 test("edit2changes: generated embed", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_social_media_image, data.guild.general, {})
+	let called = 0
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_social_media_image, data.guild.general, {
+		async getEvent(roomID, eventID) {
+			called++
+			t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+			t.equal(eventID, "$mPSzglkCu-6cZHbYro0RW2u5mHvbH9aXDjO5FCzosc0")
+			return {sender: "@_ooye_cadence:cadence.moe"}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToReplace, [])
 	t.deepEqual(eventsToSend, [{
@@ -259,4 +267,6 @@ test("edit2changes: generated embed", async t => {
 		"m.mentions": {}
 	}])
 	t.deepEqual(promotions, []) // TODO: it would be ideal to promote this to reaction_part = 0. this is OK to do because the main message won't have had any reactions yet.
+	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
+	t.equal(called, 1)
 })
