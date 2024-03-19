@@ -17,6 +17,8 @@ const eventToMessage = sync.require("../converters/event-to-message")
 const api = sync.require("../../matrix/api")
 /** @type {import("../../d2m/actions/register-user")} */
 const registerUser = sync.require("../../d2m/actions/register-user")
+/** @type {import("../../d2m/actions/edit-message")} */
+const editMessage = sync.require("../../d2m/actions/edit-message")
 /** @type {import("../actions/emoji-sheet")} */
 const emojiSheet = sync.require("../actions/emoji-sheet")
 
@@ -111,6 +113,22 @@ async function sendEvent(event) {
 
 		eventPart = 1
 		messageResponses.push(messageResponse)
+
+		/*
+			If the Discord system has a cached link preview embed for one of the links just sent,
+			it will be instantly added as part of `embeds` and there won't be a MESSAGE_UPDATE.
+			To reflect the generated embed back to Matrix, we pretend the message was updated right away.
+		*/
+		const sentEmbedsCount = message.embeds?.length || 0
+		if (messageResponse.embeds.length > sentEmbedsCount) {
+			// @ts-ignore this is a valid message edit payload
+			editMessage.editMessage({ // not awaiting because requests to Matrix shouldn't block requests to Discord
+				id: messageResponse.channel_id,
+				channel_id: messageResponse.channel_id,
+				guild_id: guild.id,
+				embeds: messageResponse.embeds
+			}, guild, null)
+		}
 	}
 
 	for (const user of ensureJoined) {
