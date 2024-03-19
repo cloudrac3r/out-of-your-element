@@ -29,7 +29,9 @@ async function sendMessage(message, channel, guild, row) {
 
 	let senderMxid = null
 	if (!dUtils.isWebhookMessage(message)) {
-		if (message.member) { // available on a gateway message create event
+		if (message.author.id === discord.application.id) {
+			// no need to sync the bot's own user
+		} else if (message.member) { // available on a gateway message create event
 			senderMxid = await registerUser.syncUser(message.author, message.member, channel, guild, roomID)
 		} else { // well, good enough...
 			senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
