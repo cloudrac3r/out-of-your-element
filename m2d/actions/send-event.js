@@ -90,6 +90,7 @@ async function sendEvent(event) {
 	}))
 
 	let eventPart = 0 // 0 is primary, 1 is supporting
+	const pendingEdits = []
 
 	/** @type {DiscordTypes.APIMessage[]} */
 	const messageResponses = []
@@ -121,19 +122,24 @@ async function sendEvent(event) {
 		*/
 		const sentEmbedsCount = message.embeds?.length || 0
 		if (messageResponse.embeds.length > sentEmbedsCount) {
-			// @ts-ignore this is a valid message edit payload
-			editMessage.editMessage({ // not awaiting because requests to Matrix shouldn't block requests to Discord
-				id: messageResponse.channel_id,
-				channel_id: messageResponse.channel_id,
-				guild_id: guild.id,
-				embeds: messageResponse.embeds
-			}, guild, null)
+			// not awaiting here because requests to Matrix shouldn't block requests to Discord
+			pendingEdits.push(() =>
+				// @ts-ignore this is a valid message edit payload
+				editMessage.editMessage({
+					id: messageResponse.id,
+					channel_id: messageResponse.channel_id,
+					guild_id: guild.id,
+					embeds: messageResponse.embeds
+				}, guild, null)
+			)
 		}
 	}
 
 	for (const user of ensureJoined) {
 		registerUser.ensureSimJoined(user, event.room_id)
 	}
+
+	await Promise.all(pendingEdits.map(f => f())) // `await` will propagate any errors during editing
 
 	return messageResponses
 }
