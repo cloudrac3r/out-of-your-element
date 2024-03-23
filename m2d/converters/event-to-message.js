@@ -724,7 +724,7 @@ async function eventToMessage(event, guild, di) {
 			content = turndownService.turndown(root)
 
 			// Put < > around any surviving matrix.to links to hide the URL previews
-			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/, "<$&>")
+			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/g, "<$&>")
 
 			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")

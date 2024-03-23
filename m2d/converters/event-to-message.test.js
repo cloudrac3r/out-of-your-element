@@ -2619,6 +2619,40 @@ test("event2message: mentioning matrix users works", async t => {
 	)
 })
 
+test("event2message: multiple mentions are both escaped", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `<a href="https://matrix.to/#/@cadence:cadence.moe">@cadence:cadence.moe</a> can you kick my old account over there <a href="https://matrix.to/#/@amyiscoolz:matrix.atiusamy.com">@amyiscoolz:matrix.atiusamy.com</a>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "[@cadence:cadence.moe](<https://matrix.to/#/@cadence:cadence.moe>) can you kick my old account over there [@amyiscoolz:matrix.atiusamy.com](<https://matrix.to/#/@amyiscoolz:matrix.atiusamy.com>)",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: mentioning matrix users works even when Element disambiguates the user", async t => {
 	t.deepEqual(
 		await eventToMessage({
