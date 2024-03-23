@@ -53,17 +53,19 @@ async function uploadAutoEmoji(guild, name, filename) {
 	const mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
 	// ensure registration is correctly set...
-	assert(reg.sender_localpart.startsWith(reg.ooye.namespace_prefix)) // appservice's localpart must be in the namespace it controls
-	assert(utils.eventSenderIsFromDiscord(mxid)) // appservice's mxid must be in the namespace it controls
-	assert(reg.ooye.server_origin.match(/^https?:\/\//)) // must start with http or https
-	assert.notEqual(reg.ooye.server_origin.slice(-1), "/") // must not end in slash
+	assert(reg.sender_localpart.startsWith(reg.ooye.namespace_prefix), "appservice's localpart must be in the namespace it controls")
+	assert(utils.eventSenderIsFromDiscord(mxid), "appservice's mxid must be in the namespace it controls")
+	assert(reg.ooye.server_origin.match(/^https?:\/\//), "server origin must start with http or https")
+	assert.notEqual(reg.ooye.server_origin.slice(-1), "/", "server origin must not end in slash")
+	const botID = Buffer.from(config.discordToken.split(".")[0], "base64").toString()
+	assert(botID.match(/^[0-9]{10,}$/), "discord token must follow the correct format")
 	console.log("✅ Configuration looks good...")
 
 	// database ddl...
 	await migrate.migrate(db)
 
 	// add initial rows to database, like adding the bot to sim...
-	db.prepare("INSERT OR IGNORE INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run("0", reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), reg.sender_localpart, mxid)
+	db.prepare("INSERT OR IGNORE INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(botID, reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), reg.sender_localpart, mxid)
 
 	console.log("✅ Database is ready...")
 
