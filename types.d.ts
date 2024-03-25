@@ -257,10 +257,27 @@ export namespace R {
 	export type EventRedacted = {
 		event_id: string
 	}
+
+	export type Hierarchy = {
+		avatar_url?: string
+		canonical_alias?: string
+		children_state: {}
+		guest_can_join: boolean
+		join_rule?: string
+		name?: string
+		num_joined_members: number
+		room_id: string
+		room_type?: string
+	}
 }
 
 export type Pagination<T> = {
 	chunk: T[]
 	next_batch?: string
 	prev_match?: string
+}
+
+export type HierarchyPagination<T> = {
+	rooms: T[]
+	next_batch?: string
 }

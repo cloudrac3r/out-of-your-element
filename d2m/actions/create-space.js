@@ -3,6 +3,7 @@
 const assert = require("assert").strict
 const {isDeepStrictEqual} = require("util")
 const DiscordTypes = require("discord-api-types/v10")
+const Ty = require("../../types")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
@@ -181,9 +182,16 @@ async function syncSpaceFully(guildID) {
 	const spaceDiff = ks.diffKState(spaceKState, guildKState)
 	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
 
-	const childRooms = ks.kstateToState(spaceKState).filter(({type, content}) => {
-		return type === "m.space.child" && "via" in content
-	}).map(({state_key}) => state_key)
+	/** @type {string[]} room IDs */
+	let childRooms = []
+	/** @type {string | undefined} */
+	let nextBatch = undefined
+	do {
+		/** @type {Ty.HierarchyPagination<Ty.R.Hierarchy>} */
+		const res = await api.getHierarchy(spaceID, {from: nextBatch})
+		childRooms.push(...res.rooms.map(room => room.room_id))
+		nextBatch = res.next_batch
+	} while (nextBatch)
 
 	for (const roomID of childRooms) {
 		const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()

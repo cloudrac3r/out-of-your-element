@@ -123,6 +123,19 @@ function getJoinedMembers(roomID) {
 
 /**
  * @param {string} roomID
+ * @param {{from?: string, limit?: any}} pagination
+ * @returns {Promise<Ty.HierarchyPagination<Ty.R.Hierarchy>>}
+ */
+function getHierarchy(roomID, pagination) {
+	let path = `/client/v1/rooms/${roomID}/hierarchy`
+	if (!pagination.from) delete pagination.from
+	if (!pagination.limit) pagination.limit = 50
+	path += `?${new URLSearchParams(pagination)}`
+	return mreq.mreq("GET", path)
+}
+
+/**
+ * @param {string} roomID
  * @param {string} eventID
  * @param {{from?: string, limit?: any}} pagination
  * @param {string?} [relType]
@@ -239,6 +252,7 @@ module.exports.getEventForTimestamp = getEventForTimestamp
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
 module.exports.getJoinedMembers = getJoinedMembers
+module.exports.getHierarchy = getHierarchy
 module.exports.getRelations = getRelations
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
