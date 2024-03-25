@@ -59,13 +59,16 @@ function applyKStateDiffToRoom(roomID, kstate) {
 }
 
 /**
- * @param {{id: string, name: string, topic?: string?, type: number}} channel
+ * @param {{id: string, name: string, topic?: string?, type: number, parent_id?: string?}} channel
  * @param {{id: string}} guild
  * @param {string | null | undefined} customName
  */
 function convertNameAndTopic(channel, guild, customName) {
+	// @ts-ignore
+	const parentChannel = discord.channels.get(channel.parent_id)
 	let channelPrefix =
-		( channel.type === DiscordTypes.ChannelType.PublicThread ? "[⛓️] "
+		( parentChannel?.type === DiscordTypes.ChannelType.GuildForum ? ""
+		: channel.type === DiscordTypes.ChannelType.PublicThread ? "[⛓️] "
 		: channel.type === DiscordTypes.ChannelType.PrivateThread ? "[🔒⛓️] "
 		: channel.type === DiscordTypes.ChannelType.GuildVoice ? "[🔊] "
 		: "")
@@ -88,9 +91,24 @@ function convertNameAndTopic(channel, guild, customName) {
  * @param {DiscordTypes.APIGuild} guild
  */
 async function channelToKState(channel, guild) {
-	const spaceID = await createSpace.ensureSpace(guild)
-	assert(typeof spaceID === "string")
-	const privacyLevel = select("guild_space", "privacy_level", {space_id: spaceID}).pluck().get()
+	// @ts-ignore
+	const parentChannel = discord.channels.get(channel.parent_id)
+	/** Used for membership/permission checks. */
+	let guildSpaceID
+	/** Used as the literal parent on Matrix, for categorisation. Will be the same as `guildSpaceID` unless it's a forum channel's thread, in which case a different space is used to group those threads. */
+	let parentSpaceID
+	let privacyLevel
+	if (parentChannel?.type === DiscordTypes.ChannelType.GuildForum) { // it's a forum channel's thread, so use a different space to group those threads
+		guildSpaceID = await createSpace.ensureSpace(guild)
+		parentSpaceID = await ensureRoom(channel.parent_id)
+		privacyLevel = select("guild_space", "privacy_level", {space_id: guildSpaceID}).pluck().get()
+	} else { // otherwise use the guild's space like usual
+		parentSpaceID = await createSpace.ensureSpace(guild)
+		guildSpaceID = parentSpaceID
+		privacyLevel = select("guild_space", "privacy_level", {space_id: parentSpaceID}).pluck().get()
+	}
+	assert(typeof parentSpaceID === "string")
+	assert(typeof guildSpaceID === "string")
 	assert(typeof privacyLevel === "number")
 
 	const row = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
@@ -114,7 +132,7 @@ async function channelToKState(channel, guild) {
 		join_rule: "restricted",
 		allow: [{
 			type: "m.room_membership",
-			room_id: spaceID
+			room_id: guildSpaceID
 		}]
 	}
 	if (PRIVACY_ENUMS.ROOM_JOIN_RULES[privacyLevel] !== "restricted") {
@@ -130,7 +148,7 @@ async function channelToKState(channel, guild) {
 		"m.room.avatar/": avatarEventContent,
 		"m.room.guest_access/": {guest_access: PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},
 		"m.room.history_visibility/": {history_visibility},
-		[`m.space.parent/${spaceID}`]: {
+		[`m.space.parent/${parentSpaceID}`]: {
 			via: [reg.ooye.server_name],
 			canonical: true
 		},
@@ -167,7 +185,7 @@ async function channelToKState(channel, guild) {
 		}
 	}
 
-	return {spaceID, privacyLevel, channelKState}
+	return {spaceID: parentSpaceID, privacyLevel, channelKState}
 }
 
 /**
@@ -182,6 +200,9 @@ async function channelToKState(channel, guild) {
 async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 	let threadParent = null
 	if (channel.type === DiscordTypes.ChannelType.PublicThread) threadParent = channel.parent_id
+
+	let spaceCreationContent = {}
+	if (channel.type === DiscordTypes.ChannelType.GuildForum) spaceCreationContent = {creation_content: {type: "m.space"}}
 
 	// Name and topic can be done earlier in room creation rather than in initial_state
 	// https://spec.matrix.org/latest/client-server-api/#creation
@@ -199,7 +220,8 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 			preset: PRIVACY_ENUMS.PRESET[privacyLevel], // This is closest to what we want, but properties from kstate override it anyway
 			visibility: PRIVACY_ENUMS.VISIBILITY[privacyLevel],
 			invite: [],
-			initial_state: ks.kstateToState(kstate)
+			initial_state: ks.kstateToState(kstate),
+			...spaceCreationContent
 		})
 
 		db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
