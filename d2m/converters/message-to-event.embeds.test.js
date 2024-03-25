@@ -282,3 +282,37 @@ test("message2event embeds: youtube video", async t => {
 		"m.mentions": {}
 	}])
 })
+
+test("message2event embeds: if discord creates an embed preview for a discord channel link, don't copy that embed", async t => {
+	const events = await messageToEvent(data.message_with_embeds.discord_server_included_punctuation_bad_discord, data.guild.general, {}, {
+		api: {
+			async getStateEvent(roomID, type, key) {
+				t.equal(roomID, "!TqlyQmifxGUggEmdBN:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {
+					users: {
+						"@_ooye_bot:cadence.moe": 100
+					}
+				}
+			},
+			async getJoinedMembers(roomID) {
+				t.equal(roomID, "!TqlyQmifxGUggEmdBN:cadence.moe")
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:matrix.org": {display_name: null, avatar_url: null}
+					}
+				}
+			}
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "(test https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU?via=cadence.moe&via=matrix.org)",
+		format: "org.matrix.custom.html",
+		formatted_body: `(test <a href="https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU?via=cadence.moe&amp;via=matrix.org</a>)`,
+		"m.mentions": {}
+	}])
+})

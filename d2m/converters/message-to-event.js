@@ -516,6 +516,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue // Matrix's own URL previews are fine for images.
 		}
 
+		if (embed.url?.startsWith("https://discord.com/")) {
+			continue // If discord creates an embed preview for a discord channel link, don't copy that embed
+		}
+
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
 		const rep = new mxUtils.MatrixStringBuilder()
 

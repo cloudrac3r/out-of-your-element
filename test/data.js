@@ -2870,6 +2870,46 @@ module.exports = {
 				}
 			},
 			webhook_id: "1109360903096369153"
+		},
+		discord_server_included_punctuation_bad_discord: {
+			id: "1221672425792606349",
+			type: 0,
+			content: "(test https://discord.com/channels/1160894080998461480/1160894080998461480/1202543413652881428)",
+			channel_id: "1160894080998461480",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				discriminator: "0",
+				public_flags: 0,
+				premium_type: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [
+				{
+					type: "article",
+					url: "https://discord.com/channels/1160894080998461480/1160894080998461480/1202543413652881428)",
+					title: "Discord - A New Way to Chat with Friends & Communities",
+					description: "Discord is the easiest way to communicate over voice, video, and text.  Chat, hang out, and stay close with your friends and communities.",
+					provider: { name: "Discord" },
+					content_scan_version: 0
+				}
+			],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-03-25T04:10:03.885000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
 		}
 	},
 	message_update: {
