@@ -16,7 +16,7 @@ async function deleteMessage(event) {
 	db.prepare("DELETE FROM event_message WHERE event_id = ?").run(event.event_id)
 	for (const row of rows) {
 		db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(row.message_id)
-		discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
+		await discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
 	}
 }
 
