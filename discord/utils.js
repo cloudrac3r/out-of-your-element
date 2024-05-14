@@ -101,6 +101,14 @@ function isWebhookMessage(message) {
 	return message.webhook_id && !isInteractionResponse
 }
 
+/**
+ * Ephemeral messages can be generated if a slash command is attached to the same bot that OOYE is running on
+ * @param {DiscordTypes.APIMessage} message
+ */
+function isEphemeralMessage(message) {
+	return message.flags & (1 << 6);
+}
+
 /** @param {string} snowflake */
 function snowflakeToTimestampExact(snowflake) {
 	return Number(BigInt(snowflake) >> 22n) + EPOCH
@@ -116,5 +124,6 @@ module.exports.hasPermission = hasPermission
 module.exports.hasSomePermissions = hasSomePermissions
 module.exports.hasAllPermissions = hasAllPermissions
 module.exports.isWebhookMessage = isWebhookMessage
+module.exports.isEphemeralMessage = isEphemeralMessage
 module.exports.snowflakeToTimestampExact = snowflakeToTimestampExact
 module.exports.timestampToSnowflakeInexact = timestampToSnowflakeInexact

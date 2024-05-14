@@ -244,6 +244,8 @@ module.exports = {
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 		}
 
+		if (dUtils.isEphemeralMessage(message)) return // Ephemeral messages are for the eyes of the receiver only!
+
 		const {affected, row} = await speedbump.maybeDoSpeedbump(message.channel_id, message.id)
 		if (affected) return
 
@@ -261,6 +263,8 @@ module.exports = {
 			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 		}
+
+		if (dUtils.isEphemeralMessage(data)) return // Ephemeral messages are for the eyes of the receiver only!
 
 		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
 		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
