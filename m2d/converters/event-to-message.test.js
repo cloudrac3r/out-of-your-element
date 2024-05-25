@@ -205,6 +205,34 @@ test("event2message: links in plaintext body are not broken", async t => {
 	)
 })
 
+test("event2message: links in plaintext body are not broken when preceded by a newline", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "java redstoners will be like \"I hate bedrock edition redstone!!\" meanwhile java edition:\nhttps://youtu.be/g_ORb7bN3CM"
+			},
+			event_id: "$b1c5gJZfh1gq3zz6UkhI1whJ61JVvgvvzbdSPEYnTbY",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "java redstoners will be like \"I hate bedrock edition redstone!!\" meanwhile java edition:\nhttps://youtu.be/g_ORb7bN3CM",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: links in formatted body where the text & href are the same, just post the link once", async t => {
 	t.deepEqual(
 		await eventToMessage({

@@ -54,16 +54,17 @@ const turndownService = new TurndownService({
  */
 // @ts-ignore bad type from turndown
 turndownService.escape = function (string) {
-	const escapedWords = string.split(" ").map(word => {
-		if (word.match(/^https?:\/\//)) {
-			return word
+	return string.replace(/\s+|\S+/g, part => { // match chunks of spaces or non-spaces
+		if (part.match(/\s/)) return part // don't process spaces
+
+		if (part.match(/^https?:\/\//)) {
+			return part
 		} else {
 			return markdownEscapes.reduce(function (accumulator, escape) {
 				return accumulator.replace(escape[0], escape[1])
-		 	}, word)
+			}, part)
 		}
 	})
-	return escapedWords.join(" ")
 }
 
 turndownService.remove("mx-reply")
