@@ -51,8 +51,8 @@ async function roomToKState(roomID) {
  * @param {string} roomID
  * @param {any} kstate
  */
-function applyKStateDiffToRoom(roomID, kstate) {
-	const events = ks.kstateToState(kstate)
+async function applyKStateDiffToRoom(roomID, kstate) {
+	const events = await ks.kstateToState(kstate)
 	return Promise.all(events.map(({type, state_key, content}) =>
 		api.sendState(roomID, type, state_key, content)
 	))
@@ -220,7 +220,7 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 			preset: PRIVACY_ENUMS.PRESET[privacyLevel], // This is closest to what we want, but properties from kstate override it anyway
 			visibility: PRIVACY_ENUMS.VISIBILITY[privacyLevel],
 			invite: [],
-			initial_state: ks.kstateToState(kstate),
+			initial_state: await ks.kstateToState(kstate),
 			...spaceCreationContent
 		})
 

@@ -1,5 +1,5 @@
 const assert = require("assert")
-const {kstateToState, stateToKState, diffKState, kstateStripConditionals} = require("./kstate")
+const {kstateToState, stateToKState, diffKState, kstateStripConditionals, kstateUploadMxc} = require("./kstate")
 const {test} = require("supertape")
 
 test("kstate strip: strips false conditions", t => {
@@ -21,8 +21,53 @@ test("kstate strip: keeps true conditions while removing $if", t => {
 	})
 })
 
-test("kstate2state: general", t => {
-	t.deepEqual(kstateToState({
+test("kstateUploadMxc: sets the mxc", async t => {
+	const input = {
+		"m.room.avatar/": {
+			url: {$url: "https://cdn.discordapp.com/guilds/112760669178241024/users/134826546694193153/avatars/38dd359aa12bcd52dd3164126c587f8c.png?size=1024"},
+			test1: {
+				test2: {
+					test3: {$url: "https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg"}
+				}
+			}
+		}
+	}
+	await kstateUploadMxc(input)
+	t.deepEqual(input, {
+		"m.room.avatar/": {
+			url: "mxc://cadence.moe/rfemHmAtcprjLEiPiEuzPhpl",
+			test1: {
+				test2: {
+					test3: "mxc://cadence.moe/zAXdQriaJuLZohDDmacwWWDR"
+				}
+			}
+		}
+	})
+})
+
+test("kstateUploadMxc and strip: work together", async t => {
+	const input = {
+		"m.room.avatar/yes": {
+			$if: true,
+			url: {$url: "https://cdn.discordapp.com/guilds/112760669178241024/users/134826546694193153/avatars/38dd359aa12bcd52dd3164126c587f8c.png?size=1024"}
+		},
+		"m.room.avatar/no": {
+			$if: false,
+			url: {$url: "https://cdn.discordapp.com/avatars/320067006521147393/5fc4ad85c1ea876709e9a7d3374a78a1.png?size=1024"}
+		},
+	}
+	kstateStripConditionals(input)
+	await kstateUploadMxc(input)
+	t.deepEqual(input, {
+		"m.room.avatar/yes": {
+			url: "mxc://cadence.moe/rfemHmAtcprjLEiPiEuzPhpl"
+		}
+	})
+})
+
+
+test("kstate2state: general", async t => {
+	t.deepEqual(await kstateToState({
 		"m.room.name/": {name: "test name"},
 		"m.room.member/@cadence:cadence.moe": {membership: "join"},
 		"uk.half-shot.bridge/org.matrix.appservice-irc://irc/epicord.net/#general": {creator: "@cadence:cadence.moe"}

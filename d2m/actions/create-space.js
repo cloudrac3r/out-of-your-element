@@ -45,7 +45,7 @@ async function createSpace(guild, kstate) {
 			creation_content: {
 				type: "m.space"
 			},
-			initial_state: ks.kstateToState(kstate)
+			initial_state: await ks.kstateToState(kstate)
 		})
 	})
 	db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, roomID)
@@ -57,15 +57,14 @@ async function createSpace(guild, kstate) {
  * @param {number} privacyLevel
  */
 async function guildToKState(guild, privacyLevel) {
-	const avatarEventContent = {}
-	if (guild.icon) {
-		avatarEventContent.discord_path = file.guildIcon(guild)
-		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
-	}
-
+	assert.equal(typeof privacyLevel, "number")
 	const guildKState = {
 		"m.room.name/": {name: guild.name},
-		"m.room.avatar/": avatarEventContent,
+		"m.room.avatar/": {
+			$if: guild.icon,
+			discord_path: file.guildIcon(guild),
+			url: {$url: file.guildIcon(guild)}
+		},
 		"m.room.guest_access/": {guest_access: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},
 		"m.room.history_visibility/": {history_visibility: createRoom.PRIVACY_ENUMS.SPACE_HISTORY_VISIBILITY[privacyLevel]},
 		"m.room.join_rules/": {join_rule: createRoom.PRIVACY_ENUMS.SPACE_JOIN_RULES[privacyLevel]},
@@ -123,7 +122,8 @@ async function _syncSpace(guild, shouldActuallySync) {
 		// don't try to update rooms with custom avatars though
 		const roomsWithCustomAvatars = select("channel_room", "room_id", {}, "WHERE custom_avatar IS NOT NULL").pluck().all()
 
-		const childRooms = ks.kstateToState(spaceKState).filter(({type, state_key, content}) => {
+		const state = await ks.kstateToState(spaceKState)
+		const childRooms = state.filter(({type, state_key, content}) => {
 			return type === "m.space.child" && "via" in content && !roomsWithCustomAvatars.includes(state_key)
 		}).map(({state_key}) => state_key)
 

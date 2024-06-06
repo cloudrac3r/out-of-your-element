@@ -584,7 +584,7 @@ test("event2message: code blocks work", async t => {
 				msgtype: "m.text",
 				body: "wrong body",
 				format: "org.matrix.custom.html",
-				formatted_body: "<p>preceding</p>\n<pre><code>code block\n</code></pre>\n<p>following <code>code</code> is inline</p>\n"
+				formatted_body: "<p>preceding</p>\n<pre><code>code block\n</code></pre>\n<p>following <code>code</code> is inline</p>"
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
@@ -632,6 +632,66 @@ test("event2message: code block contents are formatted correctly and not escaped
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "```\ninput = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n_input_ = input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n```\n\n`input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,`",
+				avatar_url: undefined,
+				allowed_mentions: {
+						parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: code blocks use double backtick as delimiter when necessary", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<code>backtick in ` the middle</code>, <code>backtick at the edge`</code>"
+			},
+			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "``backtick in ` the middle``, `` backtick at the edge` ``",
+				avatar_url: undefined,
+				allowed_mentions: {
+						parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: inline code is converted to code block if it contains both delimiters", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<code>` one two ``</code>"
+			},
+			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "``` ` one two `` ```",
 				avatar_url: undefined,
 				allowed_mentions: {
 						parse: ["users", "roles"]

@@ -4,7 +4,12 @@ const assert = require("assert").strict
 const mixin = require("mixin-deep")
 const {isDeepStrictEqual} = require("util")
 
-/** Mutates the input. */
+const passthrough = require("../passthrough")
+const {sync} = passthrough
+/** @type {import("./file")} */
+const file = sync.require("./file")
+
+/** Mutates the input. Not recursive - can only include or exclude entire state events. */
 function kstateStripConditionals(kstate) {
 	for (const [k, content] of Object.entries(kstate)) {
 		// conditional for whether a key is even part of the kstate (doing this declaratively on json is hard, so represent it as a property instead.)
@@ -16,9 +21,33 @@ function kstateStripConditionals(kstate) {
 	return kstate
 }
 
-function kstateToState(kstate) {
+/** Mutates the input. Works recursively through object tree. */
+async function kstateUploadMxc(obj) {
+	const promises = []
+	function inner(obj) {
+		for (const [k, v] of Object.entries(obj)) {
+			if (v == null || typeof v !== "object") continue
+
+			if (v.$url) {
+				promises.push(
+					file.uploadDiscordFileToMxc(v.$url)
+					.then(mxc => obj[k] = mxc)
+				)
+			}
+
+			inner(v)
+		}
+	}
+	inner(obj)
+	await Promise.all(promises)
+	return obj
+}
+
+/** Automatically strips conditionals and uploads URLs to mxc. */
+async function kstateToState(kstate) {
 	const events = []
 	kstateStripConditionals(kstate)
+	await kstateUploadMxc(kstate)
 	for (const [k, content] of Object.entries(kstate)) {
 		const slashIndex = k.indexOf("/")
 		assert(slashIndex > 0)
@@ -74,6 +103,7 @@ function diffKState(actual, target) {
 }
 
 module.exports.kstateStripConditionals = kstateStripConditionals
+module.exports.kstateUploadMxc = kstateUploadMxc
 module.exports.kstateToState = kstateToState
 module.exports.stateToKState = stateToKState
 module.exports.diffKState = diffKState

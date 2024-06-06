@@ -21,6 +21,9 @@ const reg = require("../matrix/read-registration")
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
 reg.ooye.server_name = "cadence.moe"
 reg.ooye.invite = ["@test_auto_invite:example.org"]
+reg.id = "baby" // don't actually take authenticated actions on the server
+reg.as_token = "baby"
+reg.hs_token = "baby"
 
 const sync = new HeatSync({watchFS: false})
 
@@ -117,6 +120,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../matrix/read-registration.test")
 	require("../matrix/txnid.test")
 	require("../d2m/actions/create-room.test")
+	require("../d2m/actions/create-space.test")
 	require("../d2m/actions/register-user.test")
 	require("../d2m/converters/edit-to-changes.test")
 	require("../d2m/converters/emoji-to-key.test")
