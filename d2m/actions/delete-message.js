@@ -33,9 +33,9 @@ async function deleteMessageBulk(data) {
 	if (!roomID) return
 
 	const sids = JSON.stringify(data.ids)
-	const eventsToRedact = from("event_message").pluck("event_id").and("WHERE message_id IN (SELECT value FROM json_each(?)").all(sids)
-	db.prepare("DELETE FROM message_channel WHERE message_id IN (SELECT value FROM json_each(?)").run(sids)
-	db.prepare("DELETE FROM event_message WHERE message_id IN (SELECT value FROM json_each(?)").run(sids)
+	const eventsToRedact = from("event_message").pluck("event_id").and("WHERE message_id IN (SELECT value FROM json_each(?))").all(sids)
+	db.prepare("DELETE FROM message_channel WHERE message_id IN (SELECT value FROM json_each(?))").run(sids)
+	db.prepare("DELETE FROM event_message WHERE message_id IN (SELECT value FROM json_each(?))").run(sids)
 	for (const eventID of eventsToRedact) {
 		// Awaiting will make it go slower, but since this could be a long-running operation either way, we want to leave rate limit capacity for other operations
 		await api.redactEvent(roomID, eventID)
