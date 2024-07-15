@@ -197,9 +197,11 @@ async function syncUser(user, member, channel, guild, roomID) {
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
 		// Update power levels
 		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
+		const oldPowerLevel = powerLevelsStateContent.users?.[mxid] || 0
 		mixin(powerLevelsStateContent, {users: {[mxid]: powerLevel}})
 		if (powerLevel === 0) delete powerLevelsStateContent.users[mxid] // keep the event compact
-		await api.sendState(roomID, "m.room.power_levels", "", powerLevelsStateContent)
+		const sendPowerLevelAs = powerLevel < oldPowerLevel ? mxid : undefined // bridge bot won't not have permission to demote equal power users, so do this action as themselves
+		await api.sendState(roomID, "m.room.power_levels", "", powerLevelsStateContent, sendPowerLevelAs)
 		// Update cached hash
 		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}
