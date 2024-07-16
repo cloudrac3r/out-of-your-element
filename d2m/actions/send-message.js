@@ -39,15 +39,8 @@ async function sendMessage(message, channel, guild, row) {
 	} else if (row && row.speedbump_webhook_id === message.webhook_id) {
 		// Handle the PluralKit public instance
 		if (row.speedbump_id === "466378653216014359") {
-			const root = await registerPkUser.fetchMessage(message.id)
-			// Member is null if member was deleted. We just got this message, so member surely exists.
-			if (!root.member) {
-				const e = new Error("PK API did not return a member")
-				message["__pk_response__"] = root
-				console.error(root)
-				throw e
-			}
-			senderMxid = await registerPkUser.syncUser(message.author, root, roomID)
+			const pkMessage = await registerPkUser.fetchMessage(message.id)
+			senderMxid = await registerPkUser.syncUser(message.author, pkMessage, roomID)
 		}
 	}
 
