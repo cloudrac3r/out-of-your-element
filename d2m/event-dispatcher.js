@@ -33,6 +33,8 @@ const discordCommandHandler = sync.require("../discord/discord-command-handler")
 const mxUtils = require("../m2d/converters/utils")
 /** @type {import("./actions/speedbump")} */
 const speedbump = sync.require("./actions/speedbump")
+/** @type {import("./actions/retrigger")} */
+const retrigger = sync.require("./actions/retrigger")
 
 /** @type {any} */ // @ts-ignore bad types from semaphore
 const Semaphore = require("@chriscdn/promise-semaphore")
@@ -252,6 +254,8 @@ module.exports = {
 		// @ts-ignore
 		await sendMessage.sendMessage(message, channel, guild, row),
 		await discordCommandHandler.execute(message, channel, guild)
+
+		retrigger.messageFinishedBridging(message.id)
 	},
 
 	/**
@@ -259,6 +263,14 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessageUpdateDispatchData} data
 	 */
 	async onMessageUpdate(client, data) {
+		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
+		// If the message content is a string then it includes all interesting fields and is meaningful.
+		// Otherwise, if there are embeds, then the system generated URL preview embeds.
+		if (!(typeof data.content === "string" || "embeds" in data)) return
+
+		// Deal with Eventual Consistency(TM)
+		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageUpdate, client, data)) return
+
 		if (data.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
@@ -270,21 +282,16 @@ module.exports = {
 		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
 		if (affected) return
 
-		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
-		// If the message content is a string then it includes all interesting fields and is meaningful.
-		// Otherwise, if there are embeds, then the system generated URL preview embeds.
-		if (typeof data.content === "string" || "embeds" in data) {
-			/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
-			// @ts-ignore
-			const message = data
+		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
+		// @ts-ignore
+		const message = data
 
-			const channel = client.channels.get(message.channel_id)
-			if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
-			const guild = client.guilds.get(channel.guild_id)
-			assert(guild)
-			// @ts-ignore
-			await editMessage.editMessage(message, guild, row)
-		}
+		const channel = client.channels.get(message.channel_id)
+		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
+		const guild = client.guilds.get(channel.guild_id)
+		assert(guild)
+		// @ts-ignore
+		await editMessage.editMessage(message, guild, row)
 	},
 
 	/**
@@ -311,6 +318,7 @@ module.exports = {
 	 */
 	async onMessageDelete(client, data) {
 		speedbump.onMessageDelete(data.id)
+		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageDelete, client, data)) return
 		await deleteMessage.deleteMessage(data)
 	},
 

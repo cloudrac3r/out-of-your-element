@@ -30,7 +30,8 @@ function eventCanBeEdited(ev) {
  * @param {import("../../matrix/api")} api simple-as-nails dependency injection for the matrix API
  */
 async function editToChanges(message, guild, api) {
-	// If it is a user edit, allow deleting old messages (e.g. they might have removed text from an image). If it is the system adding a generated embed to a message, don't delete old messages since the system only sends partial data.
+	// If it is a user edit, allow deleting old messages (e.g. they might have removed text from an image).
+	// If it is the system adding a generated embed to a message, don't delete old messages since the system only sends partial data.
 
 	const isGeneratedEmbed = !("content" in message)
 
@@ -38,21 +39,20 @@ async function editToChanges(message, guild, api) {
 
 	const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 	assert(roomID)
+	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part", "reaction_part"], {message_id: message.id}).all()
+
 	/** @type {string?} Null if we don't have a sender in the room, which will happen if it's a webhook's message. The bridge bot will do the edit instead. */
 	let senderMxid = null
 	if (message.author) {
 		senderMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id, room_id: roomID}).pluck("mxid").get() || null
 	} else {
 		// Should be a system generated embed. We want the embed to be sent by the same user who sent the message, so that the messages get grouped in most clients.
-		const eventID = select("event_message", "event_id", {message_id: message.id}).pluck().get()
-		assert(eventID) // this should have been checked earlier in a calling function
+		const eventID = oldEventRows[0].event_id // a calling function should have already checked that there is at least one message to edit
 		const event = await api.getEvent(roomID, eventID)
 		if (utils.eventSenderIsFromDiscord(event.sender)) {
 			senderMxid = event.sender
 		}
 	}
-
-	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part", "reaction_part"], {message_id: message.id}).all()
 
 	// Figure out what we will be replacing them with
 
