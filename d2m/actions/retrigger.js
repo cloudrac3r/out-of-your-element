@@ -18,7 +18,7 @@ const emitter = new EventEmitter()
  * Due to Eventual Consistency(TM) an update/delete may arrive before the original message arrives
  * (or before the it has finished being bridged to an event).
  * In this case, wait until the original message has finished bridging, then retrigger the passed function.
- * @template {(...args: any) => Promise<any>} T
+ * @template {(...args: any[]) => Promise<any>} T
  * @param {string} messageID
  * @param {T} fn
  * @param {Parameters<T>} rest
@@ -32,7 +32,7 @@ function eventNotFoundThenRetrigger(messageID, fn, ...rest) {
 	}
 
 	debugRetrigger(`[retrigger] WAIT mid <-> eid = ${messageID} <-> ${eventID}`)
-	emitter.addListener(messageID, () => {
+	emitter.once(messageID, () => {
 		debugRetrigger(`[retrigger] TRIGGER mid = ${messageID}`)
 		fn(...rest)
 	})
