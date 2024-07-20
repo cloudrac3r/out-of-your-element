@@ -3,7 +3,7 @@
 const assert = require("assert").strict
 const reg = require("../../matrix/read-registration")
 const DiscordTypes = require("discord-api-types/v10")
-const mixin = require("mixin-deep")
+const mixin = require("@cloudrac3r/mixin-deep")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough

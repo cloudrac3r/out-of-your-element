@@ -2,7 +2,7 @@
 
 const assert = require("assert")
 const stream = require("stream")
-const {PNG} = require("pngjs")
+const {PNG} = require("@cloudrac3r/pngjs")
 
 const SIZE = 160 // Discord's display size on 1x displays is 160
 

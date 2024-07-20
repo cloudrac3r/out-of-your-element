@@ -1,10 +1,10 @@
 // @ts-check
 
 const assert = require("assert").strict
-const markdown = require("discord-markdown")
+const markdown = require("@cloudrac3r/discord-markdown")
 const pb = require("prettier-bytes")
 const DiscordTypes = require("discord-api-types/v10")
-const {tag} = require("html-template-tag")
+const {tag} = require("@cloudrac3r/html-template-tag")
 
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
@@ -396,7 +396,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			discordOnly: true,
 			escapeHTML: false,
 			...customOptions
-		}, null, null)
+		})
 
 		return {body, html}
 	}
@@ -439,12 +439,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 			else if (!repliedToContent) repliedToContent = "[Replied-to message content wasn't provided by Discord]"
 			const repliedToHtml = markdown.toHTML(repliedToContent, {
 				discordCallback: getDiscordParseCallbacks(message, guild, true)
-			}, null, null)
+			})
 			const repliedToBody = markdown.toHTML(repliedToContent, {
 				discordCallback: getDiscordParseCallbacks(message, guild, false),
 				discordOnly: true,
 				escapeHTML: false,
-			}, null, null)
+			})
 			html = `<mx-reply><blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
 				+ `<br>${repliedToHtml}</blockquote></mx-reply>`
 				+ html

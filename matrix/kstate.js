@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
-const mixin = require("mixin-deep")
+const mixin = require("@cloudrac3r/mixin-deep")
 const {isDeepStrictEqual} = require("util")
 
 const passthrough = require("../passthrough")

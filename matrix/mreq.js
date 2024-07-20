@@ -1,7 +1,7 @@
 // @ts-check
 
 const fetch = require("node-fetch").default
-const mixin = require("mixin-deep")
+const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
 const getStream = require("get-stream")
 

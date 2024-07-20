@@ -16,21 +16,21 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@chriscdn/promise-semaphore": "^2.0.1",
+    "@cloudrac3r/discord-markdown": "^2.6.2",
+    "@cloudrac3r/giframe": "^0.4.3",
+    "@cloudrac3r/html-template-tag": "^5.0.1",
+    "@cloudrac3r/mixin-deep": "^3.0.0",
+    "@cloudrac3r/pngjs": "^7.0.3",
     "better-sqlite3": "^9.0.0",
     "chunk-text": "^2.0.1",
     "cloudstorm": "^0.10.8",
-    "discord-markdown": "git+https://git.sr.ht/~cadence/nodejs-discord-markdown#2881b447954fcea10510f212fa4c1dbbdc0a57a3",
     "entities": "^4.5.0",
     "get-stream": "^6.0.1",
-    "giframe": "github:cloudrac3r/giframe#v0.4.2",
     "heatsync": "^2.5.3",
-    "html-template-tag": "github:cloudrac3r/html-template-tag#v5.0",
     "js-yaml": "^4.1.0",
     "matrix-appservice": "^2.0.0",
     "minimist": "^1.2.8",
-    "mixin-deep": "github:cloudrac3r/mixin-deep#v3.0.0",
     "node-fetch": "^2.6.7",
-    "pngjs": "github:cloudrac3r/pngjs#v7.0.2",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.32.6",
     "snowtransfer": "^0.10.5",
@@ -40,14 +40,14 @@
     "xxhash-wasm": "^1.0.2"
   },
   "devDependencies": {
+    "@cloudrac3r/tap-dot": "^2.0.2",
     "@types/node": "^18.16.0",
     "@types/node-fetch": "^2.6.3",
     "c8": "^8.0.1",
     "colorette": "^1.4.0",
     "cross-env": "^7.0.3",
     "discord-api-types": "^0.37.60",
-    "supertape": "^10.4.0",
-    "tap-dot": "github:cloudrac3r/tap-dot#9dd7750ececeae3a96afba91905be812b6b2cc2d"
+    "supertape": "^10.4.0"
   },
   "scripts": {
     "addbot": "node addbot.js",

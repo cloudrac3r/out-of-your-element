@@ -3,8 +3,8 @@
 const assert = require("assert").strict
 const {pipeline} = require("stream").promises
 const sharp = require("sharp")
-const {GIFrame} = require("giframe")
-const {PNG} = require("pngjs")
+const {GIFrame} = require("@cloudrac3r/giframe")
+const {PNG} = require("@cloudrac3r/pngjs")
 const streamMimeType = require("stream-mime-type")
 
 const SIZE = 48
