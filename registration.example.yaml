@@ -19,6 +19,7 @@ ooye:
   server_name: [the part after the colon in your matrix id, like cadence.moe]
   server_origin: [the full protocol and domain of your actual matrix server's location, with no trailing slash, like https://matrix.cadence.moe]
   content_length_workaround: false
+  include_user_id_in_mxid: false
   invite:
     # uncomment this to auto-invite the named user to newly created spaces and mark them as admin (PL 100) everywhere
     # - '@cadence:cadence.moe'

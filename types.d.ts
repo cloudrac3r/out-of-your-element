@@ -22,6 +22,7 @@ export type AppServiceRegistrationConfig = {
 		server_name: string
 		server_origin: string
 		content_length_workaround: boolean
+		include_user_id_in_mxid: boolean
 		invite: string[]
 	}
 	old_bridge?: {
