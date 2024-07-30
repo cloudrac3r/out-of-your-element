@@ -4136,7 +4136,7 @@ slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet"
 	t.deepEqual(testResult, {
 		content: "a b",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALkklEQVR4nM1ZeWyUxxV/azAGwn0JMJUppPhce++1Oc1i"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALoklEQVR4nM1ZaVBU2RU+LZSIGnAvFUtcRkSk6abpbkDH"
 	})
 })
 
@@ -4161,7 +4161,7 @@ slow()("event2message: known emoji from an unreachable server at the end is reup
 	t.deepEqual(testResult, {
 		content: "a b",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAOnUlEQVR4nM1aCXCb1Z3/kig+5NjWaeu+LOuWLFnHJ8l2"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAOoUlEQVR4nM1aCXBbx3l+Eu8bN0CAuO+TAHGTFAmAJHgT"
 	})
 })
 
@@ -4186,7 +4186,7 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 	t.deepEqual(testResult, {
 		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAT5UlEQVR4nOVbCXSVRZauR9gMsoYlvKwvARKSkPUlJOyL"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAeXRFWHRSYXcACklQVEMgcHJvZmlsZQogICAgICA0Ngoz"
 	})
 })
 
@@ -4211,6 +4211,6 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 	t.deepEqual(testResult, {
 		content: "testing",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAYAAAABgCAYAAAAU9KWJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAgAElEQVR4nOx9B3xT1/W/UkImYKZtLdt4a0uWMaQkzS9t"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAYAAAABgCAYAAAAU9KWJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48"
 	})
 })
