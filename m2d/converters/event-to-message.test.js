@@ -263,6 +263,45 @@ test("event2message: links in formatted body where the text & href are the same,
 	)
 })
 
+test("event2message: markdown in link text does not attempt to be escaped because that doesn't work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "hey mario sports mix [she/her], is it possible to listen on a unix socket?",
+				format: "org.matrix.custom.html",
+				formatted_body: "hey <a href=\"https://matrix.to/#/%40cadence%3Acadence.moe\">mario sports mix [she/her]</a>, is it possible to listen on a unix socket?",
+				"m.mentions": {
+					"user_ids": [
+						"@cadence:cadence.moe"
+					]
+				},
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "hey [mario sports mix [she/her]](<https://matrix.to/#/%40cadence%3Acadence.moe>), is it possible to listen on a unix socket?",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: basic html is converted to markdown", async t => {
 	t.deepEqual(
 		await eventToMessage({
