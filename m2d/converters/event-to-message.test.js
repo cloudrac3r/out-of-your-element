@@ -292,7 +292,7 @@ test("event2message: markdown in link text does not attempt to be escaped becaus
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "hey [mario sports mix [she/her]](<https://matrix.to/#/%40cadence%3Acadence.moe>), is it possible to listen on a unix socket?",
+				content: "hey [@mario sports mix [she/her]](<https://matrix.to/#/%40cadence%3Acadence.moe>), is it possible to listen on a unix socket?",
 				avatar_url: undefined,
 				allowed_mentions: {
 					parse: ["users", "roles"]

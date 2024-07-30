@@ -129,7 +129,7 @@ turndownService.addRule("inlineLink", {
 		const href = node.getAttribute("href")
 		content = content.replace(/ @.*/, "")
 		if (href === content) return href
-		if (href.startsWith("https://matrix.to/#/@") && content[0] !== "@") content = "@" + content
+		if (decodeURIComponent(href).startsWith("https://matrix.to/#/@") && content[0] !== "@") content = "@" + content
 		return "[" + content + "](" + href + ")"
 	}
 })
