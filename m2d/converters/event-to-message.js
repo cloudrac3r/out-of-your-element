@@ -541,7 +541,7 @@ async function eventToMessage(event, guild, di) {
 							.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
 							.replace(/<[^>]+>/g, "") // Completely strip all HTML tags and formatting.
 					), 50)
-				replyLine = "> " + contentPreviewChunks[0]
+				replyLine = "> -# " + contentPreviewChunks[0]
 				if (contentPreviewChunks.length > 1) replyLine = replyLine.replace(/[,.']$/, "") + "..."
 				replyLine += "\n"
 				return
@@ -595,14 +595,14 @@ async function eventToMessage(event, guild, di) {
 				repliedToContent = entities.decodeHTML5Strict(repliedToContent) // Remove entities like &amp; &quot;
 				const contentPreviewChunks = chunk(repliedToContent, 50)
 				if (contentPreviewChunks.length) {
-					contentPreview = ":\n> " + contentPreviewChunks[0]
+					contentPreview = ":\n> -# " + contentPreviewChunks[0]
 					if (contentPreviewChunks.length > 1) contentPreview = contentPreview.replace(/[,.']$/, "") + "..."
 				} else {
 					console.log("Unable to generate reply preview for this replied-to event because we stripped all of it:", repliedToEvent)
 					contentPreview = ""
 				}
 			}
-			replyLine = `> ${replyLine}${contentPreview}\n`
+			replyLine = `> -# ${replyLine}${contentPreview}\n`
 		})()
 
 		if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
