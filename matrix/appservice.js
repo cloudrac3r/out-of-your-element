@@ -1,8 +1,8 @@
-const reg = require("../matrix/read-registration")
-const AppService = require("matrix-appservice").AppService
-const as = new AppService({
-	homeserverToken: reg.hs_token
-})
-as.listen(+(new URL(reg.url).port))
+// @ts-check
 
-module.exports = as
+const reg = require("../matrix/read-registration")
+const {AppService} = require("@cloudrac3r/in-your-element")
+const as = new AppService(reg)
+as.listen()
+
+module.exports.as = as
