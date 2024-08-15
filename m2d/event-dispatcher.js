@@ -62,15 +62,34 @@ function guard(type, fn) {
 	}
 }
 
-async function retry(roomID, eventID) {
-	const event = await api.getEvent(roomID, eventID)
+/**
+ * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} reactionEvent
+ */
+async function onRetryReactionAdd(reactionEvent) {
+	const roomID = reactionEvent.room_id
+	const event = await api.getEvent(roomID, reactionEvent.content["m.relates_to"]?.event_id)
+
+	// Check that it's a real error from OOYE
 	const error = event.content["moe.cadence.ooye.error"]
 	if (event.sender !== `@${reg.sender_localpart}:${reg.ooye.server_name}` || !error) return
+
+	// To stop people injecting misleading messages, the reaction needs to come from either the original sender or a room moderator
+	if (reactionEvent.sender !== event.sender) {
+		// Check if it's a room moderator
+		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
+		const powerLevel = powerLevelsStateContent.users?.[reactionEvent.sender] || 0
+		if (powerLevel < 50) return
+	}
+
+	// Retry
 	if (error.source === "matrix") {
-		as.emit("type:" + error.payload.type, error.payload)
+		as.emit(`type:${error.payload.type}`, error.payload)
 	} else if (error.source === "discord") {
 		discord.cloud.emit("event", error.payload)
 	}
+
+	// Redact the error to stop people from executing multiple retries
+	api.redactEvent(roomID, event.event_id)
 }
 
 sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
@@ -103,7 +122,7 @@ async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	if (event.content["m.relates_to"].key === "🔁") {
 		// Try to bridge a failed event again?
-		await retry(event.room_id, event.content["m.relates_to"].event_id)
+		await onRetryReactionAdd(event)
 	} else {
 		matrixCommandHandler.onReactionAdd(event)
 		await addReaction.addReaction(event)
