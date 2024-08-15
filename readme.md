@@ -74,19 +74,18 @@ You'll need:
 
 Follow these steps:
 
-1. [Get Node.js version 18 or later](https://nodejs.org/en/download/releases) (the version is required by the better-sqlite3 and matrix-appservice dependencies)
+1. [Get Node.js version 18 or later](https://nodejs.org/en/download/prebuilt-installer)
 
 1. Clone this repo and checkout a specific tag. (Development happens on main. Stable versions are tagged.)
 	* The latest release tag is ![](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=flat-square&label=%20&color=black).
 
-1. Install dependencies: `npm install --save-dev` (omit --save-dev if you will not run the automated tests)
+1. Install dependencies: `npm install`
 
 1. Copy `config.example.js` to `config.js` and fill in Discord token.
 
 1. Copy `registration.example.yaml` to `registration.yaml` and fill in bracketed values. You could generate each hex string with `dd if=/dev/urandom bs=32 count=1 2> /dev/null | basenc --base16 | dd conv=lcase 2> /dev/null`. Register the registration in Synapse's `homeserver.yaml` through the usual appservice installation process, then restart Synapse.
 
 1. Run `node scripts/seed.js` to check your setup and set the bot's initial state. You only need to run this once ever.
-1. Make sure the tests work by running `npm t`
 
 1. Start the bridge: `node start.js`
 
@@ -103,7 +102,7 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 
 # Development setup
 
-* Be sure to install dependencies with `--save-dev` so you can run the tests.
+* Install development dependencies with `npm install --save-dev` so you can run the tests.
 * Any files you change will automatically be reloaded, except for `stdin.js` and `d2m/discord-*.js`.
 * If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 me@matrix.cadence.moe`
 * I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotation comments work. I don't know which other editors or language servers support annotations and type inference.
@@ -163,23 +162,28 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 (deduped transitive dependency count) dependency name: explanation
 
 * (0) @chriscdn/promise-semaphore: It does what I want! I like it!
+* (1) @cloudrac3r/discord-markdown: This is my fork!
+* (0) @cloudrac3r/giframe: This is my fork!
+* (1) @cloudrac3r/html-template-tag: This is my fork!
+* (16) @cloudrac3r/in-your-element: This is my Matrix Appservice API library.
+* (0) @cloudrac3r/mixin-deep: This is my fork! (It fixes a bug in regular mixin-deep.)
+* (0) @cloudrac3r/pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
+* (0) @cloudrac3r/turndown: This HTML-to-Markdown converter looked the most suitable. I forked it to change the escaping logic to match the way Discord works.
 * (42) better-sqlite3: SQLite3 is the best database, and this is the best library for it. Really! I love it.
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
-* (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
-* (1) discord-markdown: This is my fork!
-* (0) get-stream: Only needed if content_length_workaround is true.
-* (0) giframe: This is my fork!
-* (1) heatsync: Module hot-reloader that I trust.
+* (0) domino: DOM implementation that's already pulled in by turndown.
 * (0) entities: Looks fine. No dependencies.
-* (1) html-template-tag: This is my fork!
-* (1) js-yaml: It seems to do what I want, and it's already pulled in by matrix-appservice.
-* (70) matrix-appservice: I wish it didn't pull in express :(
+* (0) get-stream: Only needed if content_length_workaround is true.
+* (1) heatsync: Module hot-reloader that I trust.
+* (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
-* (0) mixin-deep: This is my fork! (It fixes a bug in regular mixin-deep.)
-* (3) node-fetch@2: I like it and it does what I want.
-* (0) pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
+* (3) node-fetch@2: I like it and it does what I want. Version 2 is used because version 3 is ESM-only.
 * (0) prettier-bytes: It does what I want and has no dependencies.
-* (51) sharp: Jimp has fewer dependencies, but sharp is faster.
-* (0) try-to-catch: Not strictly necessary, but it does what I want and has no dependencies.
-* (1) turndown: I need an HTML-to-Markdown converter and this one looked suitable enough. It has some bugs that I've worked around, so I might switch away from it later.
+* (51) sharp: Image compositing and processing. Jimp has fewer dependencies, but sharp is faster.
+* (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
+* (10) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
+* (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
+* (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
+
+Total transitive production dependencies: 113
