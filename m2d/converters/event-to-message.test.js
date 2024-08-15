@@ -1038,8 +1038,8 @@ test("event2message: rich reply to a sim user", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
-					+ "\n> -# Slow news day."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ " Slow news day."
 					+ "\nTesting this reply, ignore",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1110,8 +1110,8 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> -# I just checked in a fix that will probably work..."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
+					+ " I just checked in a fix that will probably work..."
 					+ "\nwill try later (tomorrow if I don't forgor)",
 				avatar_url: undefined,
 				allowed_mentions: {
@@ -1190,8 +1190,8 @@ test("event2message: rich reply to an already-edited message will quote the new 
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647><@111604486476181504>:"
-					+ "\n> -# this is the new content. heya!"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647><@111604486476181504>:"
+					+ " this is the new content. heya!"
 					+ "\nhiiiii....",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1244,7 +1244,7 @@ test("event2message: rich reply to a missing event will quote from formatted_bod
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# But who sees the seashells she sells sitting..."
+				content: "-# > But who sees the seashells she sells sitting..."
 					+ "\nWhat a tongue-bender...",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1395,8 +1395,8 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
-					+ "\n> -# that can't be true! there's no way :o"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ " that can't be true! there's no way :o"
 					+ "\nI agree!",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1484,8 +1484,8 @@ test("event2message: should include a reply preview when message ends with a blo
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**_ooye_cookie**:"
-					+ "\n> -# https://tootsuite.net/Warp-Gate2.gif tanget: @..."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜ_ooye_cookie**:"
+					+ " https://tootsuite.net/Warp-Gate2.gif tanget: @..."
 					+ "\naichmophobia",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1568,8 +1568,8 @@ test("event2message: should include a reply preview when replying to a descripti
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/497161350934560778/1162625810109317170 <@1109360903096369153>:"
-					+ "\n> -# It looks like this queue has ended."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/497161350934560778/1162625810109317170 <@1109360903096369153>:"
+					+ " It looks like this queue has ended."
 					+ `\nso you're saying on matrix side I would have to edit ^this^ to add "Timed out" before the blockquote?`,
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1621,8 +1621,8 @@ test("event2message: entities are not escaped in main message or reply preview",
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> -# Testing? \"':.`[]&things"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
+					+ " Testing? \"':.`[]&things"
 					+ "\n_Testing?_ \"':.\\`\\[\\]&things",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -1671,8 +1671,8 @@ test("event2message: reply preview converts emoji formatting when replying to a 
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> -# <:hippo:230201364309868544>"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
+					+ " <:hippo:230201364309868544>"
 					+ "\nreply",
 				avatar_url: undefined,
 				allowed_mentions: {
@@ -1721,8 +1721,8 @@ test("event2message: reply preview can guess custom emoji based on the name if i
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> -# <:hippo:230201364309868544>"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
+					+ " <:hippo:230201364309868544>"
 					+ "\nreply",
 				avatar_url: undefined,
 				allowed_mentions: {
@@ -1771,8 +1771,8 @@ test("event2message: reply preview uses emoji title text when replying to an unk
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> -# :svkftngur_gkdne:"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
+					+ " :svkftngur_gkdne:"
 					+ "\nreply",
 				avatar_url: undefined,
 				allowed_mentions: {
@@ -1821,8 +1821,8 @@ test("event2message: reply preview ignores garbage image", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**:"
-					+ "\n> -# I am having  a nice day"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
+					+ " I am having  a nice day"
 					+ "\nreply",
 				avatar_url: undefined,
 				allowed_mentions: {
@@ -1871,7 +1871,7 @@ test("event2message: reply to empty message doesn't show an extra line or anythi
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**cadence [they]**"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**"
 					+ "\nreply",
 				avatar_url: undefined,
 				allowed_mentions: {
@@ -1953,8 +1953,8 @@ test("event2message: editing a rich reply to a sim user", async t => {
 				id: "1144874214311067708",
 				message: {
 					username: "cadence [they]",
-					content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
-						+ "\n> -# Slow news day."
+					content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+						+ " Slow news day."
 						+ "\nEditing this reply, which is also a test",
 					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 					allowed_mentions: {
@@ -2244,8 +2244,8 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence [they]**:"
-					+ "\n> -# i should have a little happy test   list bold em..."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 **Ⓜcadence [they]**:"
+					+ " i should have a little happy test   list bold em..."
 					+ "\n**no you can't!!!**",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -2307,7 +2307,7 @@ test("event2message: rich reply to an image", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504> 🖼️"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504> 🖼️"
 					+ "\nCaught in 8K UHD VR QLED Epic Edition",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -2362,8 +2362,8 @@ test("event2message: rich reply to a spoiler should ensure the spoiler is hidden
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
-					+ "\n> -# [spoiler] cw crossword spoilers you'll never..."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ " [spoiler] cw crossword spoilers you'll never..."
 					+ "\nomg NO WAY!!",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -2417,8 +2417,8 @@ test("event2message: with layered rich replies, the preview should only be the r
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 Ⓜ️**cadence [they]**:"
-					+ "\n> -# two"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 **Ⓜcadence [they]**:"
+					+ " two"
 					+ "\nthree",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
@@ -2473,8 +2473,8 @@ test("event2message: if event is a reply and starts with a quote, they should be
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "Rose",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**Rose**:"
-					+ "\n> -# i have a feeling that clients are meant to strip..."
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**ⓂRose**:"
+					+ " i have a feeling that clients are meant to strip..."
 					+ "\n"
 					+ "\n> To strip the fallback on the `body`, the client should iterate over each line of the string, removing any lines that start with the fallback prefix (\"> “, including the space, without quotes) and stopping when a line is encountered without the prefix. This prefix is known as the “fallback prefix sequence”.",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP",
@@ -2533,7 +2533,7 @@ test("event2message: rich reply to a deleted event", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "Ampflower 🌺",
-				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>Ⓜ️**Ampflower 🌺** (in reply to a deleted message)"
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**ⓂAmpflower 🌺** (in reply to a deleted message)"
 					+ "\nHuh it did the same thing here too",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/PRfhXYBTOalvgQYtmCLeUXko",
 				allowed_mentions: {
