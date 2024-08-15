@@ -1407,6 +1407,55 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 	)
 })
 
+test("event2message: should suppress embeds for links in reply preview", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@rnl:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: `> <@cadence:cadence.moe> https://www.youtube.com/watch?v=uX32idb1jMw\n\nEveryone in the comments is like "you're so ahead of the curve" and "crazy that this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
+				format: "org.matrix.custom.html",
+				formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU?via=cadence.moe">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">@cadence:cadence.moe</a><br>https://www.youtube.com/watch?v=uX32idb1jMw</blockquote></mx-reply>Everyone in the comments is like "you're so ahead of the curve" and "crazy that this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU"
+					}
+				}
+			},
+			event_id: "$0Bs3rbsXaeZmSztGMx1NIsqvOrkXOpIWebN-dqr09i4",
+			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU", {
+					"type": "m.room.message",
+					"sender": "@cadence:cadence.moe",
+					"content": {
+						"m.mentions": {},
+						"msgtype": "m.text",
+						"body": "https://www.youtube.com/watch?v=uX32idb1jMw"
+					}
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "RNL",
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1273204543739396116 **Ⓜcadence [they]**:"
+					+ " <https://www.youtube.com/watch?v=uX32idb1jMw>"
+					+ `\nEveryone in the comments is like "you're so ahead of the curve" and "crazy that this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
+				avatar_url: undefined,
+				allowed_mentions: {
+						parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: should include a reply preview when message ends with a blockquote", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -1485,7 +1534,7 @@ test("event2message: should include a reply preview when message ends with a blo
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜ_ooye_cookie**:"
-					+ " https://tootsuite.net/Warp-Gate2.gif tanget: @..."
+					+ " <https://tootsuite.net/Warp-Gate2.gif> tanget: @..."
 					+ "\naichmophobia",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {

@@ -16,7 +16,7 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@chriscdn/promise-semaphore": "^2.0.1",
-    "@cloudrac3r/discord-markdown": "^2.6.2",
+    "@cloudrac3r/discord-markdown": "^2.6.3",
     "@cloudrac3r/giframe": "^0.4.3",
     "@cloudrac3r/html-template-tag": "^5.0.1",
     "@cloudrac3r/in-your-element": "^1.0.0",
