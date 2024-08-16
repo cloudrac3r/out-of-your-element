@@ -1562,6 +1562,182 @@ module.exports = {
 			attachments: [],
 			guild_id: "1100319549670301727"
 		},
+		infinidoge_reply_to_ami_matrix_smalltext_reply_to_infinidoge: {
+			type: 19,
+			tts: false,
+			timestamp: "2024-08-15T20:45:20.697000+00:00",
+			referenced_message: {
+				webhook_id: "1179987856631017473",
+				type: 0,
+				tts: false,
+				timestamp: "2024-08-15T20:43:42.705000+00:00",
+				pinned: false,
+				mentions: [
+					{
+						username: "infinidoge1337",
+						public_flags: 768,
+						id: "197126718400626689",
+						global_name: "Infinidoge",
+						discriminator: "0",
+						clan: null,
+						avatar_decoration_data: null,
+						avatar: "89c59de97fdb5f90999d86fed01f23fe"
+					}
+				],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1273743950028607530",
+				flags: 0,
+				embeds: [],
+				edited_timestamp: null,
+				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/813954820460642336/1100319550446252084/1273733346005880925 <@197126718400626689>:\n" +
+				"> -# Neat that they thought of that\n" +
+				'let me guess they got a lot of bug reports like "empty chest with no loot?"',
+				components: [],
+				channel_id: "1100319550446252084",
+				author: {
+					username: "Ami (she/her)",
+					id: "1179987856631017473",
+					global_name: null,
+					discriminator: "0000",
+					bot: true,
+					avatar: "8b2ca50a10b39f4f908f536cd82d7953"
+				},
+				attachments: [],
+				application_id: "684280192553844747"
+			},
+			pinned: false,
+			nonce: "1273744360743108608",
+			message_reference: {
+				type: 0,
+				message_id: "1273743950028607530",
+				guild_id: "813954820460642336",
+				channel_id: "1100319550446252084"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [ "832496260219928577" ],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2021-05-05T21:22:36.181000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				banner: null,
+				avatar: null
+			},
+			id: "1273744361036841061",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "Most likely",
+			components: [],
+			channel_id: "1100319550446252084",
+			author: {
+				username: "infinidoge1337",
+				public_flags: 768,
+				id: "197126718400626689",
+				global_name: "Infinidoge",
+				discriminator: "0",
+				clan: null,
+				avatar_decoration_data: null,
+				avatar: "89c59de97fdb5f90999d86fed01f23fe"
+			},
+			attachments: [],
+			guild_id: "813954820460642336"
+		},
+		infinidoge_reply_to_ami_matrix_smalltext_singleline_reply_to_infinidoge: {
+			type: 19,
+			tts: false,
+			timestamp: "2024-08-15T20:45:20.697000+00:00",
+			referenced_message: {
+				webhook_id: "1179987856631017473",
+				type: 0,
+				tts: false,
+				timestamp: "2024-08-15T20:43:42.705000+00:00",
+				pinned: false,
+				mentions: [
+					{
+						username: "infinidoge1337",
+						public_flags: 768,
+						id: "197126718400626689",
+						global_name: "Infinidoge",
+						discriminator: "0",
+						clan: null,
+						avatar_decoration_data: null,
+						avatar: "89c59de97fdb5f90999d86fed01f23fe"
+					}
+				],
+				mention_roles: [],
+				mention_everyone: false,
+				id: "1273743950028607530",
+				flags: 0,
+				embeds: [],
+				edited_timestamp: null,
+				content: "> -# <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/813954820460642336/1100319550446252084/1273733346005880925 <@197126718400626689>:" +
+				" Neat that they thought of that\n" +
+				'let me guess they got a lot of bug reports like "empty chest with no loot?"',
+				components: [],
+				channel_id: "1100319550446252084",
+				author: {
+					username: "Ami (she/her)",
+					id: "1179987856631017473",
+					global_name: null,
+					discriminator: "0000",
+					bot: true,
+					avatar: "8b2ca50a10b39f4f908f536cd82d7953"
+				},
+				attachments: [],
+				application_id: "684280192553844747"
+			},
+			pinned: false,
+			nonce: "1273744360743108608",
+			message_reference: {
+				type: 0,
+				message_id: "1273743950028607530",
+				guild_id: "813954820460642336",
+				channel_id: "1100319550446252084"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [ "832496260219928577" ],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2021-05-05T21:22:36.181000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				banner: null,
+				avatar: null
+			},
+			id: "1273744361036841061",
+			flags: 0,
+			embeds: [],
+			edited_timestamp: null,
+			content: "Most likely",
+			components: [],
+			channel_id: "1100319550446252084",
+			author: {
+				username: "infinidoge1337",
+				public_flags: 768,
+				id: "197126718400626689",
+				global_name: "Infinidoge",
+				discriminator: "0",
+				clan: null,
+				avatar_decoration_data: null,
+				avatar: "89c59de97fdb5f90999d86fed01f23fe"
+			},
+			attachments: [],
+			guild_id: "813954820460642336"
+		},
 		sticker: {
 			id: "1106366167788044450",
 			type: 0,

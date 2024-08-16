@@ -55,7 +55,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1202543413652881428', '1160894080998461480'),
 ('1207486471489986620', '1160894080998461480'),
 ('1210387798297682020', '112760669178241024'),
-('1273204543739396116', '687028734322147344');
+('1273204543739396116', '687028734322147344'),
+('1273743950028607530', '1100319550446252084');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),
@@ -91,7 +92,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU', 'm.room.message', 'm.text', '1202543413652881428', 0, 0, 0),
 ('$OEEK-Wam2FTh6J-6kVnnJ6KnLA_lLRnLTHatKKL62-Y', 'm.room.message', 'm.image', '1207486471489986620', 0, 0, 0),
 ('$mPSzglkCu-6cZHbYro0RW2u5mHvbH9aXDjO5FCzosc0', 'm.room.message', 'm.text', '1210387798297682020', 0, 0, 1),
-('$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU', 'm.room.message', 'm.text', '1273204543739396116', 0, 0, 0);
+('$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU', 'm.room.message', 'm.text', '1273204543739396116', 0, 0, 0),
+('$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4', 'm.room.message', 'm.text', '1273743950028607530', 0, 0, 0);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
@@ -134,7 +136,8 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!cBxtVRxDlZvSVhJXVK:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko'),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@aflower:syndicated.gay', 'Rose', 'mxc://syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP'),
-('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL);
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
+('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@ami:the-apothecary.club', 'Ami (she/her)', NULL);
 
 INSERT INTO lottie (sticker_id, mxc_url) VALUES
 ('860171525772279849', 'mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR');

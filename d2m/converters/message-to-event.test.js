@@ -559,6 +559,84 @@ test("message2event: simple reply in thread to a matrix user's reply", async t =
 	}])
 })
 
+test("message2event: infinidoge's reply to ami's matrix smalltext reply to infinidoge", async t => {
+	const events = await messageToEvent(data.message.infinidoge_reply_to_ami_matrix_smalltext_reply_to_infinidoge, data.guild.general, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4", {
+				type: "m.room.message",
+				sender: "@ami:the-apothecary.club",
+				content: {
+					msgtype: "m.text",
+					body: `> <@_ooye_infinidoge:cadence.moe> Neat that they thought of that\n\nlet me guess they got a lot of bug reports like "empty chest with no loot?"`,
+					format: "org.matrix.custom.html",
+					formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$baby?via=cadence.moe">In reply to</a> <a href="https://matrix.to/#/@_ooye_infinidoge:cadence.moe">@_ooye_infinidoge:cadence.moe</a><br>Neat that they thought of that</blockquote></mx-reply>let me guess they got a lot of bug reports like "empty chest with no loot?"`,
+					"m.relates_to": {
+						"m.in_reply_to": {
+							event_id: "$baby"
+						}
+					}
+				},
+				event_id: "$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4",
+				room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4"
+			}
+		},
+		"m.mentions": {
+			user_ids: ["@ami:the-apothecary.club"]
+		},
+		msgtype: "m.text",
+      body: `> Ami (she/her): let me guess they got a lot of bug reports like "empty chest with no loot?"\n\nMost likely`,
+      format: "org.matrix.custom.html",
+      formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4">In reply to</a> <a href="https://matrix.to/#/@ami:the-apothecary.club">Ami (she/her)</a><br>let me guess they got a lot of bug reports like "empty chest with no loot?"</blockquote></mx-reply>Most likely`,
+	}])
+})
+
+test("message2event: infinidoge's reply to ami's matrix smalltext singleline reply to infinidoge", async t => {
+	const events = await messageToEvent(data.message.infinidoge_reply_to_ami_matrix_smalltext_singleline_reply_to_infinidoge, data.guild.general, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4", {
+				type: "m.room.message",
+				sender: "@ami:the-apothecary.club",
+				content: {
+					msgtype: "m.text",
+					body: `> <@_ooye_infinidoge:cadence.moe> Neat that they thought of that\n\nlet me guess they got a lot of bug reports like "empty chest with no loot?"`,
+					format: "org.matrix.custom.html",
+					formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$baby?via=cadence.moe">In reply to</a> <a href="https://matrix.to/#/@_ooye_infinidoge:cadence.moe">@_ooye_infinidoge:cadence.moe</a><br>Neat that they thought of that</blockquote></mx-reply>let me guess they got a lot of bug reports like "empty chest with no loot?"`,
+					"m.relates_to": {
+						"m.in_reply_to": {
+							event_id: "$baby"
+						}
+					}
+				},
+				event_id: "$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4",
+				room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4"
+			}
+		},
+		"m.mentions": {
+			user_ids: ["@ami:the-apothecary.club"]
+		},
+		msgtype: "m.text",
+      body: `> Ami (she/her): let me guess they got a lot of bug reports like "empty chest with no loot?"\n\nMost likely`,
+      format: "org.matrix.custom.html",
+      formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4">In reply to</a> <a href="https://matrix.to/#/@ami:the-apothecary.club">Ami (she/her)</a><br>let me guess they got a lot of bug reports like "empty chest with no loot?"</blockquote></mx-reply>Most likely`,
+	}])
+})
+
 test("message2event: simple written @mention for matrix user", async t => {
 	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {}, {
 		api: {
