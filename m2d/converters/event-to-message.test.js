@@ -3025,6 +3025,40 @@ test("event2message: mentioning known bridged events works (formatted body)", as
 	)
 })
 
+test("event2message: mentioning known bridged events followed by line break and user mention works (partially formatted body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zXSlyI78DQqQwwfPUSzZ1b-nXzbUrCDljJgnGDdoI10?via=cadence.moe<a href="https://matrix.to/#/@_ooye_extremity:cadence.moe">extremity</a>`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020<@114147806469554185>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: mentioning unknown bridged events can approximate with timestamps", async t => {
 	let called = 0
 	t.deepEqual(

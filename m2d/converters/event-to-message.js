@@ -329,7 +329,7 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles,
  */
 async function handleRoomOrMessageLinks(input, di) {
 	let offset = 0
-	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/(![^"/, ?)]+)(?:\/(\$[^"/ ?)]+))?(?:\?[^",:!? )]*)?)(">|[, )]|$)/g)]) {
+	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/(![^"/, ?)]+)(?:\/(\$[^"/ ?)]+))?(?:\?[^",:!? )]*?)?)(">|[,<\n )]|$)/g)]) {
 		assert(typeof match.index === "number")
 		const [_, attributeValue, roomID, eventID, endMarker] = match
 		let result
@@ -726,7 +726,7 @@ async function eventToMessage(event, guild, di) {
 			content = turndownService.turndown(root)
 
 			// Put < > around any surviving matrix.to links to hide the URL previews
-			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/g, "<$&>")
+			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/g, "<$&>")
 
 			// It's designed for commonmark, we need to replace the space-space-newline with just newline
 			content = content.replace(/  \n/g, "\n")
@@ -745,7 +745,7 @@ async function eventToMessage(event, guild, di) {
 			}
 
 			content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
-			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^ )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
+			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
 
 			const result = await checkWrittenMentions(content, event.sender, event.room_id, guild, di)
 			if (result) {
