@@ -34,6 +34,7 @@ discord.snow.requestHandler.on("requestError", data => {
 	await migrate.migrate(db)
 	await discord.cloud.connect()
 	console.log("Discord gateway started")
+	require("./matrix/power.js")
 
 	require("./stdin")
 })()

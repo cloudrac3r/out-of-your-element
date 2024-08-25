@@ -42,7 +42,14 @@ export type Models = {
 		room_id: string
 		mxid: string
 		displayname: string | null
-		avatar_url: string | null
+		avatar_url: string | null,
+		power_level: number
+	}
+
+	member_power: {
+		mxid: string
+		room_id: string
+		power_level: number
 	}
 
 	message_channel: {

@@ -209,6 +209,36 @@ export namespace Event {
 		name?: string
 	}
 
+	export type M_Power_Levels = {
+		/** The level required to ban a user. Defaults to 50 if unspecified. */
+		ban?: number,
+		/** The level required to send specific event types. This is a mapping from event type to power level required. */
+		events?: {
+			[event_id: string]: number
+		},
+		/** The default level required to send message events. Can be overridden by the `events` key. Defaults to 0 if unspecified. */
+		events_default?: number,
+		/** The level required to invite a user. Defaults to 0 if unspecified. */
+		invite?: number,
+		/** The level required to kick a user. Defaults to 50 if unspecified. */
+		kick?: number,
+		/** The power level requirements for specific notification types. This is a mapping from `key` to power level for that notifications key. */
+		notifications?: {
+			room: number,
+			[key: string]: number
+		},
+		/** The level required to redact an event sent by another user. Defaults to 50 if unspecified. */
+		redact?: number,
+		/** The default level required to send state events. Can be overridden by the `events` key. Defaults to 50 if unspecified. */
+		state_default?: number,
+		/** The power levels for specific users. This is a mapping from `user_id` to power level for that user. */
+		users?: {
+			[mxid: string]: number
+		},
+		/**The power level for users in the room whose `user_id` is not mentioned in the `users` key. Defaults to 0 if unspecified. */
+		users_default?: number
+	}
+
 	export type M_Reaction = {
 		"m.relates_to": {
 			rel_type: "m.annotation"

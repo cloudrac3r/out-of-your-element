@@ -70,6 +70,7 @@ async function inviteToRoom(roomID, mxidToInvite, mxid) {
 }
 
 async function leaveRoom(roomID, mxid) {
+	console.log(`[api] leave: ${roomID}: ${mxid}`)
 	await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/leave`, mxid), {})
 }
 

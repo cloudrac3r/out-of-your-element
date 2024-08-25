@@ -6,7 +6,7 @@
 
 const util = require("util")
 const Ty = require("../types")
-const {discord, db, sync, as} = require("../passthrough")
+const {discord, db, sync, as, select} = require("../passthrough")
 
 /** @type {import("./actions/send-event")} */
 const sendEvent = sync.require("./actions/send-event")
@@ -167,5 +167,29 @@ sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
 async event => {
 	if (event.state_key[0] !== "@") return
 	if (utils.eventSenderIsFromDiscord(event.state_key)) return
-	db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(event.room_id, event.state_key, event.content.displayname || null, event.content.avatar_url || null)
+	if (event.content.membership === "leave" || event.content.membership === "ban") {
+		// Member is gone
+		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
+	} else {
+		// Member is here
+		db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?")
+			.run(
+				event.room_id, event.state_key,
+				event.content.displayname || null, event.content.avatar_url || null,
+				event.content.displayname || null, event.content.avatar_url || null
+			)
+	}
+}))
+
+sync.addTemporaryListener(as, "type:m.room.power_levels", guard("m.room.power_levels",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Power_Levels>} event
+ */
+async event => {
+	if (event.state_key !== "") return
+	const existingPower = select("member_cache", "mxid", {room_id: event.room_id}).pluck().all()
+	const newPower = event.content.users || {}
+	for (const mxid of existingPower) {
+		db.prepare("UPDATE member_cache SET power_level = ? WHERE room_id = ? AND mxid = ?").run(newPower[mxid] || 0, event.room_id, mxid)
+	}
 }))

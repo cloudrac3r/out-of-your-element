@@ -44,6 +44,8 @@ class From {
 		/** @private */
 		this.cols = []
 		/** @private */
+		this.makeColsSafe = true
+		/** @private */
 		this.using = []
 		/** @private */
 		this.isPluck = false
@@ -76,6 +78,12 @@ class From {
 		const r = this
 		r.cols = cols
 		return r
+	}
+
+	selectUnsafe(...cols) {
+		this.cols = cols
+		this.makeColsSafe = false
+		return this
 	}
 
 	/**
@@ -112,7 +120,8 @@ class From {
 	}
 
 	prepare() {
-		let sql = `SELECT ${this.cols.map(k => `"${k}"`).join(", ")} FROM ${this.tables[0]} `
+		if (this.makeColsSafe) this.cols = this.cols.map(k => `"${k}"`)
+		let sql = `SELECT ${this.cols.join(", ")} FROM ${this.tables[0]} `
 		for (let i = 1; i < this.tables.length; i++) {
 			const table = this.tables[i]
 			const col = this.using[i-1]
