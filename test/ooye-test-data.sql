@@ -139,6 +139,9 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
 ('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@ami:the-apothecary.club', 'Ami (she/her)', NULL);
 
+INSERT INTO member_power (mxid, room_id, power_level) VALUES
+('@test_auto_invite:example.org', '*', 100);
+
 INSERT INTO lottie (sticker_id, mxc_url) VALUES
 ('860171525772279849', 'mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR');
 

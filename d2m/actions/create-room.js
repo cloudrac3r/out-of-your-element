@@ -142,6 +142,8 @@ async function channelToKState(channel, guild) {
 	const everyonePermissions = utils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
 	const everyoneCanMentionEveryone = utils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
+	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
+
 	const channelKState = {
 		"m.room.name/": {name: convertedName},
 		"m.room.topic/": {topic: convertedTopic},
@@ -161,7 +163,7 @@ async function channelToKState(channel, guild) {
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
 			},
-			users: reg.ooye.invite.reduce((a, c) => (a[c] = 100, a), {})
+			users: globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
 		},
 		"chat.schildi.hide_ui/read_receipts": {
 			hidden: true

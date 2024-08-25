@@ -20,7 +20,6 @@ const db = new sqlite(":memory:")
 const reg = require("../matrix/read-registration")
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
 reg.ooye.server_name = "cadence.moe"
-reg.ooye.invite = ["@test_auto_invite:example.org"]
 reg.id = "baby" // don't actually take authenticated actions on the server
 reg.as_token = "baby"
 reg.hs_token = "baby"

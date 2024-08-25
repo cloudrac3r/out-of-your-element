@@ -31,6 +31,8 @@ async function createSpace(guild, kstate) {
 	const topic = kstate["m.room.topic/"]?.topic || undefined
 	assert(name)
 
+	const globalAdmins = select("member_power", "mxid", {room_id: "*"}).pluck().all()
+
 	const roomID = await createRoom.postApplyPowerLevels(kstate, async kstate => {
 		return api.createRoom({
 			name,
@@ -40,7 +42,7 @@ async function createSpace(guild, kstate) {
 				events_default: 100, // space can only be managed by bridge
 				invite: 0 // any existing member can invite others
 			},
-			invite: reg.ooye.invite,
+			invite: globalAdmins,
 			topic,
 			creation_content: {
 				type: "m.space"
@@ -58,6 +60,7 @@ async function createSpace(guild, kstate) {
  */
 async function guildToKState(guild, privacyLevel) {
 	assert.equal(typeof privacyLevel, "number")
+	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
 	const guildKState = {
 		"m.room.name/": {name: guild.name},
 		"m.room.avatar/": {
@@ -68,7 +71,7 @@ async function guildToKState(guild, privacyLevel) {
 		"m.room.guest_access/": {guest_access: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},
 		"m.room.history_visibility/": {history_visibility: createRoom.PRIVACY_ENUMS.SPACE_HISTORY_VISIBILITY[privacyLevel]},
 		"m.room.join_rules/": {join_rule: createRoom.PRIVACY_ENUMS.SPACE_JOIN_RULES[privacyLevel]},
-		"m.room.power_levels/": {users: reg.ooye.invite.reduce((a, c) => (a[c] = 100, a), {})}
+		"m.room.power_levels/": {users: globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})} // used in guild initial creation postApplyPowerLevels
 	}
 
 	return guildKState
