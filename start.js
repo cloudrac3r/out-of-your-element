@@ -8,6 +8,7 @@ const config = require("./config")
 const passthrough = require("./passthrough")
 const db = new sqlite("db/ooye.db")
 
+/** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync()
 
 Object.assign(passthrough, {config, sync, db})

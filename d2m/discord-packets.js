@@ -16,6 +16,8 @@ const utils = {
 		// requiring this later so that the client is already constructed by the time event-dispatcher is loaded
 		/** @type {typeof import("./event-dispatcher")} */
 		const eventDispatcher = sync.require("./event-dispatcher")
+		/** @type {import("../discord/register-interactions")} */
+		const interactions = sync.require("../discord/register-interactions")
 
 		// Client internals, keep track of the state we need
 		if (message.t === "READY") {
@@ -172,7 +174,11 @@ const utils = {
 
 				} else if (message.t === "MESSAGE_REACTION_REMOVE" || message.t === "MESSAGE_REACTION_REMOVE_EMOJI" || message.t === "MESSAGE_REACTION_REMOVE_ALL") {
 					await eventDispatcher.onSomeReactionsRemoved(client, message.d)
+
+				} else if (message.t === "INTERACTION_CREATE") {
+					await interactions.dispatchInteraction(message.d)
 				}
+
 			} catch (e) {
 				// Let OOYE try to handle errors too
 				eventDispatcher.onError(client, e, message)

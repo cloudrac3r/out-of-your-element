@@ -102,11 +102,10 @@ function isWebhookMessage(message) {
 }
 
 /**
- * Ephemeral messages can be generated if a slash command is attached to the same bot that OOYE is running on
  * @param {Pick<DiscordTypes.APIMessage, "flags">} message
  */
 function isEphemeralMessage(message) {
-	return message.flags && (message.flags & (1 << 6));
+	return message.flags && (message.flags & DiscordTypes.MessageFlags.Ephemeral)
 }
 
 /** @param {string} snowflake */
