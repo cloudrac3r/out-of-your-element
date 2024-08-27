@@ -126,19 +126,21 @@ INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('606664341298872324', 'online', 0, 'mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ'),
 ('288858540888686602', 'upstinky', 0, 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO');
 
-INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES
-('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
-('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'malformed mxc'),
-('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!fGgIymcYWOqjbSRUdV:cadence.moe', '@rnl:cadence.moe', 'RNL', NULL),
-('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!CzvdIdUQXgUjDVKxeU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU'),
-('!cBxtVRxDlZvSVhJXVK:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL),
-('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko'),
-('!TqlyQmifxGUggEmdBN:cadence.moe', '@aflower:syndicated.gay', 'Rose', 'mxc://syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP'),
-('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL),
-('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@ami:the-apothecary.club', 'Ami (she/her)', NULL);
+INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES
+('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
+('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'malformed mxc', 0),
+('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
+('!fGgIymcYWOqjbSRUdV:cadence.moe', '@rnl:cadence.moe', 'RNL', NULL, 0),
+('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
+('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
+('!CzvdIdUQXgUjDVKxeU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
+('!cBxtVRxDlZvSVhJXVK:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL, 0),
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko', 0),
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@aflower:syndicated.gay', 'Rose', 'mxc://syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP', 0),
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
+('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@ami:the-apothecary.club', 'Ami (she/her)', NULL, 0),
+('!kLRqKKUQXcibIMtOpl:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 0),
+('!BpMdOUkWWhFxmTrENV:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 100);
 
 INSERT INTO member_power (mxid, room_id, power_level) VALUES
 ('@test_auto_invite:example.org', '*', 100);

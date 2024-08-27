@@ -23,6 +23,7 @@ reg.ooye.server_name = "cadence.moe"
 reg.id = "baby" // don't actually take authenticated actions on the server
 reg.as_token = "baby"
 reg.hs_token = "baby"
+reg.ooye.invite = []
 
 const sync = new HeatSync({watchFS: false})
 
@@ -116,6 +117,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../matrix/kstate.test")
 	require("../matrix/api.test")
 	require("../matrix/file.test")
+	require("../matrix/power.test")
 	require("../matrix/read-registration.test")
 	require("../matrix/txnid.test")
 	require("../d2m/actions/create-room.test")

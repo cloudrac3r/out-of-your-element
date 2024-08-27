@@ -25,13 +25,14 @@ const orm = sync.require("./db/orm")
 passthrough.from = orm.from
 passthrough.select = orm.select
 
+const power = require("./matrix/power.js")
 sync.require("./m2d/event-dispatcher")
 
 ;(async () => {
 	await migrate.migrate(db)
 	await discord.cloud.connect()
 	console.log("Discord gateway started")
-	require("./matrix/power.js")
+	await power.applyPower()
 
 	require("./stdin")
 })()
