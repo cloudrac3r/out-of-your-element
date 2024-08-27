@@ -229,6 +229,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}]
 	}
 
+	if (message.type === DiscordTypes.MessageType.ChatInputCommand && message.interaction_metadata && "name" in message.interaction_metadata) {
+		// Commands are sent by the responding bot. Need to attach the metadata of the person using the command at the top.
+		message.content = `> ↪️ <@${message.interaction_metadata.user.id}> used \`/${message.interaction_metadata.name}\`\n${message.content}`
+	}
+
 	/**
 	   @type {{room?: boolean, user_ids?: string[]}}
 		We should consider the following scenarios for mentions:

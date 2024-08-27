@@ -39,7 +39,7 @@ async function getCachedHierarchy(spaceID) {
 			/** @type {{name: string, value: string}[]} */
 			const childRooms = []
 			for (const room of result) {
-				if (room.name) {
+				if (room.name && !room.name.match(/^\[[⛓️🔊]\]/) && room.room_type !== "m.space") {
 					childRooms.push({name: room.name, value: room.room_id})
 					reverseCache.set(room.room_id, spaceID)
 				}
