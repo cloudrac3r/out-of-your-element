@@ -181,7 +181,7 @@ const utils = {
 
 			} catch (e) {
 				// Let OOYE try to handle errors too
-				eventDispatcher.onError(client, e, message)
+				await eventDispatcher.onError(client, e, message)
 			}
 		}
 	}

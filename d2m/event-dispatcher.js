@@ -50,7 +50,7 @@ module.exports = {
 	 * @param {Error} e
 	 * @param {import("cloudstorm").IGatewayMessage} gatewayMessage
 	 */
-	onError(client, e, gatewayMessage) {
+	async onError(client, e, gatewayMessage) {
 		console.error("hit event-dispatcher's error handler with this exception:")
 		console.error(e) // TODO: also log errors into a file or into the database, maybe use a library for this? or just wing it? definitely need to be able to store the formatted event body to load back in later
 		console.error(`while handling this ${gatewayMessage.t} gateway event:`)
@@ -83,7 +83,7 @@ module.exports = {
 			builder.addLine(`Error trace:\n${stackLines.join("\n")}`, `<details><summary>Error trace</summary><pre>${stackLines.join("\n")}</pre></details>`)
 		}
 		builder.addLine("", `<details><summary>Original payload</summary><pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`)
-		api.sendEvent(roomID, "m.room.message", {
+		await api.sendEvent(roomID, "m.room.message", {
 			...builder.get(),
 			"moe.cadence.ooye.error": {
 				source: "discord",
