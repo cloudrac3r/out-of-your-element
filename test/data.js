@@ -1990,6 +1990,91 @@ module.exports = {
 			edited_timestamp: null,
 			flags: 0,
 			components: []
+		},
+		embed_will_be_generated_on_reply: {
+			type: 19,
+			content: "https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [
+				{
+					type: "link",
+					url: "https://matrix.to/",
+					title: "Matrix - Decentralised and secure communication",
+					description: "You're invited to talk on Matrix. If you don't already have a client this link will help you pick one, and join the conversation. If you already have one, this link will help you join the conversation",
+					reference_id: "1278002262400176128",
+					thumbnail: {
+						url: "https://matrix.org/blog/img/matrix-logo.png",
+						proxy_url: "https://images-ext-1.discordapp.net/external/3yPmfN-_U_7Xn8hLSG77nY9IvdtITH0GPrB6OX3JjEI/https/matrix.org/blog/img/matrix-logo.png",
+						width: 800,
+						height: 400,
+						placeholder: "OAgOBIComJeHeId/dXgAAAAAAA==",
+						placeholder_version: 1
+					}
+				}
+			],
+			timestamp: "2024-08-27T14:44:43.490000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1278002262400176128",
+			channel_id: "1100319550446252084",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 0,
+				channel_id: "1100319550446252084",
+				message_id: "1278001833876525057",
+				guild_id: "1100319549670301727"
+			},
+			position: 0,
+			referenced_message: {
+				type: 0,
+				content: "b",
+				mentions: [],
+				mention_roles: [],
+				attachments: [],
+				embeds: [],
+				timestamp: "2024-08-27T14:43:01.322000+00:00",
+				edited_timestamp: "2024-08-27T14:43:06.277000+00:00",
+				flags: 0,
+				components: [],
+				id: "1278001833876525057",
+				channel_id: "1100319550446252084",
+				author: {
+					id: "772659086046658620",
+					username: "cadence.worm",
+					avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "cadence",
+					avatar_decoration_data: null,
+					banner_color: null,
+					clan: null
+				},
+				pinned: false,
+				mention_everyone: false,
+				tts: false
+			}
 		}
 	},
 	pk_message: {
@@ -3709,6 +3794,70 @@ module.exports = {
 			],
 			guild_id: "112760669178241024",
 			id: "1210387798297682020"
+		},
+		embed_generated_on_reply: {
+			attachments: [],
+			author: {
+				avatar: "4b5c4b28051144e4c111f0113a0f1cf1",
+				avatar_decoration_data: null,
+				clan: null,
+				discriminator: "0",
+				global_name: "cadence",
+				id: "772659086046658620",
+				public_flags: 0,
+				username: "cadence.worm"
+			},
+			channel_id: "1100319550446252084",
+			components: [],
+			content: "https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
+			edited_timestamp: null,
+			embeds: [
+				{
+					description: "You're invited to talk on Matrix. If you don't already have a client this link will help you pick one, and join the conversation. If you already have one, this link will help you join the conversation",
+					reference_id: "1278002262400176128",
+					thumbnail: {
+						height: 400,
+						placeholder: "OAgOBIComJeHeId/dXgAAAAAAA==",
+						placeholder_version: 1,
+						proxy_url: "https://images-ext-1.discordapp.net/external/3yPmfN-_U_7Xn8hLSG77nY9IvdtITH0GPrB6OX3JjEI/https/matrix.org/blog/img/matrix-logo.png",
+						url: "https://matrix.org/blog/img/matrix-logo.png",
+						width: 800
+					},
+					title: "Matrix - Decentralised and secure communication",
+					type: "link",
+					url: "https://matrix.to/"
+				}
+			],
+			flags: 0,
+			guild_id: "1100319549670301727",
+			id: "1278002262400176128",
+			member: {
+				avatar: null,
+				banner: null,
+				communication_disabled_until: null,
+				deaf: false,
+				flags: 0,
+				joined_at: "2023-04-25T07:17:03.696000+00:00",
+				mute: false,
+				nick: "worm",
+				pending: false,
+				premium_since: null,
+				roles: []
+			},
+			mention_everyone: false,
+			mention_roles: [],
+			mentions: [],
+			message_reference: {
+				channel_id: "1100319550446252084",
+				guild_id: "1100319549670301727",
+				message_id: "1278001833876525057",
+				type: 0
+			},
+			pinned: false,
+			position: 0,
+			timestamp: "2024-08-27T14:44:43.490000+00:00",
+			tts: false,
+			type: 19
 		}
 	},
 	special_message: {

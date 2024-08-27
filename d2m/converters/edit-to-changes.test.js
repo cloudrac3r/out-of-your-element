@@ -270,3 +270,44 @@ test("edit2changes: generated embed", async t => {
 	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
 	t.equal(called, 1)
 })
+
+test("edit2changes: generated embed on a reply", async t => {
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_on_reply, data.guild.general, {})
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToReplace, [{
+		oldID: "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF",
+		newContent: {
+			$type: "m.room.message",
+			// Unfortunately the edited message doesn't include the message_reference field. Fine. Whatever. It looks normal if you're using a good client.
+			body: "> a Discord user: [Replied-to message content wasn't provided by Discord]"
+				+ "\n\n* https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
+			format: "org.matrix.custom.html",
+			formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">In reply to</a> a Discord user<br>[Replied-to message content wasn't provided by Discord]</blockquote></mx-reply>* <a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM</a>",
+			"m.mentions": {},
+			"m.new_content": {
+				body: "https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
+				format: "org.matrix.custom.html",
+				formatted_body: "<a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM</a>",
+				"m.mentions": {},
+				msgtype: "m.text",
+			},
+			"m.relates_to": {
+				event_id: "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF",
+				rel_type: "m.replace",
+			},
+			msgtype: "m.text",
+		},
+	}])
+	t.deepEqual(eventsToSend, [{
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| ## Matrix - Decentralised and secure communication https://matrix.to/"
+			+ "\n| \n| You're invited to talk on Matrix. If you don't already have a client this link will help you pick one, and join the conversation. If you already have one, this link will help you join the conversation",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><p><strong><a href="https://matrix.to/">Matrix - Decentralised and secure communication</a></strong>`
+			+ `</p><p>You're invited to talk on Matrix. If you don't already have a client this link will help you pick one, and join the conversation. If you already have one, this link will help you join the conversation</p></blockquote>`,
+		"m.mentions": {}
+	}])
+	t.deepEqual(promotions, []) // TODO: it would be ideal to promote this to reaction_part = 0. this is OK to do because the main message won't have had any reactions yet.
+	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
+})

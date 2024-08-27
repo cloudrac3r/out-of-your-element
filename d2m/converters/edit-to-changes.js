@@ -24,14 +24,13 @@ function eventCanBeEdited(ev) {
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
- * IMPORTANT: This may not have all the normal fields! The API documentation doesn't provide possible types, just says it's all optional!
- * Since I don't have a spec, I will have to capture some real traffic and add it as test cases... I hope they don't change anything later...
  * @param {import("discord-api-types/v10").APIGuild} guild
  * @param {import("../../matrix/api")} api simple-as-nails dependency injection for the matrix API
  */
 async function editToChanges(message, guild, api) {
 	// If it is a user edit, allow deleting old messages (e.g. they might have removed text from an image).
 	// If it is the system adding a generated embed to a message, don't delete old messages since the system only sends partial data.
+	// Since an update in August 2024, the system always provides the full data of message updates. I'll leave in the old code since it won't cause problems.
 
 	const isGeneratedEmbed = !("content" in message)
 
