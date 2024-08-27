@@ -7,6 +7,13 @@ test("message2event embeds: nothing but a field", async t => {
 	const events = await messageToEvent(data.message_with_embeds.nothing_but_a_field, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
+		body: "> ↪️ @papiophidian: used `/stats`",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">@papiophidian</a> used <code>/stats</code></blockquote>",
+		"m.mentions": {},
+		msgtype: "m.text",
+	}, {
+		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.notice",
 		body: "| ### Amanda 🎵#2192 :online:"
@@ -144,6 +151,13 @@ test("message2event embeds: title without url", async t => {
 	const events = await messageToEvent(data.message_with_embeds.title_without_url, data.guild.general)
 	t.deepEqual(events, [{
 		$type: "m.room.message",
+		body: "> ↪️ @papiophidian: used `/stats`",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">@papiophidian</a> used <code>/stats</code></blockquote>",
+		"m.mentions": {},
+		msgtype: "m.text",
+	}, {
+		$type: "m.room.message",
 		msgtype: "m.notice",
 		body: "| ## Hi, I'm Amanda!\n| \n| I condone pirating music!",
 		format: "org.matrix.custom.html",
@@ -155,6 +169,13 @@ test("message2event embeds: title without url", async t => {
 test("message2event embeds: url without title", async t => {
 	const events = await messageToEvent(data.message_with_embeds.url_without_title, data.guild.general)
 	t.deepEqual(events, [{
+		$type: "m.room.message",
+		body: "> ↪️ @papiophidian: used `/stats`",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">@papiophidian</a> used <code>/stats</code></blockquote>",
+		"m.mentions": {},
+		msgtype: "m.text",
+	}, {
 		$type: "m.room.message",
 		msgtype: "m.notice",
 		body: "| I condone pirating music!",
@@ -168,6 +189,13 @@ test("message2event embeds: author without url", async t => {
 	const events = await messageToEvent(data.message_with_embeds.author_without_url, data.guild.general)
 	t.deepEqual(events, [{
 		$type: "m.room.message",
+		body: "> ↪️ @papiophidian: used `/stats`",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">@papiophidian</a> used <code>/stats</code></blockquote>",
+		"m.mentions": {},
+		msgtype: "m.text",
+	}, {
+		$type: "m.room.message",
 		msgtype: "m.notice",
 		body: "| ## Amanda\n| \n| I condone pirating music!",
 		format: "org.matrix.custom.html",
@@ -179,6 +207,13 @@ test("message2event embeds: author without url", async t => {
 test("message2event embeds: author url without name", async t => {
 	const events = await messageToEvent(data.message_with_embeds.author_url_without_name, data.guild.general)
 	t.deepEqual(events, [{
+		$type: "m.room.message",
+		body: "> ↪️ @papiophidian: used `/stats`",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">@papiophidian</a> used <code>/stats</code></blockquote>",
+		"m.mentions": {},
+		msgtype: "m.text",
+	}, {
 		$type: "m.room.message",
 		msgtype: "m.notice",
 		body: "| I condone pirating music!",

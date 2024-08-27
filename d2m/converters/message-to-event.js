@@ -32,7 +32,10 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
 			const mxid = select("sim", "mxid", {user_id: node.id}).pluck().get()
-			const username = message.mentions.find(ment => ment.id === node.id)?.username || node.id
+			const interaction = message.interaction_metadata || message.interaction
+			const username = message.mentions.find(ment => ment.id === node.id)?.username
+				|| (interaction?.user.id === node.id ? interaction.user.username : null)
+				|| node.id
 			if (mxid && useHTML) {
 				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
 			} else {
@@ -229,9 +232,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}]
 	}
 
-	if (message.type === DiscordTypes.MessageType.ChatInputCommand && message.interaction_metadata && "name" in message.interaction_metadata) {
+	const interaction = message.interaction_metadata || message.interaction
+	if (message.type === DiscordTypes.MessageType.ChatInputCommand && interaction && "name" in interaction) {
 		// Commands are sent by the responding bot. Need to attach the metadata of the person using the command at the top.
-		message.content = `> ↪️ <@${message.interaction_metadata.user.id}> used \`/${message.interaction_metadata.name}\`\n${message.content}`
+		if (message.content) message.content = `\n${message.content}`
+		message.content = `> ↪️ <@${interaction.user.id}> used \`/${interaction.name}\`${message.content}`
 	}
 
 	/**

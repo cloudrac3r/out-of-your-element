@@ -23,7 +23,8 @@ INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
 ('114147806469554185', 'extremity', '_ooye_extremity', '@_ooye_extremity:cadence.moe'),
 ('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
 ('1109360903096369153', 'amanda', '_ooye_amanda', '@_ooye_amanda:cadence.moe'),
-('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '_ooye__pk_zoego', '@_ooye__pk_zoego:cadence.moe');
+('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '_ooye__pk_zoego', '@_ooye__pk_zoego:cadence.moe'),
+('320067006521147393', 'papiophidian', '_ooye_papiophidian', '@_ooye_papiophidian:cadence.moe');
 
 INSERT INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES
 ('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '196188877885538304', 'Azalea &flwr; 🌺');
