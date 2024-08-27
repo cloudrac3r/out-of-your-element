@@ -185,19 +185,10 @@ async function syncSpaceFully(guildID) {
 	const spaceDiff = ks.diffKState(spaceKState, guildKState)
 	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
 
-	/** @type {string[]} room IDs */
-	let childRooms = []
-	/** @type {string | undefined} */
-	let nextBatch = undefined
-	do {
-		/** @type {Ty.HierarchyPagination<Ty.R.Hierarchy>} */
-		const res = await api.getHierarchy(spaceID, {from: nextBatch})
-		childRooms.push(...res.rooms.map(room => room.room_id))
-		nextBatch = res.next_batch
-	} while (nextBatch)
+	const childRooms = await api.getFullHierarchy(spaceID)
 
-	for (const roomID of childRooms) {
-		const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
+	for (const {room_id} of childRooms) {
+		const channelID = select("channel_room", "channel_id", {room_id}).pluck().get()
 		if (!channelID) continue
 		if (discord.channels.has(channelID)) {
 			await createRoom.syncRoom(channelID)

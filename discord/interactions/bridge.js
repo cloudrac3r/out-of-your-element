@@ -32,24 +32,18 @@ sync.addTemporaryListener(as, "type:m.room.name", /** @param {Ty.Event.StateOute
 })
 
 // Manage adding to the cache
-async function getHierarchy(spaceID) {
+async function getCachedHierarchy(spaceID) {
 	return cache.get(spaceID) || (() => {
 		const entry = (async () => {
+			const result = await api.getFullHierarchy(spaceID)
 			/** @type {{name: string, value: string}[]} */
-			let childRooms = []
-			/** @type {string | undefined} */
-			let nextBatch = undefined
-			do {
-				/** @type {Ty.HierarchyPagination<Ty.R.Hierarchy>} */
-				const res = await api.getHierarchy(spaceID, {from: nextBatch})
-				for (const room of res.rooms) {
-					if (room.name) {
-						childRooms.push({name: room.name, value: room.room_id})
-						reverseCache.set(room.room_id, spaceID)
-					}
+			const childRooms = []
+			for (const room of result) {
+				if (room.name) {
+					childRooms.push({name: room.name, value: room.room_id})
+					reverseCache.set(room.room_id, spaceID)
 				}
-				nextBatch = res.next_batch
-			} while (nextBatch)
+			}
 			return childRooms
 		})()
 		cache.set(spaceID, entry)
@@ -74,7 +68,7 @@ async function interactAutocomplete({id, token, data, guild_id}) {
 		})
 	}
 
-	let rooms = await getHierarchy(spaceID)
+	let rooms = await getCachedHierarchy(spaceID)
 	// @ts-ignore
 	rooms = rooms.filter(r => r.name.startsWith(data.options[0].value))
 
