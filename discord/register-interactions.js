@@ -48,23 +48,23 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 }])
 
 async function dispatchInteraction(interaction) {
-	const id = interaction.data.custom_id || interaction.data.name
+	const interactionId = interaction.data.custom_id || interaction.data.name
 	try {
 		console.log(interaction)
-		if (id === "Matrix info") {
+		if (interactionId === "Matrix info") {
 			await matrixInfo.interact(interaction)
-		} else if (id === "invite") {
+		} else if (interactionId === "invite") {
 			await invite.interact(interaction)
-		} else if (id === "invite_channel") {
+		} else if (interactionId === "invite_channel") {
 			await invite.interactButton(interaction)
-		} else if (id === "Permissions") {
+		} else if (interactionId === "Permissions") {
 			await permissions.interact(interaction)
-		} else if (id === "permissions_edit") {
+		} else if (interactionId === "permissions_edit") {
 			await permissions.interactEdit(interaction)
-		} else if (id === "bridge") {
+		} else if (interactionId === "bridge") {
 			await bridge.interact(interaction)
 		} else {
-			throw new Error(`Unknown interaction ${id}`)
+			throw new Error(`Unknown interaction ${interactionId}`)
 		}
 	} catch (e) {
 		let stackLines = null
@@ -75,14 +75,11 @@ async function dispatchInteraction(interaction) {
 				stackLines = stackLines.slice(0, cloudstormLine - 2)
 			}
 		}
-		discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, {
-			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
-			data: {
-				content: `Interaction failed: **${id}**`
-					+ `\nError trace:\n\`\`\`\n${stackLines.join("\n")}\`\`\``
-					+ `Interaction data:\n\`\`\`\n${JSON.stringify(interaction.data, null, 2)}\`\`\``,
-					flags: DiscordTypes.MessageFlags.Ephemeral
-			}
+		await discord.snow.interaction.createFollowupMessage(id, interaction.token, {
+			content: `Interaction failed: **${interactionId}**`
+				+ `\nError trace:\n\`\`\`\n${stackLines.join("\n")}\`\`\``
+				+ `Interaction data:\n\`\`\`\n${JSON.stringify(interaction.data, null, 2)}\`\`\``,
+				flags: DiscordTypes.MessageFlags.Ephemeral
 		})
 	}
 }

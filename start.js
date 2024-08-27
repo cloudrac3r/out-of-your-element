@@ -27,10 +27,6 @@ passthrough.select = orm.select
 
 sync.require("./m2d/event-dispatcher")
 
-discord.snow.requestHandler.on("requestError", data => {
-	console.error("request error", data)
-})
-
 ;(async () => {
 	await migrate.migrate(db)
 	await discord.cloud.connect()

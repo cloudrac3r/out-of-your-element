@@ -57,6 +57,9 @@ class DiscordClient {
 		addEventLogger("error", "Error")
 		addEventLogger("disconnected", "Disconnected")
 		addEventLogger("ready", "Ready")
+		this.snow.requestHandler.on("requestError", (requestID, error) => {
+			console.error("request error:", error)
+		})
 	}
 }
 

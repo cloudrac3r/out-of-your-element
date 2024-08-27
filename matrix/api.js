@@ -260,6 +260,21 @@ async function setUserPower(roomID, mxid, power) {
 	return powerLevels
 }
 
+/**
+ * Set a user's power level for a whole room hierarchy.
+ * @param {string} roomID
+ * @param {string} mxid
+ * @param {number} power
+ */
+async function setUserPowerCascade(roomID, mxid, power) {
+	assert(roomID[0] === "!")
+	assert(mxid[0] === "@")
+	const rooms = await getFullHierarchy(roomID)
+	for (const room of rooms) {
+		await setUserPower(room.room_id, mxid, power)
+	}
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -281,3 +296,4 @@ module.exports.sendTyping = sendTyping
 module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl
 module.exports.setUserPower = setUserPower
+module.exports.setUserPowerCascade = setUserPowerCascade
