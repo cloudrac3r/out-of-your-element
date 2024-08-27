@@ -14,7 +14,6 @@ test("guild2space: can generate kstate for a guild, passing privacy level 0", as
 		await kstateUploadMxc(kstateStripConditionals(await guildToKState(testData.guild.general, 0))),
 		{
 			"m.room.avatar/": {
-				discord_path: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024",
 				url: "mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF"
 			},
 			"m.room.guest_access/": {

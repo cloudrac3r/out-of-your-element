@@ -65,7 +65,6 @@ async function guildToKState(guild, privacyLevel) {
 		"m.room.name/": {name: guild.name},
 		"m.room.avatar/": {
 			$if: guild.icon,
-			discord_path: file.guildIcon(guild),
 			url: {$url: file.guildIcon(guild)}
 		},
 		"m.room.guest_access/": {guest_access: createRoom.PRIVACY_ENUMS.GUEST_ACCESS[privacyLevel]},

@@ -120,8 +120,7 @@ async function channelToKState(channel, guild) {
 	if (customAvatar) {
 		avatarEventContent.url = customAvatar
 	} else if (guild.icon) {
-		avatarEventContent.discord_path = file.guildIcon(guild)
-		avatarEventContent.url = await file.uploadDiscordFileToMxc(avatarEventContent.discord_path) // TODO: somehow represent future values in kstate (callbacks?), while still allowing for diffing, so test cases don't need to touch the media API
+		avatarEventContent.url = {$url: file.guildIcon(guild)}
 	}
 
 	let history_visibility = PRIVACY_ENUMS.ROOM_HISTORY_VISIBILITY[privacyLevel]
