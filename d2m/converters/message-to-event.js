@@ -368,7 +368,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
 		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
-		const emojiMatches = [...content.matchAll(/<(a?):([^:>]{2,64}):([0-9]+)>/g)]
+		const emojiMatches = [...content.matchAll(/<(a?):([^:>]{1,64}):([0-9]+)>/g)]
 		await Promise.all(emojiMatches.map(match => {
 			const id = match[3]
 			const name = match[2]
