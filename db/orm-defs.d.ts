@@ -114,3 +114,4 @@ export type AllKeys<U> = U extends any ? keyof U : never
 export type PickTypeOf<T, K extends AllKeys<T>> = T extends { [k in K]?: any } ? T[K] : never
 export type Merge<U> = {[x in AllKeys<U>]: PickTypeOf<U, x>}
 export type Nullable<T> = {[k in keyof T]: T[k] | null}
+export type Numberish<T> = {[k in keyof T]: T[k] extends number ? (number | bigint) : T[k]}

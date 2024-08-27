@@ -25,7 +25,6 @@ async function deleteMessage(event) {
  */
 async function removeReaction(event) {
 	const hash = utils.getEventIDHash(event.redacts)
-	// TODO: this works but fix the type
 	const row = from("reaction").join("message_channel", "message_id").select("channel_id", "message_id", "encoded_emoji").where({hashed_event_id: hash}).get()
 	if (!row) return
 	await discord.snow.channel.deleteReactionSelf(row.channel_id, row.message_id, row.encoded_emoji)
