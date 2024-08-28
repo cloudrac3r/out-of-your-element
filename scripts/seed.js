@@ -59,6 +59,7 @@ async function uploadAutoEmoji(guild, name, filename) {
 	assert.notEqual(reg.ooye.server_origin.slice(-1), "/", "server origin must not end in slash")
 	const botID = Buffer.from(config.discordToken.split(".")[0], "base64").toString()
 	assert(botID.match(/^[0-9]{10,}$/), "discord token must follow the correct format")
+	assert.match(reg.url, /^https?:/, "url must start with http:// or https://")
 	console.log("✅ Configuration looks good...")
 
 	// database ddl...
