@@ -67,6 +67,44 @@ test("message2event: simple room mention", async t => {
 		api: {
 			async getStateEvent(roomID, type, key) {
 				called++
+				t.equal(roomID, "!BnKuBPCvyfOkhcUjEu:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {
+					users: {
+						"@_ooye_bot:cadence.moe": 100
+					}
+				}
+			},
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!BnKuBPCvyfOkhcUjEu:cadence.moe")
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:matrix.org": {display_name: null, avatar_url: null}
+					}
+				}
+			}
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "#worm-farm",
+		format: "org.matrix.custom.html",
+		formatted_body: '<a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe?via=cadence.moe&via=matrix.org">#worm-farm</a>'
+	}])
+	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
+})
+
+test("message2event: nicked room mention", async t => {
+	let called = 0
+	const events = await messageToEvent(data.message.nicked_room_mention, data.guild.general, {}, {
+		api: {
+			async getStateEvent(roomID, type, key) {
+				called++
 				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
 				t.equal(type, "m.room.power_levels")
 				t.equal(key, "")

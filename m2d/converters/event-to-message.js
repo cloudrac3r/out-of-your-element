@@ -685,7 +685,7 @@ async function eventToMessage(event, guild, di) {
 					let preNode
 					if (node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))) {
 						if (preNode.firstChild?.nodeName === "CODE") {
-							const ext = (preNode.firstChild.className.match(/language-(\S+)/) || [null, "txt"])[1]
+							const ext = preNode.firstChild.className.match(/language-(\S+)/)?.[1] || "txt"
 							const filename = `inline_code.${ext}`
 							// Build the replacement <code> node
 							const replacementCode = doc.createElement("code")
