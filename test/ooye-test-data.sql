@@ -148,6 +148,9 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) V
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 0),
 ('!BpMdOUkWWhFxmTrENV:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 100);
 
+INSERT INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES
+(5162930312280790092, '1141501302736695317', '%F0%9F%90%88');
+
 INSERT INTO member_power (mxid, room_id, power_level) VALUES
 ('@test_auto_invite:example.org', '*', 100);
 

@@ -122,7 +122,7 @@ async function editToChanges(message, guild, api) {
 	eventsToReplace = eventsToReplace.filter(eventCanBeEdited)
 
 	// We want to maintain exactly one part = 0 and one reaction_part = 0 database row at all times.
-	/** @type {({column: string, eventID: string} | {column: string, nextEvent: true})[]} */
+	/** @type {({column: string, eventID: string, value?: number} | {column: string, nextEvent: true})[]} */
 	const promotions = []
 	for (const column of ["part", "reaction_part"]) {
 		const candidatesForParts = unchangedEvents.concat(eventsToReplace)
@@ -140,6 +140,16 @@ async function editToChanges(message, guild, api) {
 			} else {
 				// No existing events to promote, but new events are being sent. Whatever gets sent will be the next part = 0.
 				promotions.push({column, nextEvent: true})
+			}
+		}
+		// If adding events, try to keep reactions attached to the bottom of the group (unless reactions have already been added)
+		if (eventsToSend.length && !promotions.length) {
+			const existingReaction = select("reaction", "message_id", {message_id: message.id}).pluck().get()
+			if (!existingReaction) {
+				const existingPartZero = candidatesForParts.find(p => p.old.reaction_part === 0)
+				assert(existingPartZero) // will exist because a reaction_part=0 always exists and no events are being removed
+				promotions.push({column: "reaction_part", eventID: existingPartZero.old.event_id, value: 1}) // update the current reaction_part to 1
+				promotions.push({column: "reaction_part", nextEvent: true}) // the newly created event will have reaction_part = 0
 			}
 		}
 	}

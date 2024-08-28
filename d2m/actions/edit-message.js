@@ -53,7 +53,7 @@ async function editMessage(message, guild, row) {
 	const sendNewEventParts = new Set()
 	for (const promotion of promotions) {
 		if ("eventID" in promotion) {
-			db.prepare(`UPDATE event_message SET ${promotion.column} = 0 WHERE event_id = ?`).run(promotion.eventID)
+			db.prepare(`UPDATE event_message SET ${promotion.column} = ? WHERE event_id = ?`).run(promotion.value ?? 0, promotion.eventID)
 		} else if ("nextEvent" in promotion) {
 			sendNewEventParts.add(promotion.column)
 		}

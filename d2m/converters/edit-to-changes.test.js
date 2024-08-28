@@ -109,7 +109,7 @@ test("edit2changes: change file type", async t => {
 	t.deepEqual(promotions, [{column: "part", nextEvent: true}, {column: "reaction_part", nextEvent: true}])
 })
 
-test("edit2changes: add caption back to that image", async t => {
+test("edit2changes: add caption back to that image (due to it having a reaction, the reaction_part will not be moved)", async t => {
 	const {eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.added_caption_to_image, data.guild.general, {})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [{
@@ -266,7 +266,14 @@ test("edit2changes: generated embed", async t => {
 			+ `</li><li>Both players present their best five-or-less-card pok...</li></ul></p></blockquote>`,
 		"m.mentions": {}
 	}])
-	t.deepEqual(promotions, []) // TODO: it would be ideal to promote this to reaction_part = 0. this is OK to do because the main message won't have had any reactions yet.
+	t.deepEqual(promotions, [{
+		"column": "reaction_part",
+		"eventID": "$mPSzglkCu-6cZHbYro0RW2u5mHvbH9aXDjO5FCzosc0",
+		"value": 1,
+	}, {
+		"column": "reaction_part",
+		"nextEvent": true,
+	}])
 	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
 	t.equal(called, 1)
 })
@@ -308,6 +315,13 @@ test("edit2changes: generated embed on a reply", async t => {
 			+ `</p><p>You're invited to talk on Matrix. If you don't already have a client this link will help you pick one, and join the conversation. If you already have one, this link will help you join the conversation</p></blockquote>`,
 		"m.mentions": {}
 	}])
-	t.deepEqual(promotions, []) // TODO: it would be ideal to promote this to reaction_part = 0. this is OK to do because the main message won't have had any reactions yet.
+	t.deepEqual(promotions, [{
+		"column": "reaction_part",
+		"eventID": "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF",
+		"value": 1,
+	}, {
+		"column": "reaction_part",
+		"nextEvent": true,
+	}])
 	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
 })
