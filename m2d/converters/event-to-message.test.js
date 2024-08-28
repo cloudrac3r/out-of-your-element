@@ -3794,6 +3794,36 @@ test("event2message: static emojis work", async t => {
 	)
 })
 
+test("event2message: emojis in other servers are reused if they have the same title text", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: ":hippo:",
+				format: "org.matrix.custom.html",
+				formatted_body: '<img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/123456\" title=\":hippo:\" alt=\":hippo:\">'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!CzvdIdUQXgUjDVKxeU:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<:hippo:230201364309868544>",
+				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: animated emojis work", async t => {
 	t.deepEqual(
 		await eventToMessage({

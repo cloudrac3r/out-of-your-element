@@ -206,11 +206,10 @@ function getCodeContent(preCode) {
  */
 function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink) {
 	// Get the known emoji from the database.
-	let row
-	if (mxcUrl) row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrl}).get()
+	if (mxcUrl) var row = select("emoji", ["emoji_id", "name", "animated"], {mxc_url: mxcUrl}).get()
 	// Now we have to search all servers to see if we're able to send this emoji.
 	if (row) {
-		const found = [...discord.guilds.values()].find(g => g.emojis.find(e => e.id === row.id))
+		const found = [...discord.guilds.values()].find(g => g.emojis.find(e => e.id === row?.emoji_id))
 		if (!found) row = null
 	}
 	// Or, if we don't have an emoji right now, we search for the name instead.
@@ -220,7 +219,7 @@ function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink
 			/** @type {{name: string, id: string, animated: number}[]} */
 			// @ts-ignore
 			const emojis = guild.emojis
-			const found = emojis.find(e => e.id === row?.id || e.name?.toLowerCase() === nameForGuessLower)
+			const found = emojis.find(e => e.name?.toLowerCase() === nameForGuessLower)
 			if (found) {
 				row = {
 					animated: found.animated,
