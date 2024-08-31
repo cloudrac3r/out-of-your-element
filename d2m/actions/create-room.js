@@ -370,11 +370,16 @@ async function _unbridgeRoom(channelID) {
 	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	assert.ok(channel)
-	return unbridgeDeletedChannel(channel.id, channel.guild_id)
+	assert.ok(channel.guild_id)
+	return unbridgeDeletedChannel(channel, channel.guild_id)
 }
 
-async function unbridgeDeletedChannel(channelID, guildID) {
-	const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
+/**
+ * @param {DiscordTypes.APIGuildChannel} channel
+ * @param {string} guildID
+ */
+async function unbridgeDeletedChannel(channel, guildID) {
+	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	assert.ok(roomID)
 	const spaceID = select("guild_space", "space_id", {guild_id: guildID}).pluck().get()
 	assert.ok(spaceID)
@@ -384,7 +389,11 @@ async function unbridgeDeletedChannel(channelID, guildID) {
 	await api.sendState(spaceID, "m.space.child", roomID, {})
 
 	// remove declaration that the room is bridged
-	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${guildID}/${channelID}`, {})
+	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${guildID}/${channel.id}`, {})
+	if ("topic" in channel) {
+		// previously the Matrix topic would say the channel ID. we should remove that
+		await api.sendState(roomID, "m.room.topic", "", {topic: channel.topic || ""})
+	}
 
 	// send a notification in the room
 	await api.sendEvent(roomID, "m.room.message", {
@@ -396,8 +405,7 @@ async function unbridgeDeletedChannel(channelID, guildID) {
 	await api.leaveRoom(roomID)
 
 	// delete room from database
-	const {changes} = db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channelID)
-	assert.equal(changes, 1)
+	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id)
 }
 
 /**

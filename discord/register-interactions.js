@@ -17,7 +17,7 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	name: "Permissions",
 	contexts: [DiscordTypes.InteractionContextType.Guild],
 	type: DiscordTypes.ApplicationCommandType.Message,
-	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.KickMembers)
+	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.KickMembers | DiscordTypes.PermissionFlagsBits.ManageRoles)
 }, {
 	name: "invite",
 	contexts: [DiscordTypes.InteractionContextType.Guild],

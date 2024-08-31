@@ -232,6 +232,19 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayChannelDeleteDispatchData} channel
+	 */
+	async onChannelDelete(client, channel) {
+		const guildID = channel["guild_id"]
+		if (!guildID) return // channel must have been a DM channel or something
+		const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
+		if (!roomID) return // channel wasn't being bridged in the first place
+		// @ts-ignore
+		await createRoom.unbridgeDeletedChannel(channel, guildID)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
 	 */
 	async onMessageCreate(client, message) {
