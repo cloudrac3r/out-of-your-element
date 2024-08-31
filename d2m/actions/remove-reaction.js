@@ -23,16 +23,7 @@ async function removeSomeReactions(data) {
 	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, reaction_part: 0}).pluck().get()
 	if (!eventIDForMessage) return
 
-	/** @type {Ty.Event.Outer<Ty.Event.M_Reaction>[]} */
-	let reactions = []
-	/** @type {string | undefined} */
-	let nextBatch = undefined
-	do {
-		/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
-		const res = await api.getRelations(roomID, eventIDForMessage, {from: nextBatch}, "m.annotation")
-		reactions = reactions.concat(res.chunk)
-		nextBatch = res.next_batch
-	} while (nextBatch)
+	const reactions = await api.getFullRelations(roomID, eventIDForMessage, "m.annotation")
 
 	// Run the proper strategy and any strategy-specific database changes
 	const removals = await

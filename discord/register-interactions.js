@@ -8,6 +8,7 @@ const matrixInfo = sync.require("./interactions/matrix-info.js")
 const invite = sync.require("./interactions/invite.js")
 const permissions = sync.require("./interactions/permissions.js")
 const bridge = sync.require("./interactions/bridge.js")
+const reactions = sync.require("./interactions/reactions.js")
 
 discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	name: "Matrix info",
@@ -18,6 +19,10 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	contexts: [DiscordTypes.InteractionContextType.Guild],
 	type: DiscordTypes.ApplicationCommandType.Message,
 	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.KickMembers | DiscordTypes.PermissionFlagsBits.ManageRoles)
+}, {
+	name: "Reactions",
+	contexts: [DiscordTypes.InteractionContextType.Guild],
+	type: DiscordTypes.ApplicationCommandType.Message
 }, {
 	name: "invite",
 	contexts: [DiscordTypes.InteractionContextType.Guild],
@@ -63,6 +68,8 @@ async function dispatchInteraction(interaction) {
 			await permissions.interactEdit(interaction)
 		} else if (interactionId === "bridge") {
 			await bridge.interact(interaction)
+		} else if (interactionId === "Reactions") {
+			await reactions.interact(interaction)
 		} else {
 			throw new Error(`Unknown interaction ${interactionId}`)
 		}

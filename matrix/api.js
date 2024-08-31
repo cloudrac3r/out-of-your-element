@@ -170,6 +170,26 @@ function getRelations(roomID, eventID, pagination, relType) {
 }
 
 /**
+ * Like `getRelations` but collects and filters all pages for you.
+ * @param {string} roomID
+ * @param {string} eventID
+ * @param {string?} [relType] type of relations to filter, e.g. "m.annotation" for reactions
+ */
+async function getFullRelations(roomID, eventID, relType) {
+	/** @type {Ty.Event.Outer<Ty.Event.M_Reaction>[]} */
+	let reactions = []
+	/** @type {string | undefined} */
+	let nextBatch = undefined
+	do {
+		/** @type {Ty.Pagination<Ty.Event.Outer<Ty.Event.M_Reaction>>} */
+		const res = await getRelations(roomID, eventID, {from: nextBatch}, relType)
+		reactions = reactions.concat(res.chunk)
+		nextBatch = res.next_batch
+	} while (nextBatch)
+	return reactions
+}
+
+/**
  * @param {string} roomID
  * @param {string} type
  * @param {string} stateKey
@@ -289,6 +309,7 @@ module.exports.getJoinedMembers = getJoinedMembers
 module.exports.getHierarchy = getHierarchy
 module.exports.getFullHierarchy = getFullHierarchy
 module.exports.getRelations = getRelations
+module.exports.getFullRelations = getFullRelations
 module.exports.sendState = sendState
 module.exports.sendEvent = sendEvent
 module.exports.redactEvent = redactEvent
