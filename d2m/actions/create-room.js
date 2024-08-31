@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
+const Ty = require("../../types")
 const reg = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
@@ -89,8 +90,9 @@ function convertNameAndTopic(channel, guild, customName) {
  * Async because it may create the guild and/or upload the guild icon to mxc.
  * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel
  * @param {DiscordTypes.APIGuild} guild
+ * @param {{api: {getStateEvent: typeof api.getStateEvent}}} di simple-as-nails dependency injection for the matrix API
  */
-async function channelToKState(channel, guild) {
+async function channelToKState(channel, guild, di) {
 	// @ts-ignore
 	const parentChannel = discord.channels.get(channel.parent_id)
 	/** Used for membership/permission checks. */
@@ -142,6 +144,11 @@ async function channelToKState(channel, guild) {
 	const everyoneCanMentionEveryone = utils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
+	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
+
+	/** @type {Ty.Event.M_Power_Levels} */
+	const spacePowerEvent = await di.api.getStateEvent(guildSpaceID, "m.room.power_levels", "")
+	const spacePower = spacePowerEvent.users
 
 	const channelKState = {
 		"m.room.name/": {name: convertedName},
@@ -162,7 +169,7 @@ async function channelToKState(channel, guild) {
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
 			},
-			users: globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
+			users: {...spacePower, ...globalAdminPower}
 		},
 		"chat.schildi.hide_ui/read_receipts": {
 			hidden: true
@@ -311,7 +318,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 	if (!existing) {
 		const creation = (async () => {
-			const {spaceID, privacyLevel, channelKState} = await channelToKState(channel, guild)
+			const {spaceID, privacyLevel, channelKState} = await channelToKState(channel, guild, {api})
 			const roomID = await createRoom(channel, guild, spaceID, channelKState, privacyLevel)
 			inflightRoomCreate.delete(channelID) // OK to release inflight waiters now. they will read the correct `existing` row
 			return roomID
@@ -328,7 +335,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 	console.log(`[room sync] to matrix: ${channel.name}`)
 
-	const {spaceID, channelKState} = await channelToKState(channel, guild) // calling this in both branches because we don't want to calculate this if not syncing
+	const {spaceID, channelKState} = await channelToKState(channel, guild, {api}) // calling this in both branches because we don't want to calculate this if not syncing
 
 	// sync channel state to room
 	const roomKState = await roomToKState(roomID)

@@ -4065,6 +4065,73 @@ module.exports = {
 				guild_id: "372271956562542592"
 			}
 		},
+		reply_with_missing_referenced_message: {
+			type: 19,
+			content: "there must have been 2 different thumbnails used - the other one was this I think: https://lostmediawiki.com/w/images/6/6d/YOUTUBE_HACKED%21.jpg",
+			mentions: [
+				{
+					id: "112816036671184896",
+					username: "accavish",
+					avatar: "0efadd2b09568c89e81f47d321c1db9f",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "Yuv.yuv",
+					avatar_decoration_data: null,
+					banner_color: null,
+					clan: null
+				}
+			],
+			mention_roles: [],
+			attachments: [],
+			embeds: [
+				{
+					type: "image",
+					url: "https://lostmediawiki.com/w/images/6/6d/YOUTUBE_HACKED%21.jpg",
+					reference_id: "1277081824962809919",
+					thumbnail: {
+						url: "https://lostmediawiki.com/w/images/6/6d/YOUTUBE_HACKED%21.jpg",
+						proxy_url: "https://images-ext-1.discordapp.net/external/DqHSi6Hsvkn8CeYqcpNsgcPun_yykRNdKzyPTLxkrJ8/https/lostmediawiki.com/w/images/6/6d/YOUTUBE_HACKED%2521.jpg",
+						width: 898,
+						height: 459,
+						placeholder: "MPcFLIoEgndse3pydlUHeZSQZw==",
+						placeholder_version: 1
+					}
+				}
+			],
+			timestamp: "2024-08-25T01:47:14.104000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1277081824962809919",
+			channel_id: "112760669178241024",
+			author: {
+				id: "628334893109215263",
+				username: "thecracksoverhead",
+				avatar: "e4eaad082f5ff0359cafa8d3ad5ddd4f",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "jdl",
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 0,
+				channel_id: "112760669178241024",
+				message_id: "1277081326008143934",
+				guild_id: "112760669178241024"
+			},
+			position: 0
+		}
 	},
 	interaction_message: {
 		thinking_interaction_without_bot_user: {
