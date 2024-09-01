@@ -7,7 +7,9 @@ const {applyKStateDiffToRoom, roomToKState} = require("../d2m/actions/create-roo
 
 /** Apply global power level requests across ALL rooms where the member cache entry exists but the power level has not been applied yet. */
 function _getAffectedRooms() {
-	return from("member_cache").join("member_power", "mxid")
+	return from("member_cache")
+		.join("member_power", "mxid")
+		.join("channel_room", "room_id") // only include rooms that are bridged
 		.and("where member_power.room_id = '*' and member_cache.power_level != member_power.power_level")
 		.selectUnsafe("mxid", "member_cache.room_id", "member_power.power_level")
 		.all()
