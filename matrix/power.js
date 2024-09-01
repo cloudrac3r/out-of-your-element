@@ -5,11 +5,6 @@ const reg = require("./read-registration")
 const ks = require("./kstate")
 const {applyKStateDiffToRoom, roomToKState} = require("../d2m/actions/create-room")
 
-// Migrate reg.ooye.invite setting to database
-for (const mxid of reg.ooye.invite) {
-	db.prepare("INSERT OR IGNORE INTO member_power (mxid, room_id, power_level) VALUES (?, ?, 100)").run(mxid, "*")
-}
-
 /** Apply global power level requests across ALL rooms where the member cache entry exists but the power level has not been applied yet. */
 function _getAffectedRooms() {
 	return from("member_cache").join("member_power", "mxid")
@@ -19,6 +14,11 @@ function _getAffectedRooms() {
 }
 
 async function applyPower() {
+	// Migrate reg.ooye.invite setting to database
+	for (const mxid of reg.ooye.invite) {
+		db.prepare("INSERT OR IGNORE INTO member_power (mxid, room_id, power_level) VALUES (?, ?, 100)").run(mxid, "*")
+	}
+
 	const rows = _getAffectedRooms()
 	for (const row of rows) {
 		const kstate = await roomToKState(row.room_id)
