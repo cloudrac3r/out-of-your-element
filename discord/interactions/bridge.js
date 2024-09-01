@@ -70,7 +70,7 @@ async function interactAutocomplete({id, token, data, guild_id}) {
 
 	let rooms = await getCachedHierarchy(spaceID)
 	// @ts-ignore
-	rooms = rooms.filter(r => r.name.startsWith(data.options[0].value))
+	rooms = rooms.filter(r => r.name.includes(data.options[0].value))
 
 	await discord.snow.interaction.createInteractionResponse(id, token, {
 		type: DiscordTypes.InteractionResponseType.ApplicationCommandAutocompleteResult,
