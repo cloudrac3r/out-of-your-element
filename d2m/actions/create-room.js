@@ -163,9 +163,6 @@ async function channelToKState(channel, guild, di) {
 		/** @type {{join_rule: string, [x: string]: any}} */
 		"m.room.join_rules/": join_rules,
 		"m.room.power_levels/": {
-			events: {
-				"m.room.avatar": 0
-			},
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
 			},

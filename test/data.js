@@ -41,9 +41,6 @@ module.exports = {
 				url: {$url: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024"}
 			},
 			"m.room.power_levels/": {
-				events: {
-					"m.room.avatar": 0
-				},
 				users: {
 					"@test_auto_invite:example.org": 100
 				},
