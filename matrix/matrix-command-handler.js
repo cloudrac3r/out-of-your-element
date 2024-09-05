@@ -14,7 +14,7 @@ const mxUtils = sync.require("../m2d/converters/utils")
 const dUtils = sync.require("../discord/utils")
 /** @type {import("./kstate")} */
 const ks = sync.require("./kstate")
-const reg = require("./read-registration")
+const {reg} = require("./read-registration")
 
 const PREFIXES = ["//", "/"]
 

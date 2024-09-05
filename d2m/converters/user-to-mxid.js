@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert")
-const registration = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
 const {select} = passthrough
@@ -26,7 +26,7 @@ function downcaseUsername(user) {
 		// remove leading and trailing dashes and underscores...
 		.replace(/(?:^[_-]*|[_-]*$)/g, "")
 	// If requested, also make the Discord user ID part of the username
-	if (registration.ooye.include_user_id_in_mxid) {
+	if (reg.ooye.include_user_id_in_mxid) {
 		downcased = user.id + "_" + downcased
 	}
 	// The new length must be at least 2 characters (in other words, it should have some content)

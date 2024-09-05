@@ -31,6 +31,32 @@ export type AppServiceRegistrationConfig = {
 	}
 }
 
+export type InitialAppServiceRegistrationConfig = {
+	id: string
+	as_token: string
+	hs_token: string
+	sender_localpart: string
+	namespaces: {
+		users: {
+			exclusive: boolean
+			regex: string
+		}[]
+		aliases: {
+			exclusive: boolean
+			regex: string
+		}[]
+	}
+	protocols: [string]
+	rate_limited: boolean
+	ooye: {
+		namespace_prefix: string
+		max_file_size: number,
+		content_length_workaround: boolean,
+		invite: string[],
+		include_user_id_in_mxid: boolean
+	}
+}
+
 export type WebhookCreds = {
 	id: string
 	token: string

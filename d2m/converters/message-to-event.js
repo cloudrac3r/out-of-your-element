@@ -18,7 +18,7 @@ const lottie = sync.require("../actions/lottie")
 const mxUtils = sync.require("../../m2d/converters/utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
-const reg = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 

@@ -3,7 +3,7 @@
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
-const reg = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
@@ -372,7 +372,7 @@ async function _unbridgeRoom(channelID) {
 }
 
 /**
- * @param {DiscordTypes.APIGuildChannel} channel
+ * @param {{id: string, topic?: string?}} channel
  * @param {string} guildID
  */
 async function unbridgeDeletedChannel(channel, guildID) {

@@ -1,7 +1,7 @@
 // @ts-check
 
 const {db, from} = require("../passthrough")
-const reg = require("./read-registration")
+const {reg} = require("./read-registration")
 const ks = require("./kstate")
 const {applyKStateDiffToRoom, roomToKState} = require("../d2m/actions/create-room")
 

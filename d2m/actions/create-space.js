@@ -4,7 +4,7 @@ const assert = require("assert").strict
 const {isDeepStrictEqual} = require("util")
 const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
-const reg = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
@@ -192,7 +192,7 @@ async function syncSpaceFully(guildID) {
 		if (discord.channels.has(channelID)) {
 			await createRoom.syncRoom(channelID)
 		} else {
-			await createRoom.unbridgeDeletedChannel(channelID, guildID)
+			await createRoom.unbridgeDeletedChannel({id: channelID}, guildID)
 		}
 	}
 

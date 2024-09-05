@@ -1,11 +1,13 @@
 // @ts-check
 
-console.log("This could take up to 30 seconds. Please be patient.")
-
 const assert = require("assert").strict
 const fs = require("fs")
 const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
+const {prompt, Prompt} = require("enquirer")
+const Input = require("enquirer/lib/prompts/input")
+const fetch = require("node-fetch")
+const {magenta, bold} = require("ansi-colors")
 
 const args = require("minimist")(process.argv.slice(2), {string: ["emoji-guild"]})
 
@@ -26,10 +28,8 @@ const DiscordClient = require("../d2m/discord-client")
 const discord = new DiscordClient(config.discordToken, "no")
 passthrough.discord = discord
 
-const api = require("../matrix/api")
-const file = require("../matrix/file")
-const reg = require("../matrix/read-registration")
-const utils = require("../m2d/converters/utils")
+let registration = require("../matrix/read-registration")
+let {reg, getTemplateRegistration, writeRegistration, readRegistration} = registration
 
 function die(message) {
 	console.error(message)
@@ -50,6 +50,73 @@ async function uploadAutoEmoji(guild, name, filename) {
 }
 
 ;(async () => {
+	// create registration file with prompts...
+	if (!reg) {
+		console.log("What is the name of your homeserver? This is the part after : in your username.")
+		/** @type {{server_name: string}} */
+		const serverNameResponse = await prompt({
+			type: "input",
+			name: "server_name",
+			message: "Homeserver name"
+		})
+		console.log("What is the URL of your homeserver?")
+		const serverUrlPrompt = new Input({
+			type: "input",
+			name: "server_origin",
+			message: "Homeserver URL",
+			initial: () => `https://${serverNameResponse.server_name}`,
+			validate: async url => {
+				if (!url.match(/^https?:\/\//)) return "Must be a URL"
+				if (url.match(/\/$/)) return "Must not end with a slash"
+				process.stdout.write(magenta(" checking, please wait..."))
+				try {
+					var json = await fetch(`${url}/.well-known/matrix/client`).then(res => res.json())
+					let baseURL = json["m.homeserver"].base_url.replace(/\/$/, "")
+					if (baseURL && baseURL !== url) {
+						serverUrlPrompt.initial = baseURL
+						return `Did you mean: ${bold(baseURL)}? (Enter to accept)`
+					}
+				} catch (e) {}
+				try {
+					var res = await fetch(`${url}/_matrix/client/versions`)
+				} catch (e) {
+					return e.message
+				}
+				if (res.status !== 200) return `There is no Matrix server at that URL (${url}/_matrix/client/versions returned ${res.status})`
+				try {
+					var json = await res.json()
+				} catch (e) {
+					return `There is no Matrix server at that URL (${url}/_matrix/client/versions is not JSON)`
+				}
+				return true
+			}
+		})
+		/** @type {{server_origin: string}} */ // @ts-ignore
+		const serverUrlResponse = await serverUrlPrompt.run()
+		console.log("Your Matrix homeserver needs to be able to send HTTP requests to OOYE.")
+		console.log("What URL should OOYE be reachable on? Usually, the default works fine,")
+		console.log("but you need to change this if you use multiple servers or containers.")
+		/** @type {{url: string}} */
+		const urlResponse = await prompt({
+			type: "input",
+			name: "url",
+			message: "URL to reach OOYE",
+			initial: "http://localhost:6693",
+			validate: url => !!url.match(/^https?:\/\//)
+		})
+		const template = getTemplateRegistration()
+		reg = Object.assign(template, urlResponse, {ooye: {...template.ooye, ...serverNameResponse, ...serverUrlResponse}})
+		registration.reg = reg
+		writeRegistration(reg)
+	}
+	// done with user prompts, reg is now guaranteed to be valid
+
+	console.log("Processing. This could take up to 30 seconds. Please be patient...")
+
+	const api = require("../matrix/api")
+	const file = require("../matrix/file")
+	const utils = require("../m2d/converters/utils")
+
 	const mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
 	// ensure registration is correctly set...
@@ -60,6 +127,9 @@ async function uploadAutoEmoji(guild, name, filename) {
 	const botID = Buffer.from(config.discordToken.split(".")[0], "base64").toString()
 	assert(botID.match(/^[0-9]{10,}$/), "discord token must follow the correct format")
 	assert.match(reg.url, /^https?:/, "url must start with http:// or https://")
+
+	// TODO: appservice ping until it works
+
 	console.log("✅ Configuration looks good...")
 
 	// database ddl...

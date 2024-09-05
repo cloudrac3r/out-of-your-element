@@ -3,7 +3,7 @@
 const assert = require("assert").strict
 const util = require("util")
 const DiscordTypes = require("discord-api-types/v10")
-const reg = require("../matrix/read-registration")
+const {reg} = require("../matrix/read-registration")
 const {addbot} = require("../addbot")
 
 const {discord, sync, db, select} = require("../passthrough")

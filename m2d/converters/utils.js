@@ -1,6 +1,6 @@
 // @ts-check
 
-const reg = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 const assert = require("assert").strict
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore

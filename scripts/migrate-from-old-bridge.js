@@ -11,8 +11,7 @@ const passthrough = require("../passthrough")
 
 const sync = new HeatSync({watchFS: false})
 
-/** @type {import("../matrix/read-registration")} */
-const reg = sync.require("../matrix/read-registration")
+const {reg} = require("../matrix/read-registration")
 assert(reg.old_bridge)
 const oldAT = reg.old_bridge.as_token
 const newAT = reg.as_token

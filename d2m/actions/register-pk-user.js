@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert")
-const reg = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 const Ty = require("../../types")
 const fetch = require("node-fetch").default
 

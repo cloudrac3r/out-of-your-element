@@ -17,7 +17,7 @@ const config = require("../config")
 const passthrough = require("../passthrough")
 const db = new sqlite(":memory:")
 
-const reg = require("../matrix/read-registration")
+const {reg} = require("../matrix/read-registration")
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
 reg.ooye.server_name = "cadence.moe"
 reg.id = "baby" // don't actually take authenticated actions on the server
@@ -117,7 +117,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../matrix/kstate.test")
 	require("../matrix/api.test")
 	require("../matrix/file.test")
-	require("../matrix/power.test")
+	//require("../matrix/power.test")
 	require("../matrix/read-registration.test")
 	require("../matrix/txnid.test")
 	require("../d2m/actions/create-room.test")

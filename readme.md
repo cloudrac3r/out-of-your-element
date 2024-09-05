@@ -165,14 +165,16 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 * (1) @cloudrac3r/discord-markdown: This is my fork!
 * (0) @cloudrac3r/giframe: This is my fork!
 * (1) @cloudrac3r/html-template-tag: This is my fork!
-* (16) @cloudrac3r/in-your-element: This is my Matrix Appservice API library.
+* (16) @cloudrac3r/in-your-element: This is my Matrix Appservice API library. It has several dependencies because HTTP servers have to do more than you'd think.
 * (0) @cloudrac3r/mixin-deep: This is my fork! (It fixes a bug in regular mixin-deep.)
 * (0) @cloudrac3r/pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
 * (0) @cloudrac3r/turndown: This HTML-to-Markdown converter looked the most suitable. I forked it to change the escaping logic to match the way Discord works.
+* (0) ansi-colors: Helps with interactive prompting for the initial setup, and it's already pulled in by enquirer.
 * (42) better-sqlite3: SQLite3 is the best database, and this is the best library for it. Really! I love it.
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
 * (0) domino: DOM implementation that's already pulled in by turndown.
+* (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
 * (0) get-stream: Only needed if content_length_workaround is true.
 * (1) heatsync: Module hot-reloader that I trust.
@@ -186,4 +188,4 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
 
-Total transitive production dependencies: 113
+Total transitive production dependencies: 116

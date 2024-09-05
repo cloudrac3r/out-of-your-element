@@ -20,8 +20,7 @@ const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
 const utils = sync.require("./converters/utils")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
-/** @type {import("../matrix/read-registration")}) */
-const reg = sync.require("../matrix/read-registration")
+const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
 

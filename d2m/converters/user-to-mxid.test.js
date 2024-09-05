@@ -46,7 +46,7 @@ test("user2name: works on special user", t => {
 })
 
 test("user2name: includes ID if requested in config", t => {
-	const reg = require("../../matrix/read-registration")
+	const {reg} = require("../../matrix/read-registration")
 	reg.ooye.include_user_id_in_mxid = true
 	t.equal(userToSimName({username: "Harry Styles!", discriminator: "0001", id: "123456"}), "123456_harry_styles")
    t.equal(userToSimName({username: "f***", discriminator: "0001", id: "123456"}), "123456_f")

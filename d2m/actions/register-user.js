@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
-const reg = require("../../matrix/read-registration")
+const {reg} = require("../../matrix/read-registration")
 const DiscordTypes = require("discord-api-types/v10")
 const mixin = require("@cloudrac3r/mixin-deep")
 

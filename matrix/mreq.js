@@ -5,10 +5,7 @@ const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
 const getStream = require("get-stream")
 
-const passthrough = require("../passthrough")
-const { sync } = passthrough
-/** @type {import("./read-registration")} */
-const reg = sync.require("./read-registration.js")
+const {reg} = require("./read-registration.js")
 
 const baseUrl = `${reg.ooye.server_origin}/_matrix`
 
