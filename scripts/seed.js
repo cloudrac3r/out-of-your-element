@@ -3,11 +3,14 @@
 const assert = require("assert").strict
 const fs = require("fs")
 const sqlite = require("better-sqlite3")
-const HeatSync = require("heatsync")
-const {prompt, Prompt} = require("enquirer")
+const {scheduler: {wait}} = require("timers/promises")
+const {isDeepStrictEqual} = require("util")
+
+const {prompt} = require("enquirer")
 const Input = require("enquirer/lib/prompts/input")
 const fetch = require("node-fetch")
-const {magenta, bold} = require("ansi-colors")
+const {magenta, bold, cyan} = require("ansi-colors")
+const HeatSync = require("heatsync")
 
 const args = require("minimist")(process.argv.slice(2), {string: ["emoji-guild"]})
 
@@ -29,7 +32,7 @@ const discord = new DiscordClient(config.discordToken, "no")
 passthrough.discord = discord
 
 let registration = require("../matrix/read-registration")
-let {reg, getTemplateRegistration, writeRegistration, readRegistration} = registration
+let {reg, getTemplateRegistration, writeRegistration, readRegistration, registrationFilePath} = registration
 
 function die(message) {
 	console.error(message)
@@ -49,6 +52,32 @@ async function uploadAutoEmoji(guild, name, filename) {
 	return emoji
 }
 
+async function validateHomeserverOrigin(serverUrlPrompt, url) {
+	if (!url.match(/^https?:\/\//)) return "Must be a URL"
+	if (url.match(/\/$/)) return "Must not end with a slash"
+	process.stdout.write(magenta(" checking, please wait..."))
+	try {
+		var json = await fetch(`${url}/.well-known/matrix/client`).then(res => res.json())
+		let baseURL = json["m.homeserver"].base_url.replace(/\/$/, "")
+		if (baseURL && baseURL !== url) {
+			serverUrlPrompt.initial = baseURL
+			return `Did you mean: ${bold(baseURL)}? (Enter to accept)`
+		}
+	} catch (e) {}
+	try {
+		var res = await fetch(`${url}/_matrix/client/versions`)
+	} catch (e) {
+		return e.message
+	}
+	if (res.status !== 200) return `There is no Matrix server at that URL (${url}/_matrix/client/versions returned ${res.status})`
+	try {
+		var json = await res.json()
+	} catch (e) {
+		return `There is no Matrix server at that URL (${url}/_matrix/client/versions is not JSON)`
+	}
+	return true
+}
+
 ;(async () => {
 	// create registration file with prompts...
 	if (!reg) {
@@ -65,31 +94,7 @@ async function uploadAutoEmoji(guild, name, filename) {
 			name: "server_origin",
 			message: "Homeserver URL",
 			initial: () => `https://${serverNameResponse.server_name}`,
-			validate: async url => {
-				if (!url.match(/^https?:\/\//)) return "Must be a URL"
-				if (url.match(/\/$/)) return "Must not end with a slash"
-				process.stdout.write(magenta(" checking, please wait..."))
-				try {
-					var json = await fetch(`${url}/.well-known/matrix/client`).then(res => res.json())
-					let baseURL = json["m.homeserver"].base_url.replace(/\/$/, "")
-					if (baseURL && baseURL !== url) {
-						serverUrlPrompt.initial = baseURL
-						return `Did you mean: ${bold(baseURL)}? (Enter to accept)`
-					}
-				} catch (e) {}
-				try {
-					var res = await fetch(`${url}/_matrix/client/versions`)
-				} catch (e) {
-					return e.message
-				}
-				if (res.status !== 200) return `There is no Matrix server at that URL (${url}/_matrix/client/versions returned ${res.status})`
-				try {
-					var json = await res.json()
-				} catch (e) {
-					return `There is no Matrix server at that URL (${url}/_matrix/client/versions is not JSON)`
-				}
-				return true
-			}
+			validate: url => validateHomeserverOrigin(serverUrlPrompt, url)
 		})
 		/** @type {{server_origin: string}} */ // @ts-ignore
 		const serverUrlResponse = await serverUrlPrompt.run()
@@ -105,17 +110,52 @@ async function uploadAutoEmoji(guild, name, filename) {
 			validate: url => !!url.match(/^https?:\/\//)
 		})
 		const template = getTemplateRegistration()
-		reg = Object.assign(template, urlResponse, {ooye: {...template.ooye, ...serverNameResponse, ...serverUrlResponse}})
+		reg = {...template, ...urlResponse, ooye: {...template.ooye, ...serverNameResponse, ...serverUrlResponse}}
 		registration.reg = reg
 		writeRegistration(reg)
 	}
-	// done with user prompts, reg is now guaranteed to be valid
 
-	console.log("Processing. This could take up to 30 seconds. Please be patient...")
-
+	// Done with user prompts, reg is now guaranteed to be valid
 	const api = require("../matrix/api")
 	const file = require("../matrix/file")
 	const utils = require("../m2d/converters/utils")
+
+	console.log(`✅ Registration file saved as ${registrationFilePath}`)
+	console.log(`  In ${cyan("Synapse")}, you need to add it to homeserver.yaml and ${cyan("restart Synapse")}.`)
+	console.log("    https://element-hq.github.io/synapse/latest/application_services.html")
+	console.log(`  In ${cyan("Conduit")}, you need to send the file contents to the #admins room.`)
+	console.log("    https://docs.conduit.rs/appservices.html")
+	console.log()
+
+	const {as} = require("../matrix/appservice")
+	console.log("⏳ Waiting until homeserver registration works... (Ctrl+C to cancel)")
+
+	let itWorks = false
+	let lastError = null
+	do {
+		const result = await api.ping()
+		// If it didn't work, log details and retry after some time
+		itWorks = result.ok
+		if (!itWorks) {
+			// Log the full error data if the error is different to last time
+			if (!isDeepStrictEqual(lastError, result.root)) {
+				if (result.root.error) {
+					console.log(`\nHomeserver said: [${result.status}] ${result.root.error}`)
+				} else {
+					console.log(`\nHomeserver said: [${result.status}] ${JSON.stringify(result.root)}`)
+				}
+				lastError = result.root
+			} else {
+				process.stderr.write(".")
+			}
+			await wait(5000)
+		}
+	} while (!itWorks)
+	console.log("")
+
+	as.close().catch(() => {})
+
+	console.log("⏩ Processing. This could take up to 30 seconds. Please be patient...")
 
 	const mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
@@ -127,8 +167,6 @@ async function uploadAutoEmoji(guild, name, filename) {
 	const botID = Buffer.from(config.discordToken.split(".")[0], "base64").toString()
 	assert(botID.match(/^[0-9]{10,}$/), "discord token must follow the correct format")
 	assert.match(reg.url, /^https?:/, "url must start with http:// or https://")
-
-	// TODO: appservice ping until it works
 
 	console.log("✅ Configuration looks good...")
 

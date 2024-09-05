@@ -11,6 +11,7 @@ const mreq = sync.require("./mreq")
 const file = sync.require("./file")
 /** @type {import("./txnid")} */
 const makeTxnId = sync.require("./txnid")
+const {reg} = require("./read-registration.js")
 
 /**
  * @param {string} p endpoint to access
@@ -295,6 +296,22 @@ async function setUserPowerCascade(roomID, mxid, power) {
 	}
 }
 
+async function ping() {
+	const res = await fetch(`${mreq.baseUrl}/client/v1/appservice/${reg.id}/ping`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${reg.as_token}`
+		},
+		body: "{}"
+	})
+	const root = await res.json()
+	return {
+		ok: res.ok,
+		status: res.status,
+		root
+	}
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -318,3 +335,4 @@ module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl
 module.exports.setUserPower = setUserPower
 module.exports.setUserPowerCascade = setUserPowerCascade
+module.exports.ping = ping

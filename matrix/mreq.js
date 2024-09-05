@@ -78,5 +78,6 @@ async function withAccessToken(token, callback) {
 }
 
 module.exports.MatrixServerError = MatrixServerError
+module.exports.baseUrl = baseUrl
 module.exports.mreq = mreq
 module.exports.withAccessToken = withAccessToken
