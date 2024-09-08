@@ -133,13 +133,15 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	let itWorks = false
 	let lastError = null
 	do {
-		const result = await api.ping()
+		const result = await api.ping().catch(e => ({ok: false, status: "net", root: e.message}))
 		// If it didn't work, log details and retry after some time
 		itWorks = result.ok
 		if (!itWorks) {
 			// Log the full error data if the error is different to last time
 			if (!isDeepStrictEqual(lastError, result.root)) {
-				if (result.root.error) {
+				if (typeof result.root === "string") {
+					console.log(`\nCannot reach homeserver: ${result.root}`)
+				} else if (result.root.error) {
 					console.log(`\nHomeserver said: [${result.status}] ${result.root.error}`)
 				} else {
 					console.log(`\nHomeserver said: [${result.status}] ${JSON.stringify(result.root)}`)
