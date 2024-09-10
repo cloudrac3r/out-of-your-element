@@ -81,9 +81,10 @@ async function convertImageStream(streamIn, stopStream) {
 				giframe.feed(chunk)
 			})
 			const frame = await giframe.getFrame()
+			const pixels = Uint8Array.from(frame.pixels)
 			stopStream()
 
-			const buffer = await sharp(frame.pixels, {raw: {width: frame.width, height: frame.height, channels: 4}})
+			const buffer = await sharp(pixels, {raw: {width: frame.width, height: frame.height, channels: 4}})
 				.resize(SIZE, SIZE, {fit: "contain", background: {r: 0, g: 0, b: 0, alpha: 0}})
 				.png({compressionLevel: 0})
 				.toBuffer({resolveWithObject: true})
