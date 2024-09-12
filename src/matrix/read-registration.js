@@ -28,9 +28,9 @@ function writeRegistration(reg) {
 /** @returns {import("../types").InitialAppServiceRegistrationConfig} reg */
 function getTemplateRegistration() {
 	return {
-		id: crypto.randomBytes(16).toString("hex"),
-		as_token: crypto.randomBytes(16).toString("hex"),
-		hs_token: crypto.randomBytes(16).toString("hex"),
+		id: "ooye",
+		as_token: crypto.randomBytes(32).toString("hex"),
+		hs_token: crypto.randomBytes(32).toString("hex"),
 		namespaces: {
 			users: [{
 				exclusive: true,
@@ -46,6 +46,7 @@ function getTemplateRegistration() {
 		],
 		sender_localpart: "_ooye_bot",
 		rate_limited: false,
+		socket: 6693,
 		ooye: {
 			namespace_prefix: "_ooye_",
 			max_file_size: 5000000,

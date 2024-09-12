@@ -3,48 +3,63 @@
 const assert = require("assert").strict
 const fs = require("fs")
 const sqlite = require("better-sqlite3")
-const {scheduler: {wait}} = require("timers/promises")
+const {scheduler} = require("timers/promises")
 const {isDeepStrictEqual} = require("util")
+const {createServer} = require("http")
 
 const {prompt} = require("enquirer")
 const Input = require("enquirer/lib/prompts/input")
 const fetch = require("node-fetch")
 const {magenta, bold, cyan} = require("ansi-colors")
 const HeatSync = require("heatsync")
+const {SnowTransfer} = require("snowtransfer")
+const {createApp, defineEventHandler, toNodeListener} = require("h3")
 
 const args = require("minimist")(process.argv.slice(2), {string: ["emoji-guild"]})
 
+// Move database file if it's still in the old location
+if (fs.existsSync("db")) {
+	if (fs.existsSync("db/ooye.db")) {
+		fs.renameSync("db/ooye.db", "src/db/ooye.db")
+	}
+	const files = fs.readdirSync("db")
+	if (files.length) {
+		console.error("You must manually move or delete the files in the db folder:")
+		for (const file of files) {
+			console.error(file)
+		}
+		process.exit(1)
+	}
+	fs.rmSync("db", {recursive: true})
+}
+
 const config = require("../config")
-const passthrough = require("../passthrough")
-const db = new sqlite("db/ooye.db")
-const migrate = require("../db/migrate")
+const passthrough = require("../src/passthrough")
+const db = new sqlite("src/db/ooye.db")
+const migrate = require("../src/db/migrate")
 
 const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, { sync, config, db })
 
-const orm = sync.require("../db/orm")
+const orm = sync.require("../src/db/orm")
 passthrough.from = orm.from
 passthrough.select = orm.select
 
-const DiscordClient = require("../d2m/discord-client")
-const discord = new DiscordClient(config.discordToken, "no")
-passthrough.discord = discord
-
-let registration = require("../matrix/read-registration")
-let {reg, getTemplateRegistration, writeRegistration, readRegistration, registrationFilePath} = registration
+let registration = require("../src/matrix/read-registration")
+let {reg, getTemplateRegistration, writeRegistration, readRegistration, checkRegistration, registrationFilePath} = registration
 
 function die(message) {
 	console.error(message)
 	process.exit(1)
 }
 
-async function uploadAutoEmoji(guild, name, filename) {
+async function uploadAutoEmoji(snow, guild, name, filename) {
 	let emoji = guild.emojis.find(e => e.name === name)
 	if (!emoji) {
 		console.log(`   Uploading ${name}...`)
 		const data = fs.readFileSync(filename, null)
-		emoji = await discord.snow.guildAssets.createEmoji(guild.id, {name, image: "data:image/png;base64," + data.toString("base64")})
+		emoji = await snow.guildAssets.createEmoji(guild.id, {name, image: "data:image/png;base64," + data.toString("base64")})
 	} else {
 		console.log(`   Reusing ${name}...`)
 	}
@@ -88,46 +103,90 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 			name: "server_name",
 			message: "Homeserver name"
 		})
+
 		console.log("What is the URL of your homeserver?")
-		const serverUrlPrompt = new Input({
+		const serverOriginPrompt = new Input({
 			type: "input",
 			name: "server_origin",
 			message: "Homeserver URL",
 			initial: () => `https://${serverNameResponse.server_name}`,
-			validate: url => validateHomeserverOrigin(serverUrlPrompt, url)
+			validate: url => validateHomeserverOrigin(serverOriginPrompt, url)
 		})
-		/** @type {{server_origin: string}} */ // @ts-ignore
-		const serverUrlResponse = await serverUrlPrompt.run()
-		console.log("Your Matrix homeserver needs to be able to send HTTP requests to OOYE.")
-		console.log("What URL should OOYE be reachable on? Usually, the default works fine,")
-		console.log("but you need to change this if you use multiple servers or containers.")
-		/** @type {{url: string}} */
-		const urlResponse = await prompt({
+		/** @type {string} */ // @ts-ignore
+		const serverOrigin = await serverOriginPrompt.run()
+
+		const app = createApp()
+		app.use(defineEventHandler(() => "Out Of Your Element is listening.\n"))
+		const server = createServer(toNodeListener(app))
+		await server.listen(6693)
+
+		console.log("OOYE has its own web server. It needs to be accessible on the public internet.")
+		console.log("You need to enter a public URL where you will be able to host this web server.")
+		console.log("OOYE listens on localhost:6693, so you will probably have to set up a reverse proxy.")
+		console.log("Now listening on port 6693. Feel free to send some test requests.")
+		/** @type {{bridge_origin: string}} */
+		const bridgeOriginResponse = await prompt({
 			type: "input",
-			name: "url",
+			name: "bridge_origin",
 			message: "URL to reach OOYE",
-			initial: "http://localhost:6693",
-			validate: url => !!url.match(/^https?:\/\//)
+			initial: () => `https://bridge.${serverNameResponse.server_name}`,
+			validate: async url => {
+				process.stdout.write(magenta(" checking, please wait..."))
+				try {
+					const res = await fetch(url)
+					if (res.status !== 200) return `Server returned status code ${res.status}`
+					const text = await res.text()
+					if (text !== "Out Of Your Element is listening.\n") return `Server does not point to OOYE`
+					return true
+				} catch (e) {
+					return e.message
+				}
+			}
+		})
+
+		await server.close()
+
+		console.log("What is your Discord bot token?")
+		/** @type {{discord_token: string}} */
+		const discordTokenResponse = await prompt({
+			type: "input",
+			name: "discord_token",
+			message: "Bot token",
+			validate: async token => {
+				process.stdout.write(magenta(" checking, please wait..."))
+				try {
+					const snow = new SnowTransfer(token)
+					await snow.user.getSelf()
+					return true
+				} catch (e) {
+					return e.message
+				}
+			}
 		})
 		const template = getTemplateRegistration()
-		reg = {...template, ...urlResponse, ooye: {...template.ooye, ...serverNameResponse, ...serverUrlResponse}}
+		reg = {...template, url: bridgeOriginResponse.bridge_origin, ooye: {...template.ooye, ...serverNameResponse, ...bridgeOriginResponse, server_origin: serverOrigin, ...discordTokenResponse}}
 		registration.reg = reg
+		checkRegistration(reg)
 		writeRegistration(reg)
+		console.log(`✅ Registration file saved as ${registrationFilePath}`)
+	} else {
+		console.log(`✅ Valid registration file found at ${registrationFilePath}`)
 	}
-
-	// Done with user prompts, reg is now guaranteed to be valid
-	const api = require("../matrix/api")
-	const file = require("../matrix/file")
-	const utils = require("../m2d/converters/utils")
-
-	console.log(`✅ Registration file saved as ${registrationFilePath}`)
 	console.log(`  In ${cyan("Synapse")}, you need to add it to homeserver.yaml and ${cyan("restart Synapse")}.`)
 	console.log("    https://element-hq.github.io/synapse/latest/application_services.html")
 	console.log(`  In ${cyan("Conduit")}, you need to send the file contents to the #admins room.`)
 	console.log("    https://docs.conduit.rs/appservices.html")
 	console.log()
 
-	const {as} = require("../matrix/appservice")
+	// Done with user prompts, reg is now guaranteed to be valid
+	const api = require("../src/matrix/api")
+	const file = require("../src/matrix/file")
+	const utils = require("../src/m2d/converters/utils")
+	const DiscordClient = require("../src/d2m/discord-client")
+	const discord = new DiscordClient(reg.ooye.discord_token, "no")
+	passthrough.discord = discord
+
+	const {as} = require("../src/matrix/appservice")
 	console.log("⏳ Waiting until homeserver registration works... (Ctrl+C to cancel)")
 
 	let itWorks = false
@@ -150,7 +209,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 			} else {
 				process.stderr.write(".")
 			}
-			await wait(5000)
+			await scheduler.wait(5000)
 		}
 	} while (!itWorks)
 	console.log("")
@@ -228,8 +287,8 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		}
 		// Upload those emojis to the chosen location
 		db.prepare("REPLACE INTO auto_emoji (name, emoji_id, guild_id) VALUES ('_', '_', ?)").run(guild.id)
-		await uploadAutoEmoji(guild, "L1", "docs/img/L1.png")
-		await uploadAutoEmoji(guild, "L2", "docs/img/L2.png")
+		await uploadAutoEmoji(discord.snow, guild, "L1", "docs/img/L1.png")
+		await uploadAutoEmoji(discord.snow, guild, "L2", "docs/img/L2.png")
 	}
 	console.log("✅ Emojis are ready...")
 

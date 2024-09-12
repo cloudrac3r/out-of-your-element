@@ -16,12 +16,14 @@ export type AppServiceRegistrationConfig = {
 	}
 	protocols: [string]
 	rate_limited: boolean
+	socket?: string | number,
 	ooye: {
 		namespace_prefix: string
 		max_file_size: number
 		server_name: string
 		server_origin: string
 		bridge_origin: string
+		discord_token: string
 		content_length_workaround: boolean
 		include_user_id_in_mxid: boolean
 		invite: string[]
@@ -49,6 +51,7 @@ export type InitialAppServiceRegistrationConfig = {
 	}
 	protocols: [string]
 	rate_limited: boolean
+	socket?: string | number,
 	ooye: {
 		namespace_prefix: string
 		max_file_size: number,

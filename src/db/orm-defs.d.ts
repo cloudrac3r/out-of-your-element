@@ -100,6 +100,10 @@ export type Models = {
 		emoji_id: string
 		guild_id: string
 	}
+
+	media_proxy: {
+		permitted_hash: number
+	}
 }
 
 export type Prepared<Row> = {

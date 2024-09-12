@@ -15,7 +15,7 @@ Object.assign(passthrough, {config, sync, db})
 
 const DiscordClient = require("./src/d2m/discord-client")
 
-const discord = new DiscordClient(config.discordToken, "full")
+const discord = new DiscordClient(config.discordToken, "no")
 passthrough.discord = discord
 
 const {as} = require("./src/matrix/appservice")
@@ -26,12 +26,13 @@ passthrough.from = orm.from
 passthrough.select = orm.select
 
 const power = require("./src/matrix/power.js")
-sync.require("./src/m2d/event-dispatcher")
+// sync.require("./src/m2d/event-dispatcher")
 
 ;(async () => {
 	await migrate.migrate(db)
 	await discord.cloud.connect()
 	console.log("Discord gateway started")
+	sync.require("./src/web/server")
 	await power.applyPower()
 
 	require("./src/stdin")
