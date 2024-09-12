@@ -1,6 +1,6 @@
 const {_memberToStateContent} = require("./register-user")
 const {test} = require("supertape")
-const testData = require("../../test/data")
+const testData = require("../../../test/data")
 
 test("member2state: without member nick or avatar", async t => {
 	t.deepEqual(

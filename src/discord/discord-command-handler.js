@@ -4,7 +4,7 @@ const assert = require("assert").strict
 const util = require("util")
 const DiscordTypes = require("discord-api-types/v10")
 const {reg} = require("../matrix/read-registration")
-const {addbot} = require("../addbot")
+const {addbot} = require("../../addbot")
 
 const {discord, sync, db, select} = require("../passthrough")
 /** @type {import("../matrix/api")}) */
@@ -12,7 +12,7 @@ const api = sync.require("../matrix/api")
 /** @type {import("../matrix/file")} */
 const file = sync.require("../matrix/file")
 /** @type {import("../m2d/converters/utils")} */
-const mxUtils = sync.require("../matrix/utils")
+const mxUtils = sync.require("../m2d/converters/utils")
 /** @type {import("../d2m/actions/create-space")} */
 const createSpace = sync.require("../d2m/actions/create-space")
 /** @type {import("./utils")} */

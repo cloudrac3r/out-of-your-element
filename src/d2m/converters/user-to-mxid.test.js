@@ -1,7 +1,7 @@
 const {test} = require("supertape")
 const tryToCatch = require("try-to-catch")
 const assert = require("assert")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const {userToSimName} = require("./user-to-mxid")
 
 test("user2name: cannot create user for a webhook", async t => {

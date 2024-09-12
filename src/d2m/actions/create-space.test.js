@@ -4,7 +4,7 @@ const mixin = require("@cloudrac3r/mixin-deep")
 const {guildToKState, ensureSpace} = require("./create-space")
 const {kstateStripConditionals, kstateUploadMxc} = require("../../matrix/kstate")
 const {test} = require("supertape")
-const testData = require("../../test/data")
+const testData = require("../../../test/data")
 
 const passthrough = require("../../passthrough")
 const {db} = passthrough

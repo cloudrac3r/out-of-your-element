@@ -1,6 +1,6 @@
 const DiscordTypes = require("discord-api-types/v10")
 const {test} = require("supertape")
-const data = require("../test/data")
+const data = require("../../test/data")
 const utils = require("./utils")
 
 test("is webhook message: identifies bot interaction response as not a message", t => {

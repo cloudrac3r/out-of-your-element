@@ -1,7 +1,7 @@
 // @ts-check
 
 const {test} = require("supertape")
-const data = require("../test/data")
+const data = require("../../test/data")
 
 const {db, select, from} = require("../passthrough")
 

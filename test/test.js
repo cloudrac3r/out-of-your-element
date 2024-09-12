@@ -4,7 +4,7 @@ const fs = require("fs")
 const {join} = require("path")
 const stp = require("stream").promises
 const sqlite = require("better-sqlite3")
-const migrate = require("../db/migrate")
+const migrate = require("../src/db/migrate")
 const HeatSync = require("heatsync")
 const {test} = require("supertape")
 const data = require("./data")
@@ -14,10 +14,10 @@ const fetch = require("node-fetch")
 const {green} = require("colorette")
 
 const config = require("../config")
-const passthrough = require("../passthrough")
+const passthrough = require("../src/passthrough")
 const db = new sqlite(":memory:")
 
-const {reg} = require("../matrix/read-registration")
+const {reg} = require("../src/matrix/read-registration")
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
 reg.ooye.server_name = "cadence.moe"
 reg.id = "baby" // don't actually take authenticated actions on the server
@@ -48,11 +48,11 @@ const discord = {
 
 Object.assign(passthrough, { discord, config, sync, db })
 
-const orm = sync.require("../db/orm")
+const orm = sync.require("../src/db/orm")
 passthrough.from = orm.from
 passthrough.select = orm.select
 
-const file = sync.require("../matrix/file")
+const file = sync.require("../src/matrix/file")
 /* c8 ignore next */
 file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 
@@ -113,28 +113,28 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 
 	db.exec(fs.readFileSync(join(__dirname, "ooye-test-data.sql"), "utf8"))
 
-	require("../db/orm.test")
-	require("../discord/utils.test")
-	require("../matrix/kstate.test")
-	require("../matrix/api.test")
-	require("../matrix/file.test")
-	//require("../matrix/power.test")
-	require("../matrix/read-registration.test")
-	require("../matrix/txnid.test")
-	require("../d2m/actions/create-room.test")
-	require("../d2m/actions/create-space.test")
-	require("../d2m/actions/register-user.test")
-	require("../d2m/converters/edit-to-changes.test")
-	require("../d2m/converters/emoji-to-key.test")
-	require("../d2m/converters/lottie.test")
-	require("../d2m/converters/message-to-event.test")
-	require("../d2m/converters/message-to-event.embeds.test")
-	require("../d2m/converters/message-to-event.pk.test")
-	require("../d2m/converters/pins-to-list.test")
-	require("../d2m/converters/remove-reaction.test")
-	require("../d2m/converters/thread-to-announcement.test")
-	require("../d2m/converters/user-to-mxid.test")
-	require("../m2d/converters/event-to-message.test")
-	require("../m2d/converters/utils.test")
-	require("../m2d/converters/emoji-sheet.test")
+	require("../src/db/orm.test")
+	require("../src/discord/utils.test")
+	require("../src/matrix/kstate.test")
+	require("../src/matrix/api.test")
+	require("../src/matrix/file.test")
+	require("../src/matrix/power.test")
+	require("../src/matrix/read-registration.test")
+	require("../src/matrix/txnid.test")
+	require("../src/d2m/actions/create-room.test")
+	require("../src/d2m/actions/create-space.test")
+	require("../src/d2m/actions/register-user.test")
+	require("../src/d2m/converters/edit-to-changes.test")
+	require("../src/d2m/converters/emoji-to-key.test")
+	require("../src/d2m/converters/lottie.test")
+	require("../src/d2m/converters/message-to-event.test")
+	require("../src/d2m/converters/message-to-event.embeds.test")
+	require("../src/d2m/converters/message-to-event.pk.test")
+	require("../src/d2m/converters/pins-to-list.test")
+	require("../src/d2m/converters/remove-reaction.test")
+	require("../src/d2m/converters/thread-to-announcement.test")
+	require("../src/d2m/converters/user-to-mxid.test")
+	require("../src/m2d/converters/event-to-message.test")
+	require("../src/m2d/converters/utils.test")
+	require("../src/m2d/converters/emoji-sheet.test")
 })()

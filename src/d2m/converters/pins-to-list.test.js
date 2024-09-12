@@ -1,5 +1,5 @@
 const {test} = require("supertape")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const {pinsToList} = require("./pins-to-list")
 
 test("pins2list: converts known IDs, ignores unknown IDs", t => {

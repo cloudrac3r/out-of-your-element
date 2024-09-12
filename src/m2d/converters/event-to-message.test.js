@@ -3,7 +3,7 @@ const fs = require("fs")
 const {test} = require("supertape")
 const {eventToMessage} = require("./event-to-message")
 const {convertImageStream} = require("./emoji-sheet")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {select, discord} = require("../../passthrough")
 

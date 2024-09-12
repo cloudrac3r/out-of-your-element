@@ -1,6 +1,6 @@
 const {test} = require("supertape")
 const {editToChanges} = require("./edit-to-changes")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const Ty = require("../../types")
 
 test("edit2changes: edit by webhook", async t => {

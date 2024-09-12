@@ -2,7 +2,7 @@
 
 const {test} = require("supertape")
 const {emojiToKey} = require("./emoji-to-key")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const Ty = require("../../types")
 
 test("emoji2key: unicode emoji works", async t => {

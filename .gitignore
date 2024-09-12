@@ -2,6 +2,6 @@ node_modules
 config.js
 registration.yaml
 coverage
-db/ooye.db*
+src/db/ooye.db*
 test/res/*
 !test/res/lottie*

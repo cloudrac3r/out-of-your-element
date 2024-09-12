@@ -1,6 +1,6 @@
 const {test} = require("supertape")
 const {threadToAnnouncement} = require("./thread-to-announcement")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const Ty = require("../../types")
 
 /**

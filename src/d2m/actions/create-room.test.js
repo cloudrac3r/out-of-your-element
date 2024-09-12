@@ -4,7 +4,7 @@ const mixin = require("@cloudrac3r/mixin-deep")
 const {channelToKState, _convertNameAndTopic} = require("./create-room")
 const {kstateStripConditionals} = require("../../matrix/kstate")
 const {test} = require("supertape")
-const testData = require("../../test/data")
+const testData = require("../../../test/data")
 
 const passthrough = require("../../passthrough")
 const {db} = passthrough

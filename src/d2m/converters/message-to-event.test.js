@@ -1,6 +1,6 @@
 const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
-const data = require("../../test/data")
+const data = require("../../../test/data")
 const Ty = require("../../types")
 
 /**

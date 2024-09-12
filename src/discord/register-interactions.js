@@ -2,7 +2,7 @@
 
 const DiscordTypes = require("discord-api-types/v10")
 const {discord, sync, db, select} = require("../passthrough")
-const {id} = require("../addbot")
+const {id} = require("../../addbot")
 
 const matrixInfo = sync.require("./interactions/matrix-info.js")
 const invite = sync.require("./interactions/invite.js")
