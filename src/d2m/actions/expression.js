@@ -66,7 +66,7 @@ async function stickersToState(stickers) {
 			while (shortcodes.includes(shortcode)) shortcode = shortcode + "~"
 			shortcodes.push(shortcode)
 
-			result.images[shortcodes] = {
+			result.images[shortcode] = {
 				info: {
 					mimetype: file.stickerFormat.get(sticker.format_type)?.mime || "image/png"
 				},
