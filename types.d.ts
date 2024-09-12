@@ -21,6 +21,7 @@ export type AppServiceRegistrationConfig = {
 		max_file_size: number
 		server_name: string
 		server_origin: string
+		bridge_origin: string
 		content_length_workaround: boolean
 		include_user_id_in_mxid: boolean
 		invite: string[]

@@ -11,6 +11,8 @@ const {discord, sync, db, select} = require("../passthrough")
 const api = sync.require("../matrix/api")
 /** @type {import("../matrix/file")} */
 const file = sync.require("../matrix/file")
+/** @type {import("../m2d/converters/utils")} */
+const mxUtils = sync.require("../matrix/utils")
 /** @type {import("../d2m/actions/create-space")} */
 const createSpace = sync.require("../d2m/actions/create-space")
 /** @type {import("./utils")} */
@@ -91,9 +93,8 @@ const commands = [{
 
 			// Current avatar
 			const avatarEvent = await api.getStateEvent(roomID, "m.room.avatar", "")
-			const avatarURLParts = avatarEvent?.url.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
 			let currentAvatarMessage =
-				( avatarURLParts ? `Current room-specific avatar: ${reg.ooye.server_origin}/_matrix/media/r0/download/${avatarURLParts[1]}/${avatarURLParts[2]}`
+				( avatarEvent.url ? `Current room-specific avatar: ${mxUtils.getPublicUrlForMxc(avatarEvent.url)}`
 				: "No avatar. Now's your time to strike. Use `//icon` again with a link or upload to set the room-specific avatar.")
 
 			// Next potential avatar

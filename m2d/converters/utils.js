@@ -1,8 +1,13 @@
 // @ts-check
 
+const assert = require("assert").strict
+
+const passthrough = require("../../passthrough")
+const {db} = passthrough
+
 const {reg} = require("../../matrix/read-registration")
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
-const assert = require("assert").strict
+
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
 let hasher = null
 // @ts-ignore
@@ -33,16 +38,6 @@ function eventSenderIsFromDiscord(sender) {
 	}
 
 	return false
-}
-
-/**
- * @param {string} mxc
- * @returns {string?}
- */
-function getPublicUrlForMxc(mxc) {
-	const avatarURLParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
-	if (avatarURLParts) return `${reg.ooye.server_origin}/_matrix/media/r0/download/${avatarURLParts[1]}/${avatarURLParts[2]}`
-	else return null
 }
 
 /**
@@ -211,6 +206,32 @@ async function getViaServersQuery(roomID, api) {
 		qs.append("via", server)
 	}
 	return qs
+}
+
+/**
+ * Since the introduction of authenticated media, this can no longer just be the /_matrix/media/r0/download URL
+ * because Discord and Discord users cannot use those URLs. Media now has to be proxied through the bridge.
+ * To avoid the bridge acting as a proxy for *any* media, there is a list of permitted media stored in the database.
+ * (The other approach would be signing the URLs with a MAC (or similar) and adding the signature, but I'm not a
+ * cryptographer, so I don't want to.) To reduce database disk space usage, instead of storing each permitted URL,
+ * we just store its xxhash as a signed (as in +/-, not signature) 64-bit integer, which fits in an SQLite integer field.
+ * @see https://matrix.org/blog/2024/06/26/sunsetting-unauthenticated-media/ background
+ * @see https://matrix.org/blog/2024/06/20/matrix-v1.11-release/ implementation details
+ * @see https://www.sqlite.org/fileformat2.html#record_format SQLite integer field size
+ * @param {string} mxc
+ * @returns {string?}
+ */
+function getPublicUrlForMxc(mxc) {
+	assert(hasher, "xxhash is not ready yet")
+	const avatarURLParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	if (!avatarURLParts) return null
+
+	const serverAndMediaID = `${avatarURLParts[1]}/${avatarURLParts[2]}`
+	const unsignedHash = hasher.h64(serverAndMediaID)
+	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
+	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
+
+	return `${reg.ooye.bridge_origin}/download/matrix/${serverAndMediaID}`
 }
 
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS

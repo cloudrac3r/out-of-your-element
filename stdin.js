@@ -32,7 +32,6 @@ if (process.stdin.isTTY) {
 		} else {
 			Object.assign(passthrough.repl.context, extraContext)
 		}
-		// @ts-expect-error Says exit isn't assignable to a string
 		sync.addTemporaryListener(passthrough.repl, "exit", () => process.exit())
 	})
 }

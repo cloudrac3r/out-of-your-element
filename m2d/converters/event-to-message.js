@@ -15,6 +15,8 @@ const {sync, db, discord, select, from} = passthrough
 const mxUtils = sync.require("../converters/utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
+/** @type {import("../../matrix/file")} */
+const file = sync.require("../../matrix/file")
 /** @type {import("./emoji-sheet")} */
 const emojiSheet = sync.require("./emoji-sheet")
 

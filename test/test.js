@@ -23,6 +23,7 @@ reg.ooye.server_name = "cadence.moe"
 reg.id = "baby" // don't actually take authenticated actions on the server
 reg.as_token = "baby"
 reg.hs_token = "baby"
+reg.ooye.bridge_origin = "https://bridge.example.org"
 reg.ooye.invite = []
 
 const sync = new HeatSync({watchFS: false})
