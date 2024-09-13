@@ -9,7 +9,7 @@ const {createServer} = require("http")
 
 const {prompt} = require("enquirer")
 const Input = require("enquirer/lib/prompts/input")
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 const {magenta, bold, cyan} = require("ansi-colors")
 const HeatSync = require("heatsync")
 const {SnowTransfer} = require("snowtransfer")

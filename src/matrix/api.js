@@ -3,7 +3,7 @@
 const Ty = require("../types")
 const assert = require("assert").strict
 
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 
 const passthrough = require("../passthrough")
 const { discord, sync, db } = passthrough
@@ -315,7 +315,7 @@ async function ping() {
 
 /**
  * @param {string} mxc
- * @param {RequestInit} [init]
+ * @param {fetch.RequestInit} [init]
  */
 function getMedia(mxc, init = {}) {
 	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)

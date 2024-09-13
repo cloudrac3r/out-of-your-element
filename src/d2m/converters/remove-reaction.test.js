@@ -10,7 +10,9 @@ function fakeSpecificReactionRemoval(userID, emoji, emojiID) {
 		channel_id: "THE_CHANNEL",
 		message_id: "THE_MESSAGE",
 		user_id: userID,
-		emoji: {id: emojiID, name: emoji}
+		emoji: {id: emojiID, name: emoji},
+		burst: false,
+		type: 0
 	}
 }
 

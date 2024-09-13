@@ -1,8 +1,9 @@
 // @ts-check
 
+const assert = require("assert/strict")
 const {defineEventHandler, getValidatedRouterParams, setResponseStatus, setResponseHeader, sendStream, createError} = require("h3")
 const {z} = require("zod")
-const fetch = require("node-fetch")
+const fetch = require("node-fetch").default
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
 let hasher = null
@@ -40,9 +41,11 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 		}
 	})
 
-	setResponseStatus(event, res.status)
-	setResponseHeader(event, "Content-Type", res.headers.get("content-type"))
-	setResponseHeader(event, "Transfer-Encoding", "chunked")
+	const contentType = res.headers.get("content-type")
+	assert(contentType)
 
-	return sendStream(event, res.body)
+	setResponseStatus(event, res.status)
+	setResponseHeader(event, "Content-Type", contentType)
+	setResponseHeader(event, "Transfer-Encoding", "chunked")
+	return res.body
 }))
