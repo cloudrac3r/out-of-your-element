@@ -305,9 +305,9 @@ test("message2event: spoiler attachment", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "📄 Uploaded SPOILER file: https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci (74 KB)",
+		body: "📄 Uploaded SPOILER file: https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci (74 KB)",
 		format: "org.matrix.custom.html",
-		formatted_body: "<blockquote>📄 Uploaded SPOILER file: <a href=\"https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci\">https://cdn.discordapp.com/attachments/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci</a> (74 KB)</blockquote>"
+		formatted_body: "<blockquote>📄 Uploaded SPOILER file: <a href=\"https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci\">https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci</a> (74 KB)</blockquote>"
 	}])
 })
 
@@ -788,7 +788,7 @@ test("message2event: very large attachment is linked instead of being uploaded",
 		content: "hey",
 		attachments: [{
 			filename: "hey.jpg",
-			url: "https://discord.com/404/hey.jpg",
+			url: "https://cdn.discordapp.com/attachments/123/456/789.mega",
 			content_type: "application/i-made-it-up",
 			size: 100e6
 		}]
@@ -802,9 +802,9 @@ test("message2event: very large attachment is linked instead of being uploaded",
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "📄 Uploaded file: https://discord.com/404/hey.jpg (100 MB)",
+		body: "📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)",
 		format: "org.matrix.custom.html",
-		formatted_body: '📄 Uploaded file: <a href="https://discord.com/404/hey.jpg">hey.jpg</a> (100 MB)'
+		formatted_body: '📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)'
 	}])
 })
 

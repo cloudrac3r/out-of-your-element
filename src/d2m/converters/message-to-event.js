@@ -103,6 +103,7 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
  * @param {DiscordTypes.APIAttachment} attachment
  */
 async function attachmentToEvent(mentions, attachment) {
+	const publicURL = dUtils.getPublicUrlForCdn(attachment.url)
 	const emoji =
 		attachment.content_type?.startsWith("image/jp") ? "📸"
 		: attachment.content_type?.startsWith("image/") ? "🖼️"
@@ -116,9 +117,9 @@ async function attachmentToEvent(mentions, attachment) {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype: "m.text",
-			body: `${emoji} Uploaded SPOILER file: ${attachment.url} (${pb(attachment.size)})`,
+			body: `${emoji} Uploaded SPOILER file: ${publicURL} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${attachment.url}">${attachment.url}</a> (${pb(attachment.size)})</blockquote>`
+			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${publicURL}">${publicURL}</a> (${pb(attachment.size)})</blockquote>`
 		}
 	}
 	// for large files, always link them instead of uploading so I don't use up all the space in the content repo
@@ -127,9 +128,9 @@ async function attachmentToEvent(mentions, attachment) {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype: "m.text",
-			body: `${emoji} Uploaded file: ${attachment.url} (${pb(attachment.size)})`,
+			body: `${emoji} Uploaded file: ${publicURL} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `${emoji} Uploaded file: <a href="${attachment.url}">${attachment.filename}</a> (${pb(attachment.size)})`
+			formatted_body: `${emoji} Uploaded file: <a href="${publicURL}">${attachment.filename}</a> (${pb(attachment.size)})`
 		}
 	} else if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
 		return {

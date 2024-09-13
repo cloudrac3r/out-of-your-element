@@ -99,9 +99,9 @@ test("edit2changes: change file type", async t => {
 	t.deepEqual(eventsToRedact, ["$51f4yqHinwnSbPEQ9dCgoyy4qiIJSX0QYYVUnvwyTCJ"])
 	t.deepEqual(eventsToSend, [{
 		$type: "m.room.message",
-		body: "📝 Uploaded file: https://cdn.discordapp.com/attachments/112760669178241024/1141501302497615912/gaze_into_my_dark_mind.txt (20 MB)",
+		body: "📝 Uploaded file: https://bridge.example.org/download/discordcdn/112760669178241024/1141501302497615912/gaze_into_my_dark_mind.txt (20 MB)",
 		format: "org.matrix.custom.html",
-		formatted_body: "📝 Uploaded file: <a href=\"https://cdn.discordapp.com/attachments/112760669178241024/1141501302497615912/gaze_into_my_dark_mind.txt\">gaze_into_my_dark_mind.txt</a> (20 MB)",
+		formatted_body: "📝 Uploaded file: <a href=\"https://bridge.example.org/download/discordcdn/112760669178241024/1141501302497615912/gaze_into_my_dark_mind.txt\">gaze_into_my_dark_mind.txt</a> (20 MB)",
 		"m.mentions": {},
 		msgtype: "m.text"
 	}])

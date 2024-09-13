@@ -3,6 +3,8 @@
 const DiscordTypes = require("discord-api-types/v10")
 const assert = require("assert").strict
 
+const {reg} = require("../matrix/read-registration")
+
 const EPOCH = 1420070400000
 
 /**
@@ -117,6 +119,13 @@ function timestampToSnowflakeInexact(timestamp) {
 	return String((timestamp - EPOCH) * 2**22)
 }
 
+/** @param {string} url */
+function getPublicUrlForCdn(url) {
+	const match = url.match(`https://cdn.discordapp.com/attachments/([0-9]+)/([0-9]+)/([-A-Za-z0-9_.,]+)`)
+	if (!match) return url
+	return `${reg.ooye.bridge_origin}/download/discordcdn/${match[1]}/${match[2]}/${match[3]}`
+}
+
 module.exports.getPermissions = getPermissions
 module.exports.hasPermission = hasPermission
 module.exports.hasSomePermissions = hasSomePermissions
@@ -125,3 +134,4 @@ module.exports.isWebhookMessage = isWebhookMessage
 module.exports.isEphemeralMessage = isEphemeralMessage
 module.exports.snowflakeToTimestampExact = snowflakeToTimestampExact
 module.exports.timestampToSnowflakeInexact = timestampToSnowflakeInexact
+module.exports.getPublicUrlForCdn = getPublicUrlForCdn
