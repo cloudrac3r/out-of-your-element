@@ -305,7 +305,7 @@ function getUserOrProxyOwnerID(mxid) {
  * This function will strip them from the content and generate the correct pending file of the sprite sheet.
  * @param {string} content
  * @param {{id: string, name: string}[]} attachments
- * @param {({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} pendingFiles
+ * @param {({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} pendingFiles
  * @param {(mxc: string) => Promise<Buffer | undefined>} mxcDownloader function that will download the mxc URLs and convert to uncompressed PNG data. use `getAndConvertEmoji` or a mock.
  */
 async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, mxcDownloader) {
@@ -389,7 +389,7 @@ async function handleRoomOrMessageLinks(input, di) {
  * @param {string} senderMxid
  * @param {string} roomID
  * @param {DiscordTypes.APIGuild} guild
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"]}} di
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer}} di
  */
 async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
 	let writtenMentionMatch = content.match(/(?:^|[^"[<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // /d flag for indices requires node.js 16+
@@ -440,7 +440,7 @@ const attachmentEmojis = new Map([
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, fetch: import("node-fetch")["default"], mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, di) {
 	let displayName = event.sender
@@ -466,7 +466,7 @@ async function eventToMessage(event, guild, di) {
 
 	let content = event.content.body // ultimate fallback
 	const attachments = []
-	/** @type {({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} */
+	/** @type {({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} */
 	const pendingFiles = []
 	/** @type {DiscordTypes.APIUser[]} */
 	const ensureJoined = []
@@ -767,29 +767,23 @@ async function eventToMessage(event, guild, di) {
 		const description = (event.content.body !== event.content.filename && event.content.filename && event.content.body) || undefined
 		if ("url" in event.content) {
 			// Unencrypted
-			const url = mxUtils.getPublicUrlForMxc(event.content.url)
-			assert(url)
 			attachments.push({id: "0", description, filename})
-			pendingFiles.push({name: filename, url})
+			pendingFiles.push({name: filename, mxc: event.content.url})
 		} else {
 			// Encrypted
-			const url = mxUtils.getPublicUrlForMxc(event.content.file.url)
-			assert(url)
 			assert.equal(event.content.file.key.alg, "A256CTR")
 			attachments.push({id: "0", description, filename})
-			pendingFiles.push({name: filename, url, key: event.content.file.key.k, iv: event.content.file.iv})
+			pendingFiles.push({name: filename, mxc: event.content.file.url, key: event.content.file.key.k, iv: event.content.file.iv})
 		}
 	} else if (event.type === "m.sticker") {
 		content = ""
-		const url = mxUtils.getPublicUrlForMxc(event.content.url)
-		assert(url)
 		let filename = event.content.body
 		if (event.type === "m.sticker") {
 			let mimetype
 			if (event.content.info?.mimetype?.includes("/")) {
 				mimetype = event.content.info.mimetype
 			} else {
-				const res = await di.fetch(url, {method: "HEAD"})
+				const res = await di.api.getMedia(event.content.url, {method: "HEAD"})
 				if (res.status === 200) {
 					mimetype = res.headers.get("content-type")
 				}
@@ -798,7 +792,7 @@ async function eventToMessage(event, guild, di) {
 			filename += "." + mimetype.split("/")[1]
 		}
 		attachments.push({id: "0", filename})
-		pendingFiles.push({name: filename, url})
+		pendingFiles.push({name: filename, mxc: event.content.url})
 	}
 
 	content = displayNameRunoff + replyLine + content

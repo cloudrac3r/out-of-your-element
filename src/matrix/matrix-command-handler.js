@@ -217,9 +217,8 @@ const commands = [{
 				} else {
 					// Upload it to Discord and have the bridge sync it back to Matrix again
 					for (const e of toUpload) {
-						const publicUrl = mxUtils.getPublicUrlForMxc(e.url)
 						// @ts-ignore
-						const resizeInput = await fetch(publicUrl, {agent: false}).then(res => res.arrayBuffer())
+						const resizeInput = await api.getMedia(e.url, {agent: false}).then(res => res.arrayBuffer())
 						const resizeOutput = await sharp(resizeInput)
 							.resize(EMOJI_SIZE, EMOJI_SIZE, {fit: "inside", withoutEnlargement: true, background: {r: 0, g: 0, b: 0, alpha: 0}})
 							.png()

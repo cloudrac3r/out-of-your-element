@@ -3550,7 +3550,7 @@ test("event2message: text attachments work", async t => {
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: undefined, filename: "chiki-powerups.txt"}],
-				pendingFiles: [{name: "chiki-powerups.txt", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/zyThGlYQxvlvBVbVgKDDbiHH"}]
+				pendingFiles: [{name: "chiki-powerups.txt", mxc: "mxc://cadence.moe/zyThGlYQxvlvBVbVgKDDbiHH"}]
 			}]
 		}
 	)
@@ -3586,7 +3586,7 @@ test("event2message: image attachments work", async t => {
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: undefined, filename: "cool cat.png"}],
-				pendingFiles: [{name: "cool cat.png", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
+				pendingFiles: [{name: "cool cat.png", mxc: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
 			}]
 		}
 	)
@@ -3622,7 +3622,7 @@ test("event2message: image attachments can have a custom description", async t =
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: "Cat emoji surrounded by pink hearts", filename: "cool cat.png"}],
-				pendingFiles: [{name: "cool cat.png", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
+				pendingFiles: [{name: "cool cat.png", url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
 			}]
 		}
 	)
@@ -3674,7 +3674,7 @@ test("event2message: encrypted image attachments work", async t => {
 				attachments: [{id: "0", description: undefined, filename: "image.png"}],
 				pendingFiles: [{
 					name: "image.png",
-					url: "https://matrix.cadence.moe/_matrix/media/r0/download/heyquark.com/LOGkUTlVFrqfiExlGZNgCJJX",
+					mxc: "mxc://heyquark.com/LOGkUTlVFrqfiExlGZNgCJJX",
 					key: "QTo-oMPnN1Rbc7vBFg9WXMgoctscdyxdFEIYm8NYceo",
 					iv: "Va9SHZpIn5kAAAAAAAAAAA"
 				}]
@@ -3717,7 +3717,7 @@ test("event2message: stickers work", async t => {
 				content: "",
 				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", filename: "get_real2.gif"}],
-				pendingFiles: [{name: "get_real2.gif", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/NyMXQFAAdniImbHzsygScbmN"}]
+				pendingFiles: [{name: "get_real2.gif", mxc: "mxc://cadence.moe/NyMXQFAAdniImbHzsygScbmN"}]
 			}]
 		}
 	)
@@ -3736,15 +3736,17 @@ test("event2message: stickers fetch mimetype from server when mimetype not provi
 			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}, {}, {
-			async fetch(url, options) {
-				called++
-				t.equal(url, "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf")
-				t.equal(options.method, "HEAD")
-				return {
-					status: 200,
-					headers: new Map([
-						["content-type", "image/gif"]
-					])
+			api: {
+				async getMedia(mxc, options) {
+					called++
+					t.equal(mxc, "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf")
+					t.equal(options.method, "HEAD")
+					return {
+						status: 200,
+						headers: new Map([
+							["content-type", "image/gif"]
+						])
+					}
 				}
 			}
 		}),
@@ -3757,7 +3759,7 @@ test("event2message: stickers fetch mimetype from server when mimetype not provi
 				content: "",
 				avatar_url: undefined,
 				attachments: [{id: "0", filename: "YESYESYES.gif"}],
-				pendingFiles: [{name: "YESYESYES.gif", url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf"}]
+				pendingFiles: [{name: "YESYESYES.gif", mxc: "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf"}]
 			}]
 		}
 	)
@@ -3777,15 +3779,17 @@ test("event2message: stickers with unknown mimetype are not allowed", async t =>
 			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}, {}, {
-			async fetch(url, options) {
-				called++
-				t.equal(url, "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJe")
-				t.equal(options.method, "HEAD")
-				return {
-					status: 404,
-					headers: new Map([
-						["content-type", "application/json"]
-					])
+			api: {
+				async getMedia(mxc, options) {
+					called++
+					t.equal(mxc, "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJe")
+					t.equal(options.method, "HEAD")
+					return {
+						status: 404,
+						headers: new Map([
+							["content-type", "application/json"]
+						])
+					}
 				}
 			}
 		})

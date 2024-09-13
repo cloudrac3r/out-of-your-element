@@ -223,10 +223,10 @@ async function getViaServersQuery(roomID, api) {
  */
 function getPublicUrlForMxc(mxc) {
 	assert(hasher, "xxhash is not ready yet")
-	const avatarURLParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
-	if (!avatarURLParts) return null
+	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	if (!mediaParts) return null
 
-	const serverAndMediaID = `${avatarURLParts[1]}/${avatarURLParts[2]}`
+	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
 	const unsignedHash = hasher.h64(serverAndMediaID)
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)

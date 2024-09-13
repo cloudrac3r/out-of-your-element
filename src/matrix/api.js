@@ -297,6 +297,7 @@ async function setUserPowerCascade(roomID, mxid, power) {
 }
 
 async function ping() {
+	// not using mreq so that we can read the status code
 	const res = await fetch(`${mreq.baseUrl}/client/v1/appservice/${reg.id}/ping`, {
 		method: "POST",
 		headers: {
@@ -310,6 +311,21 @@ async function ping() {
 		status: res.status,
 		root
 	}
+}
+
+/**
+ * @param {string} mxc
+ * @param {RequestInit} [init]
+ */
+function getMedia(mxc, init = {}) {
+	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	assert(mediaParts)
+	return fetch(`${mreq.baseUrl}/client/v1/media/download/${mediaParts[1]}/${mediaParts[2]}`, {
+		headers: {
+			Authorization: `Bearer ${reg.as_token}`
+		},
+		...init
+	})
 }
 
 module.exports.path = path
@@ -336,3 +352,4 @@ module.exports.profileSetAvatarUrl = profileSetAvatarUrl
 module.exports.setUserPower = setUserPower
 module.exports.setUserPowerCascade = setUserPowerCascade
 module.exports.ping = ping
+module.exports.getMedia = getMedia

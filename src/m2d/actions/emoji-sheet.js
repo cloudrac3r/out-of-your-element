@@ -8,6 +8,8 @@ const {sync} = require("../../passthrough")
 
 /** @type {import("../converters/emoji-sheet")} */
 const emojiSheetConverter = sync.require("../converters/emoji-sheet")
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
 
 /**
  * Downloads the emoji from the web and converts to uncompressed PNG data.
@@ -16,16 +18,12 @@ const emojiSheetConverter = sync.require("../converters/emoji-sheet")
  */
 async function getAndConvertEmoji(mxc) {
 	const abortController = new AbortController()
-
-	const url = utils.getPublicUrlForMxc(mxc)
-	assert(url)
-
 	/** @type {import("node-fetch").Response} */
 	// If it turns out to be a GIF, we want to abandon the connection without downloading the whole thing.
 	// If we were using connection pooling, we would be forced to download the entire GIF.
 	// So we set no agent to ensure we are not connection pooling.
 	// @ts-ignore the signal is slightly different from the type it wants (still works fine)
-	const res = await fetch(url, {agent: false, signal: abortController.signal})
+	const res = await api.getMedia(mxc, {agent: false, signal: abortController.signal})
 	return emojiSheetConverter.convertImageStream(res.body, () => {
 		abortController.abort()
 		res.body.pause()

@@ -23,7 +23,7 @@ const editMessage = sync.require("../../d2m/actions/edit-message")
 const emojiSheet = sync.require("../actions/emoji-sheet")
 
 /**
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[], pendingFiles?: ({name: string, url: string} | {name: string, url: string, key: string, iv: string} | {name: string, buffer: Buffer | Readable})[]}} message
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | Readable})[]}} message
  * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]}>}
  */
 async function resolvePendingFiles(message) {
@@ -39,7 +39,7 @@ async function resolvePendingFiles(message) {
 			// Encrypted file
 			const d = crypto.createDecipheriv("aes-256-ctr", Buffer.from(p.key, "base64url"), Buffer.from(p.iv, "base64url"))
 			// @ts-ignore
-			fetch(p.url).then(res => res.body.pipe(d))
+			await api.getMedia(p.mxc).then(res => res.body.pipe(d))
 			return {
 				name: p.name,
 				file: d
@@ -47,7 +47,7 @@ async function resolvePendingFiles(message) {
 		} else {
 			// Unencrypted file
 			/** @type {Readable} */ // @ts-ignore
-			const body = await fetch(p.url).then(res => res.body)
+			const body = await api.getMedia(p.mxc).then(res => res.body)
 			return {
 				name: p.name,
 				file: body
@@ -79,7 +79,7 @@ async function sendEvent(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow, fetch, mxcDownloader: emojiSheet.getAndConvertEmoji})
+	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow, mxcDownloader: emojiSheet.getAndConvertEmoji})
 
 	messagesToEdit = await Promise.all(messagesToEdit.map(async e => {
 		e.message = await resolvePendingFiles(e.message)
