@@ -1073,7 +1073,7 @@ test("event2message: rich reply to a sim user", async t => {
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
 					+ " Slow news day."
 					+ "\nTesting this reply, ignore",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1225,7 +1225,7 @@ test("event2message: rich reply to an already-edited message will quote the new 
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647><@111604486476181504>:"
 					+ " this is the new content. heya!"
 					+ "\nhiiiii....",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1278,7 +1278,7 @@ test("event2message: rich reply to a missing event will quote from formatted_bod
 				username: "cadence [they]",
 				content: "-# > But who sees the seashells she sells sitting..."
 					+ "\nWhat a tongue-bender...",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1327,7 +1327,7 @@ test("event2message: rich reply to a missing event without formatted_body will u
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "Testing this reply, ignore",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1378,7 +1378,7 @@ test("event2message: rich reply to a missing event and no reply fallback will no
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "Testing this reply, ignore.",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1430,7 +1430,7 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
 					+ " that can't be true! there's no way :o"
 					+ "\nI agree!",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1568,7 +1568,7 @@ test("event2message: should include a reply preview when message ends with a blo
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜ_ooye_cookie**:"
 					+ " <https://tootsuite.net/Warp-Gate2.gif> tanget: @..."
 					+ "\naichmophobia",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1652,7 +1652,7 @@ test("event2message: should include a reply preview when replying to a descripti
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/497161350934560778/1162625810109317170 <@1109360903096369153>:"
 					+ " It looks like this queue has ended."
 					+ `\nso you're saying on matrix side I would have to edit ^this^ to add "Timed out" before the blockquote?`,
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1705,7 +1705,7 @@ test("event2message: entities are not escaped in main message or reply preview",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
 					+ " Testing? \"':.`[]&things"
 					+ "\n_Testing?_ \"':.\\`\\[\\]&things",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2037,7 +2037,7 @@ test("event2message: editing a rich reply to a sim user", async t => {
 					content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
 						+ " Slow news day."
 						+ "\nEditing this reply, which is also a test",
-					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+					avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 					allowed_mentions: {
 						parse: ["users", "roles"]
 					}
@@ -2093,7 +2093,7 @@ test("event2message: editing a plaintext body message", async t => {
 				message: {
 					username: "cadence [they]",
 					content: "well, I guess it's no longer brand new... it's existed for mere seconds...",
-					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+					avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 					allowed_mentions: {
 						parse: ["users", "roles"]
 					}
@@ -2148,7 +2148,7 @@ test("event2message: editing a plaintext message to be longer", async t => {
 				message: {
 					content: "aaaaaaaaa ".repeat(198) + "well, I guess it's",
 					username: "cadence [they]",
-					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+					avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 					allowed_mentions: {
 						parse: ["users", "roles"]
 					}
@@ -2157,7 +2157,7 @@ test("event2message: editing a plaintext message to be longer", async t => {
 			messagesToSend: [{
 				content: "no longer brand new... it's existed for mere seconds..." + ("aaaaaaaaa ".repeat(20)).slice(0, -1),
 				username: "cadence [they]",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2210,7 +2210,7 @@ test("event2message: editing a plaintext message to be shorter", async t => {
 				message: {
 					username: "cadence [they]",
 					content: "well, I guess it's no longer brand new... it's existed for mere seconds...",
-					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+					avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 					allowed_mentions: {
 						parse: ["users", "roles"]
 					}
@@ -2271,7 +2271,7 @@ test("event2message: editing a formatted body message", async t => {
 				message: {
 					username: "cadence [they]",
 					content: "**well, I guess it's no longer brand new... it's existed for mere seconds...**",
-					avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+					avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 					allowed_mentions: {
 						parse: ["users", "roles"]
 					}
@@ -2328,7 +2328,7 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 **Ⓜcadence [they]**:"
 					+ " i should have a little happy test   list bold em..."
 					+ "\n**no you can't!!!**",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2390,7 +2390,7 @@ test("event2message: rich reply to an image", async t => {
 				username: "cadence [they]",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504> 🖼️"
 					+ "\nCaught in 8K UHD VR QLED Epic Edition",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2446,7 +2446,7 @@ test("event2message: rich reply to a spoiler should ensure the spoiler is hidden
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
 					+ " [spoiler] cw crossword spoilers you'll never..."
 					+ "\nomg NO WAY!!",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2501,7 +2501,7 @@ test("event2message: with layered rich replies, the preview should only be the r
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 **Ⓜcadence [they]**:"
 					+ " two"
 					+ "\nthree",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -2558,7 +2558,7 @@ test("event2message: if event is a reply and starts with a quote, they should be
 					+ " i have a feeling that clients are meant to strip..."
 					+ "\n"
 					+ "\n> To strip the fallback on the `body`, the client should iterate over each line of the string, removing any lines that start with the fallback prefix (\"> “, including the space, without quotes) and stopping when a line is encountered without the prefix. This prefix is known as the “fallback prefix sequence”.",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP",
+				avatar_url: "https://bridge.example.org/download/matrix/syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -2616,7 +2616,7 @@ test("event2message: rich reply to a deleted event", async t => {
 				username: "Ampflower 🌺",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**ⓂAmpflower 🌺** (in reply to a deleted message)"
 					+ "\nHuh it did the same thing here too",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/PRfhXYBTOalvgQYtmCLeUXko",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/PRfhXYBTOalvgQYtmCLeUXko",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3384,7 +3384,7 @@ test("event2message: caches the member if the member is not known", async t => {
 			messagesToSend: [{
 				username: "should_be_newly_cached",
 				content: "testing the member state cache",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/this_is_the_avatar",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/this_is_the_avatar",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3548,7 +3548,7 @@ test("event2message: text attachments work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: undefined, filename: "chiki-powerups.txt"}],
 				pendingFiles: [{name: "chiki-powerups.txt", mxc: "mxc://cadence.moe/zyThGlYQxvlvBVbVgKDDbiHH"}]
 			}]
@@ -3584,7 +3584,7 @@ test("event2message: image attachments work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: undefined, filename: "cool cat.png"}],
 				pendingFiles: [{name: "cool cat.png", mxc: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
 			}]
@@ -3620,9 +3620,9 @@ test("event2message: image attachments can have a custom description", async t =
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: "Cat emoji surrounded by pink hearts", filename: "cool cat.png"}],
-				pendingFiles: [{name: "cool cat.png", url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
+				pendingFiles: [{name: "cool cat.png", mxc: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
 			}]
 		}
 	)
@@ -3670,7 +3670,7 @@ test("event2message: encrypted image attachments work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", description: undefined, filename: "image.png"}],
 				pendingFiles: [{
 					name: "image.png",
@@ -3715,7 +3715,7 @@ test("event2message: stickers work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				attachments: [{id: "0", filename: "get_real2.gif"}],
 				pendingFiles: [{name: "get_real2.gif", mxc: "mxc://cadence.moe/NyMXQFAAdniImbHzsygScbmN"}]
 			}]
@@ -3851,7 +3851,7 @@ test("event2message: emojis in other servers are reused if they have the same ti
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<:hippo:230201364309868544>",
-				avatar_url: "https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3910,7 +3910,7 @@ test("event2message: unknown emojis in the middle are linked", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "a [:ms_robot_grin:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy) b",
+				content: "a [:ms_robot_grin:](https://bridge.example.org/download/matrix/cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy) b",
 				avatar_url: undefined,
 				allowed_mentions: {
 					parse: ["users", "roles"]
@@ -4333,7 +4333,7 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
 	}
 	t.deepEqual(testResult, {
-		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://matrix.cadence.moe/_matrix/media/r0/download/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
+		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://bridge.example.org/download/matrix/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
 		fileName: "emojis.png",
 		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAeXRFWHRSYXcACklQVEMgcHJvZmlsZQogICAgICA0Ngoz"
 	})

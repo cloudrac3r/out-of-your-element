@@ -55,7 +55,6 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 async function dispatchInteraction(interaction) {
 	const interactionId = interaction.data.custom_id || interaction.data.name
 	try {
-		console.log(interaction)
 		if (interactionId === "Matrix info") {
 			await matrixInfo.interact(interaction)
 		} else if (interactionId === "invite") {

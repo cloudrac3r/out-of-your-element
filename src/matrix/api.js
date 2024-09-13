@@ -3,12 +3,12 @@
 const Ty = require("../types")
 const assert = require("assert").strict
 
+const fetch = require("node-fetch")
+
 const passthrough = require("../passthrough")
 const { discord, sync, db } = passthrough
 /** @type {import("./mreq")} */
 const mreq = sync.require("./mreq")
-/** @type {import("./file")} */
-const file = sync.require("./file")
 /** @type {import("./txnid")} */
 const makeTxnId = sync.require("./txnid")
 const {reg} = require("./read-registration.js")
