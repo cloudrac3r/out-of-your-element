@@ -110,47 +110,52 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
     ├── start.js
     * Runtime configuration, like tokens and user info:
     ├── registration.yaml
-    * The bridge's SQLite database is stored here:
-    ├── db
-    │   ├── *.sql, *.db
-    │   * Migrations change the database schema when you update to a newer version of OOYE:
-    │   └── migrations
-    │       └── *.sql, *.js
-    * Discord-to-Matrix bridging:
-    ├── d2m
-    │   * Execute actions through the whole flow, like sending a Discord message to Matrix:
-    │   ├── actions
-    │   │   └── *.js
-    │   * Convert data from one form to another without depending on bridge state. Called by actions:
-    │   ├── converters
-    │   │   └── *.js
-    │   * Making Discord work:
-    │   ├── discord-*.js
-    │   * Listening to events from Discord and dispatching them to the correct `action`:
-    │   └── event-dispatcher.js
-    ├── discord
-    │   └── discord-command-handler.js
-    * Matrix-to-Discord bridging:
-    ├── m2d
-    │   * Execute actions through the whole flow, like sending a Matrix message to Discord:
-    │   ├── actions
-    │   │   └── *.js
-    │   * Convert data from one form to another without depending on bridge state. Called by actions:
-    │   ├── converters
-    │   │   └── *.js
-    │   * Listening to events from Matrix and dispatching them to the correct `action`:
-    │   └── event-dispatcher.js
-    * We aren't using the matrix-js-sdk, so here are all the functions for the Matrix C-S and Appservice APIs:
-    ├── matrix
-    │   └── *.js
-    * Various files you can run once if you need them.
-    ├── scripts
-    │   * First time running a new bridge? Run this file to plant a seed, which will flourish into state for the bridge:
-    │   ├── seed.js
-    │   * Hopefully you won't need the rest of these. Code quality varies wildly.
-    │   └── *.js
     * You are here! :)
     └── readme.md
+    * Source code
+    └── src
+        * The bridge's SQLite database is stored here:
+        ├── db
+        │   ├── *.sql, *.db
+        │   * Migrations change the database schema when you update to a newer version of OOYE:
+        │   └── migrations
+        │       └── *.sql, *.js
+        * Discord-to-Matrix bridging:
+        ├── d2m
+        │   * Execute actions through the whole flow, like sending a Discord message to Matrix:
+        │   ├── actions
+        │   │   └── *.js
+        │   * Convert data from one form to another without depending on bridge state. Called by actions:
+        │   ├── converters
+        │   │   └── *.js
+        │   * Making Discord work:
+        │   ├── discord-*.js
+        │   * Listening to events from Discord and dispatching them to the correct `action`:
+        │   └── event-dispatcher.js
+        * Discord bot commands and menus:
+        ├── discord
+        │   ├── interactions
+        │   │   └── *.js
+        │   └── discord-command-handler.js
+        * Matrix-to-Discord bridging:
+        ├── m2d
+        │   * Execute actions through the whole flow, like sending a Matrix message to Discord:
+        │   ├── actions
+        │   │   └── *.js
+        │   * Convert data from one form to another without depending on bridge state. Called by actions:
+        │   ├── converters
+        │   │   └── *.js
+        │   * Listening to events from Matrix and dispatching them to the correct `action`:
+        │   └── event-dispatcher.js
+        * We aren't using the matrix-js-sdk, so here are all the functions for the Matrix C-S and Appservice APIs:
+        ├── matrix
+        │   └── *.js
+        * Various files you can run once if you need them.
+        └── scripts
+            * First time running a new bridge? Run this file to plant a seed, which will flourish into state for the bridge:
+            ├── seed.js
+            * Hopefully you won't need the rest of these. Code quality varies wildly.
+            └── *.js
 
 ## Dependency justification
 
@@ -160,7 +165,7 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 * (1) @cloudrac3r/discord-markdown: This is my fork!
 * (0) @cloudrac3r/giframe: This is my fork!
 * (1) @cloudrac3r/html-template-tag: This is my fork!
-* (16) @cloudrac3r/in-your-element: This is my Matrix Appservice API library. It has several dependencies because HTTP servers have to do more than you'd think.
+* (0) @cloudrac3r/in-your-element: This is my Matrix Appservice API library. It depends on h3 and zod, which are already pulled in by OOYE.
 * (0) @cloudrac3r/mixin-deep: This is my fork! (It fixes a bug in regular mixin-deep.)
 * (0) @cloudrac3r/pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
 * (0) @cloudrac3r/turndown: This HTML-to-Markdown converter looked the most suitable. I forked it to change the escaping logic to match the way Discord works.
@@ -172,6 +177,7 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 * (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
 * (0) get-stream: Only needed if content_length_workaround is true.
+* (14) h3: HTTP server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for an HTTP server.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
@@ -182,5 +188,6 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 * (10) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
+* (0) zod: Input validation for the web server. It's popular and easy to use.
 
 Total transitive production dependencies: 116
