@@ -121,7 +121,7 @@ function timestampToSnowflakeInexact(timestamp) {
 
 /** @param {string} url */
 function getPublicUrlForCdn(url) {
-	const match = url.match(`https://cdn.discordapp.com/attachments/([0-9]+)/([0-9]+)/([-A-Za-z0-9_.,]+)`)
+	const match = url.match(/https:\/\/cdn.discordapp.com\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/)
 	if (!match) return url
 	return `${reg.ooye.bridge_origin}/download/discordcdn/${match[1]}/${match[2]}/${match[3]}`
 }

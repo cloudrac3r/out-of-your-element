@@ -363,6 +363,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	/**
+	 * Translate Discord attachment links into links that go via the bridge, so they last forever.
+	 */
+	function transformAttachmentLinks(content) {
+		return content.replace(/https:\/\/cdn\.discord(?:app)?\.com\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/g, url => dUtils.getPublicUrlForCdn(url))
+	}
+
+	/**
 	 * Translate links and emojis and mentions and stuff. Give back the text and HTML so they can be combined into bigger events.
 	 * @param {string} content Partial or complete Discord message content
 	 * @param {any} customOptions
@@ -370,6 +377,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 * @param {any} customHtmlOutput
 	 */
 	async function transformContent(content, customOptions = {}, customParser = null, customHtmlOutput = null) {
+		content = transformAttachmentLinks(content)
 		content = await transformContentMessageLinks(content)
 
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
