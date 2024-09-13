@@ -1,7 +1,7 @@
 // @ts-check
 
-const config = require("./config")
-const token = config.discordToken
+const {reg} = require("./src/matrix/read-registration")
+const token = reg.ooye.discord_token
 const id = Buffer.from(token.split(".")[0], "base64").toString()
 
 function addbot() {

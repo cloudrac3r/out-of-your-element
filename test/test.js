@@ -13,7 +13,6 @@ const data = require("./data")
 const fetch = require("node-fetch")
 const {green} = require("colorette")
 
-const config = require("../config")
 const passthrough = require("../src/passthrough")
 const db = new sqlite(":memory:")
 
@@ -46,7 +45,7 @@ const discord = {
 	])
 }
 
-Object.assign(passthrough, { discord, config, sync, db })
+Object.assign(passthrough, { discord, sync, db })
 
 const orm = sync.require("../src/db/orm")
 passthrough.from = orm.from

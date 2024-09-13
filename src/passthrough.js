@@ -3,7 +3,6 @@
 /**
  * @typedef {Object} Passthrough
  * @property {import("repl").REPLServer} repl
- * @property {typeof import("./config")} config
  * @property {import("./d2m/discord-client")} discord
  * @property {import("heatsync").default} sync
  * @property {import("better-sqlite3/lib/database")} db

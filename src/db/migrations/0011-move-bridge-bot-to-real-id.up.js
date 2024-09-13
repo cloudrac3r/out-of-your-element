@@ -10,7 +10,6 @@
 */
 
 module.exports = async function(db) {
-	const config = require("../../../config")
-	const id = Buffer.from(config.discordToken.split(".")[0], "base64").toString()
+	const id = require("../../../addbot").id
 	db.prepare("UPDATE OR REPLACE sim SET user_id = ? WHERE user_id = '0'").run(id)
 }

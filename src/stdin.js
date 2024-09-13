@@ -5,7 +5,7 @@ const util = require("util")
 const {addbot} = require("../addbot")
 
 const passthrough = require("./passthrough")
-const {discord, config, sync, db} = passthrough
+const {discord, sync, db} = passthrough
 
 const data = sync.require("../test/data")
 const createSpace = sync.require("./d2m/actions/create-space")

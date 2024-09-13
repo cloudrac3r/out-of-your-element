@@ -4,18 +4,18 @@ const sqlite = require("better-sqlite3")
 const migrate = require("./src/db/migrate")
 const HeatSync = require("heatsync")
 
-const config = require("./config")
+const {reg} = require("./src/matrix/read-registration")
 const passthrough = require("./src/passthrough")
 const db = new sqlite("src/db/ooye.db")
 
 /** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync()
 
-Object.assign(passthrough, {config, sync, db})
+Object.assign(passthrough, {sync, db})
 
 const DiscordClient = require("./src/d2m/discord-client")
 
-const discord = new DiscordClient(config.discordToken, "no")
+const discord = new DiscordClient(reg.ooye.discord_token)
 passthrough.discord = discord
 
 const {as} = require("./src/matrix/appservice")
@@ -26,7 +26,7 @@ passthrough.from = orm.from
 passthrough.select = orm.select
 
 const power = require("./src/matrix/power.js")
-// sync.require("./src/m2d/event-dispatcher")
+sync.require("./src/m2d/event-dispatcher")
 
 ;(async () => {
 	await migrate.migrate(db)
