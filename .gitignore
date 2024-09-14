@@ -1,7 +1,16 @@
-node_modules
+# Secrets
 config.js
 registration.yaml
-coverage
 ooye.db*
+events.db*
+
+# Automatically generated
+node_modules
+coverage
 test/res/*
 !test/res/lottie*
+icon.svg
+*~
+.#*
+\#*#
+launch.json
