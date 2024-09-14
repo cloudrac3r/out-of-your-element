@@ -5,7 +5,6 @@ const Ty = require("../../types")
 const {discord, sync, db, select, from} = require("../../passthrough")
 const assert = require("assert/strict")
 
-
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 

@@ -27,8 +27,6 @@ const updatePins = sync.require("./actions/update-pins")
 const api = sync.require("../matrix/api")
 /** @type {import("../discord/utils")} */
 const dUtils = sync.require("../discord/utils")
-/** @type {import("../discord/discord-command-handler")}) */
-const discordCommandHandler = sync.require("../discord/discord-command-handler")
 /** @type {import("../m2d/converters/utils")} */
 const mxUtils = require("../m2d/converters/utils")
 /** @type {import("./actions/speedbump")} */
@@ -266,7 +264,6 @@ module.exports = {
 
 		// @ts-ignore
 		await sendMessage.sendMessage(message, channel, guild, row),
-		await discordCommandHandler.execute(message, channel, guild)
 
 		retrigger.messageFinishedBridging(message.id)
 	},
@@ -313,7 +310,6 @@ module.exports = {
 	 */
 	async onReactionAdd(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
-		discordCommandHandler.onReactionAdd(data)
 		await addReaction.addReaction(data)
 	},
 

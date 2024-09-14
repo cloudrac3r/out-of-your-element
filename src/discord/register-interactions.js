@@ -9,6 +9,9 @@ const invite = sync.require("./interactions/invite.js")
 const permissions = sync.require("./interactions/permissions.js")
 const bridge = sync.require("./interactions/bridge.js")
 const reactions = sync.require("./interactions/reactions.js")
+const privacy = sync.require("./interactions/privacy.js")
+
+// User must have EVERY permission in default_member_permissions to be able to use the command
 
 discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	name: "Matrix info",
@@ -40,14 +43,40 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	name: "bridge",
 	contexts: [DiscordTypes.InteractionContextType.Guild],
 	type: DiscordTypes.ApplicationCommandType.ChatInput,
-	description: "Start bridging this channel to a Matrix room.",
+	description: "Start bridging this channel to a Matrix room",
 	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.ManageChannels),
 	options: [
 		{
 			type: DiscordTypes.ApplicationCommandOptionType.String,
-			description: "Destination room to bridge to.",
+			description: "Destination room to bridge to",
 			name: "room",
 			autocomplete: true
+		}
+	]
+}, {
+	name: "privacy",
+	contexts: [DiscordTypes.InteractionContextType.Guild],
+	type: DiscordTypes.ApplicationCommandType.ChatInput,
+	description: "Change whether Matrix users can join through direct invites, links, or the public directory.",
+	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.ManageGuild),
+	options: [
+		{
+			type: DiscordTypes.ApplicationCommandOptionType.String,
+			description: "Check or set the new privacy level",
+			name: "level",
+			choices: [{
+				name: "❓️ Check the current privacy level and get more information.",
+				value: "info"
+			}, {
+				name: "🤝 Only allow joining with a direct in-app invite from another user. No shareable invite links.",
+				value: "invite"
+			}, {
+				name: "🔗 Matrix links can be created and shared like Discord's invite links. In-app invites still work.",
+				value: "link",
+			}, {
+				name: "🌏️ Publicly visible in the Matrix directory, like Server Discovery. Invites and links still work.",
+				value: "directory"
+			}]
 		}
 	]
 }])
@@ -69,6 +98,8 @@ async function dispatchInteraction(interaction) {
 			await bridge.interact(interaction)
 		} else if (interactionId === "Reactions") {
 			await reactions.interact(interaction)
+		} else if (interactionId === "privacy") {
+			await privacy.interact(interaction)
 		} else {
 			throw new Error(`Unknown interaction ${interactionId}`)
 		}
