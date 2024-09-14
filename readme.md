@@ -55,7 +55,7 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 
 Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached in memory. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
 
-The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. Some event IDs are actually stored as xxhash integers to reduce storage requirements even more. On my personal instance of OOYE, every 100,000 messages require 16.1 MB of storage space in the SQLite database.
+The bridge uses a small SQLite database to store relationships like which Discord messages correspond to which Matrix messages. This is so the bridge knows what to edit when some message is edited on Discord. Using `without rowid` on the database tables stores the index and the data in the same B-tree. Since Matrix and Discord's internal IDs are quite long, this vastly reduces storage space because those IDs do not have to be stored twice separately. Some event IDs and URLs are actually stored as xxhash integers to reduce storage requirements even more. On my personal instance of OOYE, every 300,000 messages (representing a year of conversations) requires 47.3 MB of storage space in the SQLite database.
 
 Only necessary data and columns are queried from the database. We only contact the homeserver API if the database doesn't contain what we need.
 
@@ -83,7 +83,7 @@ Follow these steps:
 
 1. Run `node scripts/seed.js` to check your setup and set the bot's initial state. It will prompt you for information. You only need to run this once ever.
 
-1. Start the bridge: `node start.js`
+1. Start the bridge: `npm run start`
 
 1. Add the bot to a server - use any *one* of the following commands for an invite link:
 	* (in the REPL) `addbot`
@@ -106,18 +106,19 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 ## Repository structure
 
     .
-    * Run this to start the bridge:
-    ├── start.js
     * Runtime configuration, like tokens and user info:
     ├── registration.yaml
     * You are here! :)
-    └── readme.md
+    ├── readme.md
+	 * The bridge's SQLite database is stored here:
+	 ├── ooye.db*
     * Source code
     └── src
-        * The bridge's SQLite database is stored here:
+        * Database schema:
         ├── db
-        │   ├── *.sql, *.db
-        │   * Migrations change the database schema when you update to a newer version of OOYE:
+		  │   ├── orm.js, orm-defs.d.ts
+		  │   * Migrations change the database schema when you update to a newer version of OOYE:
+        │   ├── migrate.js
         │   └── migrations
         │       └── *.sql, *.js
         * Discord-to-Matrix bridging:

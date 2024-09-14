@@ -5,7 +5,7 @@ const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
 
 const passthrough = require("../src/passthrough")
-const db = new sqlite("db/ooye.db")
+const db = new sqlite("ooye.db")
 
 const sync = new HeatSync({watchFS: false})
 

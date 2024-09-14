@@ -7,7 +7,7 @@
 const sqlite = require("better-sqlite3")
 
 const passthrough = require("../src/passthrough")
-const db = new sqlite("db/ooye.db")
+const db = new sqlite("ooye.db")
 const migrate = require("../src/db/migrate")
 
 Object.assign(passthrough, {db})

@@ -7,7 +7,7 @@ const HeatSync = require("heatsync")
 
 const {reg} = require("./src/matrix/read-registration")
 const passthrough = require("./src/passthrough")
-const db = new sqlite("src/db/ooye.db")
+const db = new sqlite("ooye.db")
 
 /** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync()

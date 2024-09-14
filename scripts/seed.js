@@ -21,11 +21,11 @@ const args = require("minimist")(process.argv.slice(2), {string: ["emoji-guild"]
 // Move database file if it's still in the old location
 if (fs.existsSync("db")) {
 	if (fs.existsSync("db/ooye.db")) {
-		fs.renameSync("db/ooye.db", "src/db/ooye.db")
+		fs.renameSync("db/ooye.db", "ooye.db")
 	}
 	const files = fs.readdirSync("db")
 	if (files.length) {
-		console.error("You must manually move or delete the files in the db folder:")
+		console.error("The db folder is deprecated and must be removed. Your ooye.db database file has already been moved to the root of the repo. You must manually move or delete the remaining files:")
 		for (const file of files) {
 			console.error(file)
 		}
@@ -35,7 +35,7 @@ if (fs.existsSync("db")) {
 }
 
 const passthrough = require("../src/passthrough")
-const db = new sqlite("src/db/ooye.db")
+const db = new sqlite("ooye.db")
 const migrate = require("../src/db/migrate")
 
 const sync = new HeatSync({watchFS: false})
