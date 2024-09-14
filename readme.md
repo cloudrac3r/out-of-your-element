@@ -41,7 +41,7 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Custom emoji list syncing
 * Custom emojis in messages
 * Custom room names/avatars can be applied on Matrix-side
-* Larger files from Discord are linked instead of reuploaded to Matrix
+* Larger files from Discord are linked instead of reuploaded to Matrix (links don't expire)
 * Simulated user accounts are named @the_persons_username rather than @112233445566778899
 
 For more information about features, [see the user guide.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/user-guide.md)
