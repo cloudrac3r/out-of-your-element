@@ -17,20 +17,15 @@ const schema = {
 /** @type {Map<string, Promise<string>>} */
 const cache = new Map()
 
-function hasExpired(url) {
+/** @param {string} url */
+function timeUntilExpiry(url) {
 	const params = new URL(url).searchParams
 	const ex = params.get("ex")
 	assert(ex) // refreshed urls from the discord api always include this parameter
-	return parseInt(ex, 16) < Date.now() / 1000
+	const time = parseInt(ex, 16)*1000 - Date.now()
+	if (time > 0) return time
+	return false
 }
-
-// purge expired urls from cache every hour
-setInterval(() => {
-	for (const entry of cache.entries()) {
-		if (hasExpired(entry[1])) cache.delete(entry[0])
-	}
-	console.log(`purged discord media cache, it now has ${cache.size} urls`)
-}, 60 * 60 * 1000).unref()
 
 as.router.get(`/download/discordcdn/:channel_id/:attachment_id/:file_name`, defineEventHandler(async event => {
 	const params = await getValidatedRouterParams(event, schema.params.parse)
@@ -45,18 +40,21 @@ as.router.get(`/download/discordcdn/:channel_id/:attachment_id/:file_name`, defi
 
 	const url = `https://cdn.discordapp.com/attachments/${params.channel_id}/${params.attachment_id}/${params.file_name}`
 	let promise = cache.get(url)
+	/** @type {string | undefined} */
 	let refreshed
 	if (promise) {
-		console.log("using existing cache entry")
 		refreshed = await promise
-		if (hasExpired(refreshed)) promise = undefined
-		console.log(promise)
+		if (!timeUntilExpiry(refreshed)) promise = undefined
 	}
 	if (!promise) {
-		console.log("refreshing and storing")
 		promise = discord.snow.channel.refreshAttachmentURLs([url]).then(x => x.refreshed_urls[0].refreshed)
 		cache.set(url, promise)
 		refreshed = await promise
+		const time = timeUntilExpiry(refreshed)
+		assert(time) // the just-refreshed URL will always be in the future
+		setTimeout(() => {
+			cache.delete(url)
+		}, time).unref()
 	}
 	assert(refreshed) // will have been assigned by one of the above branches
 
