@@ -366,7 +366,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 * Translate Discord attachment links into links that go via the bridge, so they last forever.
 	 */
 	function transformAttachmentLinks(content) {
-		return content.replace(/https:\/\/cdn\.discord(?:app)?\.com\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/g, url => dUtils.getPublicUrlForCdn(url))
+		return content.replace(/https:\/\/(cdn|media)\.discordapp\.(?:com|net)\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/g, url => dUtils.getPublicUrlForCdn(url))
 	}
 
 	/**
