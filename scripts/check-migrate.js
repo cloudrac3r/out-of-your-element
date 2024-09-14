@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // @ts-check
 
 // Trigger the database migration flow and exit after committing.
@@ -5,11 +6,10 @@
 
 const sqlite = require("better-sqlite3")
 
-const config = require("../config")
-const passthrough = require("../passthrough")
+const passthrough = require("../src/passthrough")
 const db = new sqlite("db/ooye.db")
-const migrate = require("../db/migrate")
+const migrate = require("../src/db/migrate")
 
-Object.assign(passthrough, {config, db })
+Object.assign(passthrough, {db})
 
 migrate.migrate(db)

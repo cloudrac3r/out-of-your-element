@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // @ts-check
 
 // ****
@@ -16,16 +17,16 @@ function fieldToPresenceValue(field) {
 const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
 
-const config = require("../config")
-const passthrough = require("../passthrough")
+const {reg} = require("../src/matrix/read-registration")
+const passthrough = require("../src/passthrough")
 
 const sync = new HeatSync({watchFS: false})
 
-Object.assign(passthrough, {config, sync})
+Object.assign(passthrough, {sync})
 
-const DiscordClient = require("../d2m/discord-client")
+const DiscordClient = require("../src/d2m/discord-client")
 
-const discord = new DiscordClient(config.discordToken, "no")
+const discord = new DiscordClient(reg.ooye.discord_token, "no")
 passthrough.discord = discord
 
 ;(async () => {

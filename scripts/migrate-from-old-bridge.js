@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // @ts-check
 
 const assert = require("assert").strict
@@ -6,12 +7,11 @@ const Semaphore = require("@chriscdn/promise-semaphore")
 const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
 
-const config = require("../config")
-const passthrough = require("../passthrough")
+const passthrough = require("../src/passthrough")
 
 const sync = new HeatSync({watchFS: false})
 
-const {reg} = require("../matrix/read-registration")
+const {reg} = require("../src/matrix/read-registration")
 assert(reg.old_bridge)
 const oldAT = reg.old_bridge.as_token
 const newAT = reg.as_token
@@ -25,19 +25,19 @@ db.exec(`CREATE TABLE IF NOT EXISTS half_shot_migration (
 	PRIMARY KEY("discord_channel")
 ) WITHOUT ROWID;`)
 
-Object.assign(passthrough, {config, sync, db})
+Object.assign(passthrough, {sync, db})
 
-const DiscordClient = require("../d2m/discord-client")
-const discord = new DiscordClient(config.discordToken, "half")
+const DiscordClient = require("../src/d2m/discord-client")
+const discord = new DiscordClient(reg.ooye.discord_token, "half")
 passthrough.discord = discord
 
-/** @type {import("../d2m/actions/create-space")} */
+/** @type {import("../src/d2m/actions/create-space")} */
 const createSpace = sync.require("../d2m/actions/create-space")
-/** @type {import("../d2m/actions/create-room")} */
+/** @type {import("../src/d2m/actions/create-room")} */
 const createRoom = sync.require("../d2m/actions/create-room")
-/** @type {import("../matrix/mreq")} */
+/** @type {import("../src/matrix/mreq")} */
 const mreq = sync.require("../matrix/mreq")
-/** @type {import("../matrix/api")} */
+/** @type {import("../src/matrix/api")} */
 const api = sync.require("../matrix/api")
 
 const sema = new Semaphore()

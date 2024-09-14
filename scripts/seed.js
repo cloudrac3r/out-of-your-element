@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // @ts-check
 
 const assert = require("assert").strict
@@ -33,14 +34,13 @@ if (fs.existsSync("db")) {
 	fs.rmSync("db", {recursive: true})
 }
 
-const config = require("../config")
 const passthrough = require("../src/passthrough")
 const db = new sqlite("src/db/ooye.db")
 const migrate = require("../src/db/migrate")
 
 const sync = new HeatSync({watchFS: false})
 
-Object.assign(passthrough, { sync, config, db })
+Object.assign(passthrough, {sync, db})
 
 const orm = sync.require("../src/db/orm")
 passthrough.from = orm.from
@@ -225,7 +225,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	assert(utils.eventSenderIsFromDiscord(mxid), "appservice's mxid must be in the namespace it controls")
 	assert(reg.ooye.server_origin.match(/^https?:\/\//), "server origin must start with http or https")
 	assert.notEqual(reg.ooye.server_origin.slice(-1), "/", "server origin must not end in slash")
-	const botID = Buffer.from(config.discordToken.split(".")[0], "base64").toString()
+	const botID = Buffer.from(reg.ooye.discord_token.split(".")[0], "base64").toString()
 	assert(botID.match(/^[0-9]{10,}$/), "discord token must follow the correct format")
 	assert.match(reg.url, /^https?:/, "url must start with http:// or https://")
 
