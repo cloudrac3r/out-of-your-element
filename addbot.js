@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // @ts-check
 
 const {reg} = require("./src/matrix/read-registration")
