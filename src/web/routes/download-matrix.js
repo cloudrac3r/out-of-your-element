@@ -3,15 +3,16 @@
 const assert = require("assert/strict")
 const {defineEventHandler, getValidatedRouterParams, setResponseStatus, setResponseHeader, sendStream, createError} = require("h3")
 const {z} = require("zod")
-const fetch = require("node-fetch").default
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
 let hasher = null
 // @ts-ignore
 require("xxhash-wasm")().then(h => hasher = h)
 
-const {reg} = require("../../matrix/read-registration")
-const {as, select} = require("../../passthrough")
+const {sync, as, select} = require("../../passthrough")
+
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
 
 const schema = {
 	params: z.object({
@@ -35,11 +36,7 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 		})
 	}
 
-	const res = await fetch(`${reg.ooye.server_origin}/_matrix/client/v1/media/download/${params.server_name}/${params.media_id}`, {
-		headers: {
-			Authorization: `Bearer ${reg.as_token}`
-		}
-	})
+	const res = await api.getMedia(`mxc://${params.server_name}/${params.media_id}`)
 
 	const contentType = res.headers.get("content-type")
 	assert(contentType)
