@@ -87,6 +87,9 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	if (res.status !== 200) return `There is no Matrix server at that URL (${url}/_matrix/client/versions returned ${res.status})`
 	try {
 		var json = await res.json()
+		if (!Array.isArray(json?.versions) || !json.versions.includes("v1.11")) {
+			return `OOYE needs Matrix version v1.11, but ${url} doesn't support this`
+		}
 	} catch (e) {
 		return `There is no Matrix server at that URL (${url}/_matrix/client/versions is not JSON)`
 	}
