@@ -219,8 +219,6 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 
 	as.close().catch(() => {})
 
-	console.log("⏩ Processing. This could take up to 30 seconds. Please be patient...")
-
 	const mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
 	// ensure registration is correctly set...
@@ -302,6 +300,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	console.log("✅ Discord profile updated...")
 
 	// set profile data on homeserver...
+	console.log("⏩ Updating Matrix profile... (If you've joined lots of rooms, this is slow. Please allow at least 30 seconds.)")
 	await api.profileSetDisplayname(mxid, "Out Of Your Element")
 	await api.profileSetAvatarUrl(mxid, avatarUrl)
 	console.log("✅ Matrix profile updated...")
