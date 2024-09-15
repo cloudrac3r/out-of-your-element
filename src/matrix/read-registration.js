@@ -4,7 +4,6 @@ const fs = require("fs")
 const crypto = require("crypto")
 const assert = require("assert").strict
 const path = require("path")
-const yaml = require("js-yaml")
 
 const registrationFilePath = path.join(process.cwd(), "registration.yaml")
 
@@ -60,18 +59,10 @@ function getTemplateRegistration() {
 function readRegistration() {
 	/** @type {import("../types").AppServiceRegistrationConfig} */ // @ts-ignore
 	let result = null
-	if (fs.existsSync(registrationFilePath)) {
+	try {
 		const content = fs.readFileSync(registrationFilePath, "utf8")
-		if (content.startsWith("{")) { // Use JSON parser
-			result = JSON.parse(content)
-			checkRegistration(result)
-		} else { // Use YAML parser
-			result = yaml.load(content)
-			checkRegistration(result)
-			// Convert to JSON
-			writeRegistration(result)
-		}
-	}
+		result = JSON.parse(content)
+	} catch (e) {}
 	return result
 }
 
