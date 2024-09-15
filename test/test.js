@@ -11,7 +11,7 @@ const data = require("./data")
 /** @type {import("node-fetch").default} */
 // @ts-ignore
 const fetch = require("node-fetch")
-const {green} = require("colorette")
+const {green} = require("ansi-colors")
 
 const passthrough = require("../src/passthrough")
 const db = new sqlite(":memory:")
