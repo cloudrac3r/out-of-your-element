@@ -83,7 +83,7 @@ Follow these steps:
 
 1. Run `node scripts/seed.js` to check your setup and set the bot's initial state. It will prompt you for information. You only need to run this once ever.
 
-1. Start the bridge: `npm run start`
+1. Start the bridge: `npm start`
 
 1. Add the bot to a server - use any *one* of the following commands for an invite link:
 	* (in the REPL) `addbot`
