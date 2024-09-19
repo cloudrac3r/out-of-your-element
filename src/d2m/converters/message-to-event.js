@@ -349,8 +349,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 					result = `https://matrix.to/#/${roomID}/${eventID}?${via}`
 				} else {
 					const ts = dUtils.snowflakeToTimestampExact(messageID)
-					const {event_id} = await di.api.getEventForTimestamp(roomID, ts)
-					result = `https://matrix.to/#/${roomID}/${event_id}?${via}`
+					try {
+						const {event_id} = await di.api.getEventForTimestamp(roomID, ts)
+						result = `https://matrix.to/#/${roomID}/${event_id}?${via}`
+					} catch (e) {
+						// M_NOT_FOUND: Unable to find event from <ts> in direction Direction.FORWARDS
+						result = `[unknown event, timestamp resolution failed, in room: https://matrix.to/#/${roomID}?${via}]`
+					}
 				}
 			} else {
 				result = `${match[0]} [event is from another server]`
