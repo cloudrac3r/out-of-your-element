@@ -74,7 +74,7 @@ You'll need:
 
 Follow these steps:
 
-1. [Get Node.js version 18 or later](https://nodejs.org/en/download/prebuilt-installer)
+1. [Get Node.js version 20 or later](https://nodejs.org/en/download/prebuilt-installer)
 
 1. Clone this repo and checkout a specific tag. (Development happens on main. Stable versions are tagged.)
 	* The latest release tag is ![](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=flat-square&label=%20&color=black).
@@ -87,19 +87,18 @@ Follow these steps:
 
 1. Add the bot to a server - use any *one* of the following commands for an invite link:
 	* (in the REPL) `addbot`
-	* (in a chat) `//addbot`
 	* $ `node addbot.js`
 	* $ `npm run addbot`
 	* $ `./addbot.sh`
 
 Now any message on Discord will create the corresponding rooms on Matrix-side. After the rooms have been created, Matrix and Discord users can chat back and forth.
 
-To get into the rooms on your Matrix account, either add yourself to `invite` in `registration.yaml`, or use the `//invite [your mxid here]` command on Discord.
+To get into the rooms on your Matrix account, use the `/invite [your mxid here]` command on Discord.
 
 # Development setup
 
 * Install development dependencies with `npm install --save-dev` so you can run the tests.
-* Any files you change will automatically be reloaded, except for `stdin.js` and `d2m/discord-*.js`.
+* Most files you change, such as actions, converters, and web, will automatically be reloaded.
 * If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 me@matrix.cadence.moe`
 * I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotation comments work. I don't know which other editors or language servers support annotations and type inference.
 
@@ -160,35 +159,40 @@ To get into the rooms on your Matrix account, either add yourself to `invite` in
 
 ## Dependency justification
 
-(deduped transitive dependency count) dependency name: explanation
+Total transitive production dependencies: 147
 
-* (0) @chriscdn/promise-semaphore: It does what I want! I like it!
-* (1) @cloudrac3r/discord-markdown: This is my fork!
-* (0) @cloudrac3r/giframe: This is my fork!
-* (1) @cloudrac3r/html-template-tag: This is my fork!
+### <font size="+2">🦕</font>
+
+* (31) better-sqlite3: SQLite3 is the best database, and this is the best library for it.
+* (27) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
+* (16) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
+* (14) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for a web server.
+* (11) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets.
+
+### <font size="-1">🪱</font>
+
+* (0) @chriscdn/promise-semaphore: It does what I want.
+* (1) @cloudrac3r/discord-markdown: This is my fork.
+* (0) @cloudrac3r/giframe: This is my fork.
+* (1) @cloudrac3r/html-template-tag: This is my fork.
 * (0) @cloudrac3r/in-your-element: This is my Matrix Appservice API library. It depends on h3 and zod, which are already pulled in by OOYE.
-* (0) @cloudrac3r/mixin-deep: This is my fork! (It fixes a bug in regular mixin-deep.)
+* (0) @cloudrac3r/mixin-deep: This is my fork. (It fixes a bug in regular mixin-deep.)
 * (0) @cloudrac3r/pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
 * (0) @cloudrac3r/turndown: This HTML-to-Markdown converter looked the most suitable. I forked it to change the escaping logic to match the way Discord works.
+* (3) @stackoverflow/stacks: Stack Overflow design language and icons.
 * (0) ansi-colors: Helps with interactive prompting for the initial setup, and it's already pulled in by enquirer.
-* (42) better-sqlite3: SQLite3 is the best database, and this is the best library for it. Really! I love it.
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
 * (0) domino: DOM implementation that's already pulled in by turndown.
 * (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
 * (0) get-stream: Only needed if content_length_workaround is true.
-* (14) h3: HTTP server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for an HTTP server.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
 * (3) node-fetch@2: I like it and it does what I want. Version 2 is used because version 3 is ESM-only.
 * (0) prettier-bytes: It does what I want and has no dependencies.
-* (51) sharp: Image compositing and processing. Jimp has fewer dependencies, but sharp is faster.
-* (8) snowtransfer: Discord API library with bring-your-own-caching that I trust.
-* (10) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
+* (2) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
 * (0) zod: Input validation for the web server. It's popular and easy to use.
-
-Total transitive production dependencies: 116
