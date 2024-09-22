@@ -5,6 +5,13 @@ const assert = require("assert").strict
 
 const {reg} = require("../matrix/read-registration")
 
+const {db} = require("../passthrough")
+
+/** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
+let hasher = null
+// @ts-ignore
+require("xxhash-wasm")().then(h => hasher = h)
+
 const EPOCH = 1420070400000
 
 /**
@@ -123,6 +130,9 @@ function timestampToSnowflakeInexact(timestamp) {
 function getPublicUrlForCdn(url) {
 	const match = url.match(/https:\/\/(cdn|media)\.discordapp\.(?:com|net)\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/)
 	if (!match) return url
+	const unsignedHash = hasher.h64(match[3]) // attachment ID
+	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
+	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
 	return `${reg.ooye.bridge_origin}/download/discord${match[1]}/${match[2]}/${match[3]}/${match[4]}`
 }
 

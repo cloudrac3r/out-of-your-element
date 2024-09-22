@@ -4,6 +4,11 @@ const assert = require("assert/strict")
 const {defineEventHandler, getValidatedRouterParams, sendRedirect, createError} = require("h3")
 const {z} = require("zod")
 
+/** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
+let hasher = null
+// @ts-ignore
+require("xxhash-wasm")().then(h => hasher = h)
+
 const {discord, as, select} = require("../../passthrough")
 
 const schema = {
@@ -31,7 +36,10 @@ function defineMediaProxyHandler(domain) {
 	return defineEventHandler(async event => {
 		const params = await getValidatedRouterParams(event, schema.params.parse)
 
-		const row = select("channel_room", "channel_id", {channel_id: params.channel_id}).get()
+		const unsignedHash = hasher.h64(params.attachment_id)
+		const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
+
+		const row = select("media_proxy", "permitted_hash", {permitted_hash: signedHash}).get()
 		if (row == null) {
 			throw createError({
 				status: 403,
