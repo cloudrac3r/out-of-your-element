@@ -1,0 +1,99 @@
+// @ts-check
+
+const assert = require("assert/strict")
+const {z} = require("zod")
+const {defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody} = require("h3")
+const {randomUUID} = require("crypto")
+const {LRUCache} = require("lru-cache")
+
+const {discord, as, sync, select} = require("../../passthrough")
+/** @type {import("../pug-sync")} */
+const pugSync = sync.require("../pug-sync")
+const {reg} = require("../../matrix/read-registration")
+
+/** @type {import("../../matrix/api")} */
+const api = sync.require("../../matrix/api")
+
+const schema = {
+	guild: z.object({
+		guild_id: z.string().optional()
+	}),
+	invite: z.object({
+		mxid: z.string().regex(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/),
+		permissions: z.enum(["default", "moderator"]),
+		guild_id: z.string().optional(),
+		nonce: z.string().optional()
+	}),
+	inviteNonce: z.object({
+		nonce: z.string()
+	})
+}
+
+/** @type {LRUCache<string, string>} nonce to guild id */
+const validNonce = new LRUCache({max: 200})
+
+as.router.get("/guild", defineEventHandler(async event => {
+	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
+	const nonce = randomUUID()
+	if (guild_id) {
+		// Security note: the nonce alone is valid for updating the guild
+		// We have not verified the user has sufficient permissions in the guild at generation time
+		// These permissions are checked later during page rendering and the generated nonce is only revealed if the permissions are sufficient
+		validNonce.set(nonce, guild_id)
+	}
+	return pugSync.render(event, "guild.pug", {nonce})
+}))
+
+as.router.get("/invite", defineEventHandler(async event => {
+	const {nonce} = await getValidatedQuery(event, schema.inviteNonce.parse)
+	const isValid = validNonce.has(nonce)
+	const guild_id = validNonce.get(nonce)
+	const guild = discord.guilds.get(guild_id || "")
+	return pugSync.render(event, "invite.pug", {isValid, nonce, guild_id, guild})
+}))
+
+as.router.post("/api/invite", defineEventHandler(async event => {
+	const parsedBody = await readValidatedBody(event, schema.invite.parse)
+	const session = await useSession(event, {password: reg.as_token})
+
+	// Check guild ID or nonce
+	if (parsedBody.guild_id) {
+		var guild_id = parsedBody.guild_id
+		if (!(session.data.managedGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't invite users to a guild you don't have Manage Server permissions in"})
+	} else if (parsedBody.nonce) {
+		if (!validNonce.has(parsedBody.nonce)) throw createError({status: 403, message: "Nonce expired", data: "Nonce means number-used-once, and, well, you tried to use it twice..."})
+		let ok = validNonce.get(parsedBody.nonce)
+		assert(ok)
+		var guild_id = ok
+		validNonce.delete(parsedBody.nonce)
+	} else {
+		throw createError({status: 400, message: "Missing guild ID", data: "Passing a guild ID or a nonce is required."})
+	}
+
+	// Check guild is bridged
+	const spaceID = select("guild_space", "space_id", {guild_id: guild_id}).pluck().get()
+	if (!spaceID) throw createError({status: 428, message: "Server not bridged", data: "You can only invite Matrix users to servers that are bridged to Matrix."})
+
+	// Check for existing invite to the space
+	let spaceMember
+	try {
+		spaceMember = await api.getStateEvent(spaceID, "m.room.member", parsedBody.mxid)
+	} catch (e) {}
+	if (spaceMember && (spaceMember.membership === "invite" || spaceMember.membership === "join")) {
+		return sendRedirect(event, `/guild?guild_id=${guild_id}`, 302)
+	}
+
+	// Invite
+	await api.inviteToRoom(spaceID, parsedBody.mxid)
+
+	// Permissions
+	if (parsedBody.permissions === "moderator") {
+		await api.setUserPowerCascade(spaceID, parsedBody.mxid, 50)
+	}
+
+	if (parsedBody.guild_id) {
+		return sendRedirect(event, `/guild?guild_id=${guild_id}`, 302)
+	} else {
+		return sendRedirect(event, "/ok?msg=User has been invited.", 302)
+	}
+}))

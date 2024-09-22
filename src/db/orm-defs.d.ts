@@ -31,6 +31,7 @@ export type Models = {
 		guild_id: string
 		space_id: string
 		privacy_level: number
+		autocreate: number
 	}
 
 	lottie: {

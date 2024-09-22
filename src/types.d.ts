@@ -24,6 +24,7 @@ export type AppServiceRegistrationConfig = {
 		server_origin: string
 		bridge_origin: string
 		discord_token: string
+		discord_client_secret: string
 		content_length_workaround: boolean
 		include_user_id_in_mxid: boolean
 		invite: string[]

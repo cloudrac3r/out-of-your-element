@@ -1,0 +1,159 @@
+extends includes/template.pug
+
+mixin badge-readonly
+  .s-badge.s-badge__xs.s-badge__icon.s-badge__muted
+    != icons.Icons.IconEyeSm
+    | Read-only
+
+mixin badge-private
+  .s-badge.s-badge__xs.s-badge__icon.s-badge__warning
+    != icons.Icons.IconLockSm
+    | Private
+
+mixin discord(channel, radio=false)
+  - let permissions = dUtils.getPermissions([], discord.guilds.get(channel.guild_id).roles, "", channel.permission_overwrites)
+  .s-user-card.s-user-card__small
+    if !dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
+      != icons.Icons.IconLock
+    else if channel.type === 5
+      != icons.Icons.IconBullhorn
+    else if channel.type === 2
+      != icons.Icons.IconPhone
+    else if channel.type === 11 || channel.type === 12
+      != icons.Icons.IconCollection
+    else
+      include includes/hash.svg
+    .s-user-card--info.ws-nowrap
+      if radio
+        = channel.name
+      else
+        .s-user-card--link.fs-body1
+          a(href=`https://discord.com/channels/${channel.guild_id}/${channel.id}`)= channel.name
+      if channel.parent_id
+        .s-user-card--location= discord.channels.get(channel.parent_id).name
+      if !dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
+        +badge-private
+      else if !dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.SendMessages)
+        +badge-readonly
+
+mixin matrix(row, radio=false, badge="")
+  .s-user-card.s-user-card__small
+    != icons.Icons.IconMessage
+    .s-user-card--info.ws-nowrap
+      if radio
+        = row.nick || row.name
+      else
+        .s-user-card--link.fs-body1
+          a(href=`https://matrix.to/#/${row.room_id}`)= row.nick || row.name
+
+block body
+  if !guild_id && session.data.managedGuilds
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotEmptyXL
+      p Select a server from the top right corner to continue.
+      p If the server you're looking for isn't there, try #[a(href="/oauth?action=add") logging in again.]
+
+  else if !session.data.managedGuilds
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotEmptyXL
+      p You need to log in to manage your servers.
+      a.s-btn.s-btn__icon.s-btn__filled(href="/oauth")
+        != icons.Icons.IconDiscord
+        = ` Log in with Discord`
+
+  else if !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotAlertXL
+      p Either the selected server doesn't exist, or you don't have the Manage Server permission on Discord.
+      p If you've checked your permissions, try #[a(href="/oauth") logging in again.]
+
+  else
+    - let guild = discord.guilds.get(guild_id)
+
+    .s-page-title.mb24
+      h1.s-page-title--header= guild.name
+
+    .d-flex.g16
+      .fl-grow1
+        h2.fs-headline1 Invite a Matrix user
+
+        form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" style="grid-template-rows: repeat(2, auto)")
+          label.s-label(for="mxid") Matrix ID
+          input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
+          label.s-label(for="permissions") Permissions
+          .s-select
+            select#permissions(name="permissions")
+              option(value="default") Default
+              option(value="moderator") Moderator
+          input(type="hidden" name="guild_id" value=guild_id)
+          .grid--row-start2
+            button.s-btn.s-btn__filled.htmx-indicator Invite
+      div
+        -
+          let size = 105
+          let src = new URL(`https://api.qrserver.com/v1/create-qr-code/?qzone=1&format=svg&size=${size}x${size}`)
+          src.searchParams.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
+        img(width=size height=size src=src.toString())
+
+    h2.mt48.fs-headline1 Linked channels
+
+    -
+      function getPosition(channel) {
+        let position = 0
+        let looking = channel
+        while (looking.parent_id) {
+          looking = discord.channels.get(looking.parent_id)
+          position = looking.position * 1000
+        }
+        if (channel.position) position += channel.position
+        return position
+      }
+      let channelIDs = discord.guildChannelMap.get(guild_id)
+
+      let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
+      let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c})).filter(c => c.channel)
+      let linkedChannelIDs = linkedChannelsWithDetails.map(c => c.channel_id)
+      linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel) - getPosition(b.channel))
+
+      let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
+      let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c)).filter(c => [0, 5].includes(c.type))
+      unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
+    .s-card.bs-sm.p0
+      .s-table-container
+        table.s-table.s-table__bx-simple
+          each row in linkedChannelsWithDetails
+            tr
+              td.w40: +discord(row.channel)
+              td.p2: button.s-btn.s-btn__muted.s-btn__xs!= icons.Icons.IconLinkSm
+              td: +matrix(row)
+          else
+            tr
+              td(colspan="3")
+                .s-empty-state No channels linked between Discord and Matrix yet...
+
+    h3.mt32.fs-category Auto-create
+    .s-card
+      form.d-flex.ai-center.g8
+        label.s-label.fl-grow1(for="autocreate")
+          | Create new Matrix rooms automatically
+          p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when a new Discord channel is spoken in.
+        - let value = select("guild_space", "autocreate", {guild_id}).pluck().get()
+        input(type="hidden" name="guild_id" value=guild_id)
+        input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
+        .is-loading#autocreate-loading
+
+    h3.mt32.fs-category Manually link channels
+    form.d-flex.g16.ai-start(method="post" action="/api/link")
+      .fl-grow2.s-btn-group.fd-column.w40
+        each channel in unlinkedChannels
+          input.s-btn--radio(type="radio" name="discord" id=channel.id value=channel.id)
+          label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
+            +discord(channel, true, "Announcement")
+        else
+          .s-empty-state.p8 All Discord channels are linked.
+      .fl-grow1.s-btn-group.fd-column.w30
+        .s-empty-state.p8 I don't know how to get the Matrix room list yet...
+      div
+        button.s-btn.s-btn__icon.s-btn__filled
+          != icons.Icons.IconLink
+          = ` Connect`

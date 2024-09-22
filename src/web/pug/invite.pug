@@ -1,0 +1,32 @@
+extends includes/template.pug
+
+block body
+  if !isValid
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotAlertXL
+      p This QR code has expired.
+      p Refresh the guild management page to generate a new one.
+
+  else
+    - let guild = discord.guilds.get(guild_id)
+
+    .s-page-title.mb24
+      h1.s-page-title--header= guild.name
+
+    .d-flex.g16
+      .fl-grow1
+        h2.fs-headline1 Invite a Matrix user
+
+        form.d-flex.gy16.fd-column(method="post" action="/api/invite" style="grid-template-rows: repeat(2, auto)")
+          .d-flex.gy4.fd-column
+            label.s-label(for="mxid") Matrix ID
+            input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
+          .d-flex.gy4.fd-column
+            label.s-label(for="permissions") Permissions
+            .s-select
+              select#permissions(name="permissions")
+                option(value="default") Default
+                option(value="moderator") Moderator
+          input(type="hidden" name="nonce" value=nonce)
+          div
+            button.s-btn.s-btn__filled.htmx-indicator Invite

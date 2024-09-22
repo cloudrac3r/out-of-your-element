@@ -189,6 +189,7 @@ Total transitive production dependencies: 147
 * (0) get-stream: Only needed if content_length_workaround is true.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
+* (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
 * (3) node-fetch@2: I like it and it does what I want. Version 2 is used because version 3 is ESM-only.
 * (0) prettier-bytes: It does what I want and has no dependencies.

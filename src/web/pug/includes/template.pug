@@ -1,0 +1,66 @@
+mixin guild(guild)
+  span.s-avatar.s-avatar__32.s-user-card--avatar
+    if guild.icon
+      img.s-avatar--image(src=`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=32`)
+    else
+      .s-avatar--letter.bg-silver-400.bar-md(aria-hidden="true")= guild.name[0]
+  .s-user-card--info.ai-start
+    strong= guild.name
+    ul.s-user-card--awards
+      li #{discord.guildChannelMap.get(guild.id).filter(c => [0, 5, 15, 16].includes(discord.channels.get(c).type)).length} channels
+
+doctype html
+html(lang="en")
+  head
+    title Out Of Your Element
+    link(rel="stylesheet" type="text/css" href="/static/stacks.min.css")
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 80%22><text y=%22.83em%22 font-size=%2283%22>💬</text></svg>">
+    meta(name="htmx-config" content='{"indicatorClass":"is-loading"}')
+    style.
+      .themed {
+        --theme-base-primary-color-h: 266;
+        --theme-base-primary-color-s: 53%;
+        --theme-base-primary-color-l: 63%;
+        --theme-dark-primary-color-h: 266;
+        --theme-dark-primary-color-s: 53%;
+        --theme-dark-primary-color-l: 63%;
+      }
+  body.themed.theme-system
+    header.s-topbar
+      .s-topbar--skip-link(href="#content") Skip to main content
+      .s-topbar--container.wmx9
+        a.s-topbar--logo(href="/")
+          img.s-avatar.s-avatar__32(src="/icon.png")
+        nav.s-topbar--navigation
+          ul.s-topbar--content
+            li.ps-relative
+              if !session.data.managedGuilds || session.data.managedGuilds.length === 0
+                a.s-btn.s-btn__icon.as-center(href="/oauth")
+                  != icons.Icons.IconDiscord
+                  = ` Log in`
+              else if guild_id && session.data.managedGuilds.includes(guild_id) && discord.guilds.has(guild_id)
+                button.s-topbar--item.s-btn.s-btn__muted.s-user-card(popovertarget="guilds")
+                  +guild(discord.guilds.get(guild_id))
+              else if session.data.managedGuilds
+                button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr24.s-user-card.s-label(popovertarget="guilds")
+                  | Your servers
+              #guilds(popover data-popper-placement="bottom" style="display: revert; width: revert;").s-popover.overflow-visible
+                .s-popover--arrow.s-popover--arrow__tc
+                .s-popover--content.overflow-y-auto.overflow-x-hidden
+                  ul.s-menu(role="menu")
+                    each guild in (session.data.managedGuilds || []).map(id => discord.guilds.get(id)).filter(g => g)
+                      li(role="menuitem")
+                        a.s-topbar--item.s-user-card.d-flex.p4(href=`/guild?guild_id=${guild.id}`)
+                          +guild(guild)
+    .mx-auto.w100.wmx9.py24#content
+      block body
+    script.
+      document.querySelectorAll("[popovertarget]").forEach(e => {
+        e.addEventListener("click", () => {
+          const rect = e.getBoundingClientRect()
+          const t = `:popover-open { position: absolute; top: ${Math.floor(rect.bottom)}px; left: ${Math.floor(rect.left + rect.width / 2)}px; width: ${Math.floor(rect.width)}px; transform: translateX(-50%); box-sizing: content-box; margin: 0 }`
+          // console.log(t)
+          document.styleSheets[0].insertRule(t)
+        })
+      })
+    script(src="/static/htmx.min.js")

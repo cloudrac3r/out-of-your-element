@@ -6,7 +6,7 @@ const { Client: CloudStorm } = require("cloudstorm")
 const passthrough = require("../passthrough")
 const { sync } = passthrough
 
-/** @type {typeof import("./discord-packets")} */
+/** @type {import("./discord-packets")} */
 const discordPackets = sync.require("./discord-packets")
 
 class DiscordClient {

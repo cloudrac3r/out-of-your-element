@@ -38,6 +38,7 @@ const passthrough = require("../src/passthrough")
 const db = new sqlite("ooye.db")
 const migrate = require("../src/db/migrate")
 
+/** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, {sync, db})
@@ -166,8 +167,28 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 				}
 			}
 		})
+
+		console.log("What is your Discord client secret?")
+		/** @type {{discord_client_secret: string}} */
+		const clientSecretResponse = await prompt({
+			type: "input",
+			name: "discord_client_secret",
+			message: "Client secret"
+		})
+
 		const template = getTemplateRegistration()
-		reg = {...template, url: bridgeOriginResponse.bridge_origin, ooye: {...template.ooye, ...serverNameResponse, ...bridgeOriginResponse, server_origin: serverOrigin, ...discordTokenResponse}}
+		reg = {
+			...template,
+			url: bridgeOriginResponse.bridge_origin,
+			ooye: {
+				...template.ooye,
+				...serverNameResponse,
+				...bridgeOriginResponse,
+				server_origin: serverOrigin,
+				...discordTokenResponse,
+				...clientSecretResponse
+			}
+		}
 		registration.reg = reg
 		checkRegistration(reg)
 		writeRegistration(reg)

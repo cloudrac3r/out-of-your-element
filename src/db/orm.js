@@ -15,8 +15,13 @@ function select(table, cols, where = {}, e = "") {
 	if (!Array.isArray(cols)) cols = [cols]
 	const parameters = []
 	const wheres = Object.entries(where).map(([col, value]) => {
-		parameters.push(value)
-		return `"${col}" = ?`
+		if (Array.isArray(value)) {
+			parameters.push(...value)
+			return `"${col}" IN (` + Array(value.length).fill("?").join(", ") + ")"
+		} else {
+			parameters.push(value)
+			return `"${col}" = ?`
+		}
 	})
 	const whereString = wheres.length ? " WHERE " + wheres.join(" AND ") : ""
 	/** @type {U.Prepared<Pick<U.Models[Table], Col>>} */
