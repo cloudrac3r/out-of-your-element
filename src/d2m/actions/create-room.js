@@ -180,7 +180,7 @@ async function channelToKState(channel, guild, di) {
 			network: {
 				id: guild.id,
 				displayname: guild.name,
-				avatar_url: await file.uploadDiscordFileToMxc(file.guildIcon(guild))
+				avatar_url: {$url: file.guildIcon(guild)}
 			},
 			channel: {
 				id: channel.id,
