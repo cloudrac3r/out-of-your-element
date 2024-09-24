@@ -4,6 +4,10 @@ const DiscordTypes = require("discord-api-types/v10")
 const assert = require("assert/strict")
 const {discord, sync, db, select, from} = require("../../passthrough")
 
+/** @type {import("../../d2m/actions/create-room")} */
+const createRoom = sync.require("../../d2m/actions/create-room")
+/** @type {import("../../d2m/actions/create-space")} */
+const createSpace = sync.require("../../d2m/actions/create-space")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 
@@ -12,17 +16,6 @@ const api = sync.require("../../matrix/api")
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
 async function _interact({data, channel, guild_id}) {
-	// Check guild is bridged
-	const spaceID = select("guild_space", "space_id", {guild_id}).pluck().get()
-	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
-	if (!spaceID || !roomID) return {
-		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
-		data: {
-			content: "This server isn't bridged to Matrix, so you can't invite Matrix users.",
-			flags: DiscordTypes.MessageFlags.Ephemeral
-		}
-	}
-
 	// Get named MXID
 	/** @type {DiscordTypes.APIApplicationCommandInteractionDataStringOption[] | undefined} */ // @ts-ignore
 	const options = data.options
@@ -35,6 +28,13 @@ async function _interact({data, channel, guild_id}) {
 			flags: DiscordTypes.MessageFlags.Ephemeral
 		}
 	}
+
+	// Ensure guild and room are bridged
+	db.prepare("INSERT OR IGNORE INTO guild_active (guild_id, autocreate) VALUES (?, 1)").run(guild_id)
+	const roomID = await createRoom.ensureRoom(channel.id)
+	assert(roomID)
+	const spaceID = select("guild_space", "space_id", {guild_id}).pluck().get()
+	assert(spaceID)
 
 	// Check for existing invite to the space
 	let spaceMember
