@@ -58,7 +58,7 @@ module.exports = {
 				network: {
 					id: "112760669178241024",
 					displayname: "Psychonauts 3",
-					avatar_url: "mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF"
+					avatar_url: {$url: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024"}
 				},
 				channel: {
 					id: "112760669178241024",

@@ -1,6 +1,7 @@
 // @ts-check
 
 const DiscordTypes = require("discord-api-types/v10")
+const Ty = require("../../types")
 const assert = require("assert/strict")
 const {discord, sync, db, select, from} = require("../../passthrough")
 
@@ -12,7 +13,7 @@ const createSpace = sync.require("../../d2m/actions/create-space")
 const api = sync.require("../../matrix/api")
 
 /**
- * @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction} interaction
+ * @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction & {channel: DiscordTypes.APIGuildTextChannel}} interaction
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
 async function _interact({data, channel, guild_id}) {
@@ -29,12 +30,23 @@ async function _interact({data, channel, guild_id}) {
 		}
 	}
 
+	const guild = discord.guilds.get(guild_id)
+	assert(guild)
+
 	// Ensure guild and room are bridged
 	db.prepare("INSERT OR IGNORE INTO guild_active (guild_id, autocreate) VALUES (?, 1)").run(guild_id)
+	const existing = createRoom.existsOrAutocreatable(channel, guild_id)
+	if (existing === 0) return {
+		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			content: "This channel isn't bridged, so you can't invite Matrix users yet. Try turning on automatic room-creation or link a Matrix room in the website.",
+			flags: DiscordTypes.MessageFlags.Ephemeral
+		}
+	}
+	assert(existing) // can't be null or undefined as we just inserted the guild_active row
+
+	const spaceID = await createSpace.ensureSpace(guild)
 	const roomID = await createRoom.ensureRoom(channel.id)
-	assert(roomID)
-	const spaceID = select("guild_space", "space_id", {guild_id}).pluck().get()
-	assert(spaceID)
 
 	// Check for existing invite to the space
 	let spaceMember
@@ -115,7 +127,7 @@ async function _interactButton({channel, message}) {
 	}
 }
 
-/** @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction} interaction */
+/** @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction & {channel: DiscordTypes.APIGuildTextChannel}} interaction */
 async function interact(interaction) {
 	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interact(interaction))
 }

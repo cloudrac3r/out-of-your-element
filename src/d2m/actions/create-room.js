@@ -15,8 +15,6 @@ const api = sync.require("../../matrix/api")
 const ks = sync.require("../../matrix/kstate")
 /** @type {import("../../discord/utils")} */
 const utils = sync.require("../../discord/utils")
-/** @type {import("./create-space")}) */
-const createSpace = sync.require("./create-space") // watch out for the require loop
 
 /**
  * There are 3 levels of room privacy:
@@ -95,27 +93,21 @@ function convertNameAndTopic(channel, guild, customName) {
 async function channelToKState(channel, guild, di) {
 	// @ts-ignore
 	const parentChannel = discord.channels.get(channel.parent_id)
-	/** Used for membership/permission checks. */
-	let guildSpaceID
-	/** Used as the literal parent on Matrix, for categorisation. Will be the same as `guildSpaceID` unless it's a forum channel's thread, in which case a different space is used to group those threads. */
-	let parentSpaceID
-	let privacyLevel
-	if (parentChannel?.type === DiscordTypes.ChannelType.GuildForum) { // it's a forum channel's thread, so use a different space to group those threads
-		guildSpaceID = await createSpace.ensureSpace(guild)
-		parentSpaceID = await ensureRoom(channel.parent_id)
-		privacyLevel = select("guild_space", "privacy_level", {space_id: guildSpaceID}).pluck().get()
-	} else { // otherwise use the guild's space like usual
-		parentSpaceID = await createSpace.ensureSpace(guild)
-		guildSpaceID = parentSpaceID
-		privacyLevel = select("guild_space", "privacy_level", {space_id: parentSpaceID}).pluck().get()
-	}
-	assert(typeof parentSpaceID === "string")
-	assert(typeof guildSpaceID === "string")
-	assert(typeof privacyLevel === "number")
+	const guildRow = select("guild_space", ["space_id", "privacy_level"], {guild_id: guild.id}).get()
+	assert(guildRow)
 
-	const row = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
-	const customName = row?.nick
-	const customAvatar = row?.custom_avatar
+	/** Used for membership/permission checks. */
+	let guildSpaceID = guildRow.space_id
+	/** Used as the literal parent on Matrix, for categorisation. Will be the same as `guildSpaceID` unless it's a forum channel's thread, in which case a different space is used to group those threads. */
+	let parentSpaceID = guildSpaceID
+	if (parentChannel?.type === DiscordTypes.ChannelType.GuildForum) {
+		parentSpaceID = await ensureRoom(channel.parent_id)
+		assert(typeof parentSpaceID === "string")
+	}
+
+	const channelRow = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
+	const customName = channelRow?.nick
+	const customAvatar = channelRow?.custom_avatar
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
 
 	const avatarEventContent = {}
@@ -125,6 +117,7 @@ async function channelToKState(channel, guild, di) {
 		avatarEventContent.url = {$url: file.guildIcon(guild)}
 	}
 
+	const privacyLevel = guildRow.privacy_level
 	let history_visibility = PRIVACY_ENUMS.ROOM_HISTORY_VISIBILITY[privacyLevel]
 	if (channel["thread_metadata"]) history_visibility = "world_readable"
 
@@ -280,14 +273,58 @@ function channelToGuild(channel) {
 }
 
 /**
- * @param {string} channelID
+ * This function handles whether it's allowed to bridge messages in this channel, and if so, where to.
+ * This has to account for whether self-service is enabled for the guild or not.
+ * This also has to account for different channel types, like forum channels (which need the
+ * parent forum to already exist, and ignore the self-service setting), or thread channels (which
+ * need the parent channel to already exist, and ignore the self-service setting).
+ * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel text channel or thread
  * @param {string} guildID
+ * @returns obj if bridged; 1 if autocreatable; null/undefined if guild is not bridged; 0 if self-service and not autocreatable thread
  */
-function existsOrAutocreatable(channelID, guildID) {
-	const existing = select("channel_room", ["room_id", "thread_parent"], {channel_id: channelID}).get()
+function existsOrAutocreatable(channel, guildID) {
+	// 1. If the channel is already linked somewhere, it's always okay to bridge to that destination, no matter what. Yippee!
+	const existing = select("channel_room", ["room_id", "thread_parent"], {channel_id: channel.id}).get()
 	if (existing) return existing
+
+	// 2. If the guild is an autocreate guild, it's always okay to bridge to that destination, and
+	// we'll need to create any dependent resources recursively.
 	const autocreate = select("guild_active", "autocreate", {guild_id: guildID}).pluck().get()
+	if (autocreate === 1) return autocreate
+
+	// 3. If the guild is not approved for bridging yet, we can't bridge there.
+	// They need to decide one way or another whether it's self-service before we can continue.
+	if (autocreate == null) return autocreate
+
+	// 4. If we got here, the guild is in self-service mode.
+	// New channels won't be able to create new rooms. But forum threads or channel threads could be fine.
+	if ([DiscordTypes.ChannelType.PublicThread, DiscordTypes.ChannelType.PrivateThread, DiscordTypes.ChannelType.AnnouncementThread].includes(channel.type)) {
+		// In self-service mode, threads rely on the parent resource already existing.
+		/** @type {DiscordTypes.APIGuildTextChannel} */ // @ts-ignore
+		const parent = discord.channels.get(channel.parent_id)
+		assert(parent)
+		const parentExisting = existsOrAutocreatable(parent, guildID)
+		if (parentExisting) return 1 // Autocreatable
+	}
+
+	// 5. If we got here, the guild is in self-service mode and the channel is truly not bridged.
 	return autocreate
+}
+
+/**
+ * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel text channel or thread
+ * @param {string} guildID
+ * @returns obj if bridged; 1 if autocreatable. (throws if not autocreatable)
+ */
+function assertExistsOrAutocreatable(channel, guildID) {
+	const existing = existsOrAutocreatable(channel, guildID)
+	if (existing === 0) {
+		throw new Error(`Guild ${guildID} is self-service, so won't create a Matrix room for channel ${channel.id}`)
+	}
+	if (!existing) {
+		throw new Error(`Guild ${guildID} is not bridged, so won't create a Matrix room for channel ${channel.id}`)
+	}
+	return existing
 }
 
 /*
@@ -323,15 +360,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		await inflightRoomCreate.get(channelID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	const existing = existsOrAutocreatable(channelID, guild.id)
-
-	if (existing === 0) {
-		throw new Error("refusing to create a new matrix room when autocreate is deactivated")
-	}
-
-	if (!existing) {
-		throw new Error("refusing to craete a new matrix room when there is no guild_active entry")
-	}
+	const existing = assertExistsOrAutocreatable(channel, guild.id)
 
 	if (existing === 1) {
 		const creation = (async () => {
@@ -475,3 +504,5 @@ module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._unbridgeRoom = _unbridgeRoom
 module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
+module.exports.assertExistsOrAutocreatable = assertExistsOrAutocreatable
+module.exports.existsOrAutocreatable = existsOrAutocreatable

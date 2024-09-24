@@ -92,6 +92,9 @@ async function _syncSpace(guild, shouldActuallySync) {
 	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id: guild.id}).get()
 
 	if (!row) {
+		const autocreate = select("guild_active", "autocreate", {guild_id: guild.id}).pluck().get()
+		assert.equal(autocreate, 1, `refusing to implicitly create guild ${guild.id}. set the guild_active data first before calling ensureSpace/syncSpace.`)
+
 		const creation = (async () => {
 			const guildKState = await guildToKState(guild, createRoom.DEFAULT_PRIVACY_LEVEL) // New spaces will have to use the default privacy level; we obviously can't look up the existing entry
 			const spaceID = await createSpace(guild, guildKState)
