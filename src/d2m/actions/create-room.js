@@ -279,6 +279,17 @@ function channelToGuild(channel) {
 	return guild
 }
 
+/**
+ * @param {string} channelID
+ * @param {string} guildID
+ */
+function existsOrAutocreatable(channelID, guildID) {
+	const existing = select("channel_room", ["room_id", "thread_parent"], {channel_id: channelID}).get()
+	if (existing) return existing
+	const autocreate = select("guild_active", "autocreate", {guild_id: guildID}).pluck().get()
+	return autocreate
+}
+
 /*
 	Ensure flow:
 	1. Get IDs
@@ -297,6 +308,7 @@ function channelToGuild(channel) {
 */
 
 /**
+ * Create room and/or sync room data. Please check that a channel_room entry exists or autocreate = 1 before calling this.
  * @param {string} channelID
  * @param {boolean} shouldActuallySync false if just need to ensure room exists (which is a quick database check), true if also want to sync room data when it does exist (slow)
  * @returns {Promise<string>} room ID
@@ -311,9 +323,17 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		await inflightRoomCreate.get(channelID) // just waiting, and then doing a new db query afterwards, is the simplest way of doing it
 	}
 
-	const existing = select("channel_room", ["room_id", "thread_parent"], {channel_id: channelID}).get()
+	const existing = existsOrAutocreatable(channelID, guild.id)
+
+	if (existing === 0) {
+		throw new Error("refusing to create a new matrix room when autocreate is deactivated")
+	}
 
 	if (!existing) {
+		throw new Error("refusing to craete a new matrix room when there is no guild_active entry")
+	}
+
+	if (existing === 1) {
 		const creation = (async () => {
 			const {spaceID, privacyLevel, channelKState} = await channelToKState(channel, guild, {api})
 			const roomID = await createRoom(channel, guild, spaceID, channelKState, privacyLevel)
@@ -353,12 +373,12 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	return roomID
 }
 
-/** Ensures the room exists. If it doesn't, creates the room with an accurate initial state. */
+/** Ensures the room exists. If it doesn't, creates the room with an accurate initial state. Please check that a channel_room entry exists or guild autocreate = 1 before calling this. */
 function ensureRoom(channelID) {
 	return _syncRoom(channelID, false)
 }
 
-/** Actually syncs. Gets all room state from the homeserver in order to diff, and uploads the icon to mxc if it has changed. */
+/** Actually syncs. Gets all room state from the homeserver in order to diff, and uploads the icon to mxc if it has changed. Please check that a channel_room entry exists or guild autocreate = 1 before calling this. */
 function syncRoom(channelID) {
 	return _syncRoom(channelID, true)
 }

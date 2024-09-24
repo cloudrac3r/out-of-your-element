@@ -63,8 +63,8 @@ Pressing buttons on web or using the /invite command on a guild will insert a ro
 
 So here's all the technical changes needed to support self-service in v3:
 
-- New guild_active table showing whether, and how, a guild is bridged
+- New guild_active table showing whether, and how, a guild is bridged.
 - When /invite command is used, INSERT OR IGNORE INTO state 1 and ensureRoom + ensureSpace.
 - When bot is added through "easy mode" web button, REPLACE INTO state 1 and ensureSpace.
-- When bot is added through "self-service" web button, REPLACE INTO state 2.
-- Event dispatcher will only ensureRoom if the guild_active state is 1
+- When bot is added through "self-service" web button, REPLACE INTO state 0.
+- Event dispatcher will only ensureRoom if the guild_active state is 1.

@@ -35,7 +35,7 @@ export type Models = {
 
 	guild_active: {
 		guild_id: string
-		autocreate: number
+		autocreate: 0 | 1
 	}
 
 	lottie: {
