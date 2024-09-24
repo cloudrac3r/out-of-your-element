@@ -139,7 +139,7 @@ block body
           p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when a new Discord channel is spoken in.
         - let value = select("guild_active", "autocreate", {guild_id}).pluck().get()
         input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
+        input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" hx-swap="none" checked=value)
         .is-loading#autocreate-loading
 
     h3.mt32.fs-category Manually link channels
