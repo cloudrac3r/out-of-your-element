@@ -18,6 +18,6 @@ as.router.post("/api/autocreate", defineEventHandler(async event => {
 	const session = await useSession(event, {password: reg.as_token})
 	if (!(session.data.managedGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
-	db.prepare("UPDATE guild_space SET autocreate = ? WHERE guild_id = ?").run(+!!parsedBody.autocreate, parsedBody.guild_id)
+	db.prepare("UPDATE guild_active SET autocreate = ? WHERE guild_id = ?").run(+!!parsedBody.autocreate, parsedBody.guild_id)
 	return sendRedirect(event, `/guild?guild_id=${parsedBody.guild_id}`, 302)
 }))
