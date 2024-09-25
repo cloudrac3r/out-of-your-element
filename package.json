@@ -61,6 +61,7 @@
   },
   "scripts": {
     "start": "node start.js",
+    "setup": "node scripts/setup.js",
     "addbot": "node addbot.js",
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap test/test.js | tap-dot",
     "test-slow": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap --no-worker test/test.js -- --slow | tap-dot",

@@ -81,9 +81,9 @@ Follow these steps:
 
 1. Install dependencies: `npm install`
 
-1. Run `node scripts/seed.js` to check your setup and set the bot's initial state. It will prompt you for information. You only need to run this once ever.
+1. Run `npm run setup` to check your setup and set the bot's initial state. It will prompt you for information. You only need to run this once ever.
 
-1. Start the bridge: `npm start`
+1. Start the bridge: `npm run start`
 
 1. Add the bot to a server - use any *one* of the following commands for an invite link:
 	* (in the REPL) `addbot`
@@ -152,8 +152,8 @@ To get into the rooms on your Matrix account, use the `/invite [your mxid here]`
         │   └── *.js
         * Various files you can run once if you need them.
         └── scripts
-            * First time running a new bridge? Run this file to plant a seed, which will flourish into state for the bridge:
-            ├── seed.js
+            * First time running a new bridge? Run this file to set up prerequisites on the Matrix server:
+            ├── setup.js
             * Hopefully you won't need the rest of these. Code quality varies wildly.
             └── *.js
 

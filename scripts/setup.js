@@ -305,7 +305,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		}
 		// Otherwise, it's the user's problem
 		if (!guild) {
-			return die(`Error: The bot needs to upload some emojis. Please say where to upload them to. Run seed.js again with --emoji-guild=GUILD_ID`)
+			return die(`Error: The bot needs to upload some emojis. Please say where to upload them to. Run setup again with --emoji-guild=GUILD_ID`)
 		}
 		// Upload those emojis to the chosen location
 		db.prepare("REPLACE INTO auto_emoji (name, emoji_id, guild_id) VALUES ('_', '_', ?)").run(guild.id)
