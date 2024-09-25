@@ -5,7 +5,7 @@ const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
 const getStream = require("get-stream")
 
-const {reg} = require("./read-registration.js")
+const {reg, writeRegistration} = require("./read-registration.js")
 
 const baseUrl = `${reg.ooye.server_origin}/_matrix`
 
@@ -45,13 +45,15 @@ async function mreq(method, url, body, extra = {}) {
 	const root = await res.json()
 
 	if (!res.ok || root.errcode) {
-		if (root.error?.includes("Content-Length")) {
-			console.error(`OOYE cannot stream uploads to Synapse. Please choose one of these workarounds:`
-				+ `\n  * Run an nginx reverse proxy to Synapse, and point registration.yaml's`
-				+ `\n    \`server_origin\` to nginx`
-				+ `\n  * Set \`content_length_workaround: true\` in registration.yaml (this will`
-				+ `\n    halve the speed of bridging d->m files)`)
-			throw new Error("Synapse is not accepting stream uploads, see the message above.")
+		if (root.error?.includes("Content-Length") || !reg.ooye.content_length_workaround) {
+			reg.ooye.content_length_workaround = true
+			const root = await mreq(method, url, body, extra)
+			console.error("OOYE cannot stream uploads to Synapse. The `content_length_workaround` option"
+				+ "\nhas been activated in registration.yaml, which works around the problem, but"
+				+ "\nhalves the speed of bridging d->m files. A better way to resolve this problem"
+				+ "\nis to run an nginx reverse proxy to Synapse and re-run OOYE setup.")
+			writeRegistration(reg)
+			return root
 		}
 		delete opts.headers.Authorization
 		throw new MatrixServerError(root, {baseUrl, url, ...opts})
