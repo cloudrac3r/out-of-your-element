@@ -24,8 +24,11 @@ function writeRegistration(reg) {
 	fs.writeFileSync(registrationFilePath, JSON.stringify(reg, null, 2))
 }
 
-/** @returns {import("../types").InitialAppServiceRegistrationConfig} reg */
-function getTemplateRegistration() {
+/**
+ * @param {string} serverName
+ * @returns {import("../types").InitialAppServiceRegistrationConfig} reg
+ */
+function getTemplateRegistration(serverName) {
 	return {
 		id: "ooye",
 		as_token: crypto.randomBytes(32).toString("hex"),
@@ -33,11 +36,11 @@ function getTemplateRegistration() {
 		namespaces: {
 			users: [{
 				exclusive: true,
-				regex: "@_ooye_.*:cadence.moe"
+				regex: `@_ooye_.*:${serverName}`
 			}],
 			aliases: [{
 				exclusive: true,
-				regex: "#_ooye_.*:cadence.moe"
+				regex: `#_ooye_.*:${serverName}`
 			}]
 		},
 		protocols: [
