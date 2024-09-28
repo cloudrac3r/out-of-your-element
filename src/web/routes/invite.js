@@ -9,6 +9,8 @@ const {LRUCache} = require("lru-cache")
 const {discord, as, sync, select} = require("../../passthrough")
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
+/** @type {import("../../d2m/actions/create-space")} */
+const createSpace = sync.require("../../d2m/actions/create-space")
 const {reg} = require("../../matrix/read-registration")
 
 /** @type {import("../../matrix/api")} */
@@ -71,20 +73,20 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 	}
 
 	// Check guild is bridged
-	const spaceID = select("guild_space", "space_id", {guild_id: guild_id}).pluck().get()
-	if (!spaceID) throw createError({status: 428, message: "Server not bridged", data: "You can only invite Matrix users to servers that are bridged to Matrix."})
+	const guild = discord.guilds.get(guild_id)
+	assert(guild)
+	const spaceID = await createSpace.ensureSpace(guild)
 
 	// Check for existing invite to the space
 	let spaceMember
 	try {
 		spaceMember = await api.getStateEvent(spaceID, "m.room.member", parsedBody.mxid)
 	} catch (e) {}
-	if (spaceMember && (spaceMember.membership === "invite" || spaceMember.membership === "join")) {
-		return sendRedirect(event, `/guild?guild_id=${guild_id}`, 302)
-	}
 
-	// Invite
-	await api.inviteToRoom(spaceID, parsedBody.mxid)
+	if (!spaceMember || spaceMember.membership !== "invite" || spaceMember.membership !== "join") {
+		// Invite
+		await api.inviteToRoom(spaceID, parsedBody.mxid)
+	}
 
 	// Permissions
 	if (parsedBody.permissions === "moderator") {

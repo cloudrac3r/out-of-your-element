@@ -7,7 +7,7 @@ const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const fetch = require("node-fetch")
 
-const {as} = require("../../passthrough")
+const {as, db} = require("../../passthrough")
 const {id} = require("../../../addbot")
 const {reg} = require("../../matrix/read-registration")
 
@@ -77,14 +77,19 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	const client = new SnowTransfer(`Bearer ${parsedToken.data.access_token}`)
 	try {
 		const guilds = await client.user.getGuilds()
-		const managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
+		var managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
 		await session.update({managedGuilds})
 	} catch (e) {
 		throw createError({status: 502, message: "API call failed", data: e.message})
 	}
 
+	// Set auto-create for the guild
+	// @ts-ignore
+	if (managedGuilds.includes(parsedQuery.data.guild_id)) {
+		db.prepare("INSERT OR IGNORE INTO guild_active (guild_id, autocreate) VALUES (?, ?)").run(parsedQuery.data.guild_id, +!session.data.selfService)
+	}
+
 	if (parsedQuery.data.guild_id) {
-		// TODO: we probably need to create a matrix space and database entry immediately here so that self-service settings apply and so matrix users can be invited
 		return sendRedirect(event, `/guild?guild_id=${parsedQuery.data.guild_id}`, 302)
 	}
 
