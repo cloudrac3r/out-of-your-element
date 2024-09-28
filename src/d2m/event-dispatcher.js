@@ -191,7 +191,7 @@ module.exports = {
 	async onThreadCreate(client, thread) {
 		const channelID = thread.parent_id || undefined
 		const parentRoomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
-		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel
+		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel (won't autocreate)
 		const threadRoomID = await createRoom.syncRoom(thread.id) // Create room (will share the same inflight as the initial message to the thread)
 		await announceThread.announceThread(parentRoomID, threadRoomID, thread)
 	},
@@ -249,6 +249,7 @@ module.exports = {
 		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
 		const channel = client.channels.get(message.channel_id)
 		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
+
 		const guild = client.guilds.get(channel.guild_id)
 		assert(guild)
 
@@ -259,11 +260,13 @@ module.exports = {
 
 		if (dUtils.isEphemeralMessage(message)) return // Ephemeral messages are for the eyes of the receiver only!
 
+		if (!createRoom.existsOrAutocreatable(channel, guild.id)) return // Check that the sending-to room exists or is autocreatable
+
 		const {affected, row} = await speedbump.maybeDoSpeedbump(message.channel_id, message.id)
 		if (affected) return
 
 		// @ts-ignore
-		await sendMessage.sendMessage(message, channel, guild, row),
+		await sendMessage.sendMessage(message, channel, guild, row)
 
 		retrigger.messageFinishedBridging(message.id)
 	},
@@ -278,7 +281,7 @@ module.exports = {
 		// Otherwise, if there are embeds, then the system generated URL preview embeds.
 		if (!(typeof data.content === "string" || "embeds" in data)) return
 
-		// Deal with Eventual Consistency(TM)
+		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
 		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageUpdate, client, data)) return
 
 		if (data.webhook_id) {
@@ -295,11 +298,11 @@ module.exports = {
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 		// @ts-ignore
 		const message = data
-
 		const channel = client.channels.get(message.channel_id)
 		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
 		assert(guild)
+
 		// @ts-ignore
 		await editMessage.editMessage(message, guild, row)
 	},

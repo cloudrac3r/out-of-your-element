@@ -504,5 +504,5 @@ module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._unbridgeRoom = _unbridgeRoom
 module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
-module.exports.assertExistsOrAutocreatable = assertExistsOrAutocreatable
 module.exports.existsOrAutocreatable = existsOrAutocreatable
+module.exports.assertExistsOrAutocreatable = assertExistsOrAutocreatable
