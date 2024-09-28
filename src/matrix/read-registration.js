@@ -24,8 +24,12 @@ function writeRegistration(reg) {
 	fs.writeFileSync(registrationFilePath, JSON.stringify(reg, null, 2))
 }
 
-/** @returns {import("../types").InitialAppServiceRegistrationConfig} reg */
-function getTemplateRegistration() {
+/**
+ * @param {string} serverName
+ * @returns {import("../types").InitialAppServiceRegistrationConfig} reg
+ */
+function getTemplateRegistration(serverName) {
+	const namespace_prefix = "_ooye_"
 	return {
 		id: "ooye",
 		as_token: crypto.randomBytes(32).toString("hex"),
@@ -33,21 +37,21 @@ function getTemplateRegistration() {
 		namespaces: {
 			users: [{
 				exclusive: true,
-				regex: "@_ooye_.*:cadence.moe"
+				regex: `@${namespace_prefix}.*:${serverName}`
 			}],
 			aliases: [{
 				exclusive: true,
-				regex: "#_ooye_.*:cadence.moe"
+				regex: `#${namespace_prefix}.*:${serverName}`
 			}]
 		},
 		protocols: [
 			"discord"
 		],
-		sender_localpart: "_ooye_bot",
+		sender_localpart: `${namespace_prefix}bot`,
 		rate_limited: false,
 		socket: 6693,
 		ooye: {
-			namespace_prefix: "_ooye_",
+			namespace_prefix,
 			max_file_size: 5000000,
 			content_length_workaround: false,
 			include_user_id_in_mxid: false,

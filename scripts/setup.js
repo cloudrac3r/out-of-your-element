@@ -105,7 +105,8 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		const serverNameResponse = await prompt({
 			type: "input",
 			name: "server_name",
-			message: "Homeserver name"
+			message: "Homeserver name",
+			validate: serverName => !!serverName.match(/[a-z][a-z.]+[a-z]/)
 		})
 
 		console.log("What is the URL of your homeserver?")
@@ -176,7 +177,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 			message: "Client secret"
 		})
 
-		const template = getTemplateRegistration()
+		const template = getTemplateRegistration(serverNameResponse.server_name)
 		reg = {
 			...template,
 			url: bridgeOriginResponse.bridge_origin,

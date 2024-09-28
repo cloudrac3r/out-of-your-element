@@ -136,7 +136,7 @@ block body
       form.d-flex.ai-center.g8
         label.s-label.fl-grow1(for="autocreate")
           | Create new Matrix rooms automatically
-          p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when a new Discord channel is spoken in.
+          p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
         - let value = select("guild_active", "autocreate", {guild_id}).pluck().get()
         input(type="hidden" name="guild_id" value=guild_id)
         input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" hx-swap="none" checked=value)
