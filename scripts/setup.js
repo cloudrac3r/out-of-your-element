@@ -148,10 +148,15 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 				}
 			}
 		})
+		bridgeOriginResponse.bridge_origin = bridgeOriginResponse.bridge_origin.replace(/\/+$/, "") // remove trailing slash
 
 		await server.close()
 
 		console.log("What is your Discord bot token?")
+		/** @type {SnowTransfer} */ // @ts-ignore
+		let snow = null
+		/** @type {{id: string, redirect_uris: string[]}} */ // @ts-ignore
+		let client = null
 		/** @type {{discord_token: string}} */
 		const discordTokenResponse = await prompt({
 			type: "input",
@@ -160,8 +165,8 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 			validate: async token => {
 				process.stdout.write(magenta(" checking, please wait..."))
 				try {
-					const snow = new SnowTransfer(token)
-					await snow.user.getSelf()
+					snow = new SnowTransfer(token)
+					client = await snow.requestHandler.request(`/applications/@me`, {}, "get")
 					return true
 				} catch (e) {
 					return e.message
@@ -170,12 +175,32 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		})
 
 		console.log("What is your Discord client secret?")
+		console.log(`You can find it on the application page: https://discord.com/developers/applications/${client.id}/oauth2`)
 		/** @type {{discord_client_secret: string}} */
 		const clientSecretResponse = await prompt({
 			type: "input",
 			name: "discord_client_secret",
 			message: "Client secret"
 		})
+
+		const expectedUri = `${bridgeOriginResponse.bridge_origin}/oauth`
+		if (!client.redirect_uris.includes(expectedUri)) {
+			console.log(`On the same application page, go to the Redirects section, and add this URI: ${cyan(expectedUri)}`)
+			await prompt({
+				type: "invisible",
+				name: "redirect_uri",
+				message: "Press Enter when you've added it",
+				validate: async token => {
+					process.stdout.write(magenta("checking, please wait..."))
+					client = await snow.requestHandler.request(`/applications/@me`, {}, "get")
+					if (client.redirect_uris.includes(expectedUri)) {
+						return true
+					} else {
+						return "Redirect URI has not been added yet"
+					}
+				}
+			})
+		}
 
 		const template = getTemplateRegistration(serverNameResponse.server_name)
 		reg = {
