@@ -13,7 +13,7 @@ const utils = sync.require("../converters/utils")
  */
 async function deleteMessage(event) {
 	const rows = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: event.redacts}).all()
-	db.prepare("DELETE FROM event_message WHERE event_id = ?").run(event.event_id)
+	db.prepare("DELETE FROM event_message WHERE event_id = ?").run(event.redacts)
 	for (const row of rows) {
 		db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(row.message_id)
 		await discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
