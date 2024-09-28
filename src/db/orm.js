@@ -8,7 +8,7 @@ const U = require("./orm-defs")
  * @template {keyof U.Models[Table]} Col
  * @param {Table} table
  * @param {Col[] | Col} cols
- * @param {Partial<U.Numberish<U.Models[Table]>>} where
+ * @param {Partial<U.ValueOrArray<U.Numberish<U.Models[Table]>>>} where
  * @param {string} [e]
  */
 function select(table, cols, where = {}, e = "") {

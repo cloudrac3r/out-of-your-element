@@ -30,6 +30,11 @@ test("orm: select: all, where and pluck works on multiple columns", t => {
 	t.deepEqual(names, ["cadence [they]"])
 })
 
+test("orm: select: in array works", t => {
+	const ids = select("emoji", "emoji_id", {name: ["online", "upstinky"]}).pluck().all()
+	t.deepEqual(ids, ["288858540888686602", "606664341298872324"])
+})
+
 test("orm: from: get pluck works", t => {
 	const guildID = from("guild_space").pluck("guild_id").and("WHERE space_id = ?").get("!jjWAGMeQdNrVZSSfvz:cadence.moe")
 	t.equal(guildID, data.guild.general.id)
