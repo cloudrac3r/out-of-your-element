@@ -137,4 +137,5 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/m2d/converters/utils.test")
 	require("../src/m2d/converters/emoji-sheet.test")
 	require("../src/discord/interactions/invite.test")
+	require("../src/discord/interactions/matrix-info.test")
 })()
