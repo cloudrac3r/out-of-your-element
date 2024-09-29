@@ -1,11 +1,8 @@
 const {test} = require("supertape")
 const data = require("../../../test/data")
-const DiscordTypes = require("discord-api-types/v10")
-const {db, discord} = require("../../passthrough")
-const {MatrixServerError} = require("../../matrix/mreq")
-const {_interact, _interactButton} = require("./matrix-info")
+const {_interact} = require("./matrix-info")
 
-test("matrix info: checks if message has bridged", async t => {
+test("matrix info: checks if message is bridged", async t => {
 	const msg = await _interact({
 		data: {
 			target_id: "0"

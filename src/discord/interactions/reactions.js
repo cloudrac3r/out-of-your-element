@@ -8,19 +8,22 @@ const api = sync.require("../../matrix/api")
 /** @type {import("../../m2d/converters/utils")} */
 const utils = sync.require("../../m2d/converters/utils")
 
-/** @param {DiscordTypes.APIContextMenuGuildInteraction} interaction */
-/** @param {DiscordTypes.APIMessageApplicationCommandGuildInteraction} interaction */
-async function interact({id, token, data}) {
+/**
+ * @param {DiscordTypes.APIMessageApplicationCommandGuildInteraction} interaction
+ * @param {{api: typeof api}} di
+ * @returns {Promise<DiscordTypes.APIInteractionResponse>}
+ */
+async function _interact({data}, {api}) {
 	const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id")
 		.select("event_id", "room_id").where({message_id: data.target_id}).get()
 	if (!row) {
-		return discord.snow.interaction.createInteractionResponse(id, token, {
+		return {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: "This message hasn't been bridged to Matrix.",
 				flags: DiscordTypes.MessageFlags.Ephemeral
 			}
-		})
+		}
 	}
 
 	const reactions = await api.getFullRelations(row.room_id, row.event_id, "m.annotation")
@@ -37,22 +40,30 @@ async function interact({id, token, data}) {
 	}
 
 	if (inverted.size === 0) {
-		return discord.snow.interaction.createInteractionResponse(id, token, {
+		return {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: "Nobody from Matrix reacted to this message.",
 				flags: DiscordTypes.MessageFlags.Ephemeral
 			}
-		})
+		}
 	}
 
-	return discord.snow.interaction.createInteractionResponse(id, token, {
+	return {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 		data: {
 			content: [...inverted.entries()].map(([key, value]) => `${key} ⮞ ${value.join(" ⬩ ")}`).join("\n"),
 			flags: DiscordTypes.MessageFlags.Ephemeral
 		}
-	})
+	}
+}
+
+/* c8 ignore start */
+
+/** @param {DiscordTypes.APIMessageApplicationCommandGuildInteraction} interaction */
+async function interact(interaction) {
+	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interact(interaction, {api}))
 }
 
 module.exports.interact = interact
+module.exports._interact = _interact

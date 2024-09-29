@@ -17,6 +17,7 @@ const passthrough = require("../src/passthrough")
 const db = new sqlite(":memory:")
 
 const {reg} = require("../src/matrix/read-registration")
+reg.ooye.discord_token = "Njg0MjgwMTkyNTUzODQ0NzQ3.Xl3zlw.baby"
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
 reg.ooye.server_name = "cadence.moe"
 reg.id = "baby" // don't actually take authenticated actions on the server
@@ -113,6 +114,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 
 	db.exec(fs.readFileSync(join(__dirname, "ooye-test-data.sql"), "utf8"))
 
+	require("./addbot.test")
 	require("../src/db/orm.test")
 	require("../src/discord/utils.test")
 	require("../src/matrix/kstate.test")
@@ -138,4 +140,5 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/m2d/converters/emoji-sheet.test")
 	require("../src/discord/interactions/invite.test")
 	require("../src/discord/interactions/matrix-info.test")
+	require("../src/discord/interactions/reactions.test")
 })()
