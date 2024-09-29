@@ -45,7 +45,7 @@ async function mreq(method, url, body, extra = {}) {
 	const root = await res.json()
 
 	if (!res.ok || root.errcode) {
-		if (root.error?.includes("Content-Length") || !reg.ooye.content_length_workaround) {
+		if (root.error?.includes("Content-Length") && !reg.ooye.content_length_workaround) {
 			reg.ooye.content_length_workaround = true
 			const root = await mreq(method, url, body, extra)
 			console.error("OOYE cannot stream uploads to Synapse. The `content_length_workaround` option"
