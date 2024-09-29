@@ -7,7 +7,6 @@ const {id} = require("../../addbot")
 const matrixInfo = sync.require("./interactions/matrix-info.js")
 const invite = sync.require("./interactions/invite.js")
 const permissions = sync.require("./interactions/permissions.js")
-const bridge = sync.require("./interactions/bridge.js")
 const reactions = sync.require("./interactions/reactions.js")
 const privacy = sync.require("./interactions/privacy.js")
 
@@ -37,20 +36,6 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 			type: DiscordTypes.ApplicationCommandOptionType.String,
 			description: "The Matrix user to invite, e.g. @username:example.org",
 			name: "user"
-		}
-	]
-}, {
-	name: "bridge",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.ChatInput,
-	description: "Start bridging this channel to a Matrix room",
-	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.ManageChannels),
-	options: [
-		{
-			type: DiscordTypes.ApplicationCommandOptionType.String,
-			description: "Destination room to bridge to",
-			name: "room",
-			autocomplete: true
 		}
 	]
 }, {
@@ -94,8 +79,6 @@ async function dispatchInteraction(interaction) {
 			await permissions.interact(interaction)
 		} else if (interactionId === "permissions_edit") {
 			await permissions.interactEdit(interaction)
-		} else if (interactionId === "bridge") {
-			await bridge.interact(interaction)
 		} else if (interactionId === "Reactions") {
 			await reactions.interact(interaction)
 		} else if (interactionId === "privacy") {

@@ -58,3 +58,13 @@ test("orm: from: join direction works", t => {
 	const hasNoOwnerInner = from("sim").join("sim_proxy", "user_id", "inner").select("user_id", "proxy_owner_id").where({sim_name: "crunch_god"}).get()
 	t.deepEqual(hasNoOwnerInner, undefined)
 })
+
+test("orm: select unsafe works (to select complex column names that can't be type verified)", t => {
+	const results = from("member_cache")
+		.join("member_power", "mxid")
+		.join("channel_room", "room_id") // only include rooms that are bridged
+		.and("where member_power.room_id = '*' and member_cache.power_level != member_power.power_level")
+		.selectUnsafe("mxid", "member_cache.room_id", "member_power.power_level")
+		.all()
+	t.equal(results[0].power_level, 100)
+})

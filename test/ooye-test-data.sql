@@ -3,6 +3,9 @@ BEGIN TRANSACTION;
 INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
 ('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe', 0);
 
+INSERT INTO guild_active (guild_id, autocreate) VALUES
+('112760669178241024', 1);
+
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),
 ('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL),

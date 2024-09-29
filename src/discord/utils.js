@@ -113,7 +113,7 @@ function isWebhookMessage(message) {
  * @param {Pick<DiscordTypes.APIMessage, "flags">} message
  */
 function isEphemeralMessage(message) {
-	return message.flags && (message.flags & DiscordTypes.MessageFlags.Ephemeral)
+	return Boolean(message.flags && (message.flags & DiscordTypes.MessageFlags.Ephemeral))
 }
 
 /** @param {string} snowflake */

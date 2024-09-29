@@ -7,6 +7,7 @@ const sqlite = require("better-sqlite3")
 const {scheduler} = require("timers/promises")
 const {isDeepStrictEqual} = require("util")
 const {createServer} = require("http")
+const {join} = require("path")
 
 const {prompt} = require("enquirer")
 const Input = require("enquirer/lib/prompts/input")
@@ -208,7 +209,6 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 			url: bridgeOriginResponse.bridge_origin,
 			ooye: {
 				...template.ooye,
-				...serverNameResponse,
 				...bridgeOriginResponse,
 				server_origin: serverOrigin,
 				...discordTokenResponse,
@@ -335,8 +335,8 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		}
 		// Upload those emojis to the chosen location
 		db.prepare("REPLACE INTO auto_emoji (name, emoji_id, guild_id) VALUES ('_', '_', ?)").run(guild.id)
-		await uploadAutoEmoji(discord.snow, guild, "L1", "docs/img/L1.png")
-		await uploadAutoEmoji(discord.snow, guild, "L2", "docs/img/L2.png")
+		await uploadAutoEmoji(discord.snow, guild, "L1", join(__dirname, "../docs/img/L1.png"))
+		await uploadAutoEmoji(discord.snow, guild, "L2", join(__dirname, "../docs/img/L2.png"))
 	}
 	console.log("✅ Emojis are ready...")
 

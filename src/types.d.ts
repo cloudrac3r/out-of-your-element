@@ -55,9 +55,10 @@ export type InitialAppServiceRegistrationConfig = {
 	socket?: string | number,
 	ooye: {
 		namespace_prefix: string
-		max_file_size: number,
-		content_length_workaround: boolean,
-		invite: string[],
+		server_name: string
+		max_file_size: number
+		content_length_workaround: boolean
+		invite: string[]
 		include_user_id_in_mxid: boolean
 	}
 }

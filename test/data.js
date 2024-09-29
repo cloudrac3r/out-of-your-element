@@ -4128,7 +4128,54 @@ module.exports = {
 				guild_id: "112760669178241024"
 			},
 			position: 0
-		}
+		},
+		ephemeral_message: {
+			webhook_id: "684280192553844747",
+			type: 20,
+			tts: false,
+			timestamp: "2024-09-29T11:22:04.865000+00:00",
+			position: 0,
+			pinned: false,
+			nonce: "1289910062243905536",
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			interaction_metadata: {
+				user: {baby: true},
+				type: 2,
+				name: "invite",
+				id: "1289910063691206717",
+				command_type: 1,
+				authorizing_integration_owners: {baby: true}
+			},
+			interaction: {
+				user: {baby: true},
+				type: 2,
+				name: "invite",
+				id: "1289910063691206717"
+			},
+			id: "1289910064995504182",
+			flags: 64,
+			embeds: [],
+			edited_timestamp: null,
+			content: "`@cadence:cadence.moe` is already in this server and this channel.",
+			components: [],
+			channel_id: "1100319550446252084",
+			author: {
+				username: "Matrix Bridge",
+				public_flags: 0,
+				id: "684280192553844747",
+				global_name: null,
+				discriminator: "5728",
+				clan: null,
+				bot: true,
+				avatar_decoration_data: null,
+				avatar: "48ae3c24f2a6ec5c60c41bdabd904018"
+			},
+			attachments: [],
+			application_id: "684280192553844747"
+		},
+		shard_id: 0
 	},
 	interaction_message: {
 		thinking_interaction_without_bot_user: {

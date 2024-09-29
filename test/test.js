@@ -23,8 +23,8 @@ reg.id = "baby" // don't actually take authenticated actions on the server
 reg.as_token = "baby"
 reg.hs_token = "baby"
 reg.ooye.bridge_origin = "https://bridge.example.org"
-reg.ooye.invite = []
 
+/** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync({watchFS: false})
 
 const discord = {
@@ -35,6 +35,7 @@ const discord = {
 		id: "684280192553844747"
 	},
 	channels: new Map([
+		[data.channel.general.id, data.channel.general],
 		["497161350934560778", {
 			guild_id: "497159726455455754"
 		}],
@@ -117,7 +118,6 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/matrix/kstate.test")
 	require("../src/matrix/api.test")
 	require("../src/matrix/file.test")
-	require("../src/matrix/power.test")
 	require("../src/matrix/read-registration.test")
 	require("../src/matrix/txnid.test")
 	require("../src/d2m/actions/create-room.test")
@@ -136,4 +136,5 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/m2d/converters/event-to-message.test")
 	require("../src/m2d/converters/utils.test")
 	require("../src/m2d/converters/emoji-sheet.test")
+	require("../src/discord/interactions/invite.test")
 })()

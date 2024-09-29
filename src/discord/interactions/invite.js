@@ -14,13 +14,14 @@ const api = sync.require("../../matrix/api")
 
 /**
  * @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction & {channel: DiscordTypes.APIGuildTextChannel}} interaction
+ * @param {{api: typeof api}} di
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
-async function _interact({data, channel, guild_id}) {
+async function _interact({data, channel, guild_id}, {api}) {
 	// Get named MXID
 	/** @type {DiscordTypes.APIApplicationCommandInteractionDataStringOption[] | undefined} */ // @ts-ignore
 	const options = data.options
-	const input = options?.[0].value || ""
+	const input = options?.[0]?.value || ""
 	const mxid = input.match(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/)?.[0]
 	if (!mxid) return {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
@@ -110,9 +111,10 @@ async function _interact({data, channel, guild_id}) {
 
 /**
  * @param {DiscordTypes.APIMessageComponentGuildInteraction} interaction
+ * @param {{api: typeof api}} di
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
-async function _interactButton({channel, message}) {
+async function _interactButton({channel, message}, {api}) {
 	const mxid = message.content.match(/`(@(?:[^:]+):(?:[a-z0-9:-]+\.[a-z0-9.:-]+))`/)?.[1]
 	assert(mxid)
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
@@ -127,14 +129,16 @@ async function _interactButton({channel, message}) {
 	}
 }
 
+/* c8 ignore start */
+
 /** @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction & {channel: DiscordTypes.APIGuildTextChannel}} interaction */
 async function interact(interaction) {
-	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interact(interaction))
+	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interact(interaction, {api}))
 }
 
 /** @param {DiscordTypes.APIMessageComponentGuildInteraction} interaction */
 async function interactButton(interaction) {
-	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interactButton(interaction))
+	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interactButton(interaction, {api}))
 }
 
 module.exports.interact = interact

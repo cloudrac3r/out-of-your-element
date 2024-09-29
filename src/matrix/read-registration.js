@@ -9,7 +9,7 @@ const registrationFilePath = path.join(process.cwd(), "registration.yaml")
 
 /** @param {import("../types").AppServiceRegistrationConfig} reg */
 function checkRegistration(reg) {
-	reg["ooye"].invite = (reg.ooye.invite || []).filter(mxid => mxid.endsWith(`:${reg.ooye.server_name}`)) // one day I will understand why typescript disagrees with dot notation on this line
+	reg["ooye"].invite = reg.ooye.invite.filter(mxid => mxid.endsWith(`:${reg.ooye.server_name}`)) // one day I will understand why typescript disagrees with dot notation on this line
 	assert(reg.ooye?.max_file_size)
 	assert(reg.ooye?.namespace_prefix)
 	assert(reg.ooye?.server_name)
@@ -19,6 +19,7 @@ function checkRegistration(reg) {
 	assert.match(reg.url, /^https?:/, "url must start with http:// or https://")
 }
 
+/* c8 ignore next 4 */
 /** @param {import("../types").AppServiceRegistrationConfig} reg */
 function writeRegistration(reg) {
 	fs.writeFileSync(registrationFilePath, JSON.stringify(reg, null, 2))
@@ -52,6 +53,7 @@ function getTemplateRegistration(serverName) {
 		socket: 6693,
 		ooye: {
 			namespace_prefix,
+			server_name: serverName,
 			max_file_size: 5000000,
 			content_length_workaround: false,
 			include_user_id_in_mxid: false,
@@ -66,6 +68,8 @@ function readRegistration() {
 	try {
 		const content = fs.readFileSync(registrationFilePath, "utf8")
 		result = JSON.parse(content)
+		result.ooye.invite ||= []
+	/* c8 ignore next */
 	} catch (e) {}
 	return result
 }
