@@ -2,34 +2,41 @@
 
 const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
-const {discord, sync, db, select, from} = require("../../passthrough")
+const {discord, sync, select, from} = require("../../passthrough")
 const assert = require("assert/strict")
+const {id: botID} = require("../../../addbot")
+const {InteractionMethods} = require("snowtransfer")
 
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 
 /**
  * @param {DiscordTypes.APIContextMenuGuildInteraction} interaction
- * @returns {Promise<DiscordTypes.APIInteractionResponse>}
+ * @param {{api: typeof api}} di
+ * @returns {AsyncGenerator<{[k in keyof InteractionMethods]?: Parameters<InteractionMethods[k]>[2]}>}
  */
-async function _interact({data, channel, guild_id}) {
-	const row = select("event_message", ["event_id", "source"], {message_id: data.target_id}).get()
-	assert(row)
+async function* _interact({data, guild_id}, {api}) {
+	// Get message info
+	const row = from("event_message")
+		.join("message_channel", "message_id")
+		.select("event_id", "source", "channel_id")
+		.where({message_id: data.target_id})
+		.get()
 
 	// Can't operate on Discord users
-	if (row.source === 1) { // discord
-		return {
+	if (!row || row.source === 1) { // not bridged or sent by a discord user
+		return yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `This command is only meaningful for Matrix users.`,
+				content: `The permissions command can only be used on Matrix users.`,
 				flags: DiscordTypes.MessageFlags.Ephemeral
 			}
-		}
+		}}
 	}
 
 	// Get the message sender, the person that will be inspected/edited
 	const eventID = row.event_id
-	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
+	const roomID = select("channel_room", "room_id", {channel_id: row.channel_id}).pluck().get()
 	assert(roomID)
 	const event = await api.getEvent(roomID, eventID)
 	const sender = event.sender
@@ -45,16 +52,16 @@ async function _interact({data, channel, guild_id}) {
 
 	// Administrators equal to the bot cannot be demoted
 	if (userPower >= 100) {
-		return {
+		return yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
 				content: `\`${sender}\` has administrator permissions. This cannot be edited.`,
 				flags: DiscordTypes.MessageFlags.Ephemeral
 			}
-		}
+		}}
 	}
 
-	return {
+	yield {createInteractionResponse: {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 		data: {
 			content: `Showing permissions for \`${sender}\`. Click to edit.`,
@@ -82,13 +89,15 @@ async function _interact({data, channel, guild_id}) {
 				}
 			]
 		}
-	}
+	}}
 }
 
 /**
  * @param {DiscordTypes.APIMessageComponentSelectMenuInteraction} interaction
+ * @param {{api: typeof api}} di
+ * @returns {AsyncGenerator<{[k in keyof InteractionMethods]?: Parameters<InteractionMethods[k]>[2]}>}
  */
-async function interactEdit({data, id, token, guild_id, message}) {
+async function* _interactEdit({data, guild_id, message}, {api}) {
 	// Get the person that will be inspected/edited
 	const mxid = message.content.match(/`(@(?:[^:]+):(?:[a-z0-9:-]+\.[a-z0-9.:-]+))`/)?.[1]
 	assert(mxid)
@@ -96,13 +105,13 @@ async function interactEdit({data, id, token, guild_id, message}) {
 	const permission = data.values[0]
 	const power = permission === "moderator" ? 50 : 0
 
-	await discord.snow.interaction.createInteractionResponse(id, token, {
+	yield {createInteractionResponse: {
 		type: DiscordTypes.InteractionResponseType.UpdateMessage,
 		data: {
 			content: `Updating \`${mxid}\` to **${permission}**, please wait...`,
 			components: []
 		}
-	})
+	}}
 
 	// Get the space, where the power levels will be inspected/edited
 	const spaceID = select("guild_space", "space_id", {guild_id}).pluck().get()
@@ -112,17 +121,40 @@ async function interactEdit({data, id, token, guild_id, message}) {
 	await api.setUserPowerCascade(spaceID, mxid, power)
 
 	// ACK
-	await discord.snow.interaction.editOriginalInteractionResponse(discord.application.id, token, {
+	yield {editOriginalInteractionResponse: {
 		content: `Updated \`${mxid}\` to **${permission}**.`,
 		components: []
-	})
+	}}
 }
+
+
+/* c8 ignore start */
 
 /** @param {DiscordTypes.APIContextMenuGuildInteraction} interaction */
 async function interact(interaction) {
-	await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, await _interact(interaction))
+	for await (const response of _interact(interaction, {api})) {
+		if (response.createInteractionResponse) {
+			// TODO: Test if it is reasonable to remove `await` from these calls. Or zip these calls with the next interaction iteration and use Promise.all.
+			await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, response.createInteractionResponse)
+		} else if (response.editOriginalInteractionResponse) {
+			await discord.snow.interaction.editOriginalInteractionResponse(botID, interaction.token, response.editOriginalInteractionResponse)
+		}
+	}
+}
+
+/** @param {DiscordTypes.APIMessageComponentSelectMenuInteraction} interaction */
+async function interactEdit(interaction) {
+	for await (const response of _interactEdit(interaction, {api})) {
+		if (response.createInteractionResponse) {
+			// TODO: Test if it is reasonable to remove `await` from these calls. Or zip these calls with the next interaction iteration and use Promise.all.
+			await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, response.createInteractionResponse)
+		} else if (response.editOriginalInteractionResponse) {
+			await discord.snow.interaction.editOriginalInteractionResponse(botID, interaction.token, response.editOriginalInteractionResponse)
+		}
+	}
 }
 
 module.exports.interact = interact
 module.exports.interactEdit = interactEdit
 module.exports._interact = _interact
+module.exports._interactEdit = _interactEdit

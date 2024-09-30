@@ -1,8 +1,4 @@
 const {test} = require("supertape")
-const data = require("../../../test/data")
-const DiscordTypes = require("discord-api-types/v10")
-const {db, discord} = require("../../passthrough")
-const {MatrixServerError} = require("../../matrix/mreq")
 const {_interact} = require("./reactions")
 
 test("reactions: checks if message is bridged", async t => {

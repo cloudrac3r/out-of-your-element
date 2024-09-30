@@ -1,7 +1,7 @@
 // @ts-check
 
 const DiscordTypes = require("discord-api-types/v10")
-const {discord, sync, db, select, from} = require("../../passthrough")
+const {discord, sync, select, from} = require("../../passthrough")
 
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")

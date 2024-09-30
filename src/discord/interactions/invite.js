@@ -3,7 +3,7 @@
 const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
 const assert = require("assert/strict")
-const {discord, sync, db, select, from} = require("../../passthrough")
+const {discord, sync, db, select} = require("../../passthrough")
 
 /** @type {import("../../d2m/actions/create-room")} */
 const createRoom = sync.require("../../d2m/actions/create-room")

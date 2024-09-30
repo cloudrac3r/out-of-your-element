@@ -16,7 +16,6 @@ const createSpace = sync.require("../../d2m/actions/create-space")
 async function* _interact({data, guild_id}, {createSpace}) {
 	// Check guild is bridged
 	const current = select("guild_space", "privacy_level", {guild_id}).pluck().get()
-	InteractionMethods.prototype.createInteractionResponse
 	if (current == null) {
 		return yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
