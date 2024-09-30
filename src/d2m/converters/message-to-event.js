@@ -236,8 +236,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 	const interaction = message.interaction_metadata || message.interaction
 	if (message.type === DiscordTypes.MessageType.ChatInputCommand && interaction && "name" in interaction) {
 		// Commands are sent by the responding bot. Need to attach the metadata of the person using the command at the top.
-		if (message.content) message.content = `\n${message.content}`
-		message.content = `> ↪️ <@${interaction.user.id}> used \`/${interaction.name}\`${message.content}`
+		let content = message.content
+		if (content) content = `\n${content}`
+		else if ((message.flags || 0) & DiscordTypes.MessageFlags.Loading) content = " — interaction loading..."
+		content = `> ↪️ <@${interaction.user.id}> used \`/${interaction.name}\`${content}`
+		message = {...message, content} // editToChanges reuses the object so we can't mutate it. have to clone it
 	}
 
 	/**
