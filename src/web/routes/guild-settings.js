@@ -1,15 +1,25 @@
 // @ts-check
 
+const assert = require("assert/strict")
 const {z} = require("zod")
 const {defineEventHandler, sendRedirect, useSession, createError, readValidatedBody} = require("h3")
 
-const {as, db} = require("../../passthrough")
+const {as, db, sync} = require("../../passthrough")
 const {reg} = require("../../matrix/read-registration")
 
+/** @type {import("../../d2m/actions/create-space")} */
+const createSpace = sync.require("../../d2m/actions/create-space")
+
+/** @type {["invite", "link", "directory"]} */
+const levels = ["invite", "link", "directory"]
 const schema = {
 	autocreate: z.object({
 		guild_id: z.string(),
 		autocreate: z.string().optional()
+	}),
+	privacyLevel: z.object({
+		guild_id: z.string(),
+		level: z.enum(levels)
 	})
 }
 
@@ -19,5 +29,17 @@ as.router.post("/api/autocreate", defineEventHandler(async event => {
 	if (!(session.data.managedGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 	db.prepare("UPDATE guild_active SET autocreate = ? WHERE guild_id = ?").run(+!!parsedBody.autocreate, parsedBody.guild_id)
-	return sendRedirect(event, `/guild?guild_id=${parsedBody.guild_id}`, 302)
+	return null // 204
+}))
+
+as.router.post("/api/privacy-level", defineEventHandler(async event => {
+	const parsedBody = await readValidatedBody(event, schema.privacyLevel.parse)
+	const session = await useSession(event, {password: reg.as_token})
+	if (!(session.data.managedGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+
+	const i = levels.indexOf(parsedBody.level)
+	assert.notEqual(i, -1)
+	db.prepare("UPDATE guild_space SET privacy_level = ? WHERE guild_id = ?").run(i, parsedBody.guild_id)
+	await createSpace.syncSpaceFully(parsedBody.guild_id) // this is inefficient but OK to call infrequently on user request
+	return null // 204
 }))

@@ -95,8 +95,11 @@ block body
           src.searchParams.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
         img(width=size height=size src=src.toString())
 
-    h2.mt48.fs-headline1 Linked channels
+    h2.mt48.fs-headline1 Moderation
 
+    h2.mt48.fs-headline1 Matrix setup
+
+    h3.mt32.fs-category Linked channels
     -
       function getPosition(channel) {
         let position = 0
@@ -139,8 +142,60 @@ block body
           p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
         - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
         input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" hx-swap="none" checked=value)
+        input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
         .is-loading#autocreate-loading
+
+    h3.mt32.fs-category Privacy level
+    .s-card
+      - let p = select("guild_space", "privacy_level", {guild_id}).pluck().get()
+      form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="this")
+        input(type="hidden" name="guild_id" value=guild_id)
+        .d-flex.ai-center.mb4
+          label.s-label.fl-grow1
+            | How people can join on Matrix
+            span.is-loading#privacy-level-loading
+        .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
+          input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(p === 2))
+          label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
+            != icons.Icons.IconPlusSm
+            != icons.Icons.IconInternationalSm
+            .fl-grow1 Directory
+
+          input(type="radio" name="level" value="link" id="privacy-level-link" checked=(p === 1))
+          label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
+            != icons.Icons.IconPlusSm
+            != icons.Icons.IconLinkSm
+            .fl-grow1 Link
+
+          input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(p === 0))
+          label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
+            svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
+            != icons.Icons.IconLockSm
+            .fl-grow1 Invite
+
+          p.s-description.m0 In-app direct invite from another user; /invite on Discord; web form
+          p.s-description.m0 Shareable invite links, like Discord
+          p.s-description.m0 Publicly listed in directory, like Discord server discovery
+
+
+      //-
+        fieldset.s-check-group
+          legend.s-label How people can join on Matrix
+          .s-check-control
+            input.s-radio(type="radio" name="privacy-level" id="privacy-level-invite" value="invite" checked)
+            label.s-label(for="privacy-level-invite")
+              | Invite
+              p.s-description In-app direct invite on Matrix; invite command on Discord; invite form on web
+          .s-check-control
+            input.s-radio(type="radio" name="privacy-level" id="privacy-level-link" value="link")
+            label.s-label(for="privacy-level-link")
+              | Link
+              p.s-description All of the above, and shareable invite links (like Discord)
+          .s-check-control
+            input.s-radio(type="radio" name="privacy-level" id="privacy-level-directory" value="directory")
+            label.s-label(for="privacy-level-directory")
+              | Public
+              p.s-description All of the above, and publicly visible in the Matrix space directory (like Server Discovery)
 
     h3.mt32.fs-category Manually link channels
     form.d-flex.g16.ai-start(method="post" action="/api/link")

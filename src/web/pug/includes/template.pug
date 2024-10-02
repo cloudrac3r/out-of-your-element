@@ -26,6 +26,10 @@ html(lang="en")
         --theme-dark-primary-color-s: 53%;
         --theme-dark-primary-color-l: 63%;
       }
+      .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental input[type="radio"]:checked ~ label:not(.s-toggle-switch--label-off) {
+        --_ts-multiple-bg: var(--green-400);
+        --_ts-multiple-fc: var(--white);
+      }
   body.themed.theme-system
     header.s-topbar
       .s-topbar--skip-link(href="#content") Skip to main content
