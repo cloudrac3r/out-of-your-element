@@ -36,14 +36,18 @@ const validNonce = new LRUCache({max: 200})
 
 as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
-	const nonce = randomUUID()
-	if (guild_id) {
-		// Security note: the nonce alone is valid for updating the guild
-		// We have not verified the user has sufficient permissions in the guild at generation time
-		// These permissions are checked later during page rendering and the generated nonce is only revealed if the permissions are sufficient
-		validNonce.set(nonce, guild_id)
+	const session = await useSession(event, {password: reg.as_token})
+	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id}).get()
+	if (!guild_id || !row || !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
+		return pugSync.render(event, "guild.pug", {guild_id})
 	}
-	return pugSync.render(event, "guild.pug", {nonce})
+
+	const nonce = randomUUID()
+	validNonce.set(nonce, guild_id)
+	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
+	const banned = await api.getMembers(row.space_id, "ban")
+	const rooms = await api.getFullHierarchy(row.space_id)
+	return pugSync.render(event, "guild.pug", {guild_id, nonce, mods, banned, rooms, ...row})
 }))
 
 as.router.get("/invite", defineEventHandler(async event => {

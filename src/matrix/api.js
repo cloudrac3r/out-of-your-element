@@ -124,6 +124,17 @@ function getJoinedMembers(roomID) {
 }
 
 /**
+ * "Get the list of members for this room." This includes joined, invited, knocked, left, and banned members unless a filter is provided.
+ * The endpoint also supports `at` and `not_membership` URL parameters, but they are not exposed in this wrapper yet.
+ * @param {string} roomID
+ * @param {"join" | "invite" | "knock" | "leave" | "ban"} [membership] The kind of membership to filter for. Only one choice allowed.
+ * @returns {Promise<{chunk: Ty.Event.Outer<Ty.Event.M_Room_Member>[]}>}
+ */
+function getMembers(roomID, membership) {
+	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/members`, {membership})
+}
+
+/**
  * @param {string} roomID
  * @param {{from?: string, limit?: any}} pagination
  * @returns {Promise<Ty.HierarchyPagination<Ty.R.Hierarchy>>}
@@ -339,6 +350,7 @@ module.exports.getEventForTimestamp = getEventForTimestamp
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
 module.exports.getJoinedMembers = getJoinedMembers
+module.exports.getMembers = getMembers
 module.exports.getHierarchy = getHierarchy
 module.exports.getFullHierarchy = getFullHierarchy
 module.exports.getRelations = getRelations

@@ -121,6 +121,9 @@ block body
       let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
       let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c)).filter(c => [0, 5].includes(c.type))
       unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
+
+      let linkedRoomIDs = linkedChannels.map(c => c.room_id)
+      let unlinkedRooms = rooms.filter(r => !linkedRoomIDs.includes(r.room_id))
     .s-card.bs-sm.p0
       .s-table-container
         table.s-table.s-table__bx-simple
@@ -147,7 +150,6 @@ block body
 
     h3.mt32.fs-category Privacy level
     .s-card
-      - let p = select("guild_space", "privacy_level", {guild_id}).pluck().get()
       form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="this")
         input(type="hidden" name="guild_id" value=guild_id)
         .d-flex.ai-center.mb4
@@ -155,19 +157,19 @@ block body
             | How people can join on Matrix
             span.is-loading#privacy-level-loading
         .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
-          input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(p === 2))
+          input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
           label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
             != icons.Icons.IconPlusSm
             != icons.Icons.IconInternationalSm
             .fl-grow1 Directory
 
-          input(type="radio" name="level" value="link" id="privacy-level-link" checked=(p === 1))
+          input(type="radio" name="level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
           label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
             != icons.Icons.IconPlusSm
             != icons.Icons.IconLinkSm
             .fl-grow1 Link
 
-          input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(p === 0))
+          input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
           label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
             svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
             != icons.Icons.IconLockSm
@@ -207,7 +209,12 @@ block body
         else
           .s-empty-state.p8 All Discord channels are linked.
       .fl-grow1.s-btn-group.fd-column.w30
-        .s-empty-state.p8 I don't know how to get the Matrix room list yet...
+        each room in unlinkedRooms
+          input.s-btn--radio(type="radio" name="matrix" id=room.room_id value=room.room_id)
+          label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
+            +matrix(room, true)
+        else
+          .s-empty-state.p8 All Matrix rooms are linked.
       div
         button.s-btn.s-btn__icon.s-btn__filled
           != icons.Icons.IconLink
