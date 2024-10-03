@@ -26,6 +26,7 @@ sync.require("./routes/download-discord")
 sync.require("./routes/invite")
 sync.require("./routes/guild-settings")
 sync.require("./routes/oauth")
+sync.require("./routes/qr")
 
 // Files
 

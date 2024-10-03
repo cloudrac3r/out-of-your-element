@@ -131,7 +131,7 @@ function getJoinedMembers(roomID) {
  * @returns {Promise<{chunk: Ty.Event.Outer<Ty.Event.M_Room_Member>[]}>}
  */
 function getMembers(roomID, membership) {
-	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/members`, {membership})
+	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/members`, undefined, {membership})
 }
 
 /**

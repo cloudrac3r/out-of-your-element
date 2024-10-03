@@ -195,5 +195,6 @@ Total transitive production dependencies: 147
 * (0) prettier-bytes: It does what I want and has no dependencies.
 * (2) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
+* (0) uqr: QR code SVG generator. Used on the website to scan in an invite link.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
 * (0) zod: Input validation for the web server. It's popular and easy to use.

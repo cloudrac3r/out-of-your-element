@@ -45,6 +45,8 @@ mixin matrix(row, radio=false, badge="")
       else
         .s-user-card--link.fs-body1
           a(href=`https://matrix.to/#/${row.room_id}`)= row.nick || row.name
+      if row.join_rule === "invite"
+        +badge-private
 
 block body
   if !guild_id && session.data.managedGuilds
@@ -91,9 +93,9 @@ block body
       div
         -
           let size = 105
-          let src = new URL(`https://api.qrserver.com/v1/create-qr-code/?qzone=1&format=svg&size=${size}x${size}`)
-          src.searchParams.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
-        img(width=size height=size src=src.toString())
+          let p = new URLSearchParams()
+          p.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
+        img(width=size height=size src=`/qr?${p}`)
 
     h2.mt48.fs-headline1 Moderation
 
@@ -123,7 +125,10 @@ block body
       unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
 
       let linkedRoomIDs = linkedChannels.map(c => c.room_id)
-      let unlinkedRooms = rooms.filter(r => !linkedRoomIDs.includes(r.room_id))
+      let unlinkedRooms = rooms.filter(r => !linkedRoomIDs.includes(r.room_id) && !r.room_type)
+      // https://discord.com/developers/docs/topics/threads#active-archived-threads
+      // need to filter out linked archived threads from unlinkedRooms, will just do that by comparing against the name
+      unlinkedRooms = unlinkedRooms.filter(r => !r.name.match(/^\[(🔒)?⛓️\]/))
     .s-card.bs-sm.p0
       .s-table-container
         table.s-table.s-table__bx-simple
@@ -175,7 +180,7 @@ block body
             != icons.Icons.IconLockSm
             .fl-grow1 Invite
 
-          p.s-description.m0 In-app direct invite from another user; /invite on Discord; web form
+          p.s-description.m0 In-app direct invite from another user
           p.s-description.m0 Shareable invite links, like Discord
           p.s-description.m0 Publicly listed in directory, like Discord server discovery
 
