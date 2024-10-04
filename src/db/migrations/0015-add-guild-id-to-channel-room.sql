@@ -1,0 +1,5 @@
+BEGIN TRANSACTION;
+
+ALTER TABLE channel_room ADD COLUMN guild_id TEXT;
+
+COMMIT;

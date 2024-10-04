@@ -4,7 +4,11 @@
 
 const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../passthrough")
-const { sync } = passthrough
+const {sync, db} = passthrough
+
+function populateGuildID(guildID, channelID) {
+	db.prepare("UPDATE channel_room SET guild_id = ? WHERE channel_id = ?").run(guildID, channelID)
+}
 
 const utils = {
 	/**
@@ -36,13 +40,16 @@ const utils = {
 				channel.guild_id = message.d.id
 				arr.push(channel.id)
 				client.channels.set(channel.id, channel)
+				populateGuildID(message.d.id, channel.id)
 			}
 			for (const thread of message.d.threads || []) {
 				// @ts-ignore
 				thread.guild_id = message.d.id
 				arr.push(thread.id)
 				client.channels.set(thread.id, thread)
+				populateGuildID(message.d.id, thread.id)
 			}
+
 			if (listen === "full") {
 				eventDispatcher.checkMissedExpressions(message.d)
 				eventDispatcher.checkMissedPins(client, message.d)
@@ -91,7 +98,11 @@ const utils = {
 
 		} else if (message.t === "THREAD_CREATE") {
 			client.channels.set(message.d.id, message.d)
-
+			if (message.d["guild_id"]) {
+				populateGuildID(message.d["guild_id"], message.d.id)
+				const channels = client.guildChannelMap.get(message.d["guild_id"])
+				if (channels && !channels.includes(message.d.id)) channels.push(message.d.id)
+			}
 
 		} else if (message.t === "CHANNEL_UPDATE" || message.t === "THREAD_UPDATE") {
 			client.channels.set(message.d.id, message.d)
@@ -113,21 +124,21 @@ const utils = {
 			client.guildChannelMap.delete(message.d.id)
 
 
-		} else if (message.t === "CHANNEL_CREATE" || message.t === "CHANNEL_DELETE") {
-			if (message.t === "CHANNEL_CREATE") {
-				client.channels.set(message.d.id, message.d)
-				if (message.d["guild_id"]) { // obj[prop] notation can be used to access a property without typescript complaining that it doesn't exist on all values something can have
-					const channels = client.guildChannelMap.get(message.d["guild_id"])
-					if (channels && !channels.includes(message.d.id)) channels.push(message.d.id)
-				}
-			} else {
-				client.channels.delete(message.d.id)
-				if (message.d["guild_id"]) {
-					const channels = client.guildChannelMap.get(message.d["guild_id"])
-					if (channels) {
-						const previous = channels.indexOf(message.d.id)
-						if (previous !== -1) channels.splice(previous, 1)
-					}
+		} else if (message.t === "CHANNEL_CREATE") {
+			client.channels.set(message.d.id, message.d)
+			if (message.d["guild_id"]) { // obj[prop] notation can be used to access a property without typescript complaining that it doesn't exist on all values something can have
+				populateGuildID(message.d["guild_id"], message.d.id)
+				const channels = client.guildChannelMap.get(message.d["guild_id"])
+				if (channels && !channels.includes(message.d.id)) channels.push(message.d.id)
+			}
+
+		} else if (message.t === "CHANNEL_DELETE") {
+			client.channels.delete(message.d.id)
+			if (message.d["guild_id"]) {
+				const channels = client.guildChannelMap.get(message.d["guild_id"])
+				if (channels) {
+					const previous = channels.indexOf(message.d.id)
+					if (previous !== -1) channels.splice(previous, 1)
 				}
 			}
 		}

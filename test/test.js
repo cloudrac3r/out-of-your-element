@@ -25,7 +25,6 @@ reg.as_token = "baby"
 reg.hs_token = "baby"
 reg.ooye.bridge_origin = "https://bridge.example.org"
 
-/** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync({watchFS: false})
 
 const discord = {

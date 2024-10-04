@@ -39,7 +39,6 @@ const passthrough = require("../src/passthrough")
 const db = new sqlite("ooye.db")
 const migrate = require("../src/db/migrate")
 
-/** @type {import("heatsync").default} */ // @ts-ignore
 const sync = new HeatSync({watchFS: false})
 
 Object.assign(passthrough, {sync, db})
