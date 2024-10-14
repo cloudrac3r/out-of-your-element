@@ -4,19 +4,32 @@ const {db, discord} = require("../../passthrough")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {_interact, _interactButton} = require("./invite")
 
+/**
+ * @template T
+ * @param {AsyncIterable<T>} ai
+ * @returns {Promise<T[]>}
+ */
+async function fromAsync(ai) {
+	const result = []
+	for await (const value of ai) {
+		result.push(value)
+	}
+	return result
+}
+
 test("invite: checks for missing matrix ID", async t => {
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: []
 		},
 		channel: discord.channels.get("0"),
 		guild_id: "112760669178241024"
-	}, {})
-	t.equal(msg.data.content, "You have to say the Matrix ID of the person you want to invite. Matrix IDs look like this: `@username:example.org`")
+	}, {}))
+	t.equal(msgs[0].createInteractionResponse.data.content, "You have to say the Matrix ID of the person you want to invite. Matrix IDs look like this: `@username:example.org`")
 })
 
 test("invite: checks for invalid matrix ID", async t => {
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -26,13 +39,13 @@ test("invite: checks for invalid matrix ID", async t => {
 		},
 		channel: discord.channels.get("0"),
 		guild_id: "112760669178241024"
-	}, {})
-	t.equal(msg.data.content, "You have to say the Matrix ID of the person you want to invite. Matrix IDs look like this: `@username:example.org`")
+	}, {}))
+	t.equal(msgs[0].createInteractionResponse.data.content, "You have to say the Matrix ID of the person you want to invite. Matrix IDs look like this: `@username:example.org`")
 })
 
 test("invite: checks if channel exists or is autocreatable", async t => {
 	db.prepare("UPDATE guild_active SET autocreate = 0").run()
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -42,14 +55,14 @@ test("invite: checks if channel exists or is autocreatable", async t => {
 		},
 		channel: discord.channels.get("498323546729086986"),
 		guild_id: "112760669178241024"
-	}, {})
-	t.equal(msg.data.content, "This channel isn't bridged, so you can't invite Matrix users yet. Try turning on automatic room-creation or link a Matrix room in the website.")
+	}, {}))
+	t.equal(msgs[0].createInteractionResponse.data.content, "This channel isn't bridged, so you can't invite Matrix users yet. Try turning on automatic room-creation or link a Matrix room in the website.")
 	db.prepare("UPDATE guild_active SET autocreate = 1").run()
 })
 
 test("invite: checks if user is already invited to space", async t => {
 	let called = 0
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -72,14 +85,14 @@ test("invite: checks if user is already invited to space", async t => {
 				}
 			}
 		}
-	})
-	t.equal(msg.data.content, "`@cadence:cadence.moe` already has an invite, which they haven't accepted yet.")
+	}))
+	t.equal(msgs[1].editOriginalInteractionResponse.content, "`@cadence:cadence.moe` already has an invite, which they haven't accepted yet.")
 	t.equal(called, 1)
 })
 
 test("invite: invites if user is not in space", async t => {
 	let called = 0
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -104,14 +117,14 @@ test("invite: invites if user is not in space", async t => {
 				t.equal(mxid, "@cadence:cadence.moe")
 			}
 		}
-	})
-	t.equal(msg.data.content, "You invited `@cadence:cadence.moe` to the server.")
+	}))
+	t.equal(msgs[1].editOriginalInteractionResponse.content, "You invited `@cadence:cadence.moe` to the server.")
 	t.equal(called, 2)
 })
 
 test("invite: prompts to invite to room (if never joined)", async t => {
 	let called = 0
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -137,14 +150,14 @@ test("invite: prompts to invite to room (if never joined)", async t => {
 				}
 			}
 		}
-	})
-	t.equal(msg.data.content, "`@cadence:cadence.moe` is already in this server. Would you like to additionally invite them to this specific channel?")
+	}))
+	t.equal(msgs[1].editOriginalInteractionResponse.content, "`@cadence:cadence.moe` is already in this server. Would you like to additionally invite them to this specific channel?")
 	t.equal(called, 2)
 })
 
 test("invite: prompts to invite to room (if left)", async t => {
 	let called = 0
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -173,8 +186,8 @@ test("invite: prompts to invite to room (if left)", async t => {
 				}
 			}
 		}
-	})
-	t.equal(msg.data.content, "`@cadence:cadence.moe` is already in this server. Would you like to additionally invite them to this specific channel?")
+	}))
+	t.equal(msgs[1].editOriginalInteractionResponse.content, "`@cadence:cadence.moe` is already in this server. Would you like to additionally invite them to this specific channel?")
 	t.equal(called, 2)
 })
 
@@ -200,7 +213,7 @@ test("invite button: invites to room when button clicked", async t => {
 
 test("invite: no-op if in room and space", async t => {
 	let called = 0
-	const msg = await _interact({
+	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
 				name: "user",
@@ -222,7 +235,7 @@ test("invite: no-op if in room and space", async t => {
 				}
 			}
 		}
-	})
-	t.equal(msg.data.content, "`@cadence:cadence.moe` is already in this server and this channel.")
+	}))
+	t.equal(msgs[1].editOriginalInteractionResponse.content, "`@cadence:cadence.moe` is already in this server and this channel.")
 	t.equal(called, 2)
 })
