@@ -23,8 +23,9 @@ pugSync.createRoute(as.router, "/ok", "ok.pug")
 
 sync.require("./routes/download-matrix")
 sync.require("./routes/download-discord")
-sync.require("./routes/invite")
 sync.require("./routes/guild-settings")
+sync.require("./routes/invite")
+sync.require("./routes/link")
 sync.require("./routes/oauth")
 sync.require("./routes/qr")
 

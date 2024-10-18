@@ -205,7 +205,7 @@ block body
               p.s-description All of the above, and publicly visible in the Matrix space directory (like Server Discovery)
 
     h3.mt32.fs-category Manually link channels
-    form.d-flex.g16.ai-start(method="post" action="/api/link")
+    form.d-flex.g16.ai-start(hx-post="/api/privacy-level" hx-trigger="submit" hx-disabled-elt="this")
       .fl-grow2.s-btn-group.fd-column.w40
         each channel in unlinkedChannels
           input.s-btn--radio(type="radio" name="discord" id=channel.id value=channel.id)
@@ -220,7 +220,8 @@ block body
             +matrix(room, true)
         else
           .s-empty-state.p8 All Matrix rooms are linked.
+      input(type="hidden" name="guild_id" value=guild_id)
       div
-        button.s-btn.s-btn__icon.s-btn__filled
-          != icons.Icons.IconLink
-          = ` Connect`
+        button.s-btn.s-btn__icon.s-btn__filled.htmx-indicator
+          != icons.Icons.IconMerge
+          = ` Link`
