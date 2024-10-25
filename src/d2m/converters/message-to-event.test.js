@@ -1014,3 +1014,15 @@ test("message2event: @everyone within a link", async t => {
 		"m.mentions": {}
 	}])
 })
+
+test("message2event: forwarded image", async t => {
+	const events = await messageToEvent(data.message.forwarded_image)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://github.com/@everyone",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://github.com/@everyone">https://github.com/@everyone</a>`,
+		"m.mentions": {}
+	}])
+})
