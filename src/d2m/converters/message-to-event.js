@@ -602,9 +602,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 		let chosenImage = embed.image?.url
 		// the thumbnail seems to be used for "article" type but displayed big at the bottom by discord
 		if (embed.type === "article" && embed.thumbnail?.url && !chosenImage) chosenImage = embed.thumbnail.url
-		if (chosenImage) rep.addParagraph(`📸 ${chosenImage}`)
+		if (chosenImage) rep.addParagraph(`📸 ${dUtils.getPublicUrlForCdn(chosenImage)}`)
 
-		if (embed.video?.url) rep.addParagraph(`🎞️ ${embed.video.url}`)
+		if (embed.video?.url) rep.addParagraph(`🎞️ ${dUtils.getPublicUrlForCdn(embed.video.url)}`)
 
 		if (embed.footer?.text) rep.addLine(`— ${embed.footer.text}`, tag`— ${embed.footer.text}`)
 		let {body, formatted_body: html} = rep.get()
