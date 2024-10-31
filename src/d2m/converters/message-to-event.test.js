@@ -337,7 +337,7 @@ test("message2event: attachment with no content", async t => {
 		msgtype: "m.image",
 		url: "mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM",
 		body: "image.png",
-		external_url: "https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png",
+		external_url: "https://bridge.example.org/download/discordcdn/497161332244742154/1124628646431297546/image.png",
 		filename: "image.png",
 		info: {
 			mimetype: "image/png",
@@ -373,7 +373,7 @@ test("message2event: stickers", async t => {
 		msgtype: "m.image",
 		url: "mxc://cadence.moe/ZDCNYnkPszxGKgObUIFmvjus",
 		body: "image.png",
-		external_url: "https://cdn.discordapp.com/attachments/122155380120748034/1106366167486038016/image.png",
+		external_url: "https://bridge.example.org/download/discordcdn/122155380120748034/1106366167486038016/image.png",
 		filename: "image.png",
 		info: {
 			mimetype: "image/png",
@@ -427,7 +427,7 @@ test("message2event: skull webp attachment with content", async t => {
 			mimetype: "image/webp",
 			size: 74290
 		},
-		external_url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084747910918195/skull.webp",
+		external_url: "https://bridge.example.org/download/discordcdn/112760669178241024/1128084747910918195/skull.webp",
 		filename: "skull.webp",
 		url: "mxc://cadence.moe/sDxWmDErBhYBxtDcJQgBETes"
 	}])
@@ -461,7 +461,7 @@ test("message2event: reply to skull webp attachment with content", async t => {
 			mimetype: "image/jpeg",
 			size: 85906
 		},
-		external_url: "https://cdn.discordapp.com/attachments/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
+		external_url: "https://bridge.example.org/download/discordcdn/112760669178241024/1128084851023675515/RDT_20230704_0936184915846675925224905.jpg",
 		filename: "RDT_20230704_0936184915846675925224905.jpg",
 		url: "mxc://cadence.moe/WlAbFSiNRIHPDEwKdyPeGywa"
 	}])
@@ -551,7 +551,7 @@ test("message2event: reply with a video", async t => {
 		body: "Ins_1960637570.mp4",
 		filename: "Ins_1960637570.mp4",
 		url: "mxc://cadence.moe/kMqLycqMURhVpwleWkmASpnU",
-		external_url: "https://cdn.discordapp.com/attachments/112760669178241024/1197621094786531358/Ins_1960637570.mp4?ex=65bbee8f&is=65a9798f&hm=ae14f7824c3d526c5e11c162e012e1ee405fd5776e1e9302ed80ccd86503cfda&",
+		external_url: "https://bridge.example.org/download/discordcdn/112760669178241024/1197621094786531358/Ins_1960637570.mp4",
 		info: {
 			h: 854,
 			mimetype: "video/mp4",
@@ -572,7 +572,7 @@ test("message2event: voice message", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
       body: "voice-message.ogg",
-      external_url: "https://cdn.discordapp.com/attachments/1099031887500034088/1112476845502365786/voice-message.ogg?ex=65c92d4c&is=65b6b84c&hm=0654bab5027474cbe23875954fa117cf44d8914c144cd151879590fa1baf8b1c&",
+      external_url: "https://bridge.example.org/download/discordcdn/1099031887500034088/1112476845502365786/voice-message.ogg",
       filename: "voice-message.ogg",
       info: {
         duration: 3960.0000381469727,
@@ -595,7 +595,7 @@ test("message2event: misc file", async t => {
 	}, {
 		$type: "m.room.message",
       body: "the.yml",
-      external_url: "https://cdn.discordapp.com/attachments/122155380120748034/1174514575220158545/the.yml?ex=65cd6270&is=65baed70&hm=8c5f1b571784e3c7f99628492298815884e351ae0dc7c2ae40dd22d97caf27d9&",
+      external_url: "https://bridge.example.org/download/discordcdn/122155380120748034/1174514575220158545/the.yml",
       filename: "the.yml",
 		info: {
 			mimetype: "text/plain; charset=utf-8",

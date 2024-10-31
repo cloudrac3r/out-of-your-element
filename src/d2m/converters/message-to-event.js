@@ -103,7 +103,7 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
  * @param {DiscordTypes.APIAttachment} attachment
  */
 async function attachmentToEvent(mentions, attachment) {
-	const publicURL = dUtils.getPublicUrlForCdn(attachment.url)
+	const external_url = dUtils.getPublicUrlForCdn(attachment.url)
 	const emoji =
 		attachment.content_type?.startsWith("image/jp") ? "📸"
 		: attachment.content_type?.startsWith("image/") ? "🖼️"
@@ -117,9 +117,9 @@ async function attachmentToEvent(mentions, attachment) {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype: "m.text",
-			body: `${emoji} Uploaded SPOILER file: ${publicURL} (${pb(attachment.size)})`,
+			body: `${emoji} Uploaded SPOILER file: ${external_url} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${publicURL}">${publicURL}</a> (${pb(attachment.size)})</blockquote>`
+			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${external_url}">${external_url}</a> (${pb(attachment.size)})</blockquote>`
 		}
 	}
 	// for large files, always link them instead of uploading so I don't use up all the space in the content repo
@@ -128,9 +128,9 @@ async function attachmentToEvent(mentions, attachment) {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype: "m.text",
-			body: `${emoji} Uploaded file: ${publicURL} (${pb(attachment.size)})`,
+			body: `${emoji} Uploaded file: ${external_url} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `${emoji} Uploaded file: <a href="${publicURL}">${attachment.filename}</a> (${pb(attachment.size)})`
+			formatted_body: `${emoji} Uploaded file: <a href="${external_url}">${attachment.filename}</a> (${pb(attachment.size)})`
 		}
 	} else if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
 		return {
@@ -138,7 +138,7 @@ async function attachmentToEvent(mentions, attachment) {
 			"m.mentions": mentions,
 			msgtype: "m.image",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url: attachment.url,
+			external_url,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -154,7 +154,7 @@ async function attachmentToEvent(mentions, attachment) {
 			"m.mentions": mentions,
 			msgtype: "m.video",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url: attachment.url,
+			external_url,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -170,7 +170,7 @@ async function attachmentToEvent(mentions, attachment) {
 			"m.mentions": mentions,
 			msgtype: "m.audio",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url: attachment.url,
+			external_url,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -185,7 +185,7 @@ async function attachmentToEvent(mentions, attachment) {
 			"m.mentions": mentions,
 			msgtype: "m.file",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url: attachment.url,
+			external_url,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -197,8 +197,8 @@ async function attachmentToEvent(mentions, attachment) {
 }
 
 /**
- * @param {import("discord-api-types/v10").APIMessage} message
- * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {DiscordTypes.APIMessage} message
+ * @param {DiscordTypes.APIGuild} guild
  * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean}} options default values:
  * - includeReplyFallback: true
  * - includeEditFallbackStar: false

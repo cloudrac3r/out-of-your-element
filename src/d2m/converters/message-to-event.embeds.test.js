@@ -67,7 +67,7 @@ test("message2event embeds: image embed and attachment", async t => {
 		msgtype: "m.image",
 		url: "mxc://cadence.moe/zAXdQriaJuLZohDDmacwWWDR",
 		body: "Screenshot_20231001_034036.jpg",
-		external_url: "https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg?ex=651a1faa&is=6518ce2a&hm=eb5ca80a3fa7add8765bf404aea2028a28a2341e4a62435986bcdcf058da82f3&",
+		external_url: "https://bridge.example.org/download/discordcdn/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg",
 		filename: "Screenshot_20231001_034036.jpg",
 		info: {
 			h: 1170,
