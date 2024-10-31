@@ -428,8 +428,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		return {body, html}
 	}
 
-	// FIXME: What was the scanMentions parameter supposed to activate? It's unused.
-	async function addTextEvent(body, html, msgtype, {scanMentions}) {
+	async function addTextEvent(body, html, msgtype) {
 		// Star * prefix for fallback edits
 		if (options.includeEditFallbackStar) {
 			body = "* " + body
@@ -530,7 +529,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Text content appears first
 		const {body, html} = await transformContent(message.content)
-		await addTextEvent(body, html, msgtype, {scanMentions: true})
+		await addTextEvent(body, html, msgtype)
 	}
 
 	// Then attachments
@@ -612,7 +611,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		html = `<blockquote>${html}</blockquote>`
 
 		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
-		await addTextEvent(body, html, "m.notice", {scanMentions: false})
+		await addTextEvent(body, html, "m.notice")
 	}
 
 	// Then stickers
