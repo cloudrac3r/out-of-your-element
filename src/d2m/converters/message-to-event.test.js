@@ -1017,12 +1017,29 @@ test("message2event: @everyone within a link", async t => {
 
 test("message2event: forwarded image", async t => {
 	const events = await messageToEvent(data.message.forwarded_image)
-	t.deepEqual(events, [{
-		$type: "m.room.message",
-		msgtype: "m.text",
-		body: "https://github.com/@everyone",
-		format: "org.matrix.custom.html",
-		formatted_body: `<a href="https://github.com/@everyone">https://github.com/@everyone</a>`,
-		"m.mentions": {}
-	}])
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "[🔀 Forwarded message]",
+			format: "org.matrix.custom.html",
+			formatted_body: "🔀 <em>Forwarded message</em>",
+			"m.mentions": {},
+			msgtype: "m.notice",
+		},
+		{
+			$type: "m.room.message",
+			body: "100km.gif",
+			external_url: "https://bridge.example.org/download/discordcdn/112760669178241024/1296237494987133070/100km.gif",
+			filename: "100km.gif",
+			info: {
+				h: 300,
+				mimetype: "image/gif",
+				size: 2965649,
+				w: 300,
+			},
+			"m.mentions": {},
+			msgtype: "m.image",
+			url: "mxc://cadence.moe/qDAotmebTfEIfsAIVCEZptLh",
+		},
+	])
 })

@@ -428,6 +428,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 		return {body, html}
 	}
 
+	/**
+	 * After converting Discord content to Matrix plaintext and HTML content, post-process the bodies and push the resulting text event
+	 * @param {string} body matrix event plaintext body
+	 * @param {string} html matrix event HTML body
+	 * @param {string} msgtype matrix event msgtype (maybe m.text or m.notice)
+	 */
 	async function addTextEvent(body, html, msgtype) {
 		// Star * prefix for fallback edits
 		if (options.includeEditFallbackStar) {
@@ -436,7 +442,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 
 		const flags = message.flags || 0
-		if (flags & 2) {
+		if (flags & DiscordTypes.MessageFlags.IsCrosspost) {
 			body = `[🔀 ${message.author.username}]\n` + body
 			html = `🔀 <strong>${message.author.username}</strong><br>` + html
 		}
@@ -508,7 +514,57 @@ async function messageToEvent(message, guild, options = {}, di) {
 		message.content = "changed the channel name to **" + message.content + "**"
 	}
 
+	// Forwarded content appears first
+	if (message.message_reference?.type === DiscordTypes.MessageReferenceType.Forward && message.message_snapshots?.length) {
+		// Forwarded notice
+		const eventID = select("event_message", "event_id", {message_id: message.message_reference.message_id}).pluck().get()
+		const room = select("channel_room", ["room_id", "name", "nick"], {channel_id: message.message_reference.channel_id}).get()
+		const forwardedNotice = new mxUtils.MatrixStringBuilder()
+		if (eventID && room) {
+			const via = await getViaServersMemo(room.room_id)
+			forwardedNotice.addLine(
+				`[🔀 Forwarded from #${room.nick || room.name}]`,
+				tag`🔀 <em>Forwarded from <a href="https://matrix.to/#/${room.room_id}/${eventID}?${via}">${room.nick || room.name}</a></em>`
+			)
+		} else if (room) {
+			const via = await getViaServersMemo(room.room_id)
+			forwardedNotice.addLine(
+				`[🔀 Forwarded from #${room.nick || room.name}]`,
+				tag`🔀 <em>Forwarded from <a href="https://matrix.to/#/${room.room_id}?${via}">${room.nick || room.name}</a></em>`
+			)
+		} else {
+			forwardedNotice.addLine(
+				`[🔀 Forwarded message]`,
+				tag`🔀 <em>Forwarded message</em>`
+			)
+		}
 
+		// Forwarded content
+		// @ts-ignore
+		const forwardedEvents = await messageToEvent(message.message_snapshots[0].message, guild, {includeReplyFallback: false, includeEditFallbackStar: false}, di)
+
+		// Indent
+		for (const event of forwardedEvents) {
+			if (["m.text", "m.notice"].includes(event.msgtype)) {
+				event.msgtype = "m.notice"
+				event.body = event.body.split("\n").map(l => "» " + l).join("\n")
+				event.formatted_body = `<blockquote>${event.formatted_body}</blockquote>`
+			}
+		}
+
+		// Try to merge the forwarded content with the forwarded notice
+		let {body, formatted_body} = forwardedNotice.get()
+		if (forwardedEvents.length >= 1 && ["m.text", "m.notice"].includes(forwardedEvents[0].msgtype)) { // Try to merge the forwarded content and the forwarded notice
+			forwardedNotice.add("\n", "<br>")
+			forwardedEvents[0].body = body + forwardedEvents[0].body
+			forwardedEvents[0].formatted_body = formatted_body + forwardedEvents[0].formatted_body
+		} else {
+			await addTextEvent(body, formatted_body, "m.notice")
+		}
+		events.push(...forwardedEvents)
+	}
+
+	// Then text content
 	if (message.content) {
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 		const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
@@ -527,7 +583,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		}
 
-		// Text content appears first
 		const {body, html} = await transformContent(message.content)
 		await addTextEvent(body, html, msgtype)
 	}
