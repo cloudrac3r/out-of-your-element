@@ -555,9 +555,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// Try to merge the forwarded content with the forwarded notice
 		let {body, formatted_body} = forwardedNotice.get()
 		if (forwardedEvents.length >= 1 && ["m.text", "m.notice"].includes(forwardedEvents[0].msgtype)) { // Try to merge the forwarded content and the forwarded notice
-			forwardedNotice.add("\n", "<br>")
-			forwardedEvents[0].body = body + forwardedEvents[0].body
-			forwardedEvents[0].formatted_body = formatted_body + forwardedEvents[0].formatted_body
+			forwardedEvents[0].body = body + "\n" + forwardedEvents[0].body
+			forwardedEvents[0].formatted_body = formatted_body + "<br>" + forwardedEvents[0].formatted_body
 		} else {
 			await addTextEvent(body, formatted_body, "m.notice")
 		}

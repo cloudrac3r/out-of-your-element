@@ -64,7 +64,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1273204543739396116', '687028734322147344'),
 ('1273743950028607530', '1100319550446252084'),
 ('1278002262400176128', '1100319550446252084'),
-('1278001833876525057', '1100319550446252084');
+('1278001833876525057', '1100319550446252084'),
+('1191567971970191490', '176333891320283136');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),
@@ -103,7 +104,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU', 'm.room.message', 'm.text', '1273204543739396116', 0, 0, 0),
 ('$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4', 'm.room.message', 'm.text', '1273743950028607530', 0, 0, 0),
 ('$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF', 'm.room.message', 'm.text', '1278002262400176128', 0, 0, 1),
-('$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM', 'm.room.message', 'm.text', '1278001833876525057', 0, 0, 1);
+('$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM', 'm.room.message', 'm.text', '1278001833876525057', 0, 0, 1),
+('$tBIT8mO7XTTCgIINyiAIy6M2MSoPAdJenRl_RLyYuaE', 'm.room.message', 'm.text', '1191567971970191490', 0, 0, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),

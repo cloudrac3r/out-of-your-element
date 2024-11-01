@@ -2190,6 +2190,80 @@ module.exports = {
 					}
 				}
 			]
+		},
+		constructed_forwarded_message: {                                                                                                                                                                                                                                                                               type: 0,
+			content: "",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2024-10-16T22:25:01.973000+00:00",
+			edited_timestamp: null,
+			flags: 16384,
+			components: [],
+			id: "1296237495993892916",
+			channel_id: "112760669178241024",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "a8829abe66866d7797b36f0bfac01086",
+				discriminator: "0",
+				public_flags: 128,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 1,
+				channel_id: "176333891320283136",
+				message_id: "1191567971970191490"
+			},
+			position: 0,
+			message_snapshots: [
+				{
+					message: {
+						type: 0,
+						content: "What's cooking, good looking? <:hipposcope:393635038903926784>",
+						mentions: [],
+						mention_roles: [],
+						attachments: [
+							{
+								id: "1296237494987133070",
+								filename: "100km.gif",
+								size: 2965649,
+								url: "https://cdn.discordapp.com/attachments/112760669178241024/1296237494987133070/100km.gif?ex=67118ebd&is=67103d3d&hm=8ed76d424f92f11366989f2ebc713d4f8206706ef712571e934da45b59944f77&",                                                                                  proxy_url: "https://media.discordapp.net/attachments/112760669178241024/1296237494987133070/100km.gif?ex=67118ebd&is=67103d3d&hm=8ed76d424f92f11366989f2ebc713d4f8206706ef712571e934da45b59944f77&",                                                                          width: 300,
+								height: 300,
+								content_type: "image/gif"
+							}
+						],
+						embeds: [{
+							type: "rich",
+							title: "This man is 100 km away from your house",
+							author: {
+								name: "This man"
+							},
+							fields: [{
+								name: "Distance away",
+								value: "99 km"
+							}, {
+								name: "Distance away",
+								value: "98 km"
+							}]
+						}],
+						timestamp: "2022-09-15T01:20:58.177000+00:00",
+						edited_timestamp: null,
+						flags: 0,
+						components: []
+					}
+				}
+			]
 		}
 	},
 	pk_message: {
