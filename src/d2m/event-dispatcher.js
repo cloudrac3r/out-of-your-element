@@ -281,9 +281,6 @@ module.exports = {
 		// Otherwise, if there are embeds, then the system generated URL preview embeds.
 		if (!(typeof data.content === "string" || "embeds" in data)) return
 
-		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
-		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageUpdate, client, data)) return
-
 		if (data.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
 			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
@@ -294,6 +291,9 @@ module.exports = {
 		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
 		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
 		if (affected) return
+
+		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
+		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageUpdate, client, data)) return
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 		// @ts-ignore
