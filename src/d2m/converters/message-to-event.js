@@ -199,9 +199,10 @@ async function attachmentToEvent(mentions, attachment) {
 /**
  * @param {DiscordTypes.APIMessage} message
  * @param {DiscordTypes.APIGuild} guild
- * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean}} options default values:
+ * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean, alwaysReturnFormattedBody?: boolean}} options default values:
  * - includeReplyFallback: true
  * - includeEditFallbackStar: false
+ * - alwaysReturnFormattedBody: false - formatted_body will be skipped if it is the same as body because the message is plaintext. if you want the formatted_body to be returned anyway, for example to merge it with another message, then set this to true.
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
 async function messageToEvent(message, guild, options = {}, di) {
@@ -496,7 +497,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		const isPlaintext = body === html
 
-		if (!isPlaintext) {
+		if (!isPlaintext || options.alwaysReturnFormattedBody) {
 			Object.assign(newTextMessageEvent, {
 				format: "org.matrix.custom.html",
 				formatted_body: html
@@ -520,18 +521,20 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const eventID = select("event_message", "event_id", {message_id: message.message_reference.message_id}).pluck().get()
 		const room = select("channel_room", ["room_id", "name", "nick"], {channel_id: message.message_reference.channel_id}).get()
 		const forwardedNotice = new mxUtils.MatrixStringBuilder()
-		if (eventID && room) {
+		if (room) {
+			const roomName = room && (room.nick || room.name)
 			const via = await getViaServersMemo(room.room_id)
-			forwardedNotice.addLine(
-				`[🔀 Forwarded from #${room.nick || room.name}]`,
-				tag`🔀 <em>Forwarded from <a href="https://matrix.to/#/${room.room_id}/${eventID}?${via}">${room.nick || room.name}</a></em>`
-			)
-		} else if (room) {
-			const via = await getViaServersMemo(room.room_id)
-			forwardedNotice.addLine(
-				`[🔀 Forwarded from #${room.nick || room.name}]`,
-				tag`🔀 <em>Forwarded from <a href="https://matrix.to/#/${room.room_id}?${via}">${room.nick || room.name}</a></em>`
-			)
+			if (eventID) {
+				forwardedNotice.addLine(
+					`[🔀 Forwarded from #${roomName}]`,
+					tag`🔀 <em>Forwarded from <a href="https://matrix.to/#/${room.room_id}/${eventID}?${via}">${roomName}</a></em>`
+				)
+			} else {
+				forwardedNotice.addLine(
+					`[🔀 Forwarded from #${roomName}]`,
+					tag`🔀 <em>Forwarded from <a href="https://matrix.to/#/${room.room_id}?${via}">${roomName}</a></em>`
+				)
+			}
 		} else {
 			forwardedNotice.addLine(
 				`[🔀 Forwarded message]`,
@@ -541,7 +544,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Forwarded content
 		// @ts-ignore
-		const forwardedEvents = await messageToEvent(message.message_snapshots[0].message, guild, {includeReplyFallback: false, includeEditFallbackStar: false}, di)
+		const forwardedEvents = await messageToEvent(message.message_snapshots[0].message, guild, {includeReplyFallback: false, includeEditFallbackStar: false, alwaysReturnFormattedBody: true}, di)
 
 		// Indent
 		for (const event of forwardedEvents) {

@@ -2264,6 +2264,58 @@ module.exports = {
 					}
 				}
 			]
+		},
+		constructed_forwarded_text: {                                                                                                                                                                                                                                                                               type: 0,
+			content: "What's cooking everybody ‼️",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2024-10-16T22:25:01.973000+00:00",
+			edited_timestamp: null,
+			flags: 16384,
+			components: [],
+			id: "1296237495993892916",
+			channel_id: "112760669178241024",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "a8829abe66866d7797b36f0bfac01086",
+				discriminator: "0",
+				public_flags: 128,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 1,
+				channel_id: "497161350934560778",
+				message_id: "0"
+			},
+			position: 0,
+			message_snapshots: [
+				{
+					message: {
+						type: 0,
+						content: "What's cooking, good looking?",
+						mentions: [],
+						mention_roles: [],
+						attachments: [],
+						embeds: [],
+						timestamp: "2022-09-15T01:20:58.177000+00:00",
+						edited_timestamp: null,
+						flags: 0,
+						components: []
+					}
+				}
+			]
 		}
 	},
 	pk_message: {

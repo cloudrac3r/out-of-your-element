@@ -1047,7 +1047,7 @@ test("message2event: forwarded image", async t => {
 test("message2event: constructed forwarded message", async t => {
 	const events = await messageToEvent(data.message.constructed_forwarded_message, {}, {}, {
 		api: {
-			async getJoinedMembers(roomID) {
+			async getJoinedMembers() {
 				return {
 					joined: {
 						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
@@ -1098,6 +1098,39 @@ test("message2event: constructed forwarded message", async t => {
 			formatted_body: "<blockquote><blockquote><p><strong>This man</strong></p><p><strong>This man is 100 km away from your house</strong></p><p><strong>Distance away</strong><br>99 km</p><p><strong>Distance away</strong><br>98 km</p></blockquote></blockquote>",
 			"m.mentions": {},
 			msgtype: "m.notice"
+		}
+	])
+})
+
+test("message2event: constructed forwarded text", async t => {
+	const events = await messageToEvent(data.message.constructed_forwarded_text, {}, {}, {
+		api: {
+			async getJoinedMembers() {
+				return {
+					joined: {
+						"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+						"@user:matrix.org": {display_name: null, avatar_url: null}
+					}
+				}
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "[🔀 Forwarded from #amanda-spam]"
+				+ "\n» What's cooking, good looking?",
+			format: "org.matrix.custom.html",
+			formatted_body: `🔀 <em>Forwarded from <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe?via=cadence.moe&amp;via=matrix.org">amanda-spam</a></em>`
+				+ `<br><blockquote>What's cooking, good looking?</blockquote>`,
+			"m.mentions": {},
+			msgtype: "m.notice",
+		},
+		{
+			$type: "m.room.message",
+			body: "What's cooking everybody ‼️",
+			"m.mentions": {},
+			msgtype: "m.text",
 		}
 	])
 })
