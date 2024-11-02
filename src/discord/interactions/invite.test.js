@@ -43,6 +43,21 @@ test("invite: checks for invalid matrix ID", async t => {
 	t.equal(msgs[0].createInteractionResponse.data.content, "You have to say the Matrix ID of the person you want to invite. Matrix IDs look like this: `@username:example.org`")
 })
 
+test("invite: checks if guild exists", async t => { // it might not exist if the application was added with applications.commands scope and not bot scope
+	const msgs = await fromAsync(_interact({
+		data: {
+			options: [{
+				name: "user",
+				type: DiscordTypes.ApplicationCommandOptionType.String,
+				value: "@cadence:cadence.moe"
+			}]
+		},
+		channel: discord.channels.get("0"),
+		guild_id: "0"
+	}, {}))
+	t.match(msgs[0].createInteractionResponse.data.content, /there is no bot presence in the server/)
+})
+
 test("invite: checks if channel exists or is autocreatable", async t => {
 	db.prepare("UPDATE guild_active SET autocreate = 0").run()
 	const msgs = await fromAsync(_interact({

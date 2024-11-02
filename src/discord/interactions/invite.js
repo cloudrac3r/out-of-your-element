@@ -12,6 +12,8 @@ const createRoom = sync.require("../../d2m/actions/create-room")
 const createSpace = sync.require("../../d2m/actions/create-space")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/read-registration")} */
+const {reg} = sync.require("../../matrix/read-registration")
 
 /**
  * @param {DiscordTypes.APIChatInputApplicationCommandGuildInteraction & {channel: DiscordTypes.APIGuildTextChannel}} interaction
@@ -19,6 +21,16 @@ const api = sync.require("../../matrix/api")
  * @returns {AsyncGenerator<{[k in keyof InteractionMethods]?: Parameters<InteractionMethods[k]>[2]}>}
  */
 async function* _interact({data, channel, guild_id}, {api}) {
+	// Check guild exists - it might not exist if the application was added with applications.commands scope and not bot scope
+	const guild = discord.guilds.get(guild_id)
+	if (!guild) return yield {createInteractionResponse: {
+		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
+		data: {
+			content: `I can't perform actions in this server because there is no bot presence in the server. You should try re-adding this bot to the server, making sure that it has bot scope (not just commands).\nIf you add the bot from ${reg.ooye.bridge_origin} this should work automatically.`,
+			flags: DiscordTypes.MessageFlags.Ephemeral
+		}
+	}}
+
 	// Get named MXID
 	/** @type {DiscordTypes.APIApplicationCommandInteractionDataStringOption[] | undefined} */ // @ts-ignore
 	const options = data.options
@@ -31,9 +43,6 @@ async function* _interact({data, channel, guild_id}, {api}) {
 			flags: DiscordTypes.MessageFlags.Ephemeral
 		}
 	}}
-
-	const guild = discord.guilds.get(guild_id)
-	assert(guild)
 
 	// Ensure guild and room are bridged
 	db.prepare("INSERT OR IGNORE INTO guild_active (guild_id, autocreate) VALUES (?, 1)").run(guild_id)
