@@ -304,7 +304,7 @@ module.exports = {
 		assert(guild)
 
 		// @ts-ignore
-		await editMessage.editMessage(message, guild, row)
+		await retrigger.pauseChanges(message.id, editMessage.editMessage(message, guild, row))
 	},
 
 	/**

@@ -12,6 +12,7 @@ function debugRetrigger(message) {
 	}
 }
 
+const paused = new Set()
 const emitter = new EventEmitter()
 
 /**
@@ -25,13 +26,15 @@ const emitter = new EventEmitter()
  * @returns {boolean} false if the event was found and the function will be ignored, true if the event was not found and the function will be retriggered
  */
 function eventNotFoundThenRetrigger(messageID, fn, ...rest) {
-	const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
-	if (eventID) {
-		debugRetrigger(`[retrigger] OK mid <-> eid = ${messageID} <-> ${eventID}`)
-		return false // event was found so don't retrigger
+	if (!paused.has(messageID)) {
+		const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
+		if (eventID) {
+			debugRetrigger(`[retrigger] OK mid <-> eid = ${messageID} <-> ${eventID}`)
+			return false // event was found so don't retrigger
+		}
 	}
 
-	debugRetrigger(`[retrigger] WAIT mid <-> eid = ${messageID} <-> ${eventID}`)
+	debugRetrigger(`[retrigger] WAIT mid = ${messageID}`)
 	emitter.once(messageID, () => {
 		debugRetrigger(`[retrigger] TRIGGER mid = ${messageID}`)
 		fn(...rest)
@@ -47,6 +50,25 @@ function eventNotFoundThenRetrigger(messageID, fn, ...rest) {
 }
 
 /**
+ * Anything calling retrigger during the callback will be paused and retriggered after the callback resolves.
+ * @template T
+ * @param {string} messageID
+ * @param {Promise<T>} promise
+ * @returns {Promise<T>}
+ */
+async function pauseChanges(messageID, promise) {
+	try {
+		debugRetrigger(`[retrigger] PAUSE mid = ${messageID}`)
+		paused.add(messageID)
+		return await promise
+	} finally {
+		debugRetrigger(`[retrigger] RESUME mid = ${messageID}`)
+		paused.delete(messageID)
+		messageFinishedBridging(messageID)
+	}
+}
+
+/**
  * Triggers any pending operations that were waiting on the corresponding event ID.
  * @param {string} messageID
  */
@@ -59,3 +81,4 @@ function messageFinishedBridging(messageID) {
 
 module.exports.eventNotFoundThenRetrigger = eventNotFoundThenRetrigger
 module.exports.messageFinishedBridging = messageFinishedBridging
+module.exports.pauseChanges = pauseChanges
