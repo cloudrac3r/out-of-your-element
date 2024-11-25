@@ -34,6 +34,39 @@ const schema = {
 /** @type {LRUCache<string, string>} nonce to guild id */
 const validNonce = new LRUCache({max: 200})
 
+function getChannelRoomsLinks(guildID, rooms) {
+	function getPosition(channel) {
+		let position = 0
+		let looking = channel
+		while (looking.parent_id) {
+			looking = discord.channels.get(looking.parent_id)
+			position = looking.position * 1000
+		}
+		if (channel.position) position += channel.position
+		return position
+	}
+
+	let channelIDs = discord.guildChannelMap.get(guildID)
+	assert(channelIDs)
+
+	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
+	let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c})).filter(c => c.channel)
+	let linkedChannelIDs = linkedChannelsWithDetails.map(c => c.channel_id)
+	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel) - getPosition(b.channel))
+
+	let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
+	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c)).filter(c => [0, 5].includes(c.type))
+	unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
+
+	let linkedRoomIDs = linkedChannels.map(c => c.room_id)
+	let unlinkedRooms = rooms.filter(r => !linkedRoomIDs.includes(r.room_id) && !r.room_type)
+	// https://discord.com/developers/docs/topics/threads#active-archived-threads
+	// need to filter out linked archived threads from unlinkedRooms, will just do that by comparing against the name
+	unlinkedRooms = unlinkedRooms.filter(r => !r.name.match(/^\[(🔒)?⛓️\]/))
+
+	return {linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms}
+}
+
 as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
 	const session = await useSession(event, {password: reg.as_token})
@@ -47,7 +80,8 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
 	const banned = await api.getMembers(row.space_id, "ban")
 	const rooms = await api.getFullHierarchy(row.space_id)
-	return pugSync.render(event, "guild.pug", {guild_id, nonce, mods, banned, rooms, ...row})
+	const links = getChannelRoomsLinks(guild_id, rooms)
+	return pugSync.render(event, "guild.pug", {guild_id, nonce, mods, banned, rooms, ...links, ...row})
 }))
 
 as.router.get("/invite", defineEventHandler(async event => {
