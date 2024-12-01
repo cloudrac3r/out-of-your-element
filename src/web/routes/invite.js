@@ -5,6 +5,7 @@ const {z} = require("zod")
 const {defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody} = require("h3")
 const {randomUUID} = require("crypto")
 const {LRUCache} = require("lru-cache")
+const Ty = require("../../types")
 
 const {discord, as, sync, select} = require("../../passthrough")
 /** @type {import("../pug-sync")} */
@@ -34,6 +35,10 @@ const schema = {
 /** @type {LRUCache<string, string>} nonce to guild id */
 const validNonce = new LRUCache({max: 200})
 
+/**
+ * @param {string} guildID
+ * @param {Ty.R.Hierarchy[]} rooms
+ */
 function getChannelRoomsLinks(guildID, rooms) {
 	function getPosition(channel) {
 		let position = 0
@@ -62,7 +67,7 @@ function getChannelRoomsLinks(guildID, rooms) {
 	let unlinkedRooms = rooms.filter(r => !linkedRoomIDs.includes(r.room_id) && !r.room_type)
 	// https://discord.com/developers/docs/topics/threads#active-archived-threads
 	// need to filter out linked archived threads from unlinkedRooms, will just do that by comparing against the name
-	unlinkedRooms = unlinkedRooms.filter(r => !r.name.match(/^\[(🔒)?⛓️\]/))
+	unlinkedRooms = unlinkedRooms.filter(r => r.name && !r.name.match(/^\[(🔒)?⛓️\]/))
 
 	return {linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms}
 }
@@ -71,18 +76,27 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
 	const session = await useSession(event, {password: reg.as_token})
 	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id}).get()
-	if (!guild_id || !row || !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
-		const links = getChannelRoomsLinks(guild_id, [])
-		return pugSync.render(event, "guild.pug", {guild_id, ...links})
+
+	// Permission problems
+	if (!guild_id || !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
+		return pugSync.render(event, "guild.pug", {guild_id})
 	}
 
 	const nonce = randomUUID()
 	validNonce.set(nonce, guild_id)
+
+	// Unlinked guild
+	if (!row) {
+		const links = getChannelRoomsLinks(guild_id, [])
+		return pugSync.render(event, "guild.pug", {guild_id, nonce, ...links})
+	}
+
+	// Linked guild
 	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
 	const banned = await api.getMembers(row.space_id, "ban")
 	const rooms = await api.getFullHierarchy(row.space_id)
 	const links = getChannelRoomsLinks(guild_id, rooms)
-	return pugSync.render(event, "guild.pug", {guild_id, nonce, mods, banned, rooms, ...links, ...row})
+	return pugSync.render(event, "guild.pug", {guild_id, nonce, mods, banned, ...links, ...row})
 }))
 
 as.router.get("/invite", defineEventHandler(async event => {
