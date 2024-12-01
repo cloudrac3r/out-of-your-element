@@ -55,7 +55,7 @@ function getChannelRoomsLinks(guildID, rooms) {
 	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel) - getPosition(b.channel))
 
 	let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
-	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c)).filter(c => [0, 5].includes(c.type))
+	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c)).filter(c => c && [0, 5].includes(c.type))
 	unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
 
 	let linkedRoomIDs = linkedChannels.map(c => c.room_id)
@@ -72,7 +72,8 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const session = await useSession(event, {password: reg.as_token})
 	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id}).get()
 	if (!guild_id || !row || !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
-		return pugSync.render(event, "guild.pug", {guild_id})
+		const links = getChannelRoomsLinks(guild_id, [])
+		return pugSync.render(event, "guild.pug", {guild_id, ...links})
 	}
 
 	const nonce = randomUUID()
