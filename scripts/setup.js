@@ -276,15 +276,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	console.log("✅ Database is ready...")
 
 	// ensure appservice bot user is registered...
-	try {
-		await api.register(reg.sender_localpart)
-	} catch (e) {
-		if (e.errcode === "M_USER_IN_USE" || e.data?.error === "Internal server error") {
-			// "Internal server error" is the only OK error because older versions of Synapse say this if you try to register the same username twice.
-		} else {
-			throw e
-		}
-	}
+	await api.register(reg.sender_localpart)
 
 	// upload initial images...
 	const avatarUrl = await file.uploadDiscordFileToMxc("https://cadence.moe/friends/out_of_your_element.png")

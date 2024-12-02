@@ -35,14 +35,21 @@ function path(p, mxid, otherParams = {}) {
 
 /**
  * @param {string} username
- * @returns {Promise<Ty.R.Registered>}
  */
-function register(username) {
+async function register(username) {
 	console.log(`[api] register: ${username}`)
-	return mreq.mreq("POST", "/client/v3/register", {
-		type: "m.login.application_service",
-		username
-	})
+	try {
+		await mreq.mreq("POST", "/client/v3/register", {
+			type: "m.login.application_service",
+			username
+		})
+	} catch (e) {
+		if (e.errcode === "M_USER_IN_USE" || e.data?.error === "Internal server error") {
+			// "Internal server error" is the only OK error because older versions of Synapse say this if you try to register the same username twice.
+		} else {
+			throw e
+		}
+	}
 }
 
 /**
