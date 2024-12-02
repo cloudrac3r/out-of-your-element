@@ -68,10 +68,7 @@ async function uploadAutoEmoji(snow, guild, name, filename) {
 	return emoji
 }
 
-async function validateHomeserverOrigin(serverUrlPrompt, url) {
-	if (!url.match(/^https?:\/\//)) return "Must be a URL"
-	if (url.match(/\/$/)) return "Must not end with a slash"
-	process.stdout.write(magenta(" checking, please wait..."))
+async function suggestWellKnown(serverUrlPrompt, url, otherwise) {
 	try {
 		var json = await fetch(`${url}/.well-known/matrix/client`).then(res => res.json())
 		let baseURL = json["m.homeserver"].base_url.replace(/\/$/, "")
@@ -80,19 +77,28 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 			return `Did you mean: ${bold(baseURL)}? (Enter to accept)`
 		}
 	} catch (e) {}
+	return otherwise
+}
+
+async function validateHomeserverOrigin(serverUrlPrompt, url) {
+	if (!url.match(/^https?:\/\//)) return "Must be a URL"
+	if (url.match(/\/$/)) return "Must not end with a slash"
+	process.stdout.write(magenta(" checking, please wait..."))
 	try {
 		var res = await fetch(`${url}/_matrix/client/versions`)
+		if (res.status !== 200) {
+			return suggestWellKnown(serverUrlPrompt, url, `There is no Matrix server at that URL (${url}/_matrix/client/versions returned ${res.status})`)
+		}
 	} catch (e) {
 		return e.message
 	}
-	if (res.status !== 200) return `There is no Matrix server at that URL (${url}/_matrix/client/versions returned ${res.status})`
 	try {
 		var json = await res.json()
 		if (!Array.isArray(json?.versions) || !json.versions.includes("v1.11")) {
 			return `OOYE needs Matrix version v1.11, but ${url} doesn't support this`
 		}
 	} catch (e) {
-		return `There is no Matrix server at that URL (${url}/_matrix/client/versions is not JSON)`
+		return suggestWellKnown(serverUrlPrompt, url, `There is no Matrix server at that URL (${url}/_matrix/client/versions is not JSON)`)
 	}
 	return true
 }
