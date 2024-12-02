@@ -575,7 +575,7 @@ test("message2event: voice message", async t => {
       external_url: "https://bridge.example.org/download/discordcdn/1099031887500034088/1112476845502365786/voice-message.ogg",
       filename: "voice-message.ogg",
       info: {
-        duration: 3960.0000381469727,
+        duration: 3960,
         mimetype: "audio/ogg",
         size: 10584,
 		},

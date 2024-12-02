@@ -15,6 +15,8 @@ const api = sync.require("../../matrix/api")
 const ks = sync.require("../../matrix/kstate")
 /** @type {import("../../discord/utils")} */
 const utils = sync.require("../../discord/utils")
+/** @type {import("./create-space")} */
+const createSpace = sync.require("./create-space")
 
 /**
  * There are 3 levels of room privacy:
@@ -93,11 +95,9 @@ function convertNameAndTopic(channel, guild, customName) {
 async function channelToKState(channel, guild, di) {
 	// @ts-ignore
 	const parentChannel = discord.channels.get(channel.parent_id)
-	const guildRow = select("guild_space", ["space_id", "privacy_level"], {guild_id: guild.id}).get()
-	assert(guildRow)
 
 	/** Used for membership/permission checks. */
-	let guildSpaceID = guildRow.space_id
+	const guildSpaceID = await createSpace.ensureSpace(guild)
 	/** Used as the literal parent on Matrix, for categorisation. Will be the same as `guildSpaceID` unless it's a forum channel's thread, in which case a different space is used to group those threads. */
 	let parentSpaceID = guildSpaceID
 	if (parentChannel?.type === DiscordTypes.ChannelType.GuildForum) {
@@ -117,7 +117,8 @@ async function channelToKState(channel, guild, di) {
 		avatarEventContent.url = {$url: file.guildIcon(guild)}
 	}
 
-	const privacyLevel = guildRow.privacy_level
+	const privacyLevel = select("guild_space", "privacy_level", {guild_id: guild.id}).pluck().get()
+	assert(privacyLevel != null) // already ensured the space exists
 	let history_visibility = PRIVACY_ENUMS.ROOM_HISTORY_VISIBILITY[privacyLevel]
 	if (channel["thread_metadata"]) history_visibility = "world_readable"
 

@@ -61,8 +61,6 @@ So there will be 3 states of whether a guild is self-service or not. At first, i
 
 Pressing buttons on web or using the /invite command on a guild will insert a row into guild_active, allowing it to be bridged.
 
-One more thing. Before v3, when a Matrix room was autocreated it would autocreate the space as well, if it needed to. But now, since nothing will be created until the user takes an action, the guild will always be created directly in response to a request. So room creation can now trust that the guild exists already.
-
 So here's all the technical changes needed to support self-service in v3:
 
 - New guild_active table showing whether, and how, a guild is bridged.
@@ -70,5 +68,4 @@ So here's all the technical changes needed to support self-service in v3:
 - When bot is added through "easy mode" web button, REPLACE INTO state 1 and ensureSpace.
 - When bot is added through "self-service" web button, REPLACE INTO state 0.
 - Event dispatcher will only ensureRoom if the guild_active state is 1.
-- createRoom can trust that the space exists because we check that in a calling function.
 - createRoom will only create other dependencies if the guild is autocreate.
