@@ -86,7 +86,7 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	// Set auto-create for the guild
 	// @ts-ignore
 	if (managedGuilds.includes(parsedQuery.data.guild_id)) {
-		db.prepare("INSERT OR IGNORE INTO guild_active (guild_id, autocreate) VALUES (?, ?)").run(parsedQuery.data.guild_id, +!session.data.selfService)
+		db.prepare("REPLACE INTO guild_active (guild_id, autocreate) VALUES (?, ?)").run(parsedQuery.data.guild_id, +!session.data.selfService)
 	}
 
 	if (parsedQuery.data.guild_id) {
