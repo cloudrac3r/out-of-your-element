@@ -600,7 +600,6 @@ async function eventToMessage(event, guild, di) {
 					contentPreview = ": " + contentPreviewChunks[0]
 					if (contentPreviewChunks.length > 1) contentPreview = contentPreview.replace(/[,.']$/, "") + "..."
 				} else {
-					console.log("Unable to generate reply preview for this replied-to event because we stripped all of it:", repliedToEvent)
 					contentPreview = ""
 				}
 			}
