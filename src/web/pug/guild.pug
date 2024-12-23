@@ -11,7 +11,7 @@ mixin badge-private
     | Private
 
 mixin discord(channel, radio=false)
-  - let permissions = dUtils.getPermissions([], discord.guilds.get(channel.guild_id).roles, "", channel.permission_overwrites)
+  - let permissions = dUtils.getPermissions([], discord.guilds.get(channel.guild_id).roles, null, channel.permission_overwrites)
   .s-user-card.s-user-card__small
     if !dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
       != icons.Icons.IconLock
@@ -49,153 +49,110 @@ mixin matrix(row, radio=false, badge="")
         +badge-private
 
 block body
-  if !guild_id && session.data.managedGuilds
-    .s-empty-state.wmx4.p48
-      != icons.Spots.SpotEmptyXL
-      p Select a server from the top right corner to continue.
-      p If the server you're looking for isn't there, try #[a(href="/oauth?action=add") logging in again.]
+  .s-page-title.mb24
+    h1.s-page-title--header= guild.name
 
-  else if !session.data.managedGuilds
-    .s-empty-state.wmx4.p48
-      != icons.Spots.SpotEmptyXL
-      p You need to log in to manage your servers.
-      a.s-btn.s-btn__icon.s-btn__filled(href="/oauth")
-        != icons.Icons.IconDiscord
-        = ` Log in with Discord`
+  .d-flex.g16
+    .fl-grow1
+      h2.fs-headline1 Invite a Matrix user
 
-  else if !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)
-    .s-empty-state.wmx4.p48
-      != icons.Spots.SpotAlertXL
-      p Either the selected server doesn't exist, or you don't have the Manage Server permission on Discord.
-      p If you've checked your permissions, try #[a(href="/oauth") logging in again.]
-
-  else
-    - let guild = discord.guilds.get(guild_id)
-
-    .s-page-title.mb24
-      h1.s-page-title--header= guild.name
-
-    .d-flex.g16
-      .fl-grow1
-        h2.fs-headline1 Invite a Matrix user
-
-        form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" style="grid-template-rows: repeat(2, auto)")
-          label.s-label(for="mxid") Matrix ID
-          input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
-          label.s-label(for="permissions") Permissions
-          .s-select
-            select#permissions(name="permissions")
-              option(value="default") Default
-              option(value="moderator") Moderator
-          input(type="hidden" name="guild_id" value=guild_id)
-          .grid--row-start2
-            button.s-btn.s-btn__filled.htmx-indicator Invite
-      div
-        -
-          let size = 105
-          let p = new URLSearchParams()
-          p.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
-        img(width=size height=size src=`/qr?${p}`)
-
-    h2.mt48.fs-headline1 Moderation
-
-    h2.mt48.fs-headline1 Matrix setup
-
-    h3.mt32.fs-category Linked channels
-
-    .s-card.bs-sm.p0
-      .s-table-container
-        table.s-table.s-table__bx-simple
-          each row in linkedChannelsWithDetails
-            tr
-              td.w40: +discord(row.channel)
-              td.p2: button.s-btn.s-btn__muted.s-btn__xs!= icons.Icons.IconLinkSm
-              td: +matrix(row)
-          else
-            tr
-              td(colspan="3")
-                .s-empty-state No channels linked between Discord and Matrix yet...
-
-    h3.mt32.fs-category Auto-create
-    .s-card
-      form.d-flex.ai-center.g8
-        label.s-label.fl-grow1(for="autocreate")
-          | Create new Matrix rooms automatically
-          p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
-        - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
+      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" style="grid-template-rows: repeat(2, auto)")
+        label.s-label(for="mxid") Matrix ID
+        input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
+        label.s-label(for="permissions") Permissions
+        .s-select
+          select#permissions(name="permissions")
+            option(value="default") Default
+            option(value="moderator") Moderator
         input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
-        .is-loading#autocreate-loading
+        .grid--row-start2
+          button.s-btn.s-btn__filled.htmx-indicator Invite
+    div
+      -
+        let size = 105
+        let p = new URLSearchParams()
+        p.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
+      img(width=size height=size src=`/qr?${p}`)
 
-    h3.mt32.fs-category Privacy level
-    .s-card
-      form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="this")
-        input(type="hidden" name="guild_id" value=guild_id)
-        .d-flex.ai-center.mb4
-          label.s-label.fl-grow1
-            | How people can join on Matrix
-            span.is-loading#privacy-level-loading
-        .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
-          input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
-          label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
-            != icons.Icons.IconPlusSm
-            != icons.Icons.IconInternationalSm
-            .fl-grow1 Directory
+  h2.mt48.fs-headline1 Moderation
 
-          input(type="radio" name="level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
-          label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
-            != icons.Icons.IconPlusSm
-            != icons.Icons.IconLinkSm
-            .fl-grow1 Link
+  h2.mt48.fs-headline1 Matrix setup
 
-          input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
-          label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
-            svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
-            != icons.Icons.IconLockSm
-            .fl-grow1 Invite
+  h3.mt32.fs-category Linked channels
 
-          p.s-description.m0 In-app direct invite from another user
-          p.s-description.m0 Shareable invite links, like Discord
-          p.s-description.m0 Publicly listed in directory, like Discord server discovery
-
-
-      //-
-        fieldset.s-check-group
-          legend.s-label How people can join on Matrix
-          .s-check-control
-            input.s-radio(type="radio" name="privacy-level" id="privacy-level-invite" value="invite" checked)
-            label.s-label(for="privacy-level-invite")
-              | Invite
-              p.s-description In-app direct invite on Matrix; invite command on Discord; invite form on web
-          .s-check-control
-            input.s-radio(type="radio" name="privacy-level" id="privacy-level-link" value="link")
-            label.s-label(for="privacy-level-link")
-              | Link
-              p.s-description All of the above, and shareable invite links (like Discord)
-          .s-check-control
-            input.s-radio(type="radio" name="privacy-level" id="privacy-level-directory" value="directory")
-            label.s-label(for="privacy-level-directory")
-              | Public
-              p.s-description All of the above, and publicly visible in the Matrix space directory (like Server Discovery)
-
-    h3.mt32.fs-category Manually link channels
-    form.d-flex.g16.ai-start(hx-post="/api/privacy-level" hx-trigger="submit" hx-disabled-elt="this")
-      .fl-grow2.s-btn-group.fd-column.w40
-        each channel in unlinkedChannels
-          input.s-btn--radio(type="radio" name="discord" id=channel.id value=channel.id)
-          label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
-            +discord(channel, true, "Announcement")
+  .s-card.bs-sm.p0
+    .s-table-container
+      table.s-table.s-table__bx-simple
+        each row in linkedChannelsWithDetails
+          tr
+            td.w40: +discord(row.channel)
+            td.p2: button.s-btn.s-btn__muted.s-btn__xs!= icons.Icons.IconLinkSm
+            td: +matrix(row)
         else
-          .s-empty-state.p8 All Discord channels are linked.
-      .fl-grow1.s-btn-group.fd-column.w30
-        each room in unlinkedRooms
-          input.s-btn--radio(type="radio" name="matrix" id=room.room_id value=room.room_id)
-          label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
-            +matrix(room, true)
-        else
-          .s-empty-state.p8 All Matrix rooms are linked.
+          tr
+            td(colspan="3")
+              .s-empty-state No channels linked between Discord and Matrix yet...
+
+  h3.mt32.fs-category Auto-create
+  .s-card
+    form.d-flex.ai-center.g8
+      label.s-label.fl-grow1(for="autocreate")
+        | Create new Matrix rooms automatically
+        p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
+      - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
       input(type="hidden" name="guild_id" value=guild_id)
-      div
-        button.s-btn.s-btn__icon.s-btn__filled.htmx-indicator
-          != icons.Icons.IconMerge
-          = ` Link`
+      input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
+      .is-loading#autocreate-loading
+
+  h3.mt32.fs-category Privacy level
+  .s-card
+    form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="this")
+      input(type="hidden" name="guild_id" value=guild_id)
+      .d-flex.ai-center.mb4
+        label.s-label.fl-grow1
+          | How people can join on Matrix
+          span.is-loading#privacy-level-loading
+      .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
+        input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
+        label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
+          != icons.Icons.IconPlusSm
+          != icons.Icons.IconInternationalSm
+          .fl-grow1 Directory
+
+        input(type="radio" name="level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
+        label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
+          != icons.Icons.IconPlusSm
+          != icons.Icons.IconLinkSm
+          .fl-grow1 Link
+
+        input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
+        label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
+          svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
+          != icons.Icons.IconLockSm
+          .fl-grow1 Invite
+
+        p.s-description.m0 In-app direct invite from another user
+        p.s-description.m0 Shareable invite links, like Discord
+        p.s-description.m0 Publicly listed in directory, like Discord server discovery
+
+  h3.mt32.fs-category Manually link channels
+  form.d-flex.g16.ai-start(hx-post="/api/privacy-level" hx-trigger="submit" hx-disabled-elt="this")
+    .fl-grow2.s-btn-group.fd-column.w40
+      each channel in unlinkedChannels
+        input.s-btn--radio(type="radio" name="discord" id=channel.id value=channel.id)
+        label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
+          +discord(channel, true, "Announcement")
+      else
+        .s-empty-state.p8 All Discord channels are linked.
+    .fl-grow1.s-btn-group.fd-column.w30
+      each room in unlinkedRooms
+        input.s-btn--radio(type="radio" name="matrix" id=room.room_id value=room.room_id)
+        label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
+          +matrix(room, true)
+      else
+        .s-empty-state.p8 All Matrix rooms are linked.
+    input(type="hidden" name="guild_id" value=guild_id)
+    div
+      button.s-btn.s-btn__icon.s-btn__filled.htmx-indicator
+        != icons.Icons.IconMerge
+        = ` Link`

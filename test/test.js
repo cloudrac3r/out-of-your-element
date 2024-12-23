@@ -20,9 +20,9 @@ const {reg} = require("../src/matrix/read-registration")
 reg.ooye.discord_token = "Njg0MjgwMTkyNTUzODQ0NzQ3.Xl3zlw.baby"
 reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
 reg.ooye.server_name = "cadence.moe"
-reg.id = "baby" // don't actually take authenticated actions on the server
-reg.as_token = "baby"
-reg.hs_token = "baby"
+reg.id = "baby"
+reg.as_token = "don't actually take authenticated actions on the server"
+reg.hs_token = "don't actually take authenticated actions on the server"
 reg.ooye.bridge_origin = "https://bridge.example.org"
 
 const sync = new HeatSync({watchFS: false})
@@ -30,6 +30,9 @@ const sync = new HeatSync({watchFS: false})
 const discord = {
 	guilds: new Map([
 		[data.guild.general.id, data.guild.general]
+	]),
+	guildChannelMap: new Map([
+		[data.guild.general.id, [data.channel.general.id]],
 	]),
 	application: {
 		id: "684280192553844747"
@@ -97,7 +100,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 			])
 		}, {timeout: 60000})
 	}
-	/* c8 ignore end */
+	/* c8 ignore stop */
 
 	const p = migrate.migrate(db)
 	test("migrate: migration works", async t => {
@@ -142,4 +145,9 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/discord/interactions/permissions.test")
 	require("../src/discord/interactions/privacy.test")
 	require("../src/discord/interactions/reactions.test")
+	require("../src/web/server.test")
+	require("../src/web/routes/download-discord.test")
+	require("../src/web/routes/download-matrix.test")
+	require("../src/web/routes/guild.test")
+	require("../src/web/routes/qr.test")
 })()

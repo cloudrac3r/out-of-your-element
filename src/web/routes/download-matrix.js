@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert/strict")
-const {defineEventHandler, getValidatedRouterParams, setResponseStatus, setResponseHeader, sendStream, createError} = require("h3")
+const {defineEventHandler, getValidatedRouterParams, setResponseStatus, setResponseHeader, sendStream, createError, H3Event} = require("h3")
 const {z} = require("zod")
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
@@ -11,14 +11,20 @@ require("xxhash-wasm")().then(h => hasher = h)
 
 const {sync, as, select} = require("../../passthrough")
 
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
-
 const schema = {
 	params: z.object({
 		server_name: z.string(),
 		media_id: z.string()
 	})
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {import("../../matrix/api")}
+ */
+function getAPI(event) {
+	/* c8 ignore next */
+	return event.context.api || sync.require("../../matrix/api")
 }
 
 as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(async event => {
@@ -36,6 +42,7 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 		})
 	}
 
+	const api = getAPI(event)
 	const res = await api.getMedia(`mxc://${params.server_name}/${params.media_id}`)
 
 	const contentType = res.headers.get("content-type")

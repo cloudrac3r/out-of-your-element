@@ -2,7 +2,7 @@
 
 const assert = require("assert/strict")
 const {z} = require("zod")
-const {defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody} = require("h3")
+const {H3Event, defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody} = require("h3")
 const {randomUUID} = require("crypto")
 const {LRUCache} = require("lru-cache")
 const Ty = require("../../types")
@@ -13,9 +13,6 @@ const pugSync = sync.require("../pug-sync")
 /** @type {import("../../d2m/actions/create-space")} */
 const createSpace = sync.require("../../d2m/actions/create-space")
 const {reg} = require("../../matrix/read-registration")
-
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
 
 const schema = {
 	guild: z.object({
@@ -30,6 +27,15 @@ const schema = {
 	inviteNonce: z.object({
 		nonce: z.string()
 	})
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {import("../../matrix/api")}
+ */
+function getAPI(event) {
+	/* c8 ignore next */
+	return event.context.api || sync.require("../../matrix/api")
 }
 
 /** @type {LRUCache<string, string>} nonce to guild id */
@@ -76,10 +82,12 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
 	const session = await useSession(event, {password: reg.as_token})
 	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id}).get()
+	// @ts-ignore
+	const guild = discord.guilds.get(guild_id)
 
 	// Permission problems
-	if (!guild_id || !discord.guilds.has(guild_id) || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
-		return pugSync.render(event, "guild.pug", {guild_id})
+	if (!guild_id || !guild || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
+		return pugSync.render(event, "guild_access_denied.pug", {guild_id})
 	}
 
 	const nonce = randomUUID()
@@ -92,11 +100,12 @@ as.router.get("/guild", defineEventHandler(async event => {
 	}
 
 	// Linked guild
+	const api = getAPI(event)
 	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
 	const banned = await api.getMembers(row.space_id, "ban")
 	const rooms = await api.getFullHierarchy(row.space_id)
 	const links = getChannelRoomsLinks(guild_id, rooms)
-	return pugSync.render(event, "guild.pug", {guild_id, nonce, mods, banned, ...links, ...row})
+	return pugSync.render(event, "guild.pug", {guild, guild_id, nonce, mods, banned, ...links, ...row})
 }))
 
 as.router.get("/invite", defineEventHandler(async event => {
@@ -110,6 +119,7 @@ as.router.get("/invite", defineEventHandler(async event => {
 as.router.post("/api/invite", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.invite.parse)
 	const session = await useSession(event, {password: reg.as_token})
+	const api = getAPI(event)
 
 	// Check guild ID or nonce
 	if (parsedBody.guild_id) {
@@ -136,15 +146,14 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 		spaceMember = await api.getStateEvent(spaceID, "m.room.member", parsedBody.mxid)
 	} catch (e) {}
 
-	if (!spaceMember || spaceMember.membership !== "invite" || spaceMember.membership !== "join") {
+	if (!spaceMember || !["invite", "join"].includes(spaceMember.membership)) {
 		// Invite
 		await api.inviteToRoom(spaceID, parsedBody.mxid)
 	}
 
 	// Permissions
-	if (parsedBody.permissions === "moderator") {
-		await api.setUserPowerCascade(spaceID, parsedBody.mxid, 50)
-	}
+	const powerLevel = parsedBody.permissions === "moderator" ? 50 : 0
+	await api.setUserPowerCascade(spaceID, parsedBody.mxid, powerLevel)
 
 	if (parsedBody.guild_id) {
 		return sendRedirect(event, `/guild?guild_id=${guild_id}`, 302)

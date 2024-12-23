@@ -42,6 +42,7 @@ function render(event, filename, locals) {
 					{session} // Session is always session because it has to be trusted
 				))
 			})
+		/* c8 ignore start */
 		} catch (e) {
 			pugCache.set(path, async (event) => {
 				setResponseStatus(event, 500, "Internal Template Error")
@@ -49,6 +50,7 @@ function render(event, filename, locals) {
 				return e.toString()
 			})
 		}
+		/* c8 ignore stop */
 	}
 
 	if (!pugCache.has(path)) {

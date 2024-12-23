@@ -114,7 +114,7 @@ export namespace Event {
 		sender: string
 		content: T
 		origin_server_ts: number
-		unsigned: any
+		unsigned?: any
 		event_id: string
 	}
 
@@ -137,7 +137,7 @@ export namespace Event {
 		content: any
 		state_key: string
 		origin_server_ts: number
-		unsigned: any
+		unsigned?: any
 		event_id: string
 		user_id: string
 		age: number

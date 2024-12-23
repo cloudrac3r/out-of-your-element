@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert/strict")
-const {defineEventHandler, getValidatedRouterParams, sendRedirect, createError} = require("h3")
+const {defineEventHandler, getValidatedRouterParams, sendRedirect, createError, H3Event} = require("h3")
 const {z} = require("zod")
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
@@ -17,6 +17,15 @@ const schema = {
 		attachment_id: z.string().regex(/^[0-9]+$/),
 		file_name: z.string().regex(/^[-A-Za-z0-9_.,]+$/)
 	})
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {import("snowtransfer").SnowTransfer}
+ */
+function getSnow(event) {
+	/* c8 ignore next */
+	return event.context.snow || discord.snow
 }
 
 /** @type {Map<string, Promise<string>>} */
@@ -56,7 +65,8 @@ function defineMediaProxyHandler(domain) {
 			if (!timeUntilExpiry(refreshed)) promise = undefined
 		}
 		if (!promise) {
-			promise = discord.snow.channel.refreshAttachmentURLs([url]).then(x => x.refreshed_urls[0].refreshed)
+			const snow = getSnow(event)
+			promise = snow.channel.refreshAttachmentURLs([url]).then(x => x.refreshed_urls[0].refreshed)
 			cache.set(url, promise)
 			refreshed = await promise
 			const time = timeUntilExpiry(refreshed)

@@ -24,7 +24,7 @@ pugSync.createRoute(as.router, "/ok", "ok.pug")
 sync.require("./routes/download-matrix")
 sync.require("./routes/download-discord")
 sync.require("./routes/guild-settings")
-sync.require("./routes/invite")
+sync.require("./routes/guild")
 sync.require("./routes/link")
 sync.require("./routes/oauth")
 sync.require("./routes/qr")
@@ -33,6 +33,7 @@ sync.require("./routes/qr")
 
 function compressResponse(event, response) {
 	if (!getRequestHeader(event, "accept-encoding")?.includes("gzip")) return
+	/* c8 ignore next */
 	if (typeof response.body !== "string") return
 	/** @type {ReadableStream} */ // @ts-ignore
 	const stream = new Response(response.body).body
