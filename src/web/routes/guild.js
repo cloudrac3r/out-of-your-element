@@ -20,7 +20,7 @@ const schema = {
 	}),
 	invite: z.object({
 		mxid: z.string().regex(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/),
-		permissions: z.enum(["default", "moderator"]),
+		permissions: z.enum(["default", "moderator", "admin"]),
 		guild_id: z.string().optional(),
 		nonce: z.string().optional()
 	}),
@@ -152,7 +152,10 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 	}
 
 	// Permissions
-	const powerLevel = parsedBody.permissions === "moderator" ? 50 : 0
+	const powerLevel =
+		( parsedBody.permissions === "admin" ? 100
+		: parsedBody.permissions === "moderator" ? 50
+		: 0)
 	await api.setUserPowerCascade(spaceID, parsedBody.mxid, powerLevel)
 
 	if (parsedBody.guild_id) {

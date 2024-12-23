@@ -301,14 +301,15 @@ async function setUserPower(roomID, mxid, power) {
 
 /**
  * Set a user's power level for a whole room hierarchy.
- * @param {string} roomID
+ * @param {string} spaceID
  * @param {string} mxid
  * @param {number} power
  */
-async function setUserPowerCascade(roomID, mxid, power) {
-	assert(roomID[0] === "!")
+async function setUserPowerCascade(spaceID, mxid, power) {
+	assert(spaceID[0] === "!")
 	assert(mxid[0] === "@")
-	const rooms = await getFullHierarchy(roomID)
+	const rooms = await getFullHierarchy(spaceID)
+	await setUserPower(spaceID, mxid, power)
 	for (const room of rooms) {
 		await setUserPower(room.room_id, mxid, power)
 	}
