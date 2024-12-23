@@ -82,6 +82,10 @@ async function* _interact({data, guild_id}, {api}) {
 									label: "Moderator",
 									value: "moderator",
 									default: userPower >= 50 && userPower < 100
+								}, {
+									label: "Admin (you cannot undo this!)",
+									value: "admin",
+									default: userPower === 100
 								}
 							]
 						}
@@ -103,7 +107,10 @@ async function* _interactEdit({data, guild_id, message}, {api}) {
 	assert(mxid)
 
 	const permission = data.values[0]
-	const power = permission === "moderator" ? 50 : 0
+	const power =
+		( permission === "admin" ? 100
+		: permission === "moderator" ? 50
+		: 0)
 
 	yield {createInteractionResponse: {
 		type: DiscordTypes.InteractionResponseType.UpdateMessage,
