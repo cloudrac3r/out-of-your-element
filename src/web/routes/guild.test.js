@@ -33,15 +33,34 @@ test("web guild: access denied when guild id messed up", async t => {
 	t.match(content, /the selected server doesn't exist/)
 })
 
-
-
-
 test("web invite: access denied with invalid nonce", async t => {
 	const content = await router.test("get", "/invite?nonce=1")
 	t.match(content, /This QR code has expired./)
 })
 
-test("web guild: can view guild", async t => {
+
+
+test("web guild: can view unbridged guild", async t => {
+	const content = await router.test("get", "/guild?guild_id=66192955777486848", {
+		sessionData: {
+			managedGuilds: ["66192955777486848"]
+		},
+		api: {
+			async getStateEvent(roomID, type, key) {
+				return {}
+			},
+			async getMembers(roomID, membership) {
+				return {chunk: []}
+			},
+			async getFullHierarchy(roomID) {
+				return []
+			}
+		}
+	})
+	t.match(content, /<h1[^<]*Function &amp; Arg/)
+})
+
+test("web guild: can view bridged guild", async t => {
 	const content = await router.test("get", "/guild?guild_id=112760669178241024", {
 		sessionData: {
 			managedGuilds: ["112760669178241024"]

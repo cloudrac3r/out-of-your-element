@@ -29,10 +29,12 @@ const sync = new HeatSync({watchFS: false})
 
 const discord = {
 	guilds: new Map([
-		[data.guild.general.id, data.guild.general]
+		[data.guild.general.id, data.guild.general],
+		[data.guild.fna.id, data.guild.fna],
 	]),
 	guildChannelMap: new Map([
 		[data.guild.general.id, [data.channel.general.id]],
+		[data.guild.fna.id, []],
 	]),
 	application: {
 		id: "684280192553844747"

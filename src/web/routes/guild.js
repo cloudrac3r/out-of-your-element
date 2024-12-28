@@ -96,7 +96,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 	// Unlinked guild
 	if (!row) {
 		const links = getChannelRoomsLinks(guild_id, [])
-		return pugSync.render(event, "guild.pug", {guild_id, nonce, ...links})
+		return pugSync.render(event, "guild.pug", {guild, guild_id, nonce, ...links})
 	}
 
 	// Linked guild
