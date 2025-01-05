@@ -103,6 +103,13 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	return true
 }
 
+function defineEchoHandler() {
+	return defineEventHandler(event => {
+		return "Out Of Your Element is listening.\n" +
+			`Received a ${event.method} request on path ${event.path}\n`
+	})
+}
+
 ;(async () => {
 	// create registration file with prompts...
 	if (!reg) {
@@ -127,7 +134,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		const serverOrigin = await serverOriginPrompt.run()
 
 		const app = createApp()
-		app.use(defineEventHandler(() => "Out Of Your Element is listening.\n"))
+		app.use(defineEchoHandler())
 		const server = createServer(toNodeListener(app))
 		await server.listen(6693)
 
@@ -147,7 +154,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 					const res = await fetch(url)
 					if (res.status !== 200) return `Server returned status code ${res.status}`
 					const text = await res.text()
-					if (text !== "Out Of Your Element is listening.\n") return `Server does not point to OOYE`
+					if (!text.startsWith("Out Of Your Element is listening.")) return `Server does not point to OOYE`
 					return true
 				} catch (e) {
 					return e.message
@@ -241,6 +248,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 	passthrough.discord = discord
 
 	const {as} = require("../src/matrix/appservice")
+	as.router.use("/**", defineEchoHandler())
 	console.log("⏳ Waiting until homeserver registration works... (Ctrl+C to cancel)")
 
 	let itWorks = false
