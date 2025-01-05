@@ -179,7 +179,7 @@ module.exports = {
 	 */
 	async checkMissedExpressions(guild) {
 		const data = {guild_id: guild.id, ...guild}
-		createSpace.syncSpaceExpressions(data, true)
+		await createSpace.syncSpaceExpressions(data, true)
 	},
 
 	/**

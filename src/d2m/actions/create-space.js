@@ -235,8 +235,8 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 		api.sendState(spaceID, "im.ponies.room_emotes", eventKey, content)
 	}
 
-	update(spaceID, "emojis", "moe.cadence.ooye.pack.emojis", expression.emojisToState)
-	update(spaceID, "stickers", "moe.cadence.ooye.pack.stickers", expression.stickersToState)
+	await update(spaceID, "emojis", "moe.cadence.ooye.pack.emojis", expression.emojisToState)
+	await update(spaceID, "stickers", "moe.cadence.ooye.pack.stickers", expression.stickersToState)
 }
 
 module.exports.createSpace = createSpace
