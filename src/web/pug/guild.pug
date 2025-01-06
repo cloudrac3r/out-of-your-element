@@ -69,11 +69,7 @@ block body
         .grid--row-start2
           button.s-btn.s-btn__filled.htmx-indicator Invite
     div
-      -
-        let size = 105
-        let p = new URLSearchParams()
-        p.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
-      img(width=size height=size src=rel(`/qr?${p}`))
+      != svg
 
   h2.mt48.fs-headline1 Moderation
 

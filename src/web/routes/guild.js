@@ -6,6 +6,7 @@ const {H3Event, defineEventHandler, sendRedirect, useSession, createError, getVa
 const {randomUUID} = require("crypto")
 const {LRUCache} = require("lru-cache")
 const Ty = require("../../types")
+const uqr = require("uqr")
 
 const {discord, as, sync, select} = require("../../passthrough")
 /** @type {import("../pug-sync")} */
@@ -93,10 +94,17 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const nonce = randomUUID()
 	validNonce.set(nonce, guild_id)
 
+	const data = `${reg.ooye.bridge_origin}/invite?nonce=${nonce}`
+	// necessary to scale the svg pixel-perfectly on the page
+	// https://github.com/unjs/uqr/blob/244952a8ba2d417f938071b61e11fb1ff95d6e75/src/svg.ts#L24
+	const generatedSvg = uqr.renderSVG(data, {pixelSize: 3})
+	const svg = generatedSvg.replace(/viewBox="0 0 ([0-9]+) ([0-9]+)"/, `data-nonce="${nonce}" width="$1" height="$2" $&`)
+	assert.notEqual(svg, generatedSvg)
+
 	// Unlinked guild
 	if (!row) {
 		const links = getChannelRoomsLinks(guild_id, [])
-		return pugSync.render(event, "guild.pug", {guild, guild_id, nonce, ...links})
+		return pugSync.render(event, "guild.pug", {guild, guild_id, svg, ...links})
 	}
 
 	// Linked guild
@@ -105,7 +113,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const banned = await api.getMembers(row.space_id, "ban")
 	const rooms = await api.getFullHierarchy(row.space_id)
 	const links = getChannelRoomsLinks(guild_id, rooms)
-	return pugSync.render(event, "guild.pug", {guild, guild_id, nonce, mods, banned, ...links, ...row})
+	return pugSync.render(event, "guild.pug", {guild, guild_id, svg, mods, banned, ...links, ...row})
 }))
 
 as.router.get("/invite", defineEventHandler(async event => {

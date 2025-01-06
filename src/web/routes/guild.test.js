@@ -78,7 +78,7 @@ test("web guild: can view bridged guild", async t => {
 		}
 	})
 	t.match(content, /<h1[^<]*Psychonauts 3/)
-	nonce = content.match(/nonce%3D([a-f0-9-]+)/)?.[1]
+	nonce = content.match(/data-nonce="([a-f0-9-]+)"/)?.[1]
 	t.ok(nonce)
 })
 
