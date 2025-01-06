@@ -10,7 +10,7 @@ block body
       p Add the bot to your Discord server.
       p It will automatically create new Matrix rooms for you.
       .fl-grow1
-      a.s-btn.s-btn__filled.s-btn__icon(href="/oauth?action=add")
+      a.s-btn.s-btn__filled.s-btn__icon(href=rel("/oauth?action=add"))
         != icons.Icons.IconPlus
         = ` Add to server`
     .s-card.bs-md.d-flex.fd-column
@@ -19,6 +19,6 @@ block body
       p Choose this option if you already have a community set up on Matrix.
       p Or, choose this if you're migrating from a different bridge.
       .fl-grow1
-      a.s-btn.s-btn__outlined.s-btn__icon(href="/oauth?action=add-self-service")
+      a.s-btn.s-btn__outlined.s-btn__icon(href=rel("/oauth?action=add-self-service"))
         != icons.Icons.IconUnorderedList
         = ` Set up self-service`

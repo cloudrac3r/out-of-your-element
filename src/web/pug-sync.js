@@ -3,11 +3,11 @@
 const assert = require("assert/strict")
 const fs = require("fs")
 const {join} = require("path")
+const getRelativePath = require("get-relative-path")
 const h3 = require("h3")
 const {defineEventHandler, defaultContentType, setResponseStatus, useSession, getQuery} = h3
 const {compileFile} = require("@cloudrac3r/pug")
 
-const {as} = require("../passthrough")
 const {reg} = require("../matrix/read-registration")
 
 // Pug
@@ -35,11 +35,12 @@ function render(event, filename, locals) {
 			pugCache.set(path, async (event, locals) => {
 				defaultContentType(event, "text/html; charset=utf-8")
 				const session = await useSession(event, {password: reg.as_token})
+				const rel = x => getRelativePath(event.path, x)
 				return template(Object.assign({},
 					getQuery(event), // Query parameters can be easily accessed on the top level but don't allow them to overwrite anything
 					globals, // Globals
 					locals, // Explicit locals overwrite globals in case we need to DI something
-					{session} // Session is always session because it has to be trusted
+					{session, event, rel} // These are assigned last so they overwrite everything else. It would be catastrophically bad if they can't be trusted.
 				))
 			})
 		/* c8 ignore start */

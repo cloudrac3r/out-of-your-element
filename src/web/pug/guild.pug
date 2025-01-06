@@ -73,7 +73,7 @@ block body
         let size = 105
         let p = new URLSearchParams()
         p.set("data", `https://bridge.cadence.moe/invite?nonce=${nonce}`)
-      img(width=size height=size src=`/qr?${p}`)
+      img(width=size height=size src=rel(`/qr?${p}`))
 
   h2.mt48.fs-headline1 Moderation
 

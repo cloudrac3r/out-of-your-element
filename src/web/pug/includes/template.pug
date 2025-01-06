@@ -14,7 +14,7 @@ html(lang="en")
   head
     title Out Of Your Element
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    link(rel="stylesheet" type="text/css" href="/static/stacks.min.css")
+    link(rel="stylesheet" type="text/css" href=rel("/static/stacks.min.css"))
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 80%22><text y=%22.83em%22 font-size=%2283%22>💬</text></svg>">
     meta(name="htmx-config" content='{"indicatorClass":"is-loading"}')
     style.
@@ -34,13 +34,13 @@ html(lang="en")
     header.s-topbar
       .s-topbar--skip-link(href="#content") Skip to main content
       .s-topbar--container.wmx9
-        a.s-topbar--logo(href="/")
-          img.s-avatar.s-avatar__32(src="/icon.png")
+        a.s-topbar--logo(href=rel("/"))
+          img.s-avatar.s-avatar__32(src=rel("/icon.png"))
         nav.s-topbar--navigation
           ul.s-topbar--content
             li.ps-relative
               if !session.data.managedGuilds || session.data.managedGuilds.length === 0
-                a.s-btn.s-btn__icon.as-center(href="/oauth")
+                a.s-btn.s-btn__icon.as-center(href=rel("/oauth"))
                   != icons.Icons.IconDiscord
                   = ` Log in`
               else if guild_id && session.data.managedGuilds.includes(guild_id) && discord.guilds.has(guild_id)
@@ -55,7 +55,7 @@ html(lang="en")
                   ul.s-menu(role="menu")
                     each guild in (session.data.managedGuilds || []).map(id => discord.guilds.get(id)).filter(g => g)
                       li(role="menuitem")
-                        a.s-topbar--item.s-user-card.d-flex.p4(href=`/guild?guild_id=${guild.id}`)
+                        a.s-topbar--item.s-user-card.d-flex.p4(href=rel(`/guild?guild_id=${guild.id}`))
                           +guild(guild)
     .mx-auto.w100.wmx9.py24.px8.fs-body1#content
       block body
@@ -68,4 +68,4 @@ html(lang="en")
           document.styleSheets[0].insertRule(t)
         })
       })
-    script(src="/static/htmx.min.js")
+    script(src=rel("/static/htmx.min.js"))

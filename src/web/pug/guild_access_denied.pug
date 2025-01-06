@@ -5,7 +5,7 @@ block body
     .s-empty-state.wmx4.p48
       != icons.Spots.SpotEmptyXL
       p You need to log in to manage your servers.
-      a.s-btn.s-btn__icon.s-btn__filled(href="/oauth")
+      a.s-btn.s-btn__icon.s-btn__filled(href=rel("/oauth"))
         != icons.Icons.IconDiscord
         = ` Log in with Discord`
 
@@ -13,10 +13,10 @@ block body
     .s-empty-state.wmx4.p48
       != icons.Spots.SpotEmptyXL
       p Select a server from the top right corner to continue.
-      p If the server you're looking for isn't there, try #[a(href="/oauth?action=add") logging in again.]
+      p If the server you're looking for isn't there, try #[a(href=rel("/oauth?action=add")) logging in again.]
 
   else if !discord.guilds.has(guild_id) || !session.data.managedGuilds.includes(guild_id)
     .s-empty-state.wmx4.p48
       != icons.Spots.SpotAlertXL
       p Either the selected server doesn't exist, or you don't have the Manage Server permission on Discord.
-      p If you've checked your permissions, try #[a(href="/oauth") logging in again.]
+      p If you've checked your permissions, try #[a(href=rel("/oauth")) logging in again.]
