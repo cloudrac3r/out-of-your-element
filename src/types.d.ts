@@ -241,6 +241,10 @@ export namespace Event {
 		name?: string
 	}
 
+	export type M_Room_PinnedEvents = {
+		pinned: string[]
+	}
+
 	export type M_Power_Levels = {
 		/** The level required to ban a user. Defaults to 50 if unspecified. */
 		ban?: number,

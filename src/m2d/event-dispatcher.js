@@ -14,6 +14,8 @@ const sendEvent = sync.require("./actions/send-event")
 const addReaction = sync.require("./actions/add-reaction")
 /** @type {import("./actions/redact")} */
 const redact = sync.require("./actions/redact")
+/** @type {import("./actions/update-pins")}) */
+const updatePins = sync.require("./actions/update-pins")
 /** @type {import("../matrix/matrix-command-handler")} */
 const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
 /** @type {import("./converters/utils")} */
@@ -157,6 +159,33 @@ async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const name = event.content.name || null
 	db.prepare("UPDATE channel_room SET nick = ? WHERE room_id = ?").run(name, event.room_id)
+}))
+
+sync.addTemporaryListener(as, "type:m.room.pinned_events", guard("m.room.pinned_events",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_PinnedEvents>} event
+ */
+async event => {
+	if (event.state_key !== "") return
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const pins = event.content.pinned
+	if (!Array.isArray(pins)) return
+	let prev = event.unsigned?.prev_content?.pinned
+	if (!Array.isArray(prev)) {
+		if (pins.length === 1) {
+			/*
+				In edge cases, prev_content isn't guaranteed to be provided by the server.
+				If prev_content is missing, we can't diff. Better safe than sorry: we'd like to ignore the change rather than wiping the whole channel's pins on Discord.
+				However, that would mean if the first ever pin came from Matrix-side, it would be ignored, because there would be no prev_content (it's the first pinned event!)
+				So to handle that edge case, we assume that if there's exactly 1 entry in `pinned`, this is the first ever pin and it should go through.
+			*/
+			prev = []
+		} else {
+			return
+		}
+	}
+
+	await updatePins.updatePins(pins, prev)
 }))
 
 sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
