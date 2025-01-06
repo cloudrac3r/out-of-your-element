@@ -230,11 +230,20 @@ function defineEchoHandler() {
 		registration.reg = reg
 		checkRegistration(reg)
 		writeRegistration(reg)
-		console.log(`✅ Registration file saved as ${registrationFilePath}`)
+		console.log(`✅ Your responses have been saved as ${registrationFilePath}`)
 	} else {
-		console.log(`✅ Valid registration file found at ${registrationFilePath}`)
+		try {
+			checkRegistration(reg)
+			console.log(`✅ Skipped questions - reusing data from ${registrationFilePath}`)
+		} catch (e) {
+			console.log(`❌ Failed to reuse data from ${registrationFilePath}`)
+			console.log("Consider deleting this file. You can re-run setup to safely make a new one.")
+			console.log("")
+			console.log(e.toString().replace(/^ *\n/gm, ""))
+			process.exit(1)
+		}
 	}
-	console.log(`  In ${cyan("Synapse")}, you need to add it to homeserver.yaml and ${cyan("restart Synapse")}.`)
+	console.log(`  In ${cyan("Synapse")}, you need to reference that file in your homeserver.yaml and ${cyan("restart Synapse")}.`)
 	console.log("    https://element-hq.github.io/synapse/latest/application_services.html")
 	console.log(`  In ${cyan("Conduit")}, you need to send the file contents to the #admins room.`)
 	console.log("    https://docs.conduit.rs/appservices.html")
@@ -249,7 +258,12 @@ function defineEchoHandler() {
 
 	const {as} = require("../src/matrix/appservice")
 	as.router.use("/**", defineEchoHandler())
-	console.log("⏳ Waiting until homeserver registration works... (Ctrl+C to cancel)")
+
+	console.log("⏳ Waiting for you to register the file with your homeserver... (Ctrl+C to cancel)")
+	process.once("SIGINT", () => {
+		console.log("(Ctrl+C) Quit early. Please re-run setup later and allow it to complete.")
+		process.exit(1)
+	})
 
 	let itWorks = false
 	let lastError = null
