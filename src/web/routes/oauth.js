@@ -6,6 +6,7 @@ const {defineEventHandler, getValidatedQuery, sendRedirect, getQuery, useSession
 const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const fetch = require("node-fetch")
+const getRelativePath = require("get-relative-path")
 
 const {as, db} = require("../../passthrough")
 const {id} = require("../../../addbot")
@@ -90,8 +91,8 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	}
 
 	if (parsedQuery.data.guild_id) {
-		return sendRedirect(event, `/guild?guild_id=${parsedQuery.data.guild_id}`, 302)
+		return sendRedirect(event, getRelativePath(event.path, `/guild?guild_id=${parsedQuery.data.guild_id}`), 302)
 	}
 
-	return sendRedirect(event, "/", 302)
+	return sendRedirect(event, getRelativePath(event.path, "/"), 302)
 }))
