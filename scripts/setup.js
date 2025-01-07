@@ -15,6 +15,7 @@ const fetch = require("node-fetch").default
 const {magenta, bold, cyan} = require("ansi-colors")
 const HeatSync = require("heatsync")
 const {SnowTransfer} = require("snowtransfer")
+const DiscordTypes = require("discord-api-types/v10")
 const {createApp, defineEventHandler, toNodeListener} = require("h3")
 
 const args = require("minimist")(process.argv.slice(2), {string: ["emoji-guild"]})
@@ -166,9 +167,10 @@ function defineEchoHandler() {
 		await server.close()
 
 		console.log("What is your Discord bot token?")
+		console.log("Go to https://discord.com/developers, create or pick an app, go to the Bot section, and reset the token.")
 		/** @type {SnowTransfer} */ // @ts-ignore
 		let snow = null
-		/** @type {{id: string, redirect_uris: string[]}} */ // @ts-ignore
+		/** @type {{id: string, flags: number, redirect_uris: string[]}} */ // @ts-ignore
 		let client = null
 		/** @type {{discord_token: string}} */
 		const discordTokenResponse = await prompt({
@@ -187,8 +189,27 @@ function defineEchoHandler() {
 			}
 		})
 
+		const mandatoryIntentFlags = DiscordTypes.ApplicationFlags.GatewayMessageContent | DiscordTypes.ApplicationFlags.GatewayMessageContentLimited
+		if (!(client.flags & mandatoryIntentFlags)) {
+			console.log(`On that same page, scroll down to Privileged Gateway Intents and enable all switches.`)
+			await prompt({
+				type: "invisible",
+				name: "intents",
+				message: "Press Enter when you've enabled them",
+				validate: async token => {
+					process.stdout.write(magenta("checking, please wait..."))
+					client = await snow.requestHandler.request(`/applications/@me`, {}, "get")
+					if (client.flags & mandatoryIntentFlags) {
+						return true
+					} else {
+						return "Switches have not been enabled yet"
+					}
+				}
+			})
+		}
+
 		console.log("What is your Discord client secret?")
-		console.log(`You can find it on the application page: https://discord.com/developers/applications/${client.id}/oauth2`)
+		console.log(`You can find it in the application's OAuth2 section: https://discord.com/developers/applications/${client.id}/oauth2`)
 		/** @type {{discord_client_secret: string}} */
 		const clientSecretResponse = await prompt({
 			type: "input",
@@ -198,7 +219,7 @@ function defineEchoHandler() {
 
 		const expectedUri = `${bridgeOriginResponse.bridge_origin}/oauth`
 		if (!client.redirect_uris.includes(expectedUri)) {
-			console.log(`On the same application page, go to the Redirects section, and add this URI: ${cyan(expectedUri)}`)
+			console.log(`On that same page, scroll down to Redirects and add this URI: ${cyan(expectedUri)}`)
 			await prompt({
 				type: "invisible",
 				name: "redirect_uri",
