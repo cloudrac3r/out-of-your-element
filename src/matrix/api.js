@@ -347,6 +347,26 @@ function getMedia(mxc, init = {}) {
 	})
 }
 
+/**
+ * Updates the m.read receipt in roomID to point to eventID.
+ * This doesn't modify m.fully_read, which matches [the behaviour of matrix-bot-sdk.](https://github.com/element-hq/matrix-bot-sdk/blob/e72a4c498e00c6c339a791630c45d00a351f56a8/src/MatrixClient.ts#L1227)
+ * @param {string} roomID
+ * @param {string} eventID
+ * @param {string?} [mxid]
+ */
+async function sendReadReceipt(roomID, eventID, mxid) {
+	await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/receipt/m.read/${eventID}`, mxid), {})
+}
+
+/**
+ * Acknowledge an event as read by calling api.sendReadReceipt on it.
+ * @param {Ty.Event.Outer<any>} event
+ * @param {string?} [mxid]
+ */
+async function ackEvent(event, mxid) {
+	await sendReadReceipt(event.room_id, event.event_id, mxid)
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -373,3 +393,5 @@ module.exports.setUserPower = setUserPower
 module.exports.setUserPowerCascade = setUserPowerCascade
 module.exports.ping = ping
 module.exports.getMedia = getMedia
+module.exports.sendReadReceipt = sendReadReceipt
+module.exports.ackEvent = ackEvent

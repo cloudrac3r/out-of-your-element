@@ -104,6 +104,7 @@ async event => {
 		// @ts-ignore
 		await matrixCommandHandler.execute(event)
 	}
+	await api.ackEvent(event)
 }))
 
 sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
@@ -113,6 +114,7 @@ sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const messageResponses = await sendEvent.sendEvent(event)
+	await api.ackEvent(event)
 }))
 
 sync.addTemporaryListener(as, "type:m.reaction", guard("m.reaction",
@@ -137,6 +139,7 @@ sync.addTemporaryListener(as, "type:m.room.redaction", guard("m.room.redaction",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	await redact.handle(event)
+	await api.ackEvent(event)
 }))
 
 sync.addTemporaryListener(as, "type:m.room.avatar", guard("m.room.avatar",
