@@ -48,7 +48,6 @@ module.exports = {
 					room: 0
 				}
 			},
-			"chat.schildi.hide_ui/read_receipts": {hidden: true},
 			"uk.half-shot.bridge/moe.cadence.ooye://discord/112760669178241024/112760669178241024": {
 				bridgebot: "@_ooye_bot:cadence.moe",
 				protocol: {

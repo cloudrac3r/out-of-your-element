@@ -162,9 +162,6 @@ async function channelToKState(channel, guild, di) {
 			},
 			users: {...spacePower, ...globalAdminPower}
 		},
-		"chat.schildi.hide_ui/read_receipts": {
-			hidden: true
-		},
 		[`uk.half-shot.bridge/moe.cadence.ooye://discord/${guild.id}/${channel.id}`]: {
 			bridgebot: `@${reg.sender_localpart}:${reg.ooye.server_name}`,
 			protocol: {
