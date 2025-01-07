@@ -12,7 +12,7 @@ const diffPins = sync.require("../converters/diff-pins")
 async function updatePins(pins, prev) {
 	const diff = diffPins.diffPins(pins, prev)
 	for (const [event_id, added] of diff) {
-		const row = from("event_message").join("message_channel", "message_id").where({event_id}).select("channel_id", "message_id").get()
+		const row = from("event_message").join("message_channel", "message_id").where({event_id, part: 0}).select("channel_id", "message_id").get()
 		if (!row) continue
 		if (added) {
 			discord.snow.channel.addChannelPinnedMessage(row.channel_id, row.message_id, "Message pinned on Matrix")
