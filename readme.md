@@ -72,6 +72,7 @@ You'll need:
 
 * Administrative access to a homeserver
 * Discord bot
+* Domain name for the bridge's website ([more info](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/why-does-the-bridge-have-a-website.md)
 
 Follow these steps:
 
