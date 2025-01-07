@@ -25,11 +25,9 @@ function convertTimestamp(timestamp) {
 async function updatePins(channelID, roomID, convertedTimestamp) {
 	const pins = await discord.snow.channel.getChannelPinnedMessages(channelID)
 	const eventIDs = pinsToList.pinsToList(pins)
-	if (pins.length === eventIDs.length || eventIDs.length) {
-		await api.sendState(roomID, "m.room.pinned_events", "", {
-			pinned: eventIDs
-		})
-	}
+	await api.sendState(roomID, "m.room.pinned_events", "", {
+		pinned: eventIDs
+	})
 	db.prepare("UPDATE channel_room SET last_bridged_pin_timestamp = ? WHERE channel_id = ?").run(convertedTimestamp || 0, channelID)
 }
 
