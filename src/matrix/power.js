@@ -3,7 +3,6 @@
 const {db, from} = require("../passthrough")
 const {reg} = require("./read-registration")
 const ks = require("./kstate")
-const {applyKStateDiffToRoom, roomToKState} = require("../d2m/actions/create-room")
 
 /** Apply global power level requests across ALL rooms where the member cache entry exists but the power level has not been applied yet. */
 function _getAffectedRooms() {
@@ -23,9 +22,9 @@ async function applyPower() {
 
 	const rows = _getAffectedRooms()
 	for (const row of rows) {
-		const kstate = await roomToKState(row.room_id)
+		const kstate = await ks.roomToKState(row.room_id)
 		const diff = ks.diffKState(kstate, {"m.room.power_levels/": {users: {[row.mxid]: row.power_level}}})
-		await applyKStateDiffToRoom(row.room_id, diff)
+		await ks.applyKStateDiffToRoom(row.room_id, diff)
 		// There is a listener on m.room.power_levels to do this same update,
 		// but we update it here anyway since the homeserver does not always deliver the event round-trip.
 		db.prepare("UPDATE member_cache SET power_level = ? WHERE room_id = ? AND mxid = ?").run(row.power_level, row.room_id, row.mxid)

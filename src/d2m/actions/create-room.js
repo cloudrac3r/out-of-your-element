@@ -40,26 +40,6 @@ const DEFAULT_PRIVACY_LEVEL = 0
 const inflightRoomCreate = new Map()
 
 /**
- * Async because it gets all room state from the homeserver.
- * @param {string} roomID
- */
-async function roomToKState(roomID) {
-	const root = await api.getAllState(roomID)
-	return ks.stateToKState(root)
-}
-
-/**
- * @param {string} roomID
- * @param {any} kstate
- */
-async function applyKStateDiffToRoom(roomID, kstate) {
-	const events = await ks.kstateToState(kstate)
-	return Promise.all(events.map(({type, state_key, content}) =>
-		api.sendState(roomID, type, state_key, content)
-	))
-}
-
-/**
  * @param {{id: string, name: string, topic?: string?, type: number, parent_id?: string?}} channel
  * @param {{id: string}} guild
  * @param {string | null | undefined} customName
@@ -253,9 +233,9 @@ async function postApplyPowerLevels(kstate, callback) {
 
 	// Now *really* apply the power level overrides on top of what Synapse *really* set
 	if (powerLevelContent) {
-		const newRoomKState = await roomToKState(roomID)
+		const newRoomKState = await ks.roomToKState(roomID)
 		const newRoomPowerLevelsDiff = ks.diffKState(newRoomKState, {"m.room.power_levels/": powerLevelContent})
-		await applyKStateDiffToRoom(roomID, newRoomPowerLevelsDiff)
+		await ks.applyKStateDiffToRoom(roomID, newRoomPowerLevelsDiff)
 	}
 
 	return roomID
@@ -384,7 +364,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	const {spaceID, channelKState} = await channelToKState(channel, guild, {api}) // calling this in both branches because we don't want to calculate this if not syncing
 
 	// sync channel state to room
-	const roomKState = await roomToKState(roomID)
+	const roomKState = await ks.roomToKState(roomID)
 	if (+roomKState["m.room.create/"].room_version <= 8) {
 		// join_rule `restricted` is not available in room version < 8 and not working properly in version == 8
 		// read more: https://spec.matrix.org/v1.8/rooms/v9/
@@ -392,7 +372,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 		channelKState["m.room.join_rules/"] = {join_rule: "public"}
 	}
 	const roomDiff = ks.diffKState(roomKState, channelKState)
-	const roomApply = applyKStateDiffToRoom(roomID, roomDiff)
+	const roomApply = ks.applyKStateDiffToRoom(roomID, roomDiff)
 	db.prepare("UPDATE channel_room SET name = ? WHERE room_id = ?").run(channel.name, roomID)
 
 	// sync room as space member
@@ -462,7 +442,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
  * @returns {Promise<string[]>}
  */
 async function _syncSpaceMember(channel, spaceID, roomID) {
-	const spaceKState = await roomToKState(spaceID)
+	const spaceKState = await ks.roomToKState(spaceID)
 	let spaceEventContent = {}
 	if (
 		channel.type !== DiscordTypes.ChannelType.PrivateThread // private threads do not belong in the space (don't offer people something they can't join)
@@ -475,7 +455,7 @@ async function _syncSpaceMember(channel, spaceID, roomID) {
 	const spaceDiff = ks.diffKState(spaceKState, {
 		[`m.space.child/${roomID}`]: spaceEventContent
 	})
-	return applyKStateDiffToRoom(spaceID, spaceDiff)
+	return ks.applyKStateDiffToRoom(spaceID, spaceDiff)
 }
 
 async function createAllForGuild(guildID) {
@@ -498,8 +478,6 @@ module.exports.ensureRoom = ensureRoom
 module.exports.syncRoom = syncRoom
 module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
-module.exports.roomToKState = roomToKState
-module.exports.applyKStateDiffToRoom = applyKStateDiffToRoom
 module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._unbridgeRoom = _unbridgeRoom

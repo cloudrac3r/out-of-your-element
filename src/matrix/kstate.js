@@ -8,6 +8,8 @@ const passthrough = require("../passthrough")
 const {sync} = passthrough
 /** @type {import("./file")} */
 const file = sync.require("./file")
+/** @type {import("./api")} */
+const api = sync.require("./api")
 
 /** Mutates the input. Not recursive - can only include or exclude entire state events. */
 function kstateStripConditionals(kstate) {
@@ -102,8 +104,32 @@ function diffKState(actual, target) {
 	return diff
 }
 
+/* c8 ignore start */
+
+/**
+ * Async because it gets all room state from the homeserver.
+ * @param {string} roomID
+ */
+async function roomToKState(roomID) {
+	const root = await api.getAllState(roomID)
+	return stateToKState(root)
+}
+
+/**
+ * @param {string} roomID
+ * @param {any} kstate
+ */
+async function applyKStateDiffToRoom(roomID, kstate) {
+	const events = await kstateToState(kstate)
+	return Promise.all(events.map(({type, state_key, content}) =>
+		api.sendState(roomID, type, state_key, content)
+	))
+}
+
 module.exports.kstateStripConditionals = kstateStripConditionals
 module.exports.kstateUploadMxc = kstateUploadMxc
 module.exports.kstateToState = kstateToState
 module.exports.stateToKState = stateToKState
 module.exports.diffKState = diffKState
+module.exports.roomToKState = roomToKState
+module.exports.applyKStateDiffToRoom = applyKStateDiffToRoom

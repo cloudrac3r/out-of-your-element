@@ -11,7 +11,7 @@ mixin badge-private
     | Private
 
 mixin discord(channel, radio=false)
-  - let permissions = dUtils.getPermissions([], discord.guilds.get(channel.guild_id).roles, null, channel.permission_overwrites)
+  - let permissions = dUtils.getPermissions([], guild.roles, null, channel.permission_overwrites)
   .s-user-card.s-user-card__small
     if !dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
       != icons.Icons.IconLock

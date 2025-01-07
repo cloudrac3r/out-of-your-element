@@ -189,6 +189,7 @@ async event => {
 	}
 
 	await updatePins.updatePins(pins, prev)
+	await api.ackEvent(event)
 }))
 
 sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",

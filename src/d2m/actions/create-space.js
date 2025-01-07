@@ -116,9 +116,9 @@ async function _syncSpace(guild, shouldActuallySync) {
 	const guildKState = await guildToKState(guild, privacy_level) // calling this in both branches because we don't want to calculate this if not syncing
 
 	// sync guild state to space
-	const spaceKState = await createRoom.roomToKState(spaceID)
+	const spaceKState = await ks.roomToKState(spaceID)
 	const spaceDiff = ks.diffKState(spaceKState, guildKState)
-	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
+	await ks.applyKStateDiffToRoom(spaceID, spaceDiff)
 
 	// guild icon was changed, so room avatars need to be updated as well as the space ones
 	// doing it this way rather than calling syncRoom for great efficiency gains
@@ -183,9 +183,9 @@ async function syncSpaceFully(guildID) {
 	const guildKState = await guildToKState(guild, privacy_level)
 
 	// sync guild state to space
-	const spaceKState = await createRoom.roomToKState(spaceID)
+	const spaceKState = await ks.roomToKState(spaceID)
 	const spaceDiff = ks.diffKState(spaceKState, guildKState)
-	await createRoom.applyKStateDiffToRoom(spaceID, spaceDiff)
+	await ks.applyKStateDiffToRoom(spaceID, spaceDiff)
 
 	const childRooms = await api.getFullHierarchy(spaceID)
 

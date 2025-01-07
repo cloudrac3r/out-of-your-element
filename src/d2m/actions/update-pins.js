@@ -6,6 +6,8 @@ const {discord, sync, db} = passthrough
 const pinsToList = sync.require("../converters/pins-to-list")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/kstate")} */
+const ks = sync.require("../../matrix/kstate")
 
 /**
  * @template {string | null | undefined} T
@@ -23,11 +25,13 @@ function convertTimestamp(timestamp) {
  * @param {number?} convertedTimestamp
  */
 async function updatePins(channelID, roomID, convertedTimestamp) {
-	const pins = await discord.snow.channel.getChannelPinnedMessages(channelID)
-	const eventIDs = pinsToList.pinsToList(pins)
-	await api.sendState(roomID, "m.room.pinned_events", "", {
-		pinned: eventIDs
-	})
+	const discordPins = await discord.snow.channel.getChannelPinnedMessages(channelID)
+	const pinned = pinsToList.pinsToList(discordPins)
+
+	const kstate = await ks.roomToKState(roomID)
+	const diff = ks.diffKState(kstate, {"m.room.pinned_events/": {pinned}})
+	await ks.applyKStateDiffToRoom(roomID, diff)
+
 	db.prepare("UPDATE channel_room SET last_bridged_pin_timestamp = ? WHERE channel_id = ?").run(convertedTimestamp || 0, channelID)
 }
 

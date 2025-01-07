@@ -6,7 +6,7 @@ const assert = require("assert").strict
 const fetch = require("node-fetch").default
 
 const passthrough = require("../passthrough")
-const { discord, sync, db } = passthrough
+const {sync} = passthrough
 /** @type {import("./mreq")} */
 const mreq = sync.require("./mreq")
 /** @type {import("./txnid")} */
