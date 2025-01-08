@@ -330,9 +330,9 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles,
  */
 async function handleRoomOrMessageLinks(input, di) {
 	let offset = 0
-	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/(![^"/, ?)]+)(?:\/(\$[^"/ ?)]+))?(?:\?[^",:!? )]*?)?)(">|[,<\n )]|$)/g)]) {
+	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/((?:#|%23|!)[^"/, ?)]+)(?:\/(\$[^"/ ?)]+))?(?:\?[^",:!? )]*?)?)(">|[,<\n )]|$)/g)]) {
 		assert(typeof match.index === "number")
-		const [_, attributeValue, roomID, eventID, endMarker] = match
+		let [_, attributeValue, roomID, eventID, endMarker] = match
 		let result
 
 		const resultType = endMarker === '">' ? "html" : "plain"
@@ -349,6 +349,16 @@ async function handleRoomOrMessageLinks(input, di) {
 
 		// Don't process links that are part of the reply fallback, they'll be removed entirely by turndown
 		if (input.slice(match.index + match[0].length + offset).startsWith("In reply to")) continue
+
+		// Resolve room alias to room ID if needed
+		roomID = decodeURIComponent(roomID)
+		if (roomID[0] === "#") {
+			try {
+				roomID = await di.api.getAlias(roomID)
+			} catch (e) {
+				continue // Room alias is unresolvable, so it can't be converted
+			}
+		}
 
 		const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
 		if (!channelID) continue

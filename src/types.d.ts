@@ -336,6 +336,11 @@ export namespace R {
 		room_id: string
 		room_type?: string
 	}
+
+	export type ResolvedRoom = {
+		room_id: string
+		servers: string[]
+	}
 }
 
 export type Pagination<T> = {

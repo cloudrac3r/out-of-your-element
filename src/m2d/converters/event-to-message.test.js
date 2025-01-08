@@ -2957,6 +2957,133 @@ test("event2message: mentioning bridged rooms works (plaintext body)", async t =
 	)
 })
 
+test("event2message: mentioning bridged rooms by alias works", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `I'm just <a href="https://matrix.to/#/%23worm-farm%3Acadence.moe?via=cadence.moe">worm-farm</a> testing channel mentions`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				async getAlias(alias) {
+					called++
+					t.equal(alias, "#worm-farm:cadence.moe")
+					return "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "I'm just <#1100319550446252084> testing channel mentions",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+	t.equal(called, 1)
+})
+
+test("event2message: mentioning bridged rooms by alias works (plaintext body)", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: `I'm just https://matrix.to/#/#worm-farm:cadence.moe?via=cadence.moe testing channel mentions`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				async getAlias(alias) {
+					called++
+					t.equal(alias, "#worm-farm:cadence.moe")
+					return "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "I'm just <#1100319550446252084> testing channel mentions",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+	t.equal(called, 1)
+})
+
+test("event2message: mentioning bridged rooms by alias skips the link when alias is unresolvable", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: `I'm just https://matrix.to/#/#worm-farm:cadence.moe?via=cadence.moe and https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe?via=cadence.moe testing channel mentions`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				async getAlias(alias) {
+					called++
+					throw new MatrixServerError("Alias doesn't exist or something")
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "I'm just <https://matrix.to/#/#worm-farm:cadence.moe?via=cadence.moe> and <#1100319550446252084> testing channel mentions",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+	t.equal(called, 1)
+})
+
 test("event2message: mentioning known bridged events works (plaintext body)", async t => {
 	t.deepEqual(
 		await eventToMessage({

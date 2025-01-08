@@ -367,6 +367,16 @@ async function ackEvent(event, mxid) {
 	await sendReadReceipt(event.room_id, event.event_id, mxid)
 }
 
+/**
+ * Resolve a room alias to a room ID.
+ * @param {string} alias
+ */
+async function getAlias(alias) {
+	/** @type {Ty.R.ResolvedRoom} */
+	const root = await mreq.mreq("GET", `/client/v3/directory/room/${encodeURIComponent(alias)}`)
+	return root.room_id
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -395,3 +405,4 @@ module.exports.ping = ping
 module.exports.getMedia = getMedia
 module.exports.sendReadReceipt = sendReadReceipt
 module.exports.ackEvent = ackEvent
+module.exports.getAlias = getAlias
