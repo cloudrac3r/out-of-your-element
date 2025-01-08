@@ -161,7 +161,7 @@ To get into the rooms on your Matrix account, use the `/invite [your mxid here]`
 
 ## Dependency justification
 
-Total transitive production dependencies: 147
+Total transitive production dependencies: 148
 
 ### <font size="+2">🦕</font>
 
@@ -188,6 +188,7 @@ Total transitive production dependencies: 147
 * (0) domino: DOM implementation that's already pulled in by turndown.
 * (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
+* (0) get-relative-path: Looks fine. No dependencies.
 * (0) get-stream: Only needed if content_length_workaround is true.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
