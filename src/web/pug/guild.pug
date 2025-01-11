@@ -133,7 +133,7 @@ block body
         p.s-description.m0 Publicly listed in directory, like Discord server discovery
 
   h3.mt32.fs-category Manually link channels
-  form.d-flex.g16.ai-start(hx-post="/api/privacy-level" hx-trigger="submit" hx-disabled-elt="this")
+  form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="this")
     .fl-grow2.s-btn-group.fd-column.w40
       each channel in unlinkedChannels
         input.s-btn--radio(type="radio" name="discord" id=channel.id value=channel.id)
