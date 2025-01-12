@@ -57,7 +57,7 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id) VALUES (?, ?, ?, ?)").run(parsedBody.discord, parsedBody.matrix, channel.name, guildID)
 
 	// Sync room data and space child
-	createRoom.syncRoom(parsedBody.discord)
+	await createRoom.syncRoom(parsedBody.discord)
 
 	return null // 204
 }))
