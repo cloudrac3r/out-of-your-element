@@ -48,7 +48,7 @@ async function sendMessage(message, channel, guild, row) {
 	const eventIDs = []
 	if (events.length) {
 		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
-		if (senderMxid) api.sendTyping(roomID, false, senderMxid)
+		if (senderMxid) api.sendTyping(roomID, false, senderMxid).catch(() => {})
 	}
 	for (const event of events) {
 		const part = event === events[0] ? 0 : 1
