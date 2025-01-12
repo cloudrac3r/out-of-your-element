@@ -51,9 +51,14 @@ const utils = {
 			}
 
 			if (listen === "full") {
-				eventDispatcher.checkMissedExpressions(message.d)
-				eventDispatcher.checkMissedPins(client, message.d)
-				eventDispatcher.checkMissedMessages(client, message.d)
+				try {
+					await eventDispatcher.checkMissedExpressions(message.d)
+					await eventDispatcher.checkMissedPins(client, message.d)
+					await eventDispatcher.checkMissedMessages(client, message.d)
+				} catch (e) {
+					console.error("Failed to sync missed events. To retry, please fix this error and restart OOYE:")
+					console.error(e)
+				}
 			}
 
 		} else if (message.t === "GUILD_UPDATE") {

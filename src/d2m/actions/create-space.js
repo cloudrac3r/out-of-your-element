@@ -232,7 +232,7 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 			}
 			if (isDeepStrictEqual(existing, content)) return
 		}
-		api.sendState(spaceID, "im.ponies.room_emotes", eventKey, content)
+		await api.sendState(spaceID, "im.ponies.room_emotes", eventKey, content)
 	}
 
 	await update(spaceID, "emojis", "moe.cadence.ooye.pack.emojis", expression.emojisToState)
