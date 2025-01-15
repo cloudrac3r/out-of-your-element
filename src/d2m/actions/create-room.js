@@ -26,7 +26,7 @@ const createSpace = sync.require("./create-space")
  */
 const PRIVACY_ENUMS = {
 	PRESET: ["private_chat", "public_chat", "public_chat"],
-	VISIBILITY: ["private", "private", "public"],
+	VISIBILITY: ["private", "private", "private"],
 	SPACE_HISTORY_VISIBILITY: ["invited", "world_readable", "world_readable"], // copying from element client
 	ROOM_HISTORY_VISIBILITY: ["shared", "shared", "world_readable"], // any events sent after <value> are visible, but for world_readable anybody can read without even joining
 	GUEST_ACCESS: ["can_join", "forbidden", "forbidden"], // whether guests can join space if other conditions are met
