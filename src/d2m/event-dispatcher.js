@@ -103,12 +103,18 @@ module.exports = {
 	async checkMissedMessages(client, guild) {
 		if (guild.unavailable) return
 		const bridgedChannels = select("channel_room", "channel_id").pluck().all()
-		const prepared = select("event_message", "event_id", {}, "WHERE message_id = ?").pluck()
+		const preparedExists = db.prepare("SELECT channel_id FROM message_channel WHERE channel_id = ? LIMIT 1")
+		const preparedGet = select("event_message", "event_id", {}, "WHERE message_id = ?").pluck()
 		for (const channel of guild.channels.concat(guild.threads)) {
 			if (!bridgedChannels.includes(channel.id)) continue
 			if (!("last_message_id" in channel) || !channel.last_message_id) continue
-			const latestWasBridged = prepared.get(channel.last_message_id)
+
+			// Skip if channel is already up-to-date
+			const latestWasBridged = preparedGet.get(channel.last_message_id)
 			if (latestWasBridged) continue
+
+			// Skip if channel was just added to the bridge (there's no place to resume from if it's brand new)
+			if (!preparedExists.get(channel.id)) continue
 
 			// Permissions check
 			const member = guild.members.find(m => m.user?.id === client.user.id)
@@ -131,7 +137,7 @@ module.exports = {
 				}
 			}
 			let latestBridgedMessageIndex = messages.findIndex(m => {
-				return prepared.get(m.id)
+				return preparedGet.get(m.id)
 			})
 			// console.log(`[check missed messages] got ${messages.length} messages; last message that IS bridged is at position ${latestBridgedMessageIndex} in the channel`)
 			if (latestBridgedMessageIndex === -1) latestBridgedMessageIndex = 1 // rather than crawling the ENTIRE channel history, let's just bridge the most recent 1 message to make it up to date.
