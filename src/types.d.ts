@@ -28,6 +28,8 @@ export type AppServiceRegistrationConfig = {
 		content_length_workaround: boolean
 		include_user_id_in_mxid: boolean
 		invite: string[]
+		discord_origin?: string
+		discord_cdn_origin?: string
 	}
 	old_bridge?: {
 		as_token: string

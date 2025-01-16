@@ -1,10 +1,14 @@
 // @ts-check
 
-const { SnowTransfer } = require("snowtransfer")
-const { Client: CloudStorm } = require("cloudstorm")
+const {Endpoints, SnowTransfer} = require("snowtransfer")
+const {reg} = require("../matrix/read-registration")
+const {Client: CloudStorm} = require("cloudstorm")
+
+// @ts-ignore
+Endpoints.BASE_HOST = reg.ooye.discord_origin || "https://discord.com"; Endpoints.CDN_URL = reg.ooye.discord_cdn_origin || "https://cdn.discordapp.com"
 
 const passthrough = require("../passthrough")
-const { sync } = passthrough
+const {sync} = passthrough
 
 /** @type {import("./discord-packets")} */
 const discordPackets = sync.require("./discord-packets")
