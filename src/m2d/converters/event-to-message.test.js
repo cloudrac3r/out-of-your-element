@@ -559,7 +559,7 @@ test("event2message: lists are bridged correctly", async t => {
 				"transaction_id": "m1692967313951.441"
 			},
 			"event_id": "$l-xQPY5vNJo3SNxU9d8aOWNVD1glMslMyrp4M_JEF70",
-			"room_id": "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			"room_id": "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -662,7 +662,7 @@ test("event2message: code block contents are formatted correctly and not escaped
 				formatted_body: "<pre><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n_input_ = input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,\n</code></pre>\n<p><code>input = input.replace(/(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?\\n(&lt;\\/?([^ &gt;]+)[^&gt;]*&gt;)?/g,</code></p>\n"
 			},
 			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -692,7 +692,7 @@ test("event2message: code blocks use double backtick as delimiter when necessary
 				formatted_body: "<code>backtick in ` the middle</code>, <code>backtick at the edge`</code>"
 			},
 			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -722,7 +722,7 @@ test("event2message: inline code is converted to code block if it contains both 
 				formatted_body: "<code>` one two ``</code>"
 			},
 			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -752,7 +752,7 @@ test("event2message: code blocks are uploaded as attachments instead if they con
 				formatted_body: 'So if you run code like this<pre><code class="language-java">System.out.println("```");</code></pre>it should print a markdown formatted code block'
 			},
 			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -784,7 +784,7 @@ test("event2message: code blocks are uploaded as attachments instead if they con
 				formatted_body: 'So if you run code like this<pre><code>System.out.println("```");</code></pre>it should print a markdown formatted code block'
 			},
 			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -821,7 +821,7 @@ test("event2message: characters are encoded properly in code blocks", async t =>
 			  		+ '\n</code></pre>'
 			},
 			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
-			room_id: "!BpMdOUkWWhFxmTrENV:cadence.moe"
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}),
 		{
 			ensureJoined: [],
@@ -902,7 +902,7 @@ test("event2message: lists have appropriate line breaks", async t => {
 				'm.mentions': {},
 				msgtype: 'm.text'
 			},
-			room_id: '!cBxtVRxDlZvSVhJXVK:cadence.moe',
+			room_id: '!TqlyQmifxGUggEmdBN:cadence.moe',
 			sender: '@Milan:tchncs.de',
 			type: 'm.room.message',
 		}),
@@ -943,7 +943,7 @@ test("event2message: ordered list start attribute works", async t => {
 				'm.mentions': {},
 				msgtype: 'm.text'
 			},
-			room_id: '!cBxtVRxDlZvSVhJXVK:cadence.moe',
+			room_id: '!TqlyQmifxGUggEmdBN:cadence.moe',
 			sender: '@Milan:tchncs.de',
 			type: 'm.room.message',
 		}),
@@ -1088,7 +1088,7 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 			content: {
 				body: "> <@cadence:cadence.moe> I just checked in a fix that will probably work, can you try reproducing this on the latest `main` branch and see if I fixed it?\n\nwill try later (tomorrow if I don't forgor)",
 				format: "org.matrix.custom.html",
-				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!cBxtVRxDlZvSVhJXVK:cadence.moe/$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0?via=matrix.org&via=cadence.moe&via=syndicated.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br />I just checked in a fix that will probably work, can you try reproducing this on the latest <code>main</code> branch and see if I fixed it?</blockquote></mx-reply>will try later (tomorrow if I don't forgor)",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0?via=matrix.org&via=cadence.moe&via=syndicated.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br />I just checked in a fix that will probably work, can you try reproducing this on the latest <code>main</code> branch and see if I fixed it?</blockquote></mx-reply>will try later (tomorrow if I don't forgor)",
 				"m.relates_to": {
 					"m.in_reply_to": {
 						event_id: "$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0"
@@ -1111,7 +1111,7 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 						"msgtype": "m.text",
 						"body": "> <@solonovamax:matrix.org> multipart messages will be deleted if the message is edited to require less space\n>  \n> \n> steps to reproduce:\n> \n> 1. send a message that is longer than 2000 characters (discord character limit)\n>   - bot will split message into two messages on discord\n> 2. edit message to be under 2000 characters (discord character limit)\n>   - bot will delete one of the messages on discord, and then edit the other one to include the edited content\n>   - the bot will *then* delete the message on matrix (presumably) because one of the messages on discord was deleted (by \n\nI just checked in a fix that will probably work, can you try reproducing this on the latest `main` branch and see if I fixed it?",
 						"format": "org.matrix.custom.html",
-						"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!cBxtVRxDlZvSVhJXVK:cadence.moe/$u4OD19vd2GETkOyhgFVla92oDKI4ojwBf2-JeVCG7EI?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@solonovamax:matrix.org\">@solonovamax:matrix.org</a><br /><p>multipart messages will be deleted if the message is edited to require less space</p>\n<p>steps to reproduce:</p>\n<ol>\n<li>send a message that is longer than 2000 characters (discord character limit)</li>\n</ol>\n<ul>\n<li>bot will split message into two messages on discord</li>\n</ul>\n<ol start=\"2\">\n<li>edit message to be under 2000 characters (discord character limit)</li>\n</ol>\n<ul>\n<li>bot will delete one of the messages on discord, and then edit the other one to include the edited content</li>\n<li>the bot will <em>then</em> delete the message on matrix (presumably) because one of the messages on discord was deleted (by</li>\n</ul>\n</blockquote></mx-reply>I just checked in a fix that will probably work, can you try reproducing this on the latest <code>main</code> branch and see if I fixed it?",
+						"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$u4OD19vd2GETkOyhgFVla92oDKI4ojwBf2-JeVCG7EI?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@solonovamax:matrix.org\">@solonovamax:matrix.org</a><br /><p>multipart messages will be deleted if the message is edited to require less space</p>\n<p>steps to reproduce:</p>\n<ol>\n<li>send a message that is longer than 2000 characters (discord character limit)</li>\n</ol>\n<ul>\n<li>bot will split message into two messages on discord</li>\n</ul>\n<ol start=\"2\">\n<li>edit message to be under 2000 characters (discord character limit)</li>\n</ol>\n<ul>\n<li>bot will delete one of the messages on discord, and then edit the other one to include the edited content</li>\n<li>the bot will <em>then</em> delete the message on matrix (presumably) because one of the messages on discord was deleted (by</li>\n</ul>\n</blockquote></mx-reply>I just checked in a fix that will probably work, can you try reproducing this on the latest <code>main</code> branch and see if I fixed it?",
 						"m.relates_to": {
 							"m.in_reply_to": {
 								"event_id": "$u4OD19vd2GETkOyhgFVla92oDKI4ojwBf2-JeVCG7EI"
@@ -1123,7 +1123,7 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 						"age": 19069564
 					},
 					"event_id": "$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0",
-					"room_id": "!cBxtVRxDlZvSVhJXVK:cadence.moe"
+					"room_id": "!TqlyQmifxGUggEmdBN:cadence.moe"
 				})
 			},
 			snow: {
@@ -3485,6 +3485,56 @@ test("event2message: caches the member if the member is not known", async t => {
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
+			room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
+			sender: "@should_be_newly_cached:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {}, {
+			api: {
+				getStateEvent: async (roomID, type, stateKey) => {
+					called++
+					t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")
+					t.equal(type, "m.room.member")
+					t.equal(stateKey, "@should_be_newly_cached:cadence.moe")
+					return {
+						avatar_url: "mxc://cadence.moe/this_is_the_avatar"
+					}
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "should_be_newly_cached",
+				content: "testing the member state cache",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/this_is_the_avatar",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe"}).all(), [
+		{avatar_url: "mxc://cadence.moe/this_is_the_avatar", displayname: null, mxid: "@should_be_newly_cached:cadence.moe"}
+	])
+	t.equal(called, 1, "getStateEvent should be called once")
+})
+
+test("event2message: does not cache the member if the room is not known", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "testing the member state cache",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
 			room_id: "!should_be_newly_cached:cadence.moe",
 			sender: "@should_be_newly_cached:cadence.moe",
 			type: "m.room.message",
@@ -3511,7 +3561,7 @@ test("event2message: caches the member if the member is not known", async t => {
 			messagesToSend: [{
 				username: "should_be_newly_cached",
 				content: "testing the member state cache",
-				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/this_is_the_avatar",
+				avatar_url: undefined,
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3519,9 +3569,7 @@ test("event2message: caches the member if the member is not known", async t => {
 		}
 	)
 
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!should_be_newly_cached:cadence.moe"}).all(), [
-		{avatar_url: "mxc://cadence.moe/this_is_the_avatar", displayname: null, mxid: "@should_be_newly_cached:cadence.moe"}
-	])
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!should_be_newly_cached:cadence.moe"}).all(), [])
 	t.equal(called, 1, "getStateEvent should be called once")
 })
 
@@ -3580,7 +3628,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
-			room_id: "!should_be_newly_cached_2:cadence.moe",
+			room_id: "!cqeGDbPiMFAhLsqqqq:cadence.moe",
 			sender: "@should_be_newly_cached_2:cadence.moe",
 			type: "m.room.message",
 			unsigned: {
@@ -3590,7 +3638,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			api: {
 				getStateEvent: async (roomID, type, stateKey) => {
 					called++
-					t.equal(roomID, "!should_be_newly_cached_2:cadence.moe")
+					t.equal(roomID, "!cqeGDbPiMFAhLsqqqq:cadence.moe")
 					t.equal(type, "m.room.member")
 					t.equal(stateKey, "@should_be_newly_cached_2:cadence.moe")
 					return {
@@ -3613,7 +3661,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			}]
 		}
 	)
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!should_be_newly_cached_2:cadence.moe"}).all(), [
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!cqeGDbPiMFAhLsqqqq:cadence.moe"}).all(), [
 		{avatar_url: null, displayname: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER", mxid: "@should_be_newly_cached_2:cadence.moe"}
 	])
 	t.equal(called, 1, "getStateEvent should be called once")
@@ -3628,7 +3676,7 @@ test("event2message: overly long usernames are not treated specially when the ms
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
-			room_id: "!should_be_newly_cached_2:cadence.moe",
+			room_id: "!cqeGDbPiMFAhLsqqqq:cadence.moe",
 			sender: "@should_be_newly_cached_2:cadence.moe",
 			type: "m.room.message",
 			unsigned: {
@@ -4477,7 +4525,7 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 			formatted_body: "testing <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\">"
 		},
 		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
-		room_id: "!maggESguZBqGBZtSnr:cadence.moe"
+		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,

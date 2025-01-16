@@ -1,13 +1,14 @@
 BEGIN TRANSACTION;
 
-INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
-('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe', 0);
-
 INSERT INTO guild_active (guild_id, autocreate) VALUES
 ('112760669178241024', 1);
 
+INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
+('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe', 0);
+
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),
+('687028734322147344', '!fGgIymcYWOqjbSRUdV:cadence.moe', 'slow-news-day', NULL, NULL, NULL),
 ('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
 ('160197704226439168', '!hYnGGlPHlbujVVfktC:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
 ('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
@@ -18,24 +19,24 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL),
 ('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL);
 
-INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES
-('0', 'bot', '_ooye_bot', '@_ooye_bot:cadence.moe'),
-('820865262526005258', 'crunch_god', '_ooye_crunch_god', '@_ooye_crunch_god:cadence.moe'),
-('771520384671416320', 'bojack_horseman', '_ooye_bojack_horseman', '@_ooye_bojack_horseman:cadence.moe'),
-('112890272819507200', '.wing.', '_ooye_.wing.', '@_ooye_.wing.:cadence.moe'),
-('114147806469554185', 'extremity', '_ooye_extremity', '@_ooye_extremity:cadence.moe'),
-('111604486476181504', 'kyuugryphon', '_ooye_kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
-('1109360903096369153', 'amanda', '_ooye_amanda', '@_ooye_amanda:cadence.moe'),
-('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '_ooye__pk_zoego', '@_ooye__pk_zoego:cadence.moe'),
-('320067006521147393', 'papiophidian', '_ooye_papiophidian', '@_ooye_papiophidian:cadence.moe'),
-('772659086046658620', 'cadence', '_ooye_cadence', '@_ooye_cadence:cadence.moe');
-
-INSERT INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES
-('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '196188877885538304', 'Azalea &flwr; 🌺');
+INSERT INTO sim (user_id, sim_name, mxid) VALUES
+('0', 'bot', '@_ooye_bot:cadence.moe'),
+('820865262526005258', 'crunch_god', '@_ooye_crunch_god:cadence.moe'),
+('771520384671416320', 'bojack_horseman', '@_ooye_bojack_horseman:cadence.moe'),
+('112890272819507200', '.wing.', '@_ooye_.wing.:cadence.moe'),
+('114147806469554185', 'extremity', '@_ooye_extremity:cadence.moe'),
+('111604486476181504', 'kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
+('1109360903096369153', 'amanda', '@_ooye_amanda:cadence.moe'),
+('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '@_ooye__pk_zoego:cadence.moe'),
+('320067006521147393', 'papiophidian', '@_ooye_papiophidian:cadence.moe'),
+('772659086046658620', 'cadence', '@_ooye_cadence:cadence.moe');
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL),
 ('@_ooye_cadence:cadence.moe', '!BnKuBPCvyfOkhcUjEu:cadence.moe', NULL);
+
+INSERT INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES
+('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '196188877885538304', 'Azalea &flwr; 🌺');
 
 INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1106366167788044450', '122155380120748034'),
@@ -65,7 +66,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1273743950028607530', '1100319550446252084'),
 ('1278002262400176128', '1100319550446252084'),
 ('1278001833876525057', '1100319550446252084'),
-('1191567971970191490', '176333891320283136');
+('1191567971970191490', '176333891320283136'),
+('1144874214311067708', '687028734322147344');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),
@@ -140,19 +142,16 @@ INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 
 INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
-('!BpMdOUkWWhFxmTrENV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'malformed mxc', 0),
+('!kLRqKKUQXcibIMtOpl:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 0),
 ('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
 ('!fGgIymcYWOqjbSRUdV:cadence.moe', '@rnl:cadence.moe', 'RNL', NULL, 0),
 ('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
-('!maggESguZBqGBZtSnr:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
+('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@ami:the-apothecary.club', 'Ami (she/her)', NULL, 0),
 ('!CzvdIdUQXgUjDVKxeU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),
-('!cBxtVRxDlZvSVhJXVK:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL, 0),
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL, 0),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko', 0),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@aflower:syndicated.gay', 'Rose', 'mxc://syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP', 0),
-('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
-('!BnKuBPCvyfOkhcUjEu:cadence.moe', '@ami:the-apothecary.club', 'Ami (she/her)', NULL, 0),
-('!kLRqKKUQXcibIMtOpl:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 0),
-('!BpMdOUkWWhFxmTrENV:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 100);
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0);
 
 INSERT INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES
 (5162930312280790092, '1141501302736695317', '%F0%9F%90%88');

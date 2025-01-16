@@ -6,7 +6,8 @@ const {join} = require("path")
 async function migrate(db) {
 	let files = fs.readdirSync(join(__dirname, "migrations"))
 	files = files.sort()
-	db.prepare("CREATE TABLE IF NOT EXISTS migration (filename TEXT NOT NULL)").run()
+	db.prepare("CREATE TABLE IF NOT EXISTS migration (filename TEXT NOT NULL, PRIMARY KEY (filename)) WITHOUT ROWID").run()
+	/** @type {string} */
 	let progress = db.prepare("SELECT * FROM migration").pluck().get()
 	if (!progress) {
 		progress = ""
@@ -37,6 +38,8 @@ async function migrate(db) {
 	if (migrationRan) {
 		console.log("Database migrations all done.")
 	}
+
+	db.pragma("foreign_keys = on")
 }
 
 module.exports.migrate = migrate

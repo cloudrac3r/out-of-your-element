@@ -199,18 +199,29 @@ sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
 async event => {
 	if (event.state_key[0] !== "@") return
 	if (utils.eventSenderIsFromDiscord(event.state_key)) return
+
 	if (event.content.membership === "leave" || event.content.membership === "ban") {
 		// Member is gone
-		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
-	} else {
-		// Member is here
-		db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?")
-			.run(
-				event.room_id, event.state_key,
-				event.content.displayname || null, event.content.avatar_url || null,
-				event.content.displayname || null, event.content.avatar_url || null
-			)
+		return db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
 	}
+
+	const room = select("channel_room", "room_id", {room_id: event.room_id})
+	if (!room) return // don't cache members in unbridged rooms
+
+	// Member is here
+	let powerLevel = 0
+	try {
+		/** @type {Ty.Event.M_Power_Levels} */
+		const powerLevelsEvent = await api.getStateEvent(event.room_id, "m.room.power_levels", "")
+		powerLevel = powerLevelsEvent.users?.[event.state_key] ?? powerLevelsEvent.users_default ?? 0
+	} catch (e) {}
+	const displayname = event.content.displayname || null
+	const avatar_url = event.content.avatar_url
+	db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?, power_level = ?").run(
+		event.room_id, event.state_key,
+		displayname, avatar_url, powerLevel,
+		displayname, avatar_url, powerLevel
+	)
 }))
 
 sync.addTemporaryListener(as, "type:m.room.power_levels", guard("m.room.power_levels",

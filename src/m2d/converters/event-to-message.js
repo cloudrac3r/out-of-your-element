@@ -258,7 +258,13 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 	const row = select("member_cache", ["displayname", "avatar_url"], {room_id: roomID, mxid}).get()
 	if (row) return row
 	return api.getStateEvent(roomID, "m.room.member", mxid).then(event => {
-		db.prepare("REPLACE INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?)").run(roomID, mxid, event?.displayname || null, event?.avatar_url || null)
+		const displayname = event?.displayname || null
+		const avatar_url = event?.avatar_url || null
+		db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?").run(
+			roomID, mxid,
+			displayname, avatar_url,
+			displayname, avatar_url
+		)
 		return event
 	}).catch(() => {
 		return {displayname: null, avatar_url: null}

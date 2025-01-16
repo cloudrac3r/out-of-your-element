@@ -102,14 +102,13 @@ async function sendEvent(event) {
 
 	for (const id of messagesToDelete) {
 		db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(id)
-		db.prepare("DELETE FROM event_message WHERE message_id = ?").run(id)
 		await channelWebhook.deleteMessageWithWebhook(channelID, id, threadID)
 	}
 
 	for (const message of messagesToSend) {
 		const reactionPart = messagesToEdit.length === 0 && message === messagesToSend[messagesToSend.length - 1] ? 0 : 1
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
-		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, threadID || channelID)
+		db.prepare("INSERT INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, threadID || channelID)
 		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content["msgtype"] || null, messageResponse.id, eventPart, reactionPart) // source 0 = matrix
 
 		eventPart = 1

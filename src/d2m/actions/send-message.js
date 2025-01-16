@@ -47,7 +47,7 @@ async function sendMessage(message, channel, guild, row) {
 	const events = await messageToEvent.messageToEvent(message, guild, {}, {api})
 	const eventIDs = []
 	if (events.length) {
-		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+		db.prepare("INSERT OR IGNORE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
 		if (senderMxid) api.sendTyping(roomID, false, senderMxid).catch(() => {})
 	}
 	for (const event of events) {

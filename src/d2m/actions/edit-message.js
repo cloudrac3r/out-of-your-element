@@ -61,7 +61,7 @@ async function editMessage(message, guild, row) {
 
 	// 4. Send all the things.
 	if (eventsToSend.length) {
-		db.prepare("REPLACE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+		db.prepare("INSERT OR IGNORE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
 	}
 	for (const content of eventsToSend) {
 		const eventType = content.$type
