@@ -53,7 +53,7 @@ async function removeReaction(data, reactions) {
  */
 async function removeEmojiReaction(data, reactions) {
 	const key = await emojiToKey.emojiToKey(data.emoji)
-	const discordPreferredEncoding = emoji.encodeEmoji(key, undefined)
+	const discordPreferredEncoding = await emoji.encodeEmoji(key, undefined)
 	db.prepare("DELETE FROM reaction WHERE message_id = ? AND encoded_emoji = ?").run(data.message_id, discordPreferredEncoding)
 
 	return converter.removeEmojiReaction(data, reactions, key)

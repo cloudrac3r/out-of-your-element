@@ -20,7 +20,7 @@ async function addReaction(event) {
 	if (!messageID) return // Nothing can be done if the parent message was never bridged.
 
 	const key = event.content["m.relates_to"].key
-	const discordPreferredEncoding = emoji.encodeEmoji(key, event.content.shortcode)
+	const discordPreferredEncoding = await emoji.encodeEmoji(key, event.content.shortcode)
 	if (!discordPreferredEncoding) return
 
 	await discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding) // acting as the discord bot itself
