@@ -19,17 +19,17 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL),
 ('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL);
 
-INSERT INTO sim (user_id, sim_name, mxid) VALUES
-('0', 'bot', '@_ooye_bot:cadence.moe'),
-('820865262526005258', 'crunch_god', '@_ooye_crunch_god:cadence.moe'),
-('771520384671416320', 'bojack_horseman', '@_ooye_bojack_horseman:cadence.moe'),
-('112890272819507200', '.wing.', '@_ooye_.wing.:cadence.moe'),
-('114147806469554185', 'extremity', '@_ooye_extremity:cadence.moe'),
-('111604486476181504', 'kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
-('1109360903096369153', 'amanda', '@_ooye_amanda:cadence.moe'),
-('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '@_ooye__pk_zoego:cadence.moe'),
-('320067006521147393', 'papiophidian', '@_ooye_papiophidian:cadence.moe'),
-('772659086046658620', 'cadence', '@_ooye_cadence:cadence.moe');
+INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
+('0',                  'Matrix Bridge', 'bot', '@_ooye_bot:cadence.moe'),
+('820865262526005258', 'Crunch God', 'crunch_god', '@_ooye_crunch_god:cadence.moe'),
+('771520384671416320', 'Bojack Horseman', 'bojack_horseman', '@_ooye_bojack_horseman:cadence.moe'),
+('112890272819507200', 'wing', '.wing.', '@_ooye_.wing.:cadence.moe'),
+('114147806469554185', 'extremity', 'extremity', '@_ooye_extremity:cadence.moe'),
+('111604486476181504', 'kyuugryphon', 'kyuugryphon', '@_ooye_kyuugryphon:cadence.moe'),
+('1109360903096369153', 'Amanda', 'amanda', '@_ooye_amanda:cadence.moe'),
+('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '_pk_zoego', '@_ooye__pk_zoego:cadence.moe'),
+('320067006521147393', 'papiophidian', 'papiophidian', '@_ooye_papiophidian:cadence.moe'),
+('772659086046658620', 'cadence.worm', 'cadence', '@_ooye_cadence:cadence.moe');
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL),

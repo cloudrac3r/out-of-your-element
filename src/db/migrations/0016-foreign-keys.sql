@@ -86,24 +86,6 @@ DROP TABLE guild_space;
 -- 7
 ALTER TABLE new_guild_space RENAME TO guild_space;
 
--- *** member_cache ***
-
--- 4
-CREATE TABLE "new_member_cache" (
-	"room_id"	TEXT NOT NULL,
-	"mxid"	TEXT NOT NULL,
-	"displayname"	TEXT,
-	"avatar_url"	TEXT, power_level INTEGER NOT NULL DEFAULT 0,
-	PRIMARY KEY("room_id","mxid"),
-	FOREIGN KEY("room_id") REFERENCES "channel_room"("room_id") ON DELETE CASCADE
-) WITHOUT ROWID;
--- 5
-INSERT INTO new_member_cache (room_id, mxid, displayname, avatar_url) SELECT room_id, mxid, displayname, avatar_url FROM member_cache WHERE room_id IN (SELECT room_id FROM channel_room);
--- 6
-DROP TABLE member_cache;
--- 7
-ALTER TABLE new_member_cache RENAME TO member_cache;
-
 -- *** reaction ***
 
 -- 4
@@ -142,15 +124,16 @@ ALTER TABLE new_webhook RENAME TO webhook;
 -- *** sim ***
 
 -- 4
--- while we're at it, rebuild this table to give it WITHOUT ROWID, remove UNIQUE, and drop the localpart column. no foreign keys needed
+-- while we're at it, rebuild this table to give it WITHOUT ROWID, remove UNIQUE, and replace the localpart column with username. no foreign keys needed
 CREATE TABLE "new_sim" (
 	"user_id"	TEXT NOT NULL,
+	"username"	TEXT NOT NULL,
 	"sim_name"	TEXT NOT NULL,
 	"mxid"	TEXT NOT NULL,
 	PRIMARY KEY("user_id")
 ) WITHOUT ROWID;
 -- 5
-INSERT INTO new_sim (user_id, sim_name, mxid) SELECT user_id, sim_name, mxid FROM sim;
+INSERT INTO new_sim (user_id, username, sim_name, mxid) SELECT user_id, sim_name, sim_name, mxid FROM sim;
 -- 6
 DROP TABLE sim;
 -- 7

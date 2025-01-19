@@ -258,13 +258,18 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 	const row = select("member_cache", ["displayname", "avatar_url"], {room_id: roomID, mxid}).get()
 	if (row) return row
 	return api.getStateEvent(roomID, "m.room.member", mxid).then(event => {
-		const displayname = event?.displayname || null
-		const avatar_url = event?.avatar_url || null
-		db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?").run(
-			roomID, mxid,
-			displayname, avatar_url,
-			displayname, avatar_url
-		)
+		const room = select("channel_room", "room_id", {room_id: roomID}).get()
+		if (room) {
+			// save the member to the cache so we don't have to check with the homeserver next time
+			// the cache will be kept in sync by the `m.room.member` event listener
+			const displayname = event?.displayname || null
+			const avatar_url = event?.avatar_url || null
+			db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?").run(
+				roomID, mxid,
+				displayname, avatar_url,
+				displayname, avatar_url
+			)
+		}
 		return event
 	}).catch(() => {
 		return {displayname: null, avatar_url: null}

@@ -33,7 +33,7 @@ async function createSim(user) {
 
 	// Save chosen name in the database forever
 	// Making this database change right away so that in a concurrent registration, the 2nd registration will already have generated a different localpart because it can see this row when it generates
-	db.prepare("INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(user.id, simName, localpart, mxid)
+	db.prepare("INSERT INTO sim (user_id, username, sim_name, mxid) VALUES (?, ?, ?, ?)").run(user.id, user.username, simName, mxid)
 
 	// Register matrix user with that name
 	try {

@@ -319,8 +319,8 @@ function defineEchoHandler() {
 	await migrate.migrate(db)
 
 	// add initial rows to database, like adding the bot to sim...
-	const botID = Buffer.from(reg.ooye.discord_token.split(".")[0], "base64").toString()
-	db.prepare("INSERT OR IGNORE INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(botID, reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), reg.sender_localpart, mxid)
+	const client = await discord.snow.user.getSelf()
+	db.prepare("INSERT INTO sim (user_id, username, sim_name, mxid) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING").run(client.id, client.username, reg.sender_localpart.slice(reg.ooye.namespace_prefix.length), mxid)
 
 	console.log("✅ Database is ready...")
 

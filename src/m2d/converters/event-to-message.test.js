@@ -3535,8 +3535,8 @@ test("event2message: does not cache the member if the room is not known", async 
 			},
 			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 			origin_server_ts: 1688301929913,
-			room_id: "!should_be_newly_cached:cadence.moe",
-			sender: "@should_be_newly_cached:cadence.moe",
+			room_id: "!not_real:cadence.moe",
+			sender: "@should_not_be_cached:cadence.moe",
 			type: "m.room.message",
 			unsigned: {
 				age: 405299
@@ -3545,9 +3545,9 @@ test("event2message: does not cache the member if the room is not known", async 
 			api: {
 				getStateEvent: async (roomID, type, stateKey) => {
 					called++
-					t.equal(roomID, "!should_be_newly_cached:cadence.moe")
+					t.equal(roomID, "!not_real:cadence.moe")
 					t.equal(type, "m.room.member")
-					t.equal(stateKey, "@should_be_newly_cached:cadence.moe")
+					t.equal(stateKey, "@should_not_be_cached:cadence.moe")
 					return {
 						avatar_url: "mxc://cadence.moe/this_is_the_avatar"
 					}
@@ -3559,9 +3559,9 @@ test("event2message: does not cache the member if the room is not known", async 
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "should_be_newly_cached",
+				username: "should_not_be_cached",
 				content: "testing the member state cache",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/this_is_the_avatar",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3569,7 +3569,7 @@ test("event2message: does not cache the member if the room is not known", async 
 		}
 	)
 
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!should_be_newly_cached:cadence.moe"}).all(), [])
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!not_real:cadence.moe"}).all(), [])
 	t.equal(called, 1, "getStateEvent should be called once")
 })
 

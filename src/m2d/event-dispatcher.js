@@ -205,8 +205,8 @@ async event => {
 		return db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
 	}
 
-	const room = select("channel_room", "room_id", {room_id: event.room_id})
-	if (!room) return // don't cache members in unbridged rooms
+	const exists = select("channel_room", "room_id", {room_id: event.room_id}) ?? select("guild_space", "space_id", {space_id: event.room_id})
+	if (!exists) return // don't cache members in unbridged rooms
 
 	// Member is here
 	let powerLevel = 0

@@ -33,7 +33,7 @@ async function createSim(pkMessage) {
 	const mxid = `@${localpart}:${reg.ooye.server_name}`
 
 	// Save chosen name in the database forever
-	db.prepare("INSERT INTO sim (user_id, sim_name, localpart, mxid) VALUES (?, ?, ?, ?)").run(pkMessage.member.uuid, simName, localpart, mxid)
+	db.prepare("INSERT INTO sim (user_id, username, sim_name, mxid) VALUES (?, ?, ?, ?)").run(pkMessage.member.uuid, simName, simName, mxid)
 
 	// Register matrix user with that name
 	try {
