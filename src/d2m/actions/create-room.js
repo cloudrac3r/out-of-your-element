@@ -438,6 +438,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	}
 
 	// delete room from database
+	db.prepare("DELETE FROM member_cache WHERE room_id = ?").run(roomID)
 	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id)
 }
 
