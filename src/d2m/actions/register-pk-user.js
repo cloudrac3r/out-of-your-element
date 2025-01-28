@@ -146,15 +146,20 @@ async function fetchMessage(messageID) {
 	// Their backend is weird. Sometimes it says "message not found" (code 20006) on the first try, so we make multiple attempts.
 	let attempts = 0
 	do {
-		var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
-		if (res.ok) return res.json()
+		try {
+			var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
+			if (res.ok) return res.json()
+			var errorGetter = res.json
+		} catch (e) {
+			// Catch any network issues too.
+			errorGetter = e.toString
+		}
 
 		// I think the backend needs some time to update.
-		await new Promise(resolve => setTimeout(resolve, 2000))
+		await new Promise(resolve => setTimeout(resolve, 1500))
 	} while (++attempts < 3)
 
-	const errorMessage = await res.json()
-	throw new Error(`PK API returned an error after ${attempts} tries: ${JSON.stringify(errorMessage)}`)
+	throw new Error(`PK API returned an error after ${attempts} tries: ${JSON.stringify(await errorGetter())}`)
 }
 
 module.exports._memberToStateContent = memberToStateContent
