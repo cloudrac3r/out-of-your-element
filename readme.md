@@ -62,7 +62,7 @@ Only necessary data and columns are queried from the database. We only contact t
 
 File uploads (like avatars from bridged members) are checked locally and deduplicated. Only brand new files are uploaded to the homeserver. This saves loads of space in the homeserver's media repo, especially for Synapse.
 
-Switching to [WAL mode](https://www.sqlite.org/wal.html) could improve your database access speed even more. Run `node scripts/wal.js` if you want to switch to WAL mode. This will also enable `synchronous = NORMAL`.
+Switching to [WAL mode](https://www.sqlite.org/wal.html) could improve your database access speed even more. Run `node scripts/wal.js` if you want to switch to WAL mode. (This will also enable `synchronous = NORMAL`.)
 
 # Setup
 
@@ -77,6 +77,8 @@ You'll need:
 Follow these steps:
 
 1. [Get Node.js version 20 or later](https://nodejs.org/en/download/prebuilt-installer)
+
+1. Switch to a normal user account. (i.e. do not run any of the following commands as root or sudo.)
 
 1. Clone this repo and checkout a specific tag. (Development happens on main. Stable versions are tagged.)
 	* The latest release tag is ![](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=flat-square&label=%20&color=black).
