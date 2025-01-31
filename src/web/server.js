@@ -49,12 +49,12 @@ as.router.get("/static/stacks.min.css", defineEventHandler({
 	}
 }))
 
-as.router.get("/static/htmx.min.js", defineEventHandler({
+as.router.get("/static/htmx.js", defineEventHandler({
 	onBeforeResponse: compressResponse,
 	handler: async event => {
 		handleCacheHeaders(event, {maxAge: 86400})
 		defaultContentType(event, "text/javascript")
-		return fs.promises.readFile(join(__dirname, "static", "htmx.min.js"), "utf-8")
+		return fs.promises.readFile(join(__dirname, "static", "htmx.js"), "utf-8")
 	}
 }))
 
