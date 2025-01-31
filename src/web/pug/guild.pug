@@ -78,12 +78,13 @@ block body
   h3.mt32.fs-category Linked channels
 
   .s-card.bs-sm.p0
-    .s-table-container
+    form.s-table-container(method="post" action="/api/unlink" hx-post="/api/unlink" hx-trigger="submit" hx-disabled-elt="this" hx-confirm="Unlink these channels?\nIt may take a moment to clean up Matrix resources.")
+      input(type="hidden" name="guild_id" value=guild_id)
       table.s-table.s-table__bx-simple
         each row in linkedChannelsWithDetails
           tr
             td.w40: +discord(row.channel)
-            td.p2: button.s-btn.s-btn__muted.s-btn__xs!= icons.Icons.IconLinkSm
+            td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id)!= icons.Icons.IconLinkSm
             td: +matrix(row)
         else
           tr

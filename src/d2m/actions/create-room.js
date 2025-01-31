@@ -6,7 +6,7 @@ const Ty = require("../../types")
 const {reg} = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {discord, sync, db, select, from} = passthrough
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 /** @type {import("../../matrix/api")} */
@@ -14,7 +14,9 @@ const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
 /** @type {import("../../discord/utils")} */
-const utils = sync.require("../../discord/utils")
+const dUtils = sync.require("../../discord/utils")
+/** @type {import("../../m2d/converters/utils")} */
+const mUtils = sync.require("../../m2d/converters/utils")
 /** @type {import("./create-space")} */
 const createSpace = sync.require("./create-space")
 
@@ -114,8 +116,8 @@ async function channelToKState(channel, guild, di) {
 		join_rules = {join_rule: PRIVACY_ENUMS.ROOM_JOIN_RULES[privacyLevel]}
 	}
 
-	const everyonePermissions = utils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
-	const everyoneCanMentionEveryone = utils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
+	const everyonePermissions = dUtils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
+	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
 	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
@@ -392,7 +394,7 @@ function syncRoom(channelID) {
 	return _syncRoom(channelID, true)
 }
 
-async function _unbridgeRoom(channelID) {
+async function unbridgeChannel(channelID) {
 	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
 	const channel = discord.channels.get(channelID)
 	assert.ok(channel)
@@ -407,12 +409,8 @@ async function _unbridgeRoom(channelID) {
 async function unbridgeDeletedChannel(channel, guildID) {
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	assert.ok(roomID)
-	const spaceID = select("guild_space", "space_id", {guild_id: guildID}).pluck().get()
-	assert.ok(spaceID)
-
-	// remove room from being a space member
-	await api.sendState(roomID, "m.space.parent", spaceID, {})
-	await api.sendState(spaceID, "m.space.child", roomID, {})
+	const row = from("guild_space").join("guild_active", "guild_id").select("space_id", "autocreate").get()
+	assert.ok(row)
 
 	// remove declaration that the room is bridged
 	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${guildID}/${channel.id}`, {})
@@ -420,15 +418,6 @@ async function unbridgeDeletedChannel(channel, guildID) {
 		// previously the Matrix topic would say the channel ID. we should remove that
 		await api.sendState(roomID, "m.room.topic", "", {topic: channel.topic || ""})
 	}
-
-	// send a notification in the room
-	await api.sendEvent(roomID, "m.room.message", {
-		msgtype: "m.notice",
-		body: "⚠️ This room was removed from the bridge."
-	})
-
-	// leave room
-	await api.leaveRoom(roomID)
 
 	// delete webhook on discord
 	const webhook = select("webhook", ["webhook_id", "webhook_token"], {channel_id: channel.id}).get()
@@ -439,7 +428,48 @@ async function unbridgeDeletedChannel(channel, guildID) {
 
 	// delete room from database
 	db.prepare("DELETE FROM member_cache WHERE room_id = ?").run(roomID)
-	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id)
+	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id) // cascades to most other tables, like messages
+
+	// demote admins in room
+	/** @type {Ty.Event.M_Power_Levels} */
+	const powerLevelContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
+	powerLevelContent.users ??= {}
+	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+	for (const mxid of Object.keys(powerLevelContent.users)) {
+		if (mUtils.eventSenderIsFromDiscord(mxid) && mxid !== bot) {
+			delete powerLevelContent.users[mxid]
+			await api.sendState(roomID, "m.room.power_levels", "", powerLevelContent, mxid)
+		}
+	}
+
+	// send a notification in the room
+	await api.sendEvent(roomID, "m.room.message", {
+		msgtype: "m.notice",
+		body: "⚠️ This room was removed from the bridge."
+	})
+
+	// if it is an easy mode room, clean up the room from the managed space and make it clear it's not being bridged
+	// (don't do this for self-service rooms, because they might continue to be used on Matrix or linked somewhere else later)
+	if (row.autocreate === 1) {
+		// remove room from being a space member
+		await api.sendState(roomID, "m.space.parent", row.space_id, {})
+		await api.sendState(row.space_id, "m.space.child", roomID, {})
+
+		// leave room
+		await api.leaveRoom(roomID)
+	}
+
+	// if it is a self-service room, remove sim members
+	// (the room can be used with less clutter and the member list makes sense if it's bridged somewhere else)
+	if (row.autocreate === 0) {
+		// remove sim members
+		const members = select("sim_member", "mxid", {room_id: roomID}).pluck().all()
+		const preparedDelete = db.prepare("DELETE FROM sim_member WHERE room_id = ? AND mxid = ?")
+		for (const mxid of members) {
+			await api.leaveRoom(roomID, mxid)
+			preparedDelete.run(roomID, mxid)
+		}
+	}
 }
 
 /**
@@ -488,7 +518,7 @@ module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
 module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
-module.exports._unbridgeRoom = _unbridgeRoom
+module.exports.unbridgeChannel = unbridgeChannel
 module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
 module.exports.existsOrAutocreatable = existsOrAutocreatable
 module.exports.assertExistsOrAutocreatable = assertExistsOrAutocreatable

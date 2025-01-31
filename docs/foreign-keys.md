@@ -45,7 +45,7 @@ Here are some tables that could potentially have foreign keys added between them
 	* The storage cost of the additional index on `sim` would not be worth the benefits.
 * `channel_room` <--(**C** room_id PK)-- `sim_member`
 	* If a room is being permanently unlinked, it may be useful to see a populated member list. If it's about to be relinked to another channel, we want to keep the sims in the room for more speed and to avoid spamming state events into the timeline.
-	* Either way, the sims should remain in the room even after it's been unlinked. So no referential integrity is desirable here.
+	* Either way, the sims could remain in the room even after it's been unlinked. So no referential integrity is desirable here.
 * `sim` <--(PK user_id PK)-- `sim_proxy`
 	* OOYE left joins on this. In normal operation, this relationship might not exist.
 * `channel_room` <--(PK channel_id PK)-- `webhook` ✅

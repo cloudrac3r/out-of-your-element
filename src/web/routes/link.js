@@ -1,7 +1,7 @@
 // @ts-check
 
 const {z} = require("zod")
-const {defineEventHandler, useSession, createError, readValidatedBody} = require("h3")
+const {defineEventHandler, useSession, createError, readValidatedBody, setResponseHeader} = require("h3")
 const Ty = require("../../types")
 
 const {discord, db, as, sync, select, from} = require("../../passthrough")
@@ -19,6 +19,10 @@ const schema = {
 		guild_id: z.string(),
 		matrix: z.string(),
 		discord: z.string()
+	}),
+	unlink: z.object({
+		guild_id: z.string(),
+		channel_id: z.string()
 	})
 }
 
@@ -59,5 +63,28 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	// Sync room data and space child
 	await createRoom.syncRoom(parsedBody.discord)
 
+	return null // 204
+}))
+
+as.router.post("/api/unlink", defineEventHandler(async event => {
+	const {channel_id, guild_id} = await readValidatedBody(event, schema.unlink.parse)
+	const session = await useSession(event, {password: reg.as_token})
+
+	// Check guild ID or nonce
+	if (!(session.data.managedGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+
+	// Check channel is part of this guild
+	const channel = discord.channels.get(channel_id)
+	if (!channel) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} does not exist`})
+	if (!("guild_id" in channel) || channel.guild_id !== guild_id) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not part of guild ${guild_id}`})
+
+	// Check channel is currently bridged
+	const row = select("channel_room", "channel_id", {channel_id: channel_id}).get()
+	if (!row) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not currently bridged`})
+
+	// Do it
+	await createRoom.unbridgeDeletedChannel(channel, guild_id)
+
+	setResponseHeader(event, "HX-Refresh", "true")
 	return null // 204
 }))
