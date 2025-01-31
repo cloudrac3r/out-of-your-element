@@ -10,7 +10,7 @@ test("web server: can get home", async t => {
 })
 
 test("web server: can get htmx", async t => {
-	t.match(await router.test("get", "/static/htmx.min.js", {}), /htmx=/)
+	t.match(await router.test("get", "/static/htmx.js", {}), /htmx =/)
 })
 
 test("web server: can get css", async t => {
