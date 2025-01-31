@@ -57,8 +57,10 @@ html(lang="en")
                       li(role="menuitem")
                         a.s-topbar--item.s-user-card.d-flex.p4(href=rel(`/guild?guild_id=${guild.id}`))
                           +guild(guild)
+    //- Body
     .mx-auto.w100.wmx9.py24.px8.fs-body1#content
       block body
+    //- Guild list popover
     script.
       document.querySelectorAll("[popovertarget]").forEach(e => {
         e.addEventListener("click", () => {
@@ -69,3 +71,19 @@ html(lang="en")
         })
       })
     script(src=rel("/static/htmx.min.js"))
+    //- Error dialog
+    aside.s-modal#server-error(aria-hidden="true")
+      .s-modal--dialog
+        h1.s-modal--header Server error
+        pre.overflow-auto#server-error-content
+        button.s-modal--close.s-btn.s-btn__muted(aria-label="Close" type="button" onclick="hideError()")!= icons.Icons.IconClearSm
+        .s-modal--footer
+          button.s-btn.s-btn__outlined.s-btn__muted(type="button" onclick="hideError()") OK
+    script.
+      function hideError() {
+        document.getElementById("server-error").setAttribute("aria-hidden", "true")
+      }
+      document.body.addEventListener("htmx:responseError", event => {
+        document.getElementById("server-error").setAttribute("aria-hidden", "false")
+        document.getElementById("server-error-content").textContent = event.detail.xhr.responseText
+      })
