@@ -43,6 +43,26 @@ function getAPI(event) {
 const validNonce = new LRUCache({max: 200})
 
 /**
+ * Modifies the input, removing items that don't pass the filter. Returns the items that didn't pass.
+ * @param {T[]} xs
+ * @param {(x: T, i?: number) => any} fn
+ * @template T
+ * @returns T[]
+ */
+function filterTo(xs, fn) {
+	/** @type {T[]} */
+	const filtered = []
+	for (let i = xs.length-1; i >= 0; i--) {
+		const x = xs[i]
+		if (!fn(x, i)) {
+			filtered.unshift(x)
+			xs.splice(i, 1)
+		}
+	}
+	return filtered
+}
+
+/**
  * @param {string} guildID
  * @param {Ty.R.Hierarchy[]} rooms
  */
@@ -62,21 +82,28 @@ function getChannelRoomsLinks(guildID, rooms) {
 	assert(channelIDs)
 
 	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
-	let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c})).filter(c => c.channel)
+	let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c}))
+	let removedUncachedChannels = filterTo(linkedChannelsWithDetails, c => c.channel)
 	let linkedChannelIDs = linkedChannelsWithDetails.map(c => c.channel_id)
 	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel) - getPosition(b.channel))
 
 	let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
-	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c)).filter(c => c && [0, 5].includes(c.type))
+	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c))
+	let removedWrongTypeChannels = filterTo(unlinkedChannels, c => c && [0, 5].includes(c.type))
 	unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
 
 	let linkedRoomIDs = linkedChannels.map(c => c.room_id)
-	let unlinkedRooms = rooms.filter(r => !linkedRoomIDs.includes(r.room_id) && !r.room_type)
+	let unlinkedRooms = [...rooms]
+	let removedLinkedRooms = filterTo(unlinkedRooms, r => !linkedRoomIDs.includes(r.room_id))
+	let removedWrongTypeRooms = filterTo(unlinkedRooms, r => !r.room_type)
 	// https://discord.com/developers/docs/topics/threads#active-archived-threads
 	// need to filter out linked archived threads from unlinkedRooms, will just do that by comparing against the name
-	unlinkedRooms = unlinkedRooms.filter(r => r.name && !r.name.match(/^\[(🔒)?⛓️\]/))
+	let removedArchivedThreadRooms = filterTo(unlinkedRooms, r => r.name && !r.name.match(/^\[(🔒)?⛓️\]/))
 
-	return {linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms}
+	return {
+		linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms,
+		removedUncachedChannels, removedWrongTypeChannels, removedLinkedRooms, removedWrongTypeRooms, removedArchivedThreadRooms
+	}
 }
 
 as.router.get("/guild", defineEventHandler(async event => {

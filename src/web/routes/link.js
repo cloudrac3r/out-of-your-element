@@ -63,6 +63,12 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	// Sync room data and space child
 	await createRoom.syncRoom(parsedBody.discord)
 
+	// Send a notification in the room
+	await api.sendEvent(parsedBody.matrix, "m.room.message", {
+		msgtype: "m.notice",
+		body: "👋 This room is now bridged with Discord. Say hi!"
+	})
+
 	setResponseHeader(event, "HX-Refresh", "true")
 	return null // 204
 }))

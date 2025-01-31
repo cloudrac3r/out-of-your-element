@@ -154,3 +154,40 @@ block body
       button.s-btn.s-btn__icon.s-btn__filled#link-button
         != icons.Icons.IconMerge
         = ` Link`
+
+  details.mt48
+    summary Debug room list
+    .d-grid.grid__2.gx24
+      div
+        h3.mt24 Channels
+        p Channels are read from the channel_room table and then merged with the discord.channels memory cache to make the merged list. Anything in memory cache that's not in channel_room is considered unlinked.
+      div
+        h3.mt24 Rooms
+        p Rooms use the same merged list as channels, based on augmented channel_room data. Then, rooms are read from the space. Anything in the space that's not merged is considered unlinked.
+      div
+        h3.mt24 Unavailable channels: Deleted from Discord
+        .s-card.p0
+          ul.my8.ml24
+            each row in removedUncachedChannels
+              li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`)= row.nick || row.name
+        h3.mt24 Unavailable channels: Wrong type
+        .s-card.p0
+          ul.my8.ml24
+            each row in removedWrongTypeChannels
+              li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`) (#{row.type}) #{row.name}
+      div- // Rooms
+        h3.mt24 Unavailable rooms: Already linked
+        .s-card.p0
+          ul.my8.ml24
+            each row in removedLinkedRooms
+              li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name
+        h3.mt24 Unavailable rooms: Wrong type
+        .s-card.p0
+          ul.my8.ml24
+            each row in removedWrongTypeRooms
+              li: a(href=`https://matrix.to/#/${row.room_id}`) (#{row.room_type}) #{row.name}
+        h3.mt24 Unavailable rooms: Archived thread
+        .s-card.p0
+          ul.my8.ml24
+            each row in removedArchivedThreadRooms
+              li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name

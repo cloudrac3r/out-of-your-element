@@ -436,7 +436,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	powerLevelContent.users ??= {}
 	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 	for (const mxid of Object.keys(powerLevelContent.users)) {
-		if (mUtils.eventSenderIsFromDiscord(mxid) && mxid !== bot) {
+		if (powerLevelContent.users[mxid] >= 100 && mUtils.eventSenderIsFromDiscord(mxid) && mxid !== bot) {
 			delete powerLevelContent.users[mxid]
 			await api.sendState(roomID, "m.room.power_levels", "", powerLevelContent, mxid)
 		}
