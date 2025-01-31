@@ -2,7 +2,7 @@
 
 const assert = require("assert/strict")
 const {z} = require("zod")
-const {defineEventHandler, sendRedirect, useSession, createError, readValidatedBody} = require("h3")
+const {defineEventHandler, useSession, createError, readValidatedBody} = require("h3")
 
 const {as, db, sync} = require("../../passthrough")
 const {reg} = require("../../matrix/read-registration")

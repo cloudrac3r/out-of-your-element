@@ -67,7 +67,7 @@ block body
             option(value="admin") Admin
         input(type="hidden" name="guild_id" value=guild_id)
         .grid--row-start2
-          button.s-btn.s-btn__filled.htmx-indicator Invite
+          button.s-btn.s-btn__filled Invite
     div
       != svg
 
@@ -78,13 +78,13 @@ block body
   h3.mt32.fs-category Linked channels
 
   .s-card.bs-sm.p0
-    form.s-table-container(method="post" action="/api/unlink" hx-post="/api/unlink" hx-trigger="submit" hx-disabled-elt="this" hx-confirm="Unlink these channels?\nIt may take a moment to clean up Matrix resources.")
+    form.s-table-container(method="post" action="/api/unlink" hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
       input(type="hidden" name="guild_id" value=guild_id)
       table.s-table.s-table__bx-simple
         each row in linkedChannelsWithDetails
           tr
             td.w40: +discord(row.channel)
-            td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id)!= icons.Icons.IconLinkSm
+            td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post="/api/unlink" hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
             td: +matrix(row)
         else
           tr
@@ -100,16 +100,16 @@ block body
       - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
       input(type="hidden" name="guild_id" value=guild_id)
       input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
-      .is-loading#autocreate-loading
+      #autocreate-loading
 
   h3.mt32.fs-category Privacy level
   .s-card
-    form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="this")
+    form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
       input(type="hidden" name="guild_id" value=guild_id)
       .d-flex.ai-center.mb4
         label.s-label.fl-grow1
           | How people can join on Matrix
-          span.is-loading#privacy-level-loading
+          span#privacy-level-loading
       .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
         input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
         label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
@@ -134,23 +134,23 @@ block body
         p.s-description.m0 Publicly listed in directory, like Discord server discovery
 
   h3.mt32.fs-category Manually link channels
-  form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="this")
+  form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="input, button" hx-indicator="#link-button")
     .fl-grow2.s-btn-group.fd-column.w40
       each channel in unlinkedChannels
-        input.s-btn--radio(type="radio" name="discord" id=channel.id value=channel.id)
+        input.s-btn--radio(type="radio" name="discord" required id=channel.id value=channel.id)
         label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
           +discord(channel, true, "Announcement")
       else
         .s-empty-state.p8 All Discord channels are linked.
     .fl-grow1.s-btn-group.fd-column.w30
       each room in unlinkedRooms
-        input.s-btn--radio(type="radio" name="matrix" id=room.room_id value=room.room_id)
+        input.s-btn--radio(type="radio" name="matrix" required id=room.room_id value=room.room_id)
         label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
           +matrix(room, true)
       else
         .s-empty-state.p8 All Matrix rooms are linked.
     input(type="hidden" name="guild_id" value=guild_id)
     div
-      button.s-btn.s-btn__icon.s-btn__filled.htmx-indicator
+      button.s-btn.s-btn__icon.s-btn__filled#link-button
         != icons.Icons.IconMerge
         = ` Link`

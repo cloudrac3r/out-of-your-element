@@ -63,6 +63,7 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	// Sync room data and space child
 	await createRoom.syncRoom(parsedBody.discord)
 
+	setResponseHeader(event, "HX-Refresh", "true")
 	return null // 204
 }))
 
