@@ -22,6 +22,8 @@ const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
 const utils = sync.require("./converters/utils")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
+/** @type {import("../d2m/actions/create-room")} */
+const createRoom = sync.require("../d2m/actions/create-room")
 const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
@@ -172,7 +174,10 @@ async event => {
 	if (event.state_key !== "") return
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const customTopic = +!!event.content.topic
-	db.prepare("UPDATE channel_room SET custom_topic = ? WHERE room_id = ?").run(customTopic, event.room_id)
+	const row = select("channel_room", ["channel_id", "custom_topic"], {room_id: event.room_id}).get()
+	if (!row) return
+	if (customTopic !== row.custom_topic) db.prepare("UPDATE channel_room SET custom_topic = ? WHERE channel_id = ?").run(customTopic, row.channel_id)
+	if (!customTopic) await createRoom.syncRoom(row.channel_id) // if it's cleared we should reset it to whatever's on discord
 }))
 
 sync.addTemporaryListener(as, "type:m.room.pinned_events", guard("m.room.pinned_events",
