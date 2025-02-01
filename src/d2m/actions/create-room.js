@@ -11,6 +11,8 @@ const {discord, sync, db, select, from} = passthrough
 const file = sync.require("../../matrix/file")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/mreq")} */
+const mreq = sync.require("../../matrix/mreq")
 /** @type {import("../../matrix/kstate")} */
 const ks = sync.require("../../matrix/kstate")
 /** @type {import("../../discord/utils")} */
@@ -412,9 +414,20 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	const row = from("guild_space").join("guild_active", "guild_id").select("space_id", "autocreate").get()
 	assert.ok(row)
 
+	let botInRoom = true
+
 	// remove declaration that the room is bridged
-	await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${guildID}/${channel.id}`, {})
-	if ("topic" in channel) {
+	try {
+		await api.sendState(roomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${guildID}/${channel.id}`, {})
+	} catch (e) {
+		if (String(e).includes("not in room")) {
+			botInRoom = false
+		} else {
+			throw e
+		}
+	}
+
+	if (botInRoom && "topic" in channel) {
 		// previously the Matrix topic would say the channel ID. we should remove that
 		await api.sendState(roomID, "m.room.topic", "", {topic: channel.topic || ""})
 	}
@@ -429,6 +442,8 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	// delete room from database
 	db.prepare("DELETE FROM member_cache WHERE room_id = ?").run(roomID)
 	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id) // cascades to most other tables, like messages
+
+	if (!botInRoom) return
 
 	// demote admins in room
 	/** @type {Ty.Event.M_Power_Levels} */
