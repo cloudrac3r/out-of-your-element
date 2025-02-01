@@ -13,11 +13,11 @@ block body
     .s-page-title.mb24
       h1.s-page-title--header= guild.name
 
-    .d-flex.g16
+    .d-flex.g16#form-container
       .fl-grow1
         h2.fs-headline1 Invite a Matrix user
 
-        form.d-flex.gy16.fd-column(method="post" action="/api/invite" style="grid-template-rows: repeat(2, auto)")
+        form.d-flex.gy16.fd-column(method="post" action="/api/invite" hx-post="/api/invite" hx-indicator="#invite-button" hx-select="#ok" hx-target="#form-container")
           .d-flex.gy4.fd-column
             label.s-label(for="mxid") Matrix ID
             input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
@@ -30,4 +30,4 @@ block body
                 option(value="admin") Admin
           input(type="hidden" name="nonce" value=nonce)
           div
-            button.s-btn.s-btn__filled.htmx-indicator Invite
+            button.s-btn.s-btn__filled#invite-button Invite

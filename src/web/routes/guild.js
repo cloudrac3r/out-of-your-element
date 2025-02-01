@@ -2,7 +2,7 @@
 
 const assert = require("assert/strict")
 const {z} = require("zod")
-const {H3Event, defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody} = require("h3")
+const {H3Event, defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody, setResponseHeader} = require("h3")
 const {randomUUID} = require("crypto")
 const {LRUCache} = require("lru-cache")
 const Ty = require("../../types")
@@ -191,9 +191,10 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 		( parsedBody.permissions === "admin" ? 100
 		: parsedBody.permissions === "moderator" ? 50
 		: 0)
-	await api.setUserPowerCascade(spaceID, parsedBody.mxid, powerLevel)
+	if (powerLevel) await api.setUserPowerCascade(spaceID, parsedBody.mxid, powerLevel)
 
 	if (parsedBody.guild_id) {
+		setResponseHeader(event, "HX-Refresh", true)
 		return sendRedirect(event, `/guild?guild_id=${guild_id}`, 302)
 	} else {
 		return sendRedirect(event, "/ok?msg=User has been invited.", 302)

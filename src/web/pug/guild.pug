@@ -56,7 +56,7 @@ block body
     .fl-grow1
       h2.fs-headline1 Invite a Matrix user
 
-      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" style="grid-template-rows: repeat(2, auto)")
+      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" hx-post="/api/invite" hx-indicator="#invite-button")
         label.s-label(for="mxid") Matrix ID
         input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
         label.s-label(for="permissions") Permissions
@@ -67,11 +67,9 @@ block body
             option(value="admin") Admin
         input(type="hidden" name="guild_id" value=guild_id)
         .grid--row-start2
-          button.s-btn.s-btn__filled Invite
+          button.s-btn.s-btn__filled#invite-button Invite
     div
       != svg
-
-  h2.mt48.fs-headline1 Moderation
 
   h2.mt48.fs-headline1 Matrix setup
 
