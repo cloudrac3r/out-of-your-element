@@ -3,6 +3,7 @@
 const {z} = require("zod")
 const {defineEventHandler, useSession, createError, readValidatedBody, setResponseHeader} = require("h3")
 const Ty = require("../../types")
+const DiscordTypes = require("discord-api-types/v10")
 
 const {discord, db, as, sync, select, from} = require("../../passthrough")
 /** @type {import("../../d2m/actions/create-space")} */
@@ -64,10 +65,12 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	await createRoom.syncRoom(parsedBody.discord)
 
 	// Send a notification in the room
-	await api.sendEvent(parsedBody.matrix, "m.room.message", {
-		msgtype: "m.notice",
-		body: "👋 This room is now bridged with Discord. Say hi!"
-	})
+	if (channel.type === DiscordTypes.ChannelType.GuildText) {
+		await api.sendEvent(parsedBody.matrix, "m.room.message", {
+			msgtype: "m.notice",
+			body: "👋 This room is now bridged with Discord. Say hi!"
+		})
+	}
 
 	setResponseHeader(event, "HX-Refresh", "true")
 	return null // 204
