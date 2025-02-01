@@ -26,7 +26,7 @@ const schema = {
 as.router.post("/api/autocreate", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.autocreate.parse)
 	const session = await useSession(event, {password: reg.as_token})
-	if (!(session.data.managedGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 	db.prepare("UPDATE guild_active SET autocreate = ? WHERE guild_id = ?").run(+!!parsedBody.autocreate, parsedBody.guild_id)
 	return null // 204
@@ -35,7 +35,7 @@ as.router.post("/api/autocreate", defineEventHandler(async event => {
 as.router.post("/api/privacy-level", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.privacyLevel.parse)
 	const session = await useSession(event, {password: reg.as_token})
-	if (!(session.data.managedGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 	const i = levels.indexOf(parsedBody.level)
 	assert.notEqual(i, -1)

@@ -2,7 +2,7 @@
 
 const {z} = require("zod")
 const {randomUUID} = require("crypto")
-const {defineEventHandler, getValidatedQuery, sendRedirect, getQuery, useSession, createError} = require("h3")
+const {defineEventHandler, getValidatedQuery, sendRedirect, useSession, createError} = require("h3")
 const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const fetch = require("node-fetch")
@@ -75,11 +75,12 @@ as.router.get("/oauth", defineEventHandler(async event => {
 		throw createError({status: 502, message: "Invalid token response", data: `Discord completed OAuth, but returned this instead of an OAuth access token: ${JSON.stringify(root)}`})
 	}
 
+	const userID = Buffer.from(parsedToken.data.access_token.split(".")[0], "base64").toString()
 	const client = new SnowTransfer(`Bearer ${parsedToken.data.access_token}`)
 	try {
 		const guilds = await client.user.getGuilds()
 		var managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
-		await session.update({managedGuilds})
+		await session.update({managedGuilds, userID, state: undefined})
 	} catch (e) {
 		throw createError({status: 502, message: "API call failed", data: e.message})
 	}

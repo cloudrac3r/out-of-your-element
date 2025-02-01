@@ -33,7 +33,7 @@ as.router.post("/api/link", defineEventHandler(async event => {
 
 	// Check guild ID or nonce
 	const guildID = parsedBody.guild_id
-	if (!(session.data.managedGuilds || []).includes(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
 
 	// Check guild is bridged
 	const guild = discord.guilds.get(guildID)
@@ -81,7 +81,7 @@ as.router.post("/api/unlink", defineEventHandler(async event => {
 	const session = await useSession(event, {password: reg.as_token})
 
 	// Check guild ID or nonce
-	if (!(session.data.managedGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
 
 	// Check channel is part of this guild
 	const channel = discord.channels.get(channel_id)

@@ -377,6 +377,27 @@ async function getAlias(alias) {
 	return root.room_id
 }
 
+/**
+ * @param {string} type namespaced event type, e.g. m.direct
+ * @param {string} [mxid] you
+ * @returns the *content* of the account data "event"
+ */
+async function getAccountData(type, mxid) {
+	if (!mxid) mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+	const root = await mreq.mreq("GET", `/client/v3/user/${mxid}/account_data/${type}`)
+	return root
+}
+
+/**
+ * @param {string} type namespaced event type, e.g. m.direct
+ * @param {any} content whatever you want
+ * @param {string} [mxid] you
+ */
+async function setAccountData(type, content, mxid) {
+	if (!mxid) mxid = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+	await mreq.mreq("PUT", `/client/v3/user/${mxid}/account_data/${type}`, content)
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -406,3 +427,5 @@ module.exports.getMedia = getMedia
 module.exports.sendReadReceipt = sendReadReceipt
 module.exports.ackEvent = ackEvent
 module.exports.getAlias = getAlias
+module.exports.getAccountData = getAccountData
+module.exports.setAccountData = setAccountData

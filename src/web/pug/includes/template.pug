@@ -30,6 +30,31 @@ html(lang="en")
         --_ts-multiple-bg: var(--green-400);
         --_ts-multiple-fc: var(--white);
       }
+      .s-btn.s-btn__matrix {
+        --_bu-bg-active: var(--black-300);
+        --_bu-bg-hover: var(--black-200);
+        --_bu-bg-selected: var(--black-300);
+        --_bu-fc: var(--black-500);
+        --_bu-fc-active: var(--_bu-fc);
+        --_bu-fc-hover: var(--black-500);
+        --_bu-fc-selected: var(--black-600);
+        --_bu-filled-bc: transparent;
+        --_bu-filled-bc-selected: var(--_bu-filled-bc);
+        --_bu-filled-bg: var(--black-400);
+        --_bu-filled-bg-active: var(--black-500);
+        --_bu-filled-bg-hover: var(--black-500);
+        --_bu-filled-bg-selected: var(--black-600);
+        --_bu-filled-fc: var(--white);
+        --_bu-filled-fc-active: var(--_bu-filled-fc);
+        --_bu-filled-fc-hover: var(--_bu-filled-fc);
+        --_bu-filled-fc-selected: var(--_bu-filled-fc);
+        --_bu-outlined-bc: var(--black-400);
+        --_bu-outlined-bc-selected: var(--black-500);
+        --_bu-outlined-bg-selected: var(--_bu-bg-selected);
+        --_bu-outlined-fc-selected: var(--_bu-fc-selected);
+        --_bu-number-fc: var(--white);
+        --_bu-number-fc-filled: var(--black);
+      }
   body.themed.theme-system
     header.s-topbar
       .s-topbar--skip-link(href="#content") Skip to main content
@@ -38,22 +63,26 @@ html(lang="en")
           img.s-avatar.s-avatar__32(src=rel("/icon.png"))
         nav.s-topbar--navigation
           ul.s-topbar--content
-            li.ps-relative
-              if !session.data.managedGuilds || session.data.managedGuilds.length === 0
-                a.s-btn.s-btn__icon.as-center(href=rel("/oauth"))
+            li.ps-relative.g8
+              if !session.data.mxid
+                a.s-btn.s-btn__icon.s-btn__matrix.s-btn__outlined.as-center(href=rel("/log-in-with-matrix"))
+                  != icons.Icons.IconSpeechBubble
+                  = ` Log in with Matrix`
+              if !session.data.userID
+                a.s-btn.s-btn__icon.s-btn__featured.s-btn__outlined.as-center(href=rel("/oauth"))
                   != icons.Icons.IconDiscord
-                  = ` Log in`
-              else if guild_id && session.data.managedGuilds.includes(guild_id) && discord.guilds.has(guild_id)
+                  = ` Log in with Discord`
+              if guild_id && managed.includes(guild_id) && discord.guilds.has(guild_id)
                 button.s-topbar--item.s-btn.s-btn__muted.s-user-card(popovertarget="guilds")
                   +guild(discord.guilds.get(guild_id))
-              else if session.data.managedGuilds
+              else if managed.length
                 button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr24.s-user-card.s-label(popovertarget="guilds")
                   | Your servers
               #guilds(popover data-popper-placement="bottom" style="display: revert; width: revert;").s-popover.overflow-visible
                 .s-popover--arrow.s-popover--arrow__tc
                 .s-popover--content.overflow-y-auto.overflow-x-hidden
                   ul.s-menu(role="menu")
-                    each guild in (session.data.managedGuilds || []).map(id => discord.guilds.get(id)).filter(g => g)
+                    each guild in managed.map(id => discord.guilds.get(id)).filter(g => g)
                       li(role="menuitem")
                         a.s-topbar--item.s-user-card.d-flex.p4(href=rel(`/guild?guild_id=${guild.id}`))
                           +guild(guild)

@@ -27,6 +27,7 @@ sync.require("./routes/guild-settings")
 sync.require("./routes/guild")
 sync.require("./routes/link")
 sync.require("./routes/oauth")
+sync.require("./routes/log-in-with-matrix")
 
 // Files
 

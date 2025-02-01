@@ -2,5 +2,5 @@ extends includes/template.pug
 
 block body
   .ta-center.wmx5.p48.mx-auto#ok
-    != icons.Spots.SpotApproveXL
+    != spot ? icons.Spots[spot] : icons.Spots.SpotApproveXL
     p.mt24.fs-body2= msg

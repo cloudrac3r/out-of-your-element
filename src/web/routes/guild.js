@@ -114,7 +114,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const guild = discord.guilds.get(guild_id)
 
 	// Permission problems
-	if (!guild_id || !guild || !session.data.managedGuilds || !session.data.managedGuilds.includes(guild_id)) {
+	if (!guild_id || !guild || !(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) {
 		return pugSync.render(event, "guild_access_denied.pug", {guild_id})
 	}
 
@@ -159,7 +159,7 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 	// Check guild ID or nonce
 	if (parsedBody.guild_id) {
 		var guild_id = parsedBody.guild_id
-		if (!(session.data.managedGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't invite users to a guild you don't have Manage Server permissions in"})
+		if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't invite users to a guild you don't have Manage Server permissions in"})
 	} else if (parsedBody.nonce) {
 		if (!validNonce.has(parsedBody.nonce)) throw createError({status: 403, message: "Nonce expired", data: "Nonce means number-used-once, and, well, you tried to use it twice..."})
 		let ok = validNonce.get(parsedBody.nonce)
