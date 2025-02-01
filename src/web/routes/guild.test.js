@@ -177,16 +177,12 @@ test("api invite: can invite to a moderated guild", async t => {
 				async inviteToRoom(roomID, mxidToInvite, mxid) {
 					t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
 					called++
-				},
-				async setUserPowerCascade(roomID, mxid, power) {
-					t.equal(power, 0)
-					called++
 				}
 			}
 		})
 	)
 	t.notOk(error)
-	t.equal(called, 3)
+	t.equal(called, 2)
 })
 
 test("api invite: does not reinvite joined users", async t => {
@@ -205,14 +201,10 @@ test("api invite: does not reinvite joined users", async t => {
 				async getStateEvent(roomID, type, key) {
 					called++
 					return {membership: "join"}
-				},
-				async setUserPowerCascade(roomID, mxid, power) {
-					t.equal(power, 0)
-					called++
 				}
 			}
 		})
 	)
 	t.notOk(error)
-	t.equal(called, 2)
+	t.equal(called, 1)
 })

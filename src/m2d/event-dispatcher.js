@@ -164,6 +164,17 @@ async event => {
 	db.prepare("UPDATE channel_room SET nick = ? WHERE room_id = ?").run(name, event.room_id)
 }))
 
+sync.addTemporaryListener(as, "type:m.room.topic", guard("m.room.topic",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Topic>} event
+ */
+async event => {
+	if (event.state_key !== "") return
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const customTopic = +!!event.content.topic
+	db.prepare("UPDATE channel_room SET custom_topic = ? WHERE room_id = ?").run(customTopic, event.room_id)
+}))
+
 sync.addTemporaryListener(as, "type:m.room.pinned_events", guard("m.room.pinned_events",
 /**
  * @param {Ty.Event.StateOuter<Ty.Event.M_Room_PinnedEvents>} event

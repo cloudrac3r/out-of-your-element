@@ -243,6 +243,10 @@ export namespace Event {
 		name?: string
 	}
 
+	export type M_Room_Topic = {
+		topic?: string
+	}
+
 	export type M_Room_PinnedEvents = {
 		pinned: string[]
 	}

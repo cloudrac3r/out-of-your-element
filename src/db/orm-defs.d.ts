@@ -10,6 +10,8 @@ export type Models = {
 		speedbump_id: string | null
 		speedbump_webhook_id: string | null
 		speedbump_checked: number | null
+		guild_id: string | null
+		custom_topic: number
 	}
 
 	event_message: {

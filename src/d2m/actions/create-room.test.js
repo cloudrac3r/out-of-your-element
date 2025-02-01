@@ -94,6 +94,26 @@ test("channel2room: room where limited people can mention everyone", async t => 
 	t.equal(called, 1)
 })
 
+test("channel2room: matrix room that already has a custom topic set", async t => {
+	let called = 0
+	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
+		called++
+		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(type, "m.room.power_levels")
+		t.equal(key, "")
+		return {}
+	}
+	db.prepare("UPDATE channel_room SET custom_topic = 1 WHERE channel_id = ?").run(testData.channel.general.id)
+	const expected = mixin({}, testData.room.general, {"m.room.power_levels/": {notifications: {room: 20}}})
+	// @ts-ignore
+	delete expected["m.room.topic/"]
+	t.deepEqual(
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		expected
+	)
+	t.equal(called, 1)
+})
+
 test("convertNameAndTopic: custom name and topic", t => {
 	t.deepEqual(
 		_convertNameAndTopic({id: "123", name: "the-twilight-zone", topic: "Spooky stuff here. :ghost:", type: 0}, {id: "456"}, "hauntings"),

@@ -89,9 +89,10 @@ async function channelToKState(channel, guild, di) {
 		assert(typeof parentSpaceID === "string")
 	}
 
-	const channelRow = select("channel_room", ["nick", "custom_avatar"], {channel_id: channel.id}).get()
+	const channelRow = select("channel_room", ["nick", "custom_avatar", "custom_topic"], {channel_id: channel.id}).get()
 	const customName = channelRow?.nick
 	const customAvatar = channelRow?.custom_avatar
+	const hasCustomTopic = channelRow?.custom_topic
 	const [convertedName, convertedTopic] = convertNameAndTopic(channel, guild, customName)
 
 	const avatarEventContent = {}
@@ -166,6 +167,8 @@ async function channelToKState(channel, guild, di) {
 			}
 		}
 	}
+
+	if (hasCustomTopic) delete channelKState["m.room.topic/"]
 
 	return {spaceID: parentSpaceID, privacyLevel, channelKState}
 }

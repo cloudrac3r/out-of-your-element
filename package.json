@@ -23,7 +23,7 @@
     "@cloudrac3r/giframe": "^0.4.3",
     "@cloudrac3r/html-template-tag": "^5.0.1",
     "@cloudrac3r/in-your-element": "^1.0.0",
-    "@cloudrac3r/mixin-deep": "^3.0.0",
+    "@cloudrac3r/mixin-deep": "^3.0.1",
     "@cloudrac3r/pngjs": "^7.0.3",
     "@cloudrac3r/pug": "^4.0.4",
     "@cloudrac3r/turndown": "^7.1.4",
