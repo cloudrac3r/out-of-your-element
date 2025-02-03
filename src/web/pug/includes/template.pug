@@ -55,6 +55,9 @@ html(lang="en")
         --_bu-number-fc: var(--white);
         --_bu-number-fc-filled: var(--black);
       }
+      .s-btn__dropdown:has(+ :popover-open) {
+        background-color: var(--theme-topbar-item-background-hover, var(--black-200)) !important;
+      }
   body.themed.theme-system
     header.s-topbar
       .s-topbar--skip-link(href="#content") Skip to main content
@@ -76,7 +79,7 @@ html(lang="en")
                 button.s-topbar--item.s-btn.s-btn__muted.s-user-card(popovertarget="guilds")
                   +guild(discord.guilds.get(guild_id))
               else if managed.length
-                button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr24.s-user-card.s-label(popovertarget="guilds")
+                button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr24.s-user-card.bar0.fc-black(popovertarget="guilds")
                   | Your servers
               #guilds(popover data-popper-placement="bottom" style="display: revert; width: revert;").s-popover.overflow-visible
                 .s-popover--arrow.s-popover--arrow__tc
@@ -95,8 +98,7 @@ html(lang="en")
         e.addEventListener("click", () => {
           const rect = e.getBoundingClientRect()
           const t = `:popover-open { position: absolute; top: ${Math.floor(rect.bottom)}px; left: ${Math.floor(rect.left + rect.width / 2)}px; width: ${Math.floor(rect.width)}px; transform: translateX(-50%); box-sizing: content-box; margin: 0 }`
-          // console.log(t)
-          document.styleSheets[0].insertRule(t)
+          document.styleSheets[0].insertRule(t, document.styleSheets[0].cssRules.length)
         })
       })
     script(src=rel("/static/htmx.js"))
