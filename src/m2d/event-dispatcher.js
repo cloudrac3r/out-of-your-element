@@ -208,6 +208,26 @@ async event => {
 	await api.ackEvent(event)
 }))
 
+function getFromInviteRoomState(inviteRoomState, nskey, key) {
+	if (!Array.isArray(inviteRoomState)) return null
+	for (const event of inviteRoomState) {
+		if (event.type === nskey && event.state_key === "") {
+			return event.content[key]
+		}
+	}
+	return null
+}
+
+sync.addTemporaryListener(as, "type:m.space.child", guard("m.space.child",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Space_Child>} event
+ */
+async event => {
+	if (Array.isArray(event.content.via) && event.content.via.length) { // space child is being added
+		await api.joinRoom(event.state_key).catch(() => {}) // try to join if able, it's okay if it doesn't want, bot will still respond to invites
+	}
+}))
+
 sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
 /**
  * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Member>} event
@@ -217,9 +237,14 @@ async event => {
 
 	if (event.content.membership === "invite" && event.state_key === `@${reg.sender_localpart}:${reg.ooye.server_name}`) {
 		// We were invited to a room. We should join, and register the invite details for future reference in web.
+		const name = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.name", "name")
+		const topic = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.topic", "topic")
+		const avatar = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.avatar", "url")
+		const creationType = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.create", "type")
+		if (!name) return await api.leaveRoomWithReason(event.room_id, "Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite!")
 		await api.joinRoom(event.room_id)
-		const creation = await api.getStateEvent(event.room_id, "m.room.create", "")
-		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type) VALUES (?, ?, ?)").run(event.sender, event.room_id, creation.type || null)
+		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, creationType, name, topic, avatar)
+		if (avatar) utils.getPublicUrlForMxc(avatar) // make sure it's available in the media_proxy allowed URLs
 	}
 
 	if (utils.eventSenderIsFromDiscord(event.state_key)) return

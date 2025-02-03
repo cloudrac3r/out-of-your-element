@@ -1,0 +1,52 @@
+extends includes/template.pug
+
+mixin space(space)
+  .s-user-card.flex__1
+    span.s-avatar.s-avatar__32.s-user-card--avatar
+      if space.avatar
+        img.s-avatar--image(src=mUtils.getPublicUrlForMxc(space.avatar))
+      else
+        .s-avatar--letter.bg-silver-400.bar-md(aria-hidden="true")= space.name[0]
+    .s-user-card--info.ai-start
+      strong= space.name
+      if space.topic
+        ul.s-user-card--awards
+          li space.topic
+
+block body
+  .s-notice.s-notice__info.d-flex.g16
+    div
+      != icons.Icons.IconInfo
+    div
+      strong You picked self-service mode
+      .mt4 To complete setup, you need to manually choose a Matrix space to link with #[strong= guild.name].
+
+  h3.mt32.fs-category Choose a space
+
+  form.s-card.bs-sm.p0.s-table-container.bar-md(method="post" action="/api/link-space")
+    input(type="hidden" name="guild_id" value=guild_id)
+    table.s-table.s-table__bx-simple
+      each space in spaces
+        tr
+          td.p0: +space(space)
+          td: button.s-btn(name="space_id" value=space.room_id hx-post="/api/link-space" hx-trigger="click" hx-disabled-elt="this") Link with this space
+      else
+        if session.data.mxid
+          tr
+            - const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+            td.p16 On Matrix, invite #[code.s-code-block: a.s-link(href=`https://matrix.to/#/${self}` target="_blank")= self] to a space. Then you can pick it from this list.
+        else
+          tr
+            td.d-flex.ai-center.pl16.g16
+              | You need to log in with Matrix first.
+              a.s-btn.s-btn__matrix.s-btn__outlined(href=rel("/log-in-with-matrix")) Log in with Matrix
+
+  h3.mt48.fs-category Auto-create
+  .s-card
+    form.d-flex.ai-center.g8(method="post" action="/api/autocreate" hx-post="/api/autocreate" hx-indicator="#easy-mode-button")
+      input(type="hidden" name="guild_id" value=guild_id)
+      input(type="hidden" name="autocreate" value="true")
+      label.s-label.fl-grow1
+        | Changed your mind?
+        p.s-description If you want, OOYE can create and manage the Matrix space so you don't have to.
+      button.s-btn.s-btn__outlined#easy-mode-button Use easy mode

@@ -8,7 +8,7 @@ const {LRUCache} = require("lru-cache")
 const Ty = require("../../types")
 const uqr = require("uqr")
 
-const {discord, as, sync, select} = require("../../passthrough")
+const {discord, as, sync, select, from, db} = require("../../passthrough")
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
 /** @type {import("../../d2m/actions/create-space")} */
@@ -109,13 +109,19 @@ function getChannelRoomsLinks(guildID, rooms) {
 as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
 	const session = await useSession(event, {password: reg.as_token})
-	const row = select("guild_space", ["space_id", "privacy_level"], {guild_id}).get()
+	const row = from("guild_active").join("guild_space", "guild_id", "left").select("space_id", "privacy_level", "autocreate").where({guild_id}).get()
 	// @ts-ignore
 	const guild = discord.guilds.get(guild_id)
 
 	// Permission problems
-	if (!guild_id || !guild || !(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) {
+	if (!guild_id || !guild || !(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id) || !row) {
 		return pugSync.render(event, "guild_access_denied.pug", {guild_id})
+	}
+
+	// Self-service guild that hasn't been linked yet - needs a special page encouraging the link flow
+	if (!row.space_id && row.autocreate === 0) {
+		const spaces = db.prepare("SELECT room_id, type, name, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id WHERE mxid = ? AND space_id IS NULL and type = 'm.space'").all(session.data.mxid)
+		return pugSync.render(event, "guild_not_linked.pug", {guild, guild_id, spaces})
 	}
 
 	const nonce = randomUUID()
@@ -128,10 +134,10 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const svg = generatedSvg.replace(/viewBox="0 0 ([0-9]+) ([0-9]+)"/, `data-nonce="${nonce}" width="$1" height="$2" $&`)
 	assert.notEqual(svg, generatedSvg)
 
-	// Unlinked guild
-	if (!row) {
+	// Easy mode guild that hasn't been linked yet - need to remove elements that would require an existing space
+	if (!row.space_id) {
 		const links = getChannelRoomsLinks(guild_id, [])
-		return pugSync.render(event, "guild.pug", {guild, guild_id, svg, ...links})
+		return pugSync.render(event, "guild.pug", {guild, guild_id, svg, ...links, ...row})
 	}
 
 	// Linked guild

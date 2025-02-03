@@ -16,6 +16,10 @@ const {reg} = require("../../matrix/read-registration")
 const api = sync.require("../../matrix/api")
 
 const schema = {
+	linkSpace: z.object({
+		guild_id: z.string(),
+		space_id: z.string()
+	}),
 	link: z.object({
 		guild_id: z.string(),
 		matrix: z.string(),
@@ -26,6 +30,48 @@ const schema = {
 		channel_id: z.string()
 	})
 }
+
+as.router.post("/api/link-space", defineEventHandler(async event => {
+	const parsedBody = await readValidatedBody(event, schema.linkSpace.parse)
+	const session = await useSession(event, {password: reg.as_token})
+
+	// Check guild ID
+	const guildID = parsedBody.guild_id
+	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+
+	// Check space ID
+	if (!session.data.mxid) throw createError({status: 403, message: "Forbidden", data: "Can't link with your Matrix space if you aren't logged in to Matrix"})
+	const spaceID = parsedBody.space_id
+	const inviteType = select("invite", "type", {mxid: session.data.mxid, room_id: spaceID}).pluck().get()
+	if (inviteType !== "m.space") throw createError({status: 403, message: "Forbidden", data: "No past invitations detected from your Matrix account for that space."})
+
+	// Check they are not already bridged
+	const existing = select("guild_space", "guild_id", {}, "WHERE guild_id = ? OR space_id = ?").get(guildID, spaceID)
+	if (existing) throw createError({status: 400, message: "Bad Request", data: `Guild ID ${guildID} or space ID ${spaceID} are already bridged and cannot be reused`})
+
+	// Check space exists and bridge is joined and bridge has PL 100
+	const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+	/** @type {Ty.Event.M_Room_Member} */
+	const memberEvent = await api.getStateEvent(spaceID, "m.room.member", self)
+	if (memberEvent.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix space does not exist"})
+	/** @type {Ty.Event.M_Power_Levels} */
+	const powerLevelsStateContent = await api.getStateEvent(spaceID, "m.room.power_levels", "")
+	const selfPowerLevel = powerLevelsStateContent.users?.[self] || powerLevelsStateContent.users_default || 0
+	if (selfPowerLevel < (powerLevelsStateContent.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix space"})
+
+	// Check inviting user is a moderator in the space
+	const invitingPowerLevel = powerLevelsStateContent.users?.[session.data.mxid] || powerLevelsStateContent.users_default || 0
+	if (invitingPowerLevel < (powerLevelsStateContent.state_default || 50)) throw createError({status: 403, message: "Forbidden", data: `You need to be at least power level 50 (moderator) in the target Matrix space to use OOYE, but you are currently power level ${invitingPowerLevel}.`})
+
+	// Insert database entry
+	db.transaction(() => {
+		db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guildID, spaceID)
+		db.prepare("DELETE FROM invite WHERE room_id = ?").run(spaceID)
+	})()
+
+	setResponseHeader(event, "HX-Refresh", "true")
+	return null // 204
+}))
 
 as.router.post("/api/link", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.link.parse)

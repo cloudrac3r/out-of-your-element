@@ -44,6 +44,8 @@ export type Models = {
 		mxid: string
 		room_id: string
 		type: string | null
+		name: string | null
+		avatar: string | null
 	}
 
 	lottie: {

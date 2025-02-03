@@ -69,3 +69,9 @@ So here's all the technical changes needed to support self-service in v3:
 - When bot is added through "self-service" web button, REPLACE INTO state 0.
 - Event dispatcher will only ensureRoom if the guild_active state is 1.
 - createRoom will only create other dependencies if the guild is autocreate.
+
+## Enough with your theory. How do rooms actually get bridged now?
+
+After clicking the easy mode button on web and adding the bot to a server, it will create new Matrix rooms on-demand when any invite features are used (web or command) OR just when any message is sent on Discord.
+
+Alternatively, pressing the self-service mode button and adding the bot to a server will prompt the web user to link it with a space. After doing so, they'll be on the standard guild management page where they can invite to the space and manually link rooms. Nothing will be autocreated.

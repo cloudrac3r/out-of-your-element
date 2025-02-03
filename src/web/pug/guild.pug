@@ -71,23 +71,24 @@ block body
     div
       != svg
 
-  h2.mt48.fs-headline1 Matrix setup
+  if space_id
+    h2.mt48.fs-headline1 Matrix setup
 
-  h3.mt32.fs-category Linked channels
+    h3.mt32.fs-category Linked channels
 
-  .s-card.bs-sm.p0
-    form.s-table-container(method="post" action="/api/unlink" hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
-      input(type="hidden" name="guild_id" value=guild_id)
-      table.s-table.s-table__bx-simple
-        each row in linkedChannelsWithDetails
-          tr
-            td.w40: +discord(row.channel)
-            td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post="/api/unlink" hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
-            td: +matrix(row)
-        else
-          tr
-            td(colspan="3")
-              .s-empty-state No channels linked between Discord and Matrix yet...
+    .s-card.bs-sm.p0
+      form.s-table-container(method="post" action="/api/unlink" hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
+        input(type="hidden" name="guild_id" value=guild_id)
+        table.s-table.s-table__bx-simple
+          each row in linkedChannelsWithDetails
+            tr
+              td.w40: +discord(row.channel)
+              td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post="/api/unlink" hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
+              td: +matrix(row)
+          else
+            tr
+              td(colspan="3")
+                .s-empty-state No channels linked between Discord and Matrix yet...
 
   h3.mt32.fs-category Auto-create
   .s-card
@@ -97,95 +98,96 @@ block body
         p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
       - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
       input(type="hidden" name="guild_id" value=guild_id)
-      input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value)
+      input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value autocomplete="off")
       #autocreate-loading
 
-  h3.mt32.fs-category Privacy level
-  .s-card
-    form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
+  if space_id
+    h3.mt32.fs-category Privacy level
+    .s-card
+      form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
+        input(type="hidden" name="guild_id" value=guild_id)
+        .d-flex.ai-center.mb4
+          label.s-label.fl-grow1
+            | How people can join on Matrix
+            span#privacy-level-loading
+        .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
+          input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
+          label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
+            != icons.Icons.IconPlusSm
+            != icons.Icons.IconInternationalSm
+            .fl-grow1 Directory
+
+          input(type="radio" name="level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
+          label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
+            != icons.Icons.IconPlusSm
+            != icons.Icons.IconLinkSm
+            .fl-grow1 Link
+
+          input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
+          label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
+            svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
+            != icons.Icons.IconLockSm
+            .fl-grow1 Invite
+
+          p.s-description.m0 In-app direct invite from another user
+          p.s-description.m0 Shareable invite links, like Discord
+          p.s-description.m0 Publicly listed in directory, like Discord server discovery
+
+    h3.mt32.fs-category Manually link channels
+    form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="input, button" hx-indicator="#link-button")
+      .fl-grow2.s-btn-group.fd-column.w40
+        each channel in unlinkedChannels
+          input.s-btn--radio(type="radio" name="discord" required id=channel.id value=channel.id)
+          label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
+            +discord(channel, true, "Announcement")
+        else
+          .s-empty-state.p8 All Discord channels are linked.
+      .fl-grow1.s-btn-group.fd-column.w30
+        each room in unlinkedRooms
+          input.s-btn--radio(type="radio" name="matrix" required id=room.room_id value=room.room_id)
+          label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
+            +matrix(room, true)
+        else
+          .s-empty-state.p8 All Matrix rooms are linked.
       input(type="hidden" name="guild_id" value=guild_id)
-      .d-flex.ai-center.mb4
-        label.s-label.fl-grow1
-          | How people can join on Matrix
-          span#privacy-level-loading
-      .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
-        input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
-        label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
-          != icons.Icons.IconPlusSm
-          != icons.Icons.IconInternationalSm
-          .fl-grow1 Directory
-
-        input(type="radio" name="level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
-        label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
-          != icons.Icons.IconPlusSm
-          != icons.Icons.IconLinkSm
-          .fl-grow1 Link
-
-        input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
-        label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
-          svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
-          != icons.Icons.IconLockSm
-          .fl-grow1 Invite
-
-        p.s-description.m0 In-app direct invite from another user
-        p.s-description.m0 Shareable invite links, like Discord
-        p.s-description.m0 Publicly listed in directory, like Discord server discovery
-
-  h3.mt32.fs-category Manually link channels
-  form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="input, button" hx-indicator="#link-button")
-    .fl-grow2.s-btn-group.fd-column.w40
-      each channel in unlinkedChannels
-        input.s-btn--radio(type="radio" name="discord" required id=channel.id value=channel.id)
-        label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
-          +discord(channel, true, "Announcement")
-      else
-        .s-empty-state.p8 All Discord channels are linked.
-    .fl-grow1.s-btn-group.fd-column.w30
-      each room in unlinkedRooms
-        input.s-btn--radio(type="radio" name="matrix" required id=room.room_id value=room.room_id)
-        label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
-          +matrix(room, true)
-      else
-        .s-empty-state.p8 All Matrix rooms are linked.
-    input(type="hidden" name="guild_id" value=guild_id)
-    div
-      button.s-btn.s-btn__icon.s-btn__filled#link-button
-        != icons.Icons.IconMerge
-        = ` Link`
-
-  details.mt48
-    summary Debug room list
-    .d-grid.grid__2.gx24
       div
-        h3.mt24 Channels
-        p Channels are read from the channel_room table and then merged with the discord.channels memory cache to make the merged list. Anything in memory cache that's not in channel_room is considered unlinked.
-      div
-        h3.mt24 Rooms
-        p Rooms use the same merged list as channels, based on augmented channel_room data. Then, rooms are read from the space. Anything in the space that's not merged is considered unlinked.
-      div
-        h3.mt24 Unavailable channels: Deleted from Discord
-        .s-card.p0
-          ul.my8.ml24
-            each row in removedUncachedChannels
-              li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`)= row.nick || row.name
-        h3.mt24 Unavailable channels: Wrong type
-        .s-card.p0
-          ul.my8.ml24
-            each row in removedWrongTypeChannels
-              li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`) (#{row.type}) #{row.name}
-      div- // Rooms
-        h3.mt24 Unavailable rooms: Already linked
-        .s-card.p0
-          ul.my8.ml24
-            each row in removedLinkedRooms
-              li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name
-        h3.mt24 Unavailable rooms: Wrong type
-        .s-card.p0
-          ul.my8.ml24
-            each row in removedWrongTypeRooms
-              li: a(href=`https://matrix.to/#/${row.room_id}`) (#{row.room_type}) #{row.name}
-        h3.mt24 Unavailable rooms: Archived thread
-        .s-card.p0
-          ul.my8.ml24
-            each row in removedArchivedThreadRooms
-              li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name
+        button.s-btn.s-btn__icon.s-btn__filled#link-button
+          != icons.Icons.IconMerge
+          = ` Link`
+
+    details.mt48
+      summary Debug room list
+      .d-grid.grid__2.gx24
+        div
+          h3.mt24 Channels
+          p Channels are read from the channel_room table and then merged with the discord.channels memory cache to make the merged list. Anything in memory cache that's not in channel_room is considered unlinked.
+        div
+          h3.mt24 Rooms
+          p Rooms use the same merged list as channels, based on augmented channel_room data. Then, rooms are read from the space. Anything in the space that's not merged is considered unlinked.
+        div
+          h3.mt24 Unavailable channels: Deleted from Discord
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedUncachedChannels
+                li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`)= row.nick || row.name
+          h3.mt24 Unavailable channels: Wrong type
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedWrongTypeChannels
+                li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`) (#{row.type}) #{row.name}
+        div- // Rooms
+          h3.mt24 Unavailable rooms: Already linked
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedLinkedRooms
+                li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name
+          h3.mt24 Unavailable rooms: Wrong type
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedWrongTypeRooms
+                li: a(href=`https://matrix.to/#/${row.room_id}`) (#{row.room_type}) #{row.name}
+          h3.mt24 Unavailable rooms: Archived thread
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedArchivedThreadRooms
+                li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name

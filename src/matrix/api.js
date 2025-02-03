@@ -84,6 +84,16 @@ async function leaveRoom(roomID, mxid) {
 
 /**
  * @param {string} roomID
+ * @param {string} reason
+ * @param {string} [mxid]
+ */
+async function leaveRoomWithReason(roomID, reason, mxid) {
+	console.log(`[api] leave: ${roomID}: ${mxid}, because ${reason}`)
+	await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/leave`, mxid), {reason})
+}
+
+/**
+ * @param {string} roomID
  * @param {string} eventID
  * @template T
  */
@@ -404,6 +414,7 @@ module.exports.createRoom = createRoom
 module.exports.joinRoom = joinRoom
 module.exports.inviteToRoom = inviteToRoom
 module.exports.leaveRoom = leaveRoom
+module.exports.leaveRoomWithReason = leaveRoomWithReason
 module.exports.getEvent = getEvent
 module.exports.getEventForTimestamp = getEventForTimestamp
 module.exports.getAllState = getAllState

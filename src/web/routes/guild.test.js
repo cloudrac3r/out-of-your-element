@@ -18,6 +18,7 @@ test("web guild: access denied when not logged in", async t => {
 test("web guild: asks to select guild if not selected", async t => {
 	const content = await router.test("get", "/guild", {
 		sessionData: {
+			user_id: "1",
 			managedGuilds: []
 		},
 	})
@@ -27,6 +28,7 @@ test("web guild: asks to select guild if not selected", async t => {
 test("web guild: access denied when guild id messed up", async t => {
 	const content = await router.test("get", "/guild?guild_id=1", {
 		sessionData: {
+			user_id: "1",
 			managedGuilds: []
 		},
 	})
@@ -43,6 +45,7 @@ test("web invite: access denied with invalid nonce", async t => {
 test("web guild: can view unbridged guild", async t => {
 	const content = await router.test("get", "/guild?guild_id=66192955777486848", {
 		sessionData: {
+			user_id: "1",
 			managedGuilds: ["66192955777486848"]
 		},
 		api: {

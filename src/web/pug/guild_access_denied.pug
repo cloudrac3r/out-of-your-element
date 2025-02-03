@@ -1,7 +1,7 @@
 extends includes/template.pug
 
 block body
-  if !managed
+  if !session.data.user_id
     .s-empty-state.wmx4.p48
       != icons.Spots.SpotEmptyXL
       p You need to log in to manage your servers.

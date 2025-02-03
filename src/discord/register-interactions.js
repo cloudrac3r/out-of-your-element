@@ -64,7 +64,9 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 			}]
 		}
 	]
-}])
+}]).catch(e => {
+	console.error(e)
+})
 
 async function dispatchInteraction(interaction) {
 	const interactionId = interaction.data.custom_id || interaction.data.name

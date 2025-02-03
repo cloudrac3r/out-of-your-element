@@ -7,15 +7,18 @@ const {defineEventHandler, defaultContentType, getRequestHeader, setResponseHead
 const icons = require("@stackoverflow/stacks-icons")
 const DiscordTypes = require("discord-api-types/v10")
 const dUtils = require("../discord/utils")
+const reg = require("../matrix/read-registration")
 
 const {sync, discord, as, select} = require("../passthrough")
 /** @type {import("./pug-sync")} */
 const pugSync = sync.require("./pug-sync")
+/** @type {import("../m2d/converters/utils")} */
+const mUtils = sync.require("../m2d/converters/utils")
 const {id} = require("../../addbot")
 
 // Pug
 
-pugSync.addGlobals({id, h3, discord, select, DiscordTypes, dUtils, icons})
+pugSync.addGlobals({id, h3, discord, select, DiscordTypes, dUtils, mUtils, icons, reg: reg.reg})
 pugSync.createRoute(as.router, "/", "home.pug")
 pugSync.createRoute(as.router, "/ok", "ok.pug")
 

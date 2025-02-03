@@ -281,6 +281,11 @@ export namespace Event {
 		users_default?: number
 	}
 
+	export type M_Space_Child = {
+		via?: string[]
+		suggested?: boolean
+	}
+
 	export type M_Reaction = {
 		"m.relates_to": {
 			rel_type: "m.annotation"
