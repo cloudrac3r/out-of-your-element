@@ -18,7 +18,7 @@ block body
       p Select a server from the top right corner to continue.
       p If the server you're looking for isn't there, try #[a(href=rel("/oauth?action=add")) logging in again.]
 
-  else if !discord.guilds.has(guild_id) || !managed.includes(guild_id)
+  else if !discord.guilds.has(guild_id) || !managed.has(guild_id)
     .s-empty-state.wmx4.p48
       != icons.Spots.SpotAlertXL
       p Either the selected server doesn't exist, or you don't have the Manage Server permission on Discord.

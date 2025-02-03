@@ -75,17 +75,17 @@ html(lang="en")
                 a.s-btn.s-btn__icon.s-btn__featured.s-btn__outlined.as-center(href=rel("/oauth"))
                   != icons.Icons.IconDiscord
                   = ` Log in with Discord`
-              if guild_id && managed.includes(guild_id) && discord.guilds.has(guild_id)
-                button.s-topbar--item.s-btn.s-btn__muted.s-user-card(popovertarget="guilds")
+              if guild_id && managed.has(guild_id) && discord.guilds.has(guild_id)
+                button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr32.bar0.s-user-card(popovertarget="guilds")
                   +guild(discord.guilds.get(guild_id))
-              else if managed.length
+              else if managed.size
                 button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr24.s-user-card.bar0.fc-black(popovertarget="guilds")
                   | Your servers
               #guilds(popover data-popper-placement="bottom" style="display: revert; width: revert;").s-popover.overflow-visible
                 .s-popover--arrow.s-popover--arrow__tc
                 .s-popover--content.overflow-y-auto.overflow-x-hidden
                   ul.s-menu(role="menu")
-                    each guild in managed.map(id => discord.guilds.get(id)).filter(g => g)
+                    each guild in [...managed].map(id => discord.guilds.get(id)).filter(g => g).sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1)
                       li(role="menuitem")
                         a.s-topbar--item.s-user-card.d-flex.p4(href=rel(`/guild?guild_id=${guild.id}`))
                           +guild(guild)

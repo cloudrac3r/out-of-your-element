@@ -35,7 +35,7 @@ function render(event, filename, locals) {
 			pugCache.set(path, async (event, locals) => {
 				defaultContentType(event, "text/html; charset=utf-8")
 				const session = await useSession(event, {password: reg.as_token})
-				const managed = (session.data.managedGuilds || []).concat(session.data.matrixGuilds || [])
+				const managed = new Set((session.data.managedGuilds || []).concat(session.data.matrixGuilds || []))
 				const rel = x => getRelativePath(event.path, x)
 				return template(Object.assign({},
 					getQuery(event), // Query parameters can be easily accessed on the top level but don't allow them to overwrite anything
