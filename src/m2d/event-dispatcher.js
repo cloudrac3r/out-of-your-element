@@ -214,6 +214,14 @@ sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
  */
 async event => {
 	if (event.state_key[0] !== "@") return
+
+	if (event.content.membership === "invite" && event.state_key === `@${reg.sender_localpart}:${reg.ooye.server_name}`) {
+		// We were invited to a room. We should join, and register the invite details for future reference in web.
+		await api.joinRoom(event.room_id)
+		const creation = await api.getStateEvent(event.room_id, "m.room.create", "")
+		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type) VALUES (?, ?, ?)").run(event.sender, event.room_id, creation.type || null)
+	}
+
 	if (utils.eventSenderIsFromDiscord(event.state_key)) return
 
 	if (event.content.membership === "leave" || event.content.membership === "ban") {

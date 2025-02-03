@@ -40,6 +40,12 @@ export type Models = {
 		autocreate: 0 | 1
 	}
 
+	invite: {
+		mxid: string
+		room_id: string
+		type: string | null
+	}
+
 	lottie: {
 		sticker_id: string
 		mxc_url: string
