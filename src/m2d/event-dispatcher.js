@@ -33,9 +33,7 @@ function guard(type, fn) {
 		try {
 			return await fn(event, ...args)
 		} catch (e) {
-			console.error("hit event-dispatcher's error handler with this exception:")
-			console.error(e) // TODO: also log errors into a file or into the database, maybe use a library for this? or just wing it?
-			console.error(`while handling this ${type} gateway event:`)
+			console.error(`Exception while processing a ${type} Matrix event:`)
 			console.dir(event, {depth: null})
 
 			if (Date.now() - lastReportedEvent < 5000) return
