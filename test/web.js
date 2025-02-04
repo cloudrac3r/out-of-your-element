@@ -2,6 +2,35 @@ const passthrough = require("../src/passthrough")
 const h3 = require("h3")
 const http = require("http")
 const {SnowTransfer} = require("snowtransfer")
+const assert = require("assert").strict
+const domino = require("domino")
+const {extend} = require("supertape")
+
+/**
+ * @param {string} html
+ */
+function getContent(html) {
+	const doc = domino.createDocument(html)
+	doc.querySelectorAll("svg").cache.forEach(e => e.remove())
+	const content = doc.getElementById("content")
+	assert(content)
+	return content.innerHTML.trim()
+}
+
+const test = extend({
+	has: operator => /** @param {string | RegExp} expected */ (html, expected, message = "should have substring in html content") => {
+		const content = getContent(html)
+		const is = expected instanceof RegExp ? content.match(expected) : content.includes(expected)
+		const {output, result} = operator.equal(content, expected.toString())
+		return {
+			expected: expected.toString(),
+			message,
+			is,
+			result: result,
+			output: output
+		}
+	}
+})
 
 class Router {
 	constructor() {
@@ -67,3 +96,4 @@ const router = new Router()
 passthrough.as = {router}
 
 module.exports.router = router
+module.exports.test = test

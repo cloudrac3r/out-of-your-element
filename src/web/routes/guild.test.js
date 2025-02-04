@@ -1,70 +1,96 @@
 // @ts-check
 
 const tryToCatch = require("try-to-catch")
-const {test} = require("supertape")
-const {router} = require("../../../test/web")
+const {router, test} = require("../../../test/web")
 const {MatrixServerError} = require("../../matrix/mreq")
 
 let nonce
 
 test("web guild: access denied when not logged in", async t => {
-	const content = await router.test("get", "/guild?guild_id=112760669178241024", {
+	const html = await router.test("get", "/guild?guild_id=112760669178241024", {
 		sessionData: {
 		},
 	})
-	t.match(content, /You need to log in to manage your servers./)
+	t.match(html, /You need to log in to manage your servers./)
 })
 
 test("web guild: asks to select guild if not selected", async t => {
-	const content = await router.test("get", "/guild", {
+	const html = await router.test("get", "/guild", {
 		sessionData: {
 			user_id: "1",
 			managedGuilds: []
 		},
 	})
-	t.match(content, /Select a server from the top right corner to continue./)
+	t.match(html, /Select a server from the top right corner to continue./)
 })
 
 test("web guild: access denied when guild id messed up", async t => {
-	const content = await router.test("get", "/guild?guild_id=1", {
+	const html = await router.test("get", "/guild?guild_id=1", {
 		sessionData: {
 			user_id: "1",
 			managedGuilds: []
 		},
 	})
-	t.match(content, /the selected server doesn't exist/)
+	t.match(html, /the selected server doesn't exist/)
 })
 
 test("web invite: access denied with invalid nonce", async t => {
-	const content = await router.test("get", "/invite?nonce=1")
-	t.match(content, /This QR code has expired./)
+	const html = await router.test("get", "/invite?nonce=1")
+	t.match(html, /This QR code has expired./)
 })
 
 
 
 test("web guild: can view unbridged guild", async t => {
-	const content = await router.test("get", "/guild?guild_id=66192955777486848", {
+	const html = await router.test("get", "/guild?guild_id=66192955777486848", {
 		sessionData: {
 			user_id: "1",
 			managedGuilds: ["66192955777486848"]
-		},
-		api: {
-			async getStateEvent(roomID, type, key) {
-				return {}
-			},
-			async getMembers(roomID, membership) {
-				return {chunk: []}
-			},
-			async getFullHierarchy(roomID) {
-				return []
-			}
 		}
 	})
-	t.match(content, /<h1[^<]*Function &amp; Arg/)
+	t.has(html, `<h1 class="s-page-title--header">Function &amp; Arg</h1>`)
 })
 
+test("web guild: unbridged self-service guild prompts log in to matrix", async t => {
+	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
+		sessionData: {
+			user_id: "1",
+			managedGuilds: ["665289423482519565"]
+		}
+	})
+	t.has(html, `You picked self-service mode`)
+	t.has(html, `You need to log in with Matrix first`)
+})
+
+test("web guild: unbridged self-service guild asks to be invited", async t => {
+	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
+		sessionData: {
+			mxid: "@user:example.org",
+			user_id: "1",
+			managedGuilds: ["665289423482519565"]
+		}
+	})
+	t.has(html, `On Matrix, invite <`)
+})
+
+test("web guild: unbridged self-service guild shows available spaces", async t => {
+	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
+		sessionData: {
+			mxid: "@cadence:cadence.moe",
+			user_id: "1",
+			managedGuilds: ["665289423482519565"]
+		}
+	})
+	t.has(html, `<strong>Data Horde</strong>`)
+	t.has(html, `<li>here is the space topic</li>`)
+	// t.match(html, /<img class="avatar-image" src="https:\/\/bridge.cadence.moe\/download\/matrix\/cadence.moe\/TLqQOsTSrZkVKwBSWYTZNTrw">/)
+	// t.notMatch(html, /<strong>some room<\/strong>/)
+	// t.notMatch(html, /<strong>somebody else's space<\/strong>/)
+})
+
+
 test("web guild: can view bridged guild", async t => {
-	const content = await router.test("get", "/guild?guild_id=112760669178241024", {
+	const html = await router.test("get", "/guild?guild_id=112760669178241024", {
 		sessionData: {
 			managedGuilds: ["112760669178241024"]
 		},
@@ -80,14 +106,14 @@ test("web guild: can view bridged guild", async t => {
 			}
 		}
 	})
-	t.match(content, /<h1[^<]*Psychonauts 3/)
-	nonce = content.match(/data-nonce="([a-f0-9-]+)"/)?.[1]
+	t.match(html, /<h1[^<]*Psychonauts 3/)
+	nonce = html.match(/data-nonce="([a-f0-9-]+)"/)?.[1]
 	t.ok(nonce)
 })
 
 test("web invite: page loads with valid nonce", async t => {
-	const content = await router.test("get", `/invite?nonce=${nonce}`)
-	t.match(content, /Invite a Matrix user/)
+	const html = await router.test("get", `/invite?nonce=${nonce}`)
+	t.match(html, /Invite a Matrix user/)
 })
 
 

@@ -1,7 +1,9 @@
 BEGIN TRANSACTION;
 
 INSERT INTO guild_active (guild_id, autocreate) VALUES
-('112760669178241024', 1);
+('112760669178241024', 1),
+('66192955777486848', 1),
+('665289423482519565', 0);
 
 INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
 ('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe', 0);
@@ -170,5 +172,10 @@ INSERT INTO auto_emoji (name, emoji_id, guild_id) VALUES
 INSERT INTO media_proxy (permitted_hash) VALUES
 (-429802515645771439),
 (4558604729745184757);
+
+INSERT INTO invite (mxid, room_id, type, name, avatar, topic) VALUES
+('@cadence:cadence.moe', '!zTMspHVUBhFLLSdmnS:cadence.moe', 'm.space', 'Data Horde', 'mxc://cadence.moe/TLqQOsTSrZkVKwBSWYTZNTrw', 'here is the space topic'),
+('@cadence:cadence.moe', '!room:cadence.moe', NULL, 'some room', NULL, NULL),
+('@rnl:cadence.moe', '!space:cadence.moe', NULL, 'somebody else''s space', NULL, NULL);
 
 COMMIT;

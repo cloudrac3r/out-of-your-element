@@ -6,7 +6,7 @@ const stp = require("stream").promises
 const sqlite = require("better-sqlite3")
 const migrate = require("../src/db/migrate")
 const HeatSync = require("heatsync")
-const {test} = require("supertape")
+const {test, extend} = require("supertape")
 const data = require("./data")
 /** @type {import("node-fetch").default} */
 // @ts-ignore
@@ -31,10 +31,12 @@ const discord = {
 	guilds: new Map([
 		[data.guild.general.id, data.guild.general],
 		[data.guild.fna.id, data.guild.fna],
+		[data.guild.data_horde.id, data.guild.data_horde]
 	]),
 	guildChannelMap: new Map([
 		[data.guild.general.id, [data.channel.general.id]],
 		[data.guild.fna.id, []],
+		[data.guild.data_horde.id, [data.channel.saving_the_world.id]]
 	]),
 	application: {
 		id: "684280192553844747"
@@ -47,7 +49,8 @@ const discord = {
 		["498323546729086986", {
 			guild_id: "497159726455455754",
 			name: "bad-boots-prison"
-		}]
+		}],
+		[data.channel.saving_the_world.id, data.channel.saving_the_world]
 	])
 }
 

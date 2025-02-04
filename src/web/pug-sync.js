@@ -7,6 +7,7 @@ const getRelativePath = require("get-relative-path")
 const h3 = require("h3")
 const {defineEventHandler, defaultContentType, setResponseStatus, useSession, getQuery} = h3
 const {compileFile} = require("@cloudrac3r/pug")
+const pretty = process.argv.join(" ").includes("test")
 
 const {reg} = require("../matrix/read-registration")
 
@@ -31,7 +32,7 @@ function render(event, filename, locals) {
 
 	function compile() {
 		try {
-			const template = compileFile(path, {})
+			const template = compileFile(path, {pretty})
 			pugCache.set(path, async (event, locals) => {
 				defaultContentType(event, "text/html; charset=utf-8")
 				const session = await useSession(event, {password: reg.as_token})

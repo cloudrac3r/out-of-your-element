@@ -23,3 +23,13 @@ block body
       != icons.Spots.SpotAlertXL
       p Either the selected server doesn't exist, or you don't have the Manage Server permission on Discord.
       p If you've checked your permissions, try #[a(href=rel("/oauth")) logging in again.]
+
+  else if !row
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotAlertXL
+      p Please add the bot to your server using the buttons on the home page.
+
+  else
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotAlertXL
+      p Access denied.

@@ -59,7 +59,7 @@ test("invite: checks if guild exists", async t => { // it might not exist if the
 })
 
 test("invite: checks if channel exists or is autocreatable", async t => {
-	db.prepare("UPDATE guild_active SET autocreate = 0").run()
+	db.prepare("UPDATE guild_active SET autocreate = 0 WHERE guild_id = '112760669178241024'").run()
 	const msgs = await fromAsync(_interact({
 		data: {
 			options: [{
@@ -72,7 +72,7 @@ test("invite: checks if channel exists or is autocreatable", async t => {
 		guild_id: "112760669178241024"
 	}, {}))
 	t.equal(msgs[0].createInteractionResponse.data.content, "This channel isn't bridged, so you can't invite Matrix users yet. Try turning on automatic room-creation or link a Matrix room in the website.")
-	db.prepare("UPDATE guild_active SET autocreate = 1").run()
+	db.prepare("UPDATE guild_active SET autocreate = 1 WHERE guild_id = '112760669178241024'").run()
 })
 
 test("invite: checks if user is already invited to space", async t => {
