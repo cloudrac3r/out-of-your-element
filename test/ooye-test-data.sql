@@ -19,7 +19,8 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL),
 ('176333891320283136', '!qzDBLKlildpzrrOnFZ:cadence.moe', '🌈丨davids-horse_she-took-the-kids', 'wonderland', NULL, 'mxc://cadence.moe/EVvrSkKIRONHjtRJsMLmHWLS'),
 ('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL),
-('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL);
+('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL),
+('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL);
 
 INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('0',                  'Matrix Bridge', 'bot', '@_ooye_bot:cadence.moe'),

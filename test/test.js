@@ -34,7 +34,7 @@ const discord = {
 		[data.guild.data_horde.id, data.guild.data_horde]
 	]),
 	guildChannelMap: new Map([
-		[data.guild.general.id, [data.channel.general.id]],
+		[data.guild.general.id, [data.channel.general.id, data.channel.updates.id]],
 		[data.guild.fna.id, []],
 		[data.guild.data_horde.id, [data.channel.saving_the_world.id]]
 	]),
@@ -43,6 +43,7 @@ const discord = {
 	},
 	channels: new Map([
 		[data.channel.general.id, data.channel.general],
+		[data.channel.updates.id, data.channel.updates],
 		["497161350934560778", {
 			guild_id: "497159726455455754"
 		}],

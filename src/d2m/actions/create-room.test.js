@@ -114,6 +114,85 @@ test("channel2room: matrix room that already has a custom topic set", async t =>
 	t.equal(called, 1)
 })
 
+test("channel2room: read-only discord channel", async t => {
+	let called = 0
+	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
+		called++
+		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(type, "m.room.power_levels")
+		t.equal(key, "")
+		return {}
+	}
+	const expected = {
+		"chat.schildi.hide_ui/read_receipts": {},
+		"m.room.avatar/": {
+			url: {
+				$url: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024",
+			},
+		},
+		"m.room.guest_access/": {
+			guest_access: "can_join",
+		},
+		"m.room.history_visibility/": {
+			history_visibility: "shared",
+		},
+		"m.room.join_rules/": {
+			allow: [
+				{
+					room_id: "!jjWAGMeQdNrVZSSfvz:cadence.moe",
+					type: "m.room_membership",
+				},
+			],
+			join_rule: "restricted",
+		},
+		"m.room.name/": {
+			name: "updates",
+		},
+		"m.room.topic/": {
+      	topic: "Updates and release announcements for Out Of Your Element.\n\nChannel ID: 1161864271370666075\nGuild ID: 112760669178241024"
+		},
+		"m.room.power_levels/": {
+			events_default: 50, // <-- it should be read-only!
+			notifications: {
+				room: 20,
+			},
+			users: {
+				"@test_auto_invite:example.org": 100,
+			},
+		},
+		"m.space.parent/!jjWAGMeQdNrVZSSfvz:cadence.moe": {
+			canonical: true,
+			via: [
+				"cadence.moe",
+			],
+		},
+		"uk.half-shot.bridge/moe.cadence.ooye://discord/112760669178241024/1161864271370666075": {
+			bridgebot: "@_ooye_bot:cadence.moe",
+			channel: {
+				displayname: "updates",
+				external_url: "https://discord.com/channels/112760669178241024/1161864271370666075",
+				id: "1161864271370666075",
+			},
+			network: {
+				avatar_url: {
+					"$url": "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024",
+				},
+				displayname: "Psychonauts 3",
+				id: "112760669178241024",
+			},
+			protocol: {
+				displayname: "Discord",
+				id: "discord",
+			}
+		}
+	}
+	t.deepEqual(
+		kstateStripConditionals(await channelToKState(testData.channel.updates, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		expected
+	)
+	t.equal(called, 1)
+})
+
 test("convertNameAndTopic: custom name and topic", t => {
 	t.deepEqual(
 		_convertNameAndTopic({id: "123", name: "the-twilight-zone", topic: "Spooky stuff here. :ghost:", type: 0}, {id: "456"}, "hauntings"),

@@ -83,9 +83,9 @@ test("web guild: unbridged self-service guild shows available spaces", async t =
 	})
 	t.has(html, `<strong>Data Horde</strong>`)
 	t.has(html, `<li>here is the space topic</li>`)
-	// t.match(html, /<img class="avatar-image" src="https:\/\/bridge.cadence.moe\/download\/matrix\/cadence.moe\/TLqQOsTSrZkVKwBSWYTZNTrw">/)
-	// t.notMatch(html, /<strong>some room<\/strong>/)
-	// t.notMatch(html, /<strong>somebody else's space<\/strong>/)
+	t.has(html, `<img class="s-avatar--image" src="https://bridge.example.org/download/matrix/cadence.moe/TLqQOsTSrZkVKwBSWYTZNTrw">`)
+	t.notMatch(html, /<strong>some room<\/strong>/)
+	t.notMatch(html, /<strong>somebody else's space<\/strong>/)
 })
 
 
@@ -106,14 +106,14 @@ test("web guild: can view bridged guild", async t => {
 			}
 		}
 	})
-	t.match(html, /<h1[^<]*Psychonauts 3/)
+	t.has(html, `<h1 class="s-page-title--header">Psychonauts 3</h1>`)
 	nonce = html.match(/data-nonce="([a-f0-9-]+)"/)?.[1]
 	t.ok(nonce)
 })
 
 test("web invite: page loads with valid nonce", async t => {
 	const html = await router.test("get", `/invite?nonce=${nonce}`)
-	t.match(html, /Invite a Matrix user/)
+	t.has(html, "Invite a Matrix user")
 })
 
 

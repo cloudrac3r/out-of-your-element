@@ -120,6 +120,7 @@ async function channelToKState(channel, guild, di) {
 	}
 
 	const everyonePermissions = dUtils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
+	const everyoneCanSend = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
 	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
@@ -129,6 +130,7 @@ async function channelToKState(channel, guild, di) {
 	const spacePowerEvent = await di.api.getStateEvent(guildSpaceID, "m.room.power_levels", "")
 	const spacePower = spacePowerEvent.users
 
+	/** @type {any} */
 	const channelKState = {
 		"m.room.name/": {name: convertedName},
 		"m.room.topic/": {topic: convertedTopic},
@@ -141,7 +143,9 @@ async function channelToKState(channel, guild, di) {
 		},
 		/** @type {{join_rule: string, [x: string]: any}} */
 		"m.room.join_rules/": join_rules,
+		/** @type {Ty.Event.M_Power_Levels} */
 		"m.room.power_levels/": {
+			events_default: everyoneCanSend ? 0 : 50,
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
 			},

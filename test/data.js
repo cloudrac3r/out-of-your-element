@@ -19,6 +19,24 @@ module.exports = {
 			default_thread_rate_limit_per_user: 0,
 			guild_id: "112760669178241024"
 		},
+		updates: {
+			type: 0,
+			topic: "Updates and release announcements for Out Of Your Element.",
+			rate_limit_per_user: 0,
+			position: 0,
+			permission_overwrites: [{
+				type: 0,
+				id: "112760669178241024",
+				deny: "2048",
+				allow: "0"
+			}],
+			parent_id: null,
+			nsfw: false,
+			name: "updates",
+			last_message_id: "1329413270196715564",
+			id: "1161864271370666075",
+			guild_id: "112760669178241024"
+		},
 		saving_the_world: {
 			type: 0,
 			topic: "Anything and everything archiving/preservation related",
@@ -55,6 +73,7 @@ module.exports = {
 				url: {$url: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024"}
 			},
 			"m.room.power_levels/": {
+				events_default: 0,
 				users: {
 					"@test_auto_invite:example.org": 100
 				},
