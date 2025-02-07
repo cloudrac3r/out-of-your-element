@@ -57,7 +57,7 @@ test("permissions: reports permissions of selected matrix user (implicit default
 			},
 			async getStateEvent(roomID, type, key) {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(type, "m.room.power_levels")
 				t.equal(key, "")
 				return {
@@ -91,7 +91,7 @@ test("permissions: reports permissions of selected matrix user (moderator)", asy
 			},
 			async getStateEvent(roomID, type, key) {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(type, "m.room.power_levels")
 				t.equal(key, "")
 				return {
@@ -127,7 +127,7 @@ test("permissions: reports permissions of selected matrix user (admin)", async t
 			},
 			async getStateEvent(roomID, type, key) {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(type, "m.room.power_levels")
 				t.equal(key, "")
 				return {
@@ -159,7 +159,7 @@ test("permissions: can update user to moderator", async t => {
 		api: {
 			async setUserPowerCascade(roomID, mxid, power) {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(mxid, "@cadence:cadence.moe")
 				t.equal(power, 50)
 			}
@@ -186,7 +186,7 @@ test("permissions: can update user to default", async t => {
 		api: {
 			async setUserPowerCascade(roomID, mxid, power) {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(mxid, "@cadence:cadence.moe")
 				t.equal(power, 0)
 			}

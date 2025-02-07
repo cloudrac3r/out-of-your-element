@@ -47,7 +47,7 @@ class Router {
 	/**
 	 * @param {string} method
 	 * @param {string} inputUrl
-	 * @param {{event?: any, params?: any, body?: any, sessionData?: any, api?: Partial<import("../src/matrix/api")>, snow?: {[k in keyof SnowTransfer]?: Partial<SnowTransfer[k]>}, headers?: any}} [options]
+	 * @param {{event?: any, params?: any, body?: any, sessionData?: any, api?: Partial<import("../src/matrix/api")>, snow?: {[k in keyof SnowTransfer]?: Partial<SnowTransfer[k]>}, createRoom?: Partial<import("../src/d2m/actions/create-room")>, createSpace?: Partial<import("../src/d2m/actions/create-space")>, headers?: any}} [options]
 	 */
 	test(method, inputUrl, options = {}) {
 		const url = new URL(inputUrl, "http://a")
@@ -79,6 +79,8 @@ class Router {
 				api: options.api,
 				params: options.params,
 				snow: options.snow,
+				createRoom: options.createRoom,
+				createSpace: options.createSpace,
 				sessions: {
 					h3: {
 						id: "h3",

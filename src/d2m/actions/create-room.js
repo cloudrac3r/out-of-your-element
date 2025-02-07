@@ -412,7 +412,7 @@ async function unbridgeChannel(channelID) {
 }
 
 /**
- * @param {{id: string, topic?: string?}} channel
+ * @param {{id: string, topic?: string?}} channel channel-ish (just needs an id, topic is optional)
  * @param {string} guildID
  */
 async function unbridgeDeletedChannel(channel, guildID) {

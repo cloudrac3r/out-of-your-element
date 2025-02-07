@@ -6,7 +6,7 @@ INSERT INTO guild_active (guild_id, autocreate) VALUES
 ('665289423482519565', 0);
 
 INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
-('112760669178241024', '!jjWAGMeQdNrVZSSfvz:cadence.moe', 0);
+('112760669178241024', '!jjmvBegULiLucuWEHU:cadence.moe', 0);
 
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),
@@ -176,6 +176,7 @@ INSERT INTO media_proxy (permitted_hash) VALUES
 
 INSERT INTO invite (mxid, room_id, type, name, avatar, topic) VALUES
 ('@cadence:cadence.moe', '!zTMspHVUBhFLLSdmnS:cadence.moe', 'm.space', 'Data Horde', 'mxc://cadence.moe/TLqQOsTSrZkVKwBSWYTZNTrw', 'here is the space topic'),
+('@cadence:cadence.moe', '!jjmvBegULiLucuWEHU:cadence.moe', 'm.space', 'Epicord', NULL, NULL),
 ('@cadence:cadence.moe', '!room:cadence.moe', NULL, 'some room', NULL, NULL),
 ('@rnl:cadence.moe', '!space:cadence.moe', NULL, 'somebody else''s space', NULL, NULL);
 

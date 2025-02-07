@@ -14,7 +14,7 @@ test("channel2room: discoverable privacy room", async t => {
 	let called = 0
 	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
 		called++
-		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 		t.equal(type, "m.room.power_levels")
 		t.equal(key, "")
 		return {users: {"@example:matrix.org": 50}}
@@ -36,7 +36,7 @@ test("channel2room: linkable privacy room", async t => {
 	let called = 0
 	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
 		called++
-		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 		t.equal(type, "m.room.power_levels")
 		t.equal(key, "")
 		return {users: {"@example:matrix.org": 50}}
@@ -57,7 +57,7 @@ test("channel2room: invite-only privacy room", async t => {
 	let called = 0
 	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
 		called++
-		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 		t.equal(type, "m.room.power_levels")
 		t.equal(key, "")
 		return {users: {"@example:matrix.org": 50}}
@@ -76,7 +76,7 @@ test("channel2room: room where limited people can mention everyone", async t => 
 	let called = 0
 	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
 		called++
-		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 		t.equal(type, "m.room.power_levels")
 		t.equal(key, "")
 		return {users: {"@example:matrix.org": 50}}
@@ -98,7 +98,7 @@ test("channel2room: matrix room that already has a custom topic set", async t =>
 	let called = 0
 	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
 		called++
-		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 		t.equal(type, "m.room.power_levels")
 		t.equal(key, "")
 		return {}
@@ -118,7 +118,7 @@ test("channel2room: read-only discord channel", async t => {
 	let called = 0
 	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
 		called++
-		t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 		t.equal(type, "m.room.power_levels")
 		t.equal(key, "")
 		return {}
@@ -139,7 +139,7 @@ test("channel2room: read-only discord channel", async t => {
 		"m.room.join_rules/": {
 			allow: [
 				{
-					room_id: "!jjWAGMeQdNrVZSSfvz:cadence.moe",
+					room_id: "!jjmvBegULiLucuWEHU:cadence.moe",
 					type: "m.room_membership",
 				},
 			],
@@ -160,7 +160,7 @@ test("channel2room: read-only discord channel", async t => {
 				"@test_auto_invite:example.org": 100,
 			},
 		},
-		"m.space.parent/!jjWAGMeQdNrVZSSfvz:cadence.moe": {
+		"m.space.parent/!jjmvBegULiLucuWEHU:cadence.moe": {
 			canonical: true,
 			via: [
 				"cadence.moe",

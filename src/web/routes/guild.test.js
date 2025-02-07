@@ -159,7 +159,7 @@ test("api invite: can invite with valid nonce", async t => {
 					return {membership: "leave"}
 				},
 				async inviteToRoom(roomID, mxidToInvite, mxid) {
-					t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+					t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
 					called++
 				},
 				async setUserPowerCascade(roomID, mxid, power) {
@@ -192,7 +192,7 @@ test("api invite: can invite to a moderated guild", async t => {
 		router.test("post", `/api/invite`, {
 			body: {
 				mxid: "@cadence:cadence.moe",
-				permissions: "default",
+				permissions: "admin",
 				guild_id: "112760669178241024"
 			},
 			sessionData: {
@@ -204,14 +204,18 @@ test("api invite: can invite to a moderated guild", async t => {
 					throw new MatrixServerError({errcode: "M_NOT_FOUND", error: "Event not found or something"})
 				},
 				async inviteToRoom(roomID, mxidToInvite, mxid) {
-					t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe")
+					t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
+					called++
+				},
+				async setUserPowerCascade(roomID, mxid, power) {
+					t.equal(power, 100) // moderator
 					called++
 				}
 			}
 		})
 	)
 	t.notOk(error)
-	t.equal(called, 2)
+	t.equal(called, 3)
 })
 
 test("api invite: does not reinvite joined users", async t => {

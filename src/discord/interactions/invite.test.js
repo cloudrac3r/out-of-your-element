@@ -91,7 +91,7 @@ test("invite: checks if user is already invited to space", async t => {
 		api: {
 			getStateEvent: async (roomID, type, stateKey) => {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(type, "m.room.member")
 				t.equal(stateKey, "@cadence:cadence.moe")
 				return {
@@ -121,14 +121,14 @@ test("invite: invites if user is not in space", async t => {
 		api: {
 			getStateEvent: async (roomID, type, stateKey) => {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(type, "m.room.member")
 				t.equal(stateKey, "@cadence:cadence.moe")
 				throw new MatrixServerError("State event doesn't exist or something")
 			},
 			inviteToRoom: async (roomID, mxid) => {
 				called++
-				t.equal(roomID, "!jjWAGMeQdNrVZSSfvz:cadence.moe") // space ID
+				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
 				t.equal(mxid, "@cadence:cadence.moe")
 			}
 		}
@@ -155,7 +155,7 @@ test("invite: prompts to invite to room (if never joined)", async t => {
 				called++
 				t.equal(type, "m.room.member")
 				t.equal(stateKey, "@cadence:cadence.moe")
-				if (roomID === "!jjWAGMeQdNrVZSSfvz:cadence.moe") { // space ID
+				if (roomID === "!jjmvBegULiLucuWEHU:cadence.moe") { // space ID
 					return {
 						displayname: "cadence",
 						membership: "join"
@@ -188,7 +188,7 @@ test("invite: prompts to invite to room (if left)", async t => {
 				called++
 				t.equal(type, "m.room.member")
 				t.equal(stateKey, "@cadence:cadence.moe")
-				if (roomID === "!jjWAGMeQdNrVZSSfvz:cadence.moe") { // space ID
+				if (roomID === "!jjmvBegULiLucuWEHU:cadence.moe") { // space ID
 					return {
 						displayname: "cadence",
 						membership: "join"

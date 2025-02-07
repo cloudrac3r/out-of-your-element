@@ -43,7 +43,7 @@ module.exports = {
 			rate_limit_per_user: 0,
 			position: 0,
 			permission_overwrites: [],
-			parent_id: "665289423482519566",
+			parent_id: null,
 			name: "saving-the-world",
 			last_pin_timestamp: "2021-04-14T18:39:41+00:00",
 			last_message_id: "1335828749479837750",
@@ -58,7 +58,7 @@ module.exports = {
 			"m.room.topic/": {topic: "#collective-unconscious | https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:\n\nChannel ID: 112760669178241024\nGuild ID: 112760669178241024"},
 			"m.room.guest_access/": {guest_access: "can_join"},
 			"m.room.history_visibility/": {history_visibility: "shared"},
-			"m.space.parent/!jjWAGMeQdNrVZSSfvz:cadence.moe": {
+			"m.space.parent/!jjmvBegULiLucuWEHU:cadence.moe": {
 				via: ["cadence.moe"],
 				canonical: true
 			},
@@ -66,7 +66,7 @@ module.exports = {
 				join_rule: "restricted",
 				allow: [{
 					type: "m.room_membership",
-					room_id: "!jjWAGMeQdNrVZSSfvz:cadence.moe"
+					room_id: "!jjmvBegULiLucuWEHU:cadence.moe"
 				}]
 			},
 			"m.room.avatar/": {

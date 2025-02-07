@@ -1,19 +1,39 @@
 // @ts-check
 
 const {z} = require("zod")
-const {defineEventHandler, useSession, createError, readValidatedBody, setResponseHeader} = require("h3")
+const {defineEventHandler, useSession, createError, readValidatedBody, setResponseHeader, H3Event} = require("h3")
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 
 const {discord, db, as, sync, select, from} = require("../../passthrough")
-/** @type {import("../../d2m/actions/create-space")} */
-const createSpace = sync.require("../../d2m/actions/create-space")
-/** @type {import("../../d2m/actions/create-room")} */
-const createRoom = sync.require("../../d2m/actions/create-room")
 const {reg} = require("../../matrix/read-registration")
 
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
+/**
+ * @param {H3Event} event
+ * @returns {import("../../matrix/api")}
+ */
+function getAPI(event) {
+	/* c8 ignore next */
+	return event.context.api || sync.require("../../matrix/api")
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {import("../../d2m/actions/create-room")}
+ */
+function getCreateRoom(event) {
+	/* c8 ignore next */
+	return event.context.createRoom || sync.require("../../d2m/actions/create-room")
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {import("../../d2m/actions/create-space")}
+ */
+function getCreateSpace(event) {
+	/* c8 ignore next */
+	return event.context.createSpace || sync.require("../../d2m/actions/create-space")
+}
 
 const schema = {
 	linkSpace: z.object({
@@ -34,6 +54,7 @@ const schema = {
 as.router.post("/api/link-space", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.linkSpace.parse)
 	const session = await useSession(event, {password: reg.as_token})
+	const api = getAPI(event)
 
 	// Check guild ID
 	const guildID = parsedBody.guild_id
@@ -43,25 +64,33 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	if (!session.data.mxid) throw createError({status: 403, message: "Forbidden", data: "Can't link with your Matrix space if you aren't logged in to Matrix"})
 	const spaceID = parsedBody.space_id
 	const inviteType = select("invite", "type", {mxid: session.data.mxid, room_id: spaceID}).pluck().get()
-	if (inviteType !== "m.space") throw createError({status: 403, message: "Forbidden", data: "No past invitations detected from your Matrix account for that space."})
+	if (inviteType !== "m.space") throw createError({status: 403, message: "Forbidden", data: "You personally must invite OOYE to that space on Matrix"})
 
 	// Check they are not already bridged
 	const existing = select("guild_space", "guild_id", {}, "WHERE guild_id = ? OR space_id = ?").get(guildID, spaceID)
 	if (existing) throw createError({status: 400, message: "Bad Request", data: `Guild ID ${guildID} or space ID ${spaceID} are already bridged and cannot be reused`})
 
-	// Check space exists and bridge is joined and bridge has PL 100
+	// Check space exists and bridge is joined
 	const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-	/** @type {Ty.Event.M_Room_Member} */
-	const memberEvent = await api.getStateEvent(spaceID, "m.room.member", self)
-	if (memberEvent.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix space does not exist"})
-	/** @type {Ty.Event.M_Power_Levels} */
-	const powerLevelsStateContent = await api.getStateEvent(spaceID, "m.room.power_levels", "")
-	const selfPowerLevel = powerLevelsStateContent.users?.[self] || powerLevelsStateContent.users_default || 0
-	if (selfPowerLevel < (powerLevelsStateContent.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix space"})
+	/** @type {Ty.Event.M_Room_Member?} */
+	let memberEvent = null
+	try {
+		memberEvent = await api.getStateEvent(spaceID, "m.room.member", self)
+	} catch (e) {}
+	if (memberEvent?.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix space does not exist"})
+
+	// Check bridge has PL 100
+	/** @type {Ty.Event.M_Power_Levels?} */
+	let powerLevelsStateContent = null
+	try {
+		powerLevelsStateContent = await api.getStateEvent(spaceID, "m.room.power_levels", "")
+	} catch (e) {}
+	const selfPowerLevel = powerLevelsStateContent?.users?.[self] || powerLevelsStateContent?.users_default || 0
+	if (selfPowerLevel < (powerLevelsStateContent?.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix space"})
 
 	// Check inviting user is a moderator in the space
-	const invitingPowerLevel = powerLevelsStateContent.users?.[session.data.mxid] || powerLevelsStateContent.users_default || 0
-	if (invitingPowerLevel < (powerLevelsStateContent.state_default || 50)) throw createError({status: 403, message: "Forbidden", data: `You need to be at least power level 50 (moderator) in the target Matrix space to use OOYE, but you are currently power level ${invitingPowerLevel}.`})
+	const invitingPowerLevel = powerLevelsStateContent?.users?.[session.data.mxid] || powerLevelsStateContent?.users_default || 0
+	if (invitingPowerLevel < (powerLevelsStateContent?.state_default || 50)) throw createError({status: 403, message: "Forbidden", data: `You need to be at least power level 50 (moderator) in the target Matrix space to set up OOYE, but you are currently power level ${invitingPowerLevel}.`})
 
 	// Insert database entry
 	db.transaction(() => {
@@ -76,6 +105,9 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 as.router.post("/api/link", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.link.parse)
 	const session = await useSession(event, {password: reg.as_token})
+	const api = getAPI(event)
+	const createRoom = getCreateRoom(event)
+	const createSpace = getCreateSpace(event)
 
 	// Check guild ID or nonce
 	const guildID = parsedBody.guild_id
@@ -90,22 +122,41 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	const channel = discord.channels.get(parsedBody.discord)
 	if (!channel) throw createError({status: 400, message: "Bad Request", data: "Discord channel does not exist"})
 
-	// Check channel and room are not already bridged
-	const row = from("channel_room").select("channel_id", "room_id").and("WHERE channel_id = ? OR room_id = ?").get(parsedBody.discord, parsedBody.matrix)
-	if (row) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${row.channel_id} and room ID ${row.room_id} are already bridged and cannot be reused`})
+	// Check channel is part of the guild
+	if (!("guild_id" in channel) || channel.guild_id !== guildID) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel.id} is not part of guild ${guildID}`})
 
-	// Check room exists and bridge is joined and bridge has PL 100
+	// Check channel and room are not already bridged
+	const row = from("channel_room").select("channel_id", "room_id").and("WHERE channel_id = ? OR room_id = ?").get(channel.id, parsedBody.matrix)
+	if (row) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${row.channel_id} or room ID ${parsedBody.matrix} are already bridged and cannot be reused`})
+
+	// Check room is part of the guild's space
+	/** @type {Ty.Event.M_Space_Child?} */
+	let spaceChildEvent = null
+	try {
+		spaceChildEvent = await api.getStateEvent(spaceID, "m.space.child", parsedBody.matrix)
+	} catch (e) {}
+	if (!Array.isArray(spaceChildEvent?.via)) throw createError({status: 400, message: "Bad Request", data: "Matrix room needs to be part of the bridged space"})
+
+	// Check room exists and bridge is joined
 	const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-	/** @type {Ty.Event.M_Room_Member} */
-	const memberEvent = await api.getStateEvent(parsedBody.matrix, "m.room.member", self)
-	if (memberEvent.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix room does not exist"})
-	/** @type {Ty.Event.M_Power_Levels} */
-	const powerLevelsStateContent = await api.getStateEvent(parsedBody.matrix, "m.room.power_levels", "")
-	const selfPowerLevel = powerLevelsStateContent.users?.[self] || powerLevelsStateContent.users_default || 0
-	if (selfPowerLevel < (powerLevelsStateContent.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
+	/** @type {Ty.Event.M_Room_Member?} */
+	let memberEvent = null
+	try {
+		memberEvent = await api.getStateEvent(parsedBody.matrix, "m.room.member", self)
+	} catch (e) {}
+	if (memberEvent?.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix room does not exist"})
+
+	// Check bridge has PL 100
+	/** @type {Ty.Event.M_Power_Levels?} */
+	let powerLevelsStateContent = null
+	try {
+		powerLevelsStateContent = await api.getStateEvent(parsedBody.matrix, "m.room.power_levels", "")
+	} catch (e) {}
+	const selfPowerLevel = powerLevelsStateContent?.users?.[self] || powerLevelsStateContent?.users_default || 0
+	if (selfPowerLevel < (powerLevelsStateContent?.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
 
 	// Insert database entry
-	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id) VALUES (?, ?, ?, ?)").run(parsedBody.discord, parsedBody.matrix, channel.name, guildID)
+	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id) VALUES (?, ?, ?, ?)").run(channel.id, parsedBody.matrix, channel.name, guildID)
 
 	// Sync room data and space child
 	await createRoom.syncRoom(parsedBody.discord)
@@ -125,14 +176,25 @@ as.router.post("/api/link", defineEventHandler(async event => {
 as.router.post("/api/unlink", defineEventHandler(async event => {
 	const {channel_id, guild_id} = await readValidatedBody(event, schema.unlink.parse)
 	const session = await useSession(event, {password: reg.as_token})
+	const createRoom = getCreateRoom(event)
 
 	// Check guild ID or nonce
 	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
 
-	// Check channel is part of this guild
-	const channel = discord.channels.get(channel_id)
-	if (!channel) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} does not exist`})
-	if (!("guild_id" in channel) || channel.guild_id !== guild_id) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not part of guild ${guild_id}`})
+	// Check guild exists
+	const guild = discord.guilds.get(guild_id)
+	if (!guild) throw createError({status: 400, message: "Bad Request", data: "Discord guild does not exist or bot has not joined it"})
+
+	// Check that the channel (if it exists) is part of this guild
+	/** @type {any} */
+	let channel = discord.channels.get(channel_id)
+	if (channel) {
+		if (!("guild_id" in channel) || channel.guild_id !== guild_id) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not part of guild ${guild_id}`})
+	} else {
+		// Otherwise, if the channel isn't cached, it must have been deleted.
+		// There's no other authentication here - it's okay for anyone to unlink a deleted channel just by knowing its ID.
+		channel = {id: channel_id}
+	}
 
 	// Check channel is currently bridged
 	const row = select("channel_room", "channel_id", {channel_id: channel_id}).get()
