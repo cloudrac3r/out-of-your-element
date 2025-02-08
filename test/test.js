@@ -157,5 +157,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/web/routes/download-discord.test")
 	require("../src/web/routes/download-matrix.test")
 	require("../src/web/routes/guild.test")
+	require("../src/web/routes/guild-settings.test")
 	require("../src/web/routes/link.test")
+	require("../src/web/routes/log-in-with-matrix.test")
 })()

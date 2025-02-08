@@ -11,27 +11,27 @@ test("web guild: access denied when not logged in", async t => {
 		sessionData: {
 		},
 	})
-	t.match(html, /You need to log in to manage your servers./)
+	t.has(html, "You need to log in to manage your servers.")
 })
 
 test("web guild: asks to select guild if not selected", async t => {
 	const html = await router.test("get", "/guild", {
 		sessionData: {
-			user_id: "1",
+			userID: "1",
 			managedGuilds: []
 		},
 	})
-	t.match(html, /Select a server from the top right corner to continue./)
+	t.has(html, "Select a server from the top right corner to continue.")
 })
 
 test("web guild: access denied when guild id messed up", async t => {
 	const html = await router.test("get", "/guild?guild_id=1", {
 		sessionData: {
-			user_id: "1",
+			userID: "1",
 			managedGuilds: []
 		},
 	})
-	t.match(html, /the selected server doesn't exist/)
+	t.has(html, "the selected server doesn't exist")
 })
 
 test("web invite: access denied with invalid nonce", async t => {
@@ -44,7 +44,6 @@ test("web invite: access denied with invalid nonce", async t => {
 test("web guild: can view unbridged guild", async t => {
 	const html = await router.test("get", "/guild?guild_id=66192955777486848", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["66192955777486848"]
 		}
 	})
@@ -54,7 +53,6 @@ test("web guild: can view unbridged guild", async t => {
 test("web guild: unbridged self-service guild prompts log in to matrix", async t => {
 	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		}
 	})
@@ -66,7 +64,6 @@ test("web guild: unbridged self-service guild asks to be invited", async t => {
 	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
 		sessionData: {
 			mxid: "@user:example.org",
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		}
 	})
@@ -77,7 +74,6 @@ test("web guild: unbridged self-service guild shows available spaces", async t =
 	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
 		sessionData: {
 			mxid: "@cadence:cadence.moe",
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		}
 	})

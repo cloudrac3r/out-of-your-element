@@ -2,25 +2,16 @@
 
 const {z} = require("zod")
 const {randomUUID} = require("crypto")
-const {defineEventHandler, getValidatedQuery, sendRedirect, readValidatedBody, useSession, createError, getRequestHeader} = require("h3")
-const {SnowTransfer} = require("snowtransfer")
-const DiscordTypes = require("discord-api-types/v10")
-const fetch = require("node-fetch")
-const getRelativePath = require("get-relative-path")
+const {defineEventHandler, getValidatedQuery, sendRedirect, readValidatedBody, useSession, createError, getRequestHeader, H3Event} = require("h3")
 const {LRUCache} = require("lru-cache")
 
-const {as, db, select, from} = require("../../passthrough")
-const {id} = require("../../../addbot")
+const {as, db} = require("../../passthrough")
 const {reg} = require("../../matrix/read-registration")
 
 const {sync} = require("../../passthrough")
 const assert = require("assert").strict
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
-
-const redirect_uri = `${reg.ooye.bridge_origin}/oauth`
 
 const schema = {
 	form: z.object({
@@ -29,6 +20,15 @@ const schema = {
 	token: z.object({
 		token: z.string()
 	})
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {import("../../matrix/api")}
+ */
+function getAPI(event) {
+	/* c8 ignore next */
+	return event.context.api || sync.require("../../matrix/api")
 }
 
 /** @type {LRUCache<string, string>} token to mxid */
@@ -67,6 +67,7 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 }))
 
 as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
+	const api = getAPI(event)
 	const {mxid} = await readValidatedBody(event, schema.form.parse)
 	let roomID = null
 

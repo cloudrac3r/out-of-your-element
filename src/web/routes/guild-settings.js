@@ -2,13 +2,19 @@
 
 const assert = require("assert/strict")
 const {z} = require("zod")
-const {defineEventHandler, useSession, createError, readValidatedBody, getRequestHeader, setResponseHeader, sendRedirect} = require("h3")
+const {defineEventHandler, useSession, createError, readValidatedBody, getRequestHeader, setResponseHeader, sendRedirect, H3Event} = require("h3")
 
 const {as, db, sync, select} = require("../../passthrough")
 const {reg} = require("../../matrix/read-registration")
 
-/** @type {import("../../d2m/actions/create-space")} */
-const createSpace = sync.require("../../d2m/actions/create-space")
+/**
+ * @param {H3Event} event
+ * @returns {import("../../d2m/actions/create-space")}
+ */
+function getCreateSpace(event) {
+	/* c8 ignore next */
+	return event.context.createSpace || sync.require("../../d2m/actions/create-space")
+}
 
 /** @type {["invite", "link", "directory"]} */
 const levels = ["invite", "link", "directory"]
@@ -48,6 +54,7 @@ as.router.post("/api/privacy-level", defineEventHandler(async event => {
 	const session = await useSession(event, {password: reg.as_token})
 	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
+	const createSpace = getCreateSpace(event)
 	const i = levels.indexOf(parsedBody.level)
 	assert.notEqual(i, -1)
 	db.prepare("UPDATE guild_space SET privacy_level = ? WHERE guild_id = ?").run(i, parsedBody.guild_id)

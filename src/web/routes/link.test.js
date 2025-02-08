@@ -21,7 +21,6 @@ test("web link space: access denied when not logged in to Discord", async t => {
 test("web link space: access denied when not logged in to Matrix", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -35,7 +34,6 @@ test("web link space: access denied when not logged in to Matrix", async t => {
 test("web link space: access denied when bot was invited by different user", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@user:example.org"
 		},
@@ -50,7 +48,6 @@ test("web link space: access denied when bot was invited by different user", asy
 test("web link space: access denied when guild is already in use", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["112760669178241024"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -66,7 +63,6 @@ test("web link space: check that OOYE is joined", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -92,7 +88,6 @@ test("web link space: check that OOYE has PL 100 (not missing)", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -121,7 +116,6 @@ test("web link space: check that OOYE has PL 100 (not users_default)", async t =
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -151,7 +145,6 @@ test("web link space: check that OOYE has PL 100 (not 50)", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -181,7 +174,6 @@ test("web link space: check that inviting user has PL 50", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -211,7 +203,6 @@ test("web link space: successfully adds entry to database and loads page", async
 	let called = 0
 	await router.test("post", "/api/link-space", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -241,7 +232,6 @@ test("web link space: successfully adds entry to database and loads page", async
 	// check that the guild info page now loads
 	const html = await router.test("get", "/guild?guild_id=665289423482519565", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"],
 			mxid: "@cadence:cadence.moe"
 		},
@@ -278,7 +268,6 @@ test("web link room: access denied when not logged in to Discord", async t => {
 test("web link room: check that guild exists", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["1"]
 		},
 		body: {
@@ -293,7 +282,6 @@ test("web link room: check that guild exists", async t => {
 test("web link room: check that channel exists", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -308,7 +296,6 @@ test("web link room: check that channel exists", async t => {
 test("web link room: check that channel is part of guild", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -323,7 +310,6 @@ test("web link room: check that channel is part of guild", async t => {
 test("web link room: check that channel is not already linked", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["112760669178241024"]
 		},
 		body: {
@@ -339,7 +325,6 @@ test("web link room: checks the autocreate setting if the space doesn't exist ye
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -366,7 +351,6 @@ test("web link room: check that room is part of space (event missing)", async t 
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -392,7 +376,6 @@ test("web link room: check that room is part of space (event empty)", async t =>
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -418,7 +401,6 @@ test("web link room: check that bridge is joined to room", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -449,7 +431,6 @@ test("web link room: check that bridge has PL 100 in target room (event missing)
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -484,7 +465,6 @@ test("web link room: check that bridge has PL 100 in target room (users default)
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -519,7 +499,6 @@ test("web link room: successfully calls createRoom", async t => {
 	let called = 0
 	await router.test("post", "/api/link", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -578,7 +557,6 @@ test("web unlink room: access denied if not logged in to Discord", async t => {
 test("web unlink room: checks that guild exists", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/unlink", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["2"]
 		},
 		body: {
@@ -592,7 +570,6 @@ test("web unlink room: checks that guild exists", async t => {
 test("web unlink room: checks that the channel is part of the guild", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/unlink", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -607,7 +584,6 @@ test("web unlink room: successfully calls unbridgeDeletedChannel when the channe
 	let called = 0
 	await router.test("post", "/api/unlink", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
@@ -628,7 +604,6 @@ test("web unlink room: successfully calls unbridgeDeletedChannel when the channe
 	let called = 0
 	await router.test("post", "/api/unlink", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["112760669178241024"]
 		},
 		body: {
@@ -649,7 +624,6 @@ test("web unlink room: checks that the channel is bridged", async t => {
 	db.prepare("DELETE FROM channel_room WHERE channel_id = '665310973967597573'").run()
 	const [error] = await tryToCatch(() => router.test("post", "/api/unlink", {
 		sessionData: {
-			user_id: "1",
 			managedGuilds: ["665289423482519565"]
 		},
 		body: {
