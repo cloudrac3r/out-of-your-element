@@ -2517,6 +2517,79 @@ module.exports = {
 					}
 				}
 			]
+		},
+		forwarded_dont_scan_for_mentions: {
+			type: 0,
+			tts: false,
+			timestamp: "2025-02-08T09:07:45.547000+00:00",
+			position: 0,
+			pinned: false,
+			nonce: "1337711633497063424",
+			message_snapshots: [
+				{
+					message: {
+						type: 0,
+						timestamp: "2025-02-08T09:00:07.662000+00:00",
+						mentions: [],
+						flags: 0,
+						embeds: [],
+						edited_timestamp: null,
+						content: "If some folks have spare bandwidth then helping out ArchiveTeam with archiving soon to be deleted research and government data might be worthwhile https://social.luca.run/@luca/113950834185678114",
+						components: [],
+						attachments: []
+					}
+				}
+			],
+			message_reference: {
+				type: 1,
+				message_id: "1337709539516223539",
+				guild_id: "500415824616620032",
+				channel_id: "794935364182867968"
+			},
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			member: {
+				roles: [
+					"1152297516755337248",
+					"300045569441660938",
+					"365531770420199435",
+					"1035943385338482698",
+					"1205645591212990515",
+					"1084555882341339259"
+				],
+				premium_since: null,
+				pending: false,
+				nick: null,
+				mute: false,
+				joined_at: "2023-12-27T13:02:41.614000+00:00",
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				banner: null,
+				avatar: null
+			},
+			id: "1337711460024844350",
+			flags: 16384,
+			embeds: [],
+			edited_timestamp: null,
+			content: "",
+			components: [],
+			channel_type: 0,
+			channel_id: "286888431945252874",
+			author: {
+				username: "athenna2000",
+				public_flags: 0,
+				primary_guild: null,
+				id: "620341774984151063",
+				global_name: "Amelia 🍄",
+				discriminator: "0",
+				clan: null,
+				avatar_decoration_data: null,
+				avatar: "a30f5b1bf17b5a5f387f1bb49771a2f8"
+			},
+			attachments: [],
+			guild_id: "286888431945252874"
 		}
 	},
 	pk_message: {

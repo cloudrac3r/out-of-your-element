@@ -1134,3 +1134,20 @@ test("message2event: constructed forwarded text", async t => {
 		}
 	])
 })
+
+
+test("message2event: don't scan forwarded messages for mentions", async t => {
+	const events = await messageToEvent(data.message.forwarded_dont_scan_for_mentions, {}, {}, {})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "[🔀 Forwarded message]"
+				+ "\n» If some folks have spare bandwidth then helping out ArchiveTeam with archiving soon to be deleted research and government data might be worthwhile https://social.luca.run/@luca/113950834185678114",
+			format: "org.matrix.custom.html",
+			formatted_body: `🔀 <em>Forwarded message</em>`
+				+ `<br><blockquote>If some folks have spare bandwidth then helping out ArchiveTeam with archiving soon to be deleted research and government data might be worthwhile <a href="https://social.luca.run/@luca/113950834185678114">https://social.luca.run/@luca/113950834185678114</a></blockquote>`,
+			"m.mentions": {},
+			msgtype: "m.notice"
+		}
+	])
+})

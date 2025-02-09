@@ -199,10 +199,11 @@ async function attachmentToEvent(mentions, attachment) {
 /**
  * @param {DiscordTypes.APIMessage} message
  * @param {DiscordTypes.APIGuild} guild
- * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean, alwaysReturnFormattedBody?: boolean}} options default values:
+ * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean, alwaysReturnFormattedBody?: boolean, scanTextForMentions?: boolean}} options default values:
  * - includeReplyFallback: true
  * - includeEditFallbackStar: false
  * - alwaysReturnFormattedBody: false - formatted_body will be skipped if it is the same as body because the message is plaintext. if you want the formatted_body to be returned anyway, for example to merge it with another message, then set this to true.
+ * - scanTextForMentions: true - needs to be set to false when converting forwarded messages etc which may be from a different channel that can't be scanned.
  * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
  */
 async function messageToEvent(message, guild, options = {}, di) {
@@ -544,7 +545,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Forwarded content
 		// @ts-ignore
-		const forwardedEvents = await messageToEvent(message.message_snapshots[0].message, guild, {includeReplyFallback: false, includeEditFallbackStar: false, alwaysReturnFormattedBody: true}, di)
+		const forwardedEvents = await messageToEvent(message.message_snapshots[0].message, guild, {includeReplyFallback: false, includeEditFallbackStar: false, alwaysReturnFormattedBody: true, scanTextForMentions: false}, di)
 
 		// Indent
 		for (const event of forwardedEvents) {
@@ -570,7 +571,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	if (message.content) {
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 		const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
-		if (matches.length && matches.some(m => m[1].match(/[a-z]/i) && m[1] !== "everyone" && m[1] !== "here")) {
+		if (options.scanTextForMentions !== false && matches.length && matches.some(m => m[1].match(/[a-z]/i) && m[1] !== "everyone" && m[1] !== "here")) {
 			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
 			const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 			assert(roomID)
