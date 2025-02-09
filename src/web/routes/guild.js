@@ -120,7 +120,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 
 	// Self-service guild that hasn't been linked yet - needs a special page encouraging the link flow
 	if (!row.space_id && row.autocreate === 0) {
-		const spaces = db.prepare("SELECT room_id, type, name, topic, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id WHERE mxid = ? AND space_id IS NULL and type = 'm.space'").all(session.data.mxid)
+		const spaces = db.prepare("SELECT room_id, type, name, topic, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id WHERE mxid = ? AND space_id IS NULL AND type = 'm.space'").all(session.data.mxid)
 		return pugSync.render(event, "guild_not_linked.pug", {guild, guild_id, spaces})
 	}
 
