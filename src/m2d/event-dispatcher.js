@@ -39,6 +39,20 @@ function guard(type, fn) {
 			if (Date.now() - lastReportedEvent < 5000) return
 			lastReportedEvent = Date.now()
 
+			const cloudflareErrorTitle = e.toString().match(/<!DOCTYPE html>.*?<title>discord\.com \| ([^<]*)<\/title>/s)?.[1]
+			if (cloudflareErrorTitle) {
+				return api.sendEvent(event.room_id, "m.room.message", {
+					msgtype: "m.text",
+					body: `\u26a0 Matrix event not delivered to Discord. Cloudflare error: ${cloudflareErrorTitle}.`,
+					format: "org.matrix.custom.html",
+					formatted_body: `\u26a0 <strong>Matrix event not delivered to Discord</strong><br>Cloudflare error: ${cloudflareErrorTitle}`,
+					"moe.cadence.ooye.error": {
+						source: "matrix",
+						payload: event
+					}
+				})
+			}
+
 			let stackLines = e.stack.split("\n")
 			api.sendEvent(event.room_id, "m.room.message", {
 				msgtype: "m.text",
