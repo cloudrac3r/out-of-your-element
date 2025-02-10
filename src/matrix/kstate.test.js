@@ -234,3 +234,31 @@ test("diffKState: kstate keys must contain a slash separator", t => {
 	, /does not contain a slash separator/)
 	t.pass()
 })
+
+test("diffKState: don't add hide_ui when not present", t => {
+	test("diffKState: detects new properties", t => {
+		t.deepEqual(
+			diffKState({
+			}, {
+				"chat.schildi.hide_ui/read_receipts/": {}
+			}),
+			{
+			}
+		)
+	})
+})
+
+test("diffKState: overwriten hide_ui when present", t => {
+	test("diffKState: detects new properties", t => {
+		t.deepEqual(
+			diffKState({
+				"chat.schildi.hide_ui/read_receipts/": {hidden: true}
+			}, {
+				"chat.schildi.hide_ui/read_receipts/": {}
+			}),
+			{
+				"chat.schildi.hide_ui/read_receipts/": {}
+			}
+		)
+	})
+})

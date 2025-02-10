@@ -87,6 +87,12 @@ function diffKState(actual, target) {
 				diff[key] = temp
 			}
 
+		} else if (key === "chat.schildi.hide_ui/read_receipts") {
+			// Special handling: don't add this key if it's new. Do overwrite if already present.
+			if (key in actual) {
+				diff[key] = target[key]
+			}
+
 		} else if (key in actual) {
 			// diff
 			if (!isDeepStrictEqual(actual[key], target[key])) {
