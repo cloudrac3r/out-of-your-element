@@ -217,12 +217,12 @@ async function getViaServersQuery(roomID, api) {
  * @see https://matrix.org/blog/2024/06/20/matrix-v1.11-release/ implementation details
  * @see https://www.sqlite.org/fileformat2.html#record_format SQLite integer field size
  * @param {string} mxc
- * @returns {string?}
+ * @returns {string | undefined}
  */
 function getPublicUrlForMxc(mxc) {
 	assert(hasher, "xxhash is not ready yet")
 	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
-	if (!mediaParts) return null
+	if (!mediaParts) return undefined
 
 	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
 	const unsignedHash = hasher.h64(serverAndMediaID)
