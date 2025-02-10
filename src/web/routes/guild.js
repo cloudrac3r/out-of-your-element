@@ -2,7 +2,7 @@
 
 const assert = require("assert/strict")
 const {z} = require("zod")
-const {H3Event, defineEventHandler, sendRedirect, useSession, createError, getValidatedQuery, readValidatedBody, setResponseHeader} = require("h3")
+const {H3Event, defineEventHandler, sendRedirect, createError, getValidatedQuery, readValidatedBody, setResponseHeader} = require("h3")
 const {randomUUID} = require("crypto")
 const {LRUCache} = require("lru-cache")
 const Ty = require("../../types")
@@ -13,6 +13,8 @@ const {discord, as, sync, select, from, db} = require("../../passthrough")
 const pugSync = sync.require("../pug-sync")
 /** @type {import("../../d2m/actions/create-space")} */
 const createSpace = sync.require("../../d2m/actions/create-space")
+/** @type {import("../auth")} */
+const auth = require("../auth")
 const {reg} = require("../../matrix/read-registration")
 
 const schema = {
@@ -108,13 +110,14 @@ function getChannelRoomsLinks(guildID, rooms) {
 
 as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
-	const session = await useSession(event, {password: reg.as_token})
+	const session = await auth.useSession(event)
+	const managed = await auth.getManagedGuilds(event)
 	const row = from("guild_active").join("guild_space", "guild_id", "left").select("space_id", "privacy_level", "autocreate").where({guild_id}).get()
 	// @ts-ignore
 	const guild = discord.guilds.get(guild_id)
 
 	// Permission problems
-	if (!guild_id || !guild || !(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id) || !row) {
+	if (!guild_id || !guild || !managed.has(guild_id) || !row) {
 		return pugSync.render(event, "guild_access_denied.pug", {guild_id, row})
 	}
 
@@ -159,13 +162,13 @@ as.router.get("/invite", defineEventHandler(async event => {
 
 as.router.post("/api/invite", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.invite.parse)
-	const session = await useSession(event, {password: reg.as_token})
+	const managed = await auth.getManagedGuilds(event)
 	const api = getAPI(event)
 
 	// Check guild ID or nonce
 	if (parsedBody.guild_id) {
 		var guild_id = parsedBody.guild_id
-		if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't invite users to a guild you don't have Manage Server permissions in"})
+		if (!managed.has(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't invite users to a guild you don't have Manage Server permissions in"})
 	} else if (parsedBody.nonce) {
 		if (!validNonce.has(parsedBody.nonce)) throw createError({status: 403, message: "Nonce expired", data: "Nonce means number-used-once, and, well, you tried to use it twice..."})
 		let ok = validNonce.get(parsedBody.nonce)

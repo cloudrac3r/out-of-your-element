@@ -5,11 +5,13 @@ const fs = require("fs")
 const {join} = require("path")
 const getRelativePath = require("get-relative-path")
 const h3 = require("h3")
-const {defineEventHandler, defaultContentType, setResponseStatus, useSession, getQuery} = h3
+const {defineEventHandler, defaultContentType, setResponseStatus, getQuery} = h3
 const {compileFile} = require("@cloudrac3r/pug")
 const pretty = process.argv.join(" ").includes("test")
 
-const {reg} = require("../matrix/read-registration")
+const {sync} = require("../passthrough")
+/** @type {import("./auth")} */
+const auth = sync.require("./auth")
 
 // Pug
 
@@ -35,8 +37,8 @@ function render(event, filename, locals) {
 			const template = compileFile(path, {pretty})
 			pugCache.set(path, async (event, locals) => {
 				defaultContentType(event, "text/html; charset=utf-8")
-				const session = await useSession(event, {password: reg.as_token})
-				const managed = new Set((session.data.managedGuilds || []).concat(session.data.matrixGuilds || []))
+				const session = await auth.useSession(event)
+				const managed = await auth.getManagedGuilds(event)
 				const rel = x => getRelativePath(event.path, x)
 				return template(Object.assign({},
 					getQuery(event), // Query parameters can be easily accessed on the top level but don't allow them to overwrite anything

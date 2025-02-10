@@ -3,7 +3,7 @@
 const fs = require("fs")
 const {join} = require("path")
 const h3 = require("h3")
-const {defineEventHandler, defaultContentType, getRequestHeader, setResponseHeader, setResponseStatus, useSession, getQuery, handleCacheHeaders} = h3
+const {defineEventHandler, defaultContentType, getRequestHeader, setResponseHeader, handleCacheHeaders} = h3
 const icons = require("@stackoverflow/stacks-icons")
 const DiscordTypes = require("discord-api-types/v10")
 const dUtils = require("../discord/utils")

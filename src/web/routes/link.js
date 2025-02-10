@@ -1,11 +1,13 @@
 // @ts-check
 
 const {z} = require("zod")
-const {defineEventHandler, useSession, createError, readValidatedBody, setResponseHeader, H3Event} = require("h3")
+const {defineEventHandler, createError, readValidatedBody, setResponseHeader, H3Event} = require("h3")
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 
 const {discord, db, as, sync, select, from} = require("../../passthrough")
+/** @type {import("../auth")} */
+const auth = require("../auth")
 const {reg} = require("../../matrix/read-registration")
 
 /**
@@ -53,12 +55,13 @@ const schema = {
 
 as.router.post("/api/link-space", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.linkSpace.parse)
-	const session = await useSession(event, {password: reg.as_token})
+	const session = await auth.useSession(event)
+	const managed = await auth.getManagedGuilds(event)
 	const api = getAPI(event)
 
 	// Check guild ID
 	const guildID = parsedBody.guild_id
-	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+	if (!managed.has(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
 
 	// Check space ID
 	if (!session.data.mxid) throw createError({status: 403, message: "Forbidden", data: "Can't link with your Matrix space if you aren't logged in to Matrix"})
@@ -104,14 +107,14 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 
 as.router.post("/api/link", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.link.parse)
-	const session = await useSession(event, {password: reg.as_token})
+	const managed = await auth.getManagedGuilds(event)
 	const api = getAPI(event)
 	const createRoom = getCreateRoom(event)
 	const createSpace = getCreateSpace(event)
 
 	// Check guild ID or nonce
 	const guildID = parsedBody.guild_id
-	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+	if (!managed.has(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
 
 	// Check guild is bridged
 	const guild = discord.guilds.get(guildID)
@@ -175,11 +178,11 @@ as.router.post("/api/link", defineEventHandler(async event => {
 
 as.router.post("/api/unlink", defineEventHandler(async event => {
 	const {channel_id, guild_id} = await readValidatedBody(event, schema.unlink.parse)
-	const session = await useSession(event, {password: reg.as_token})
+	const managed = await auth.getManagedGuilds(event)
 	const createRoom = getCreateRoom(event)
 
 	// Check guild ID or nonce
-	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+	if (!managed.has(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
 
 	// Check guild exists
 	const guild = discord.guilds.get(guild_id)

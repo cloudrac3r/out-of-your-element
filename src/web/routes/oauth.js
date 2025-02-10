@@ -2,14 +2,16 @@
 
 const {z} = require("zod")
 const {randomUUID} = require("crypto")
-const {defineEventHandler, getValidatedQuery, sendRedirect, useSession, createError} = require("h3")
+const {defineEventHandler, getValidatedQuery, sendRedirect, createError} = require("h3")
 const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const fetch = require("node-fetch")
 const getRelativePath = require("get-relative-path")
 
-const {as, db} = require("../../passthrough")
+const {as, db, sync} = require("../../passthrough")
 const {id} = require("../../../addbot")
+/** @type {import("../auth")} */
+const auth = sync.require("../auth")
 const {reg} = require("../../matrix/read-registration")
 
 const redirect_uri = `${reg.ooye.bridge_origin}/oauth`
@@ -33,7 +35,7 @@ const schema = {
 }
 
 as.router.get("/oauth", defineEventHandler(async event => {
-	const session = await useSession(event, {password: reg.as_token})
+	const session = await auth.useSession(event)
 	let scope = "guilds"
 
 	const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)

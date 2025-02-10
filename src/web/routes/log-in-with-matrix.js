@@ -2,16 +2,18 @@
 
 const {z} = require("zod")
 const {randomUUID} = require("crypto")
-const {defineEventHandler, getValidatedQuery, sendRedirect, readValidatedBody, useSession, createError, getRequestHeader, H3Event} = require("h3")
+const {defineEventHandler, getValidatedQuery, sendRedirect, readValidatedBody, createError, getRequestHeader, H3Event} = require("h3")
 const {LRUCache} = require("lru-cache")
 
-const {as, db} = require("../../passthrough")
+const {as} = require("../../passthrough")
 const {reg} = require("../../matrix/read-registration")
 
 const {sync} = require("../../passthrough")
 const assert = require("assert").strict
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
+/** @type {import("../auth")} */
+const auth = sync.require("../auth")
 
 const schema = {
 	form: z.object({
@@ -54,14 +56,12 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 	const token = parsed.data.token
 	if (!validToken.has(token)) return sendRedirect(event, `${reg.ooye.bridge_origin}/log-in-with-matrix`, 302)
 
-	const session = await useSession(event, {password: reg.as_token})
+	const session = await auth.useSession(event)
 	const mxid = validToken.get(token)
 	assert(mxid)
 	validToken.delete(token)
 
-	const matrixGuilds = db.prepare("SELECT guild_id FROM guild_space INNER JOIN member_cache ON space_id = room_id WHERE mxid = ? AND power_level >= 50").pluck().all(mxid)
-
-	await session.update({mxid, matrixGuilds})
+	await session.update({mxid})
 
 	return sendRedirect(event, "./", 302) // open to homepage where they can see they're logged in
 }))

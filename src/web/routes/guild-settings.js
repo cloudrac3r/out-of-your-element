@@ -2,10 +2,12 @@
 
 const assert = require("assert/strict")
 const {z} = require("zod")
-const {defineEventHandler, useSession, createError, readValidatedBody, getRequestHeader, setResponseHeader, sendRedirect, H3Event} = require("h3")
+const {defineEventHandler, createError, readValidatedBody, getRequestHeader, setResponseHeader, sendRedirect, H3Event} = require("h3")
 
 const {as, db, sync, select} = require("../../passthrough")
-const {reg} = require("../../matrix/read-registration")
+
+/** @type {import("../auth")} */
+const auth = sync.require("../auth")
 
 /**
  * @param {H3Event} event
@@ -31,8 +33,8 @@ const schema = {
 
 as.router.post("/api/autocreate", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.autocreate.parse)
-	const session = await useSession(event, {password: reg.as_token})
-	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+	const managed = await auth.getManagedGuilds(event)
+	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 	db.prepare("UPDATE guild_active SET autocreate = ? WHERE guild_id = ?").run(+!!parsedBody.autocreate, parsedBody.guild_id)
 
@@ -51,8 +53,8 @@ as.router.post("/api/autocreate", defineEventHandler(async event => {
 
 as.router.post("/api/privacy-level", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.privacyLevel.parse)
-	const session = await useSession(event, {password: reg.as_token})
-	if (!(session.data.managedGuilds || []).concat(session.data.matrixGuilds || []).includes(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+	const managed = await auth.getManagedGuilds(event)
+	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 	const createSpace = getCreateSpace(event)
 	const i = levels.indexOf(parsedBody.level)
