@@ -32,7 +32,7 @@ async function createSpace(guild, kstate) {
 	assert(name)
 
 	const memberCount = guild["member_count"] ?? guild.approximate_member_count ?? 0
-	const enablePresenceByDefault = +(memberCount < 150) // could increase this later on if it doesn't cause any problems
+	const enablePresenceByDefault = +(memberCount < 50) // scary! all active users in a presence-enabled guild will be pinging the server every <30 seconds to stay online
 	const globalAdmins = select("member_power", "mxid", {room_id: "*"}).pluck().all()
 
 	const roomID = await createRoom.postApplyPowerLevels(kstate, async kstate => {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 
+const fs = require("fs")
 const sqlite = require("better-sqlite3")
 const migrate = require("./src/db/migrate")
 const HeatSync = require("heatsync")
@@ -9,7 +10,7 @@ const {reg} = require("./src/matrix/read-registration")
 const passthrough = require("./src/passthrough")
 const db = new sqlite("ooye.db")
 
-const sync = new HeatSync()
+const sync = new HeatSync({watchFunction: fs.watchFile})
 
 Object.assign(passthrough, {sync, db})
 

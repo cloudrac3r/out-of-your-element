@@ -409,11 +409,11 @@ async function setAccountData(type, content, mxid) {
 }
 
 /**
- * @param {"online" | "offline" | "unavailable"} presence
+ * @param {{presence: "online" | "offline" | "unavailable", status_msg?: string}} data
  * @param {string} mxid
  */
-async function setPresence(presence, mxid) {
-	await mreq.mreq("PUT", path(`/client/v3/presence/${mxid}/status`, mxid), {presence})
+async function setPresence(data, mxid) {
+	await mreq.mreq("PUT", path(`/client/v3/presence/${mxid}/status`, mxid), data)
 }
 
 module.exports.path = path
