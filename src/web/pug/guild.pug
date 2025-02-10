@@ -102,6 +102,17 @@ block body
       #autocreate-loading
 
   if space_id
+    h3.mt32.fs-category Presence
+    .s-card
+      form.d-flex.ai-center.g8
+        label.s-label.fl-grow1(for="presence")
+          | Show online statuses on Matrix
+          p.s-description This might cause lag on really big Discord servers.
+        - let value = !!select("guild_space", "presence", {guild_id}).pluck().get()
+        input(type="hidden" name="guild_id" value=guild_id)
+        input.s-toggle-switch.order-last#autocreate(name="presence" type="checkbox" hx-post="/api/presence" hx-indicator="#presence-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        #presence-loading
+
     h3.mt32.fs-category Privacy level
     .s-card
       form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")

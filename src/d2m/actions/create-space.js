@@ -31,6 +31,8 @@ async function createSpace(guild, kstate) {
 	const topic = kstate["m.room.topic/"]?.topic || undefined
 	assert(name)
 
+	const memberCount = guild["member_count"] ?? guild.approximate_member_count ?? 0
+	const enablePresenceByDefault = +(memberCount < 150) // could increase this later on if it doesn't cause any problems
 	const globalAdmins = select("member_power", "mxid", {room_id: "*"}).pluck().all()
 
 	const roomID = await createRoom.postApplyPowerLevels(kstate, async kstate => {
@@ -50,7 +52,7 @@ async function createSpace(guild, kstate) {
 			initial_state: await ks.kstateToState(kstate)
 		})
 	})
-	db.prepare("INSERT INTO guild_space (guild_id, space_id) VALUES (?, ?)").run(guild.id, roomID)
+	db.prepare("INSERT INTO guild_space (guild_id, space_id, presence) VALUES (?, ?, ?)").run(guild.id, roomID, enablePresenceByDefault)
 	return roomID
 }
 

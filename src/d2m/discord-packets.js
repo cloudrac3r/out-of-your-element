@@ -198,7 +198,7 @@ const utils = {
 					await interactions.dispatchInteraction(message.d)
 
 				} else if (message.t === "PRESENCE_UPDATE") {
-					eventDispatcher.onPresenceUpdate(message.d.user.id, message.d.status)
+					eventDispatcher.onPresenceUpdate(client, message.d)
 				}
 
 			} catch (e) {

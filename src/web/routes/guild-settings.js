@@ -8,6 +8,8 @@ const {as, db, sync, select} = require("../../passthrough")
 
 /** @type {import("../auth")} */
 const auth = sync.require("../auth")
+/** @type {import("../../d2m/actions/set-presence")} */
+const setPresence = sync.require("../../d2m/actions/set-presence")
 
 /**
  * @param {H3Event} event
@@ -24,6 +26,10 @@ const schema = {
 	autocreate: z.object({
 		guild_id: z.string(),
 		autocreate: z.string().optional()
+	}),
+	presence: z.object({
+		guild_id: z.string(),
+		presence: z.string().optional()
 	}),
 	privacyLevel: z.object({
 		guild_id: z.string(),
@@ -47,6 +53,17 @@ as.router.post("/api/autocreate", defineEventHandler(async event => {
 			return sendRedirect(event, "", 302)
 		}
 	}
+
+	return null // 204
+}))
+
+as.router.post("/api/presence", defineEventHandler(async event => {
+	const parsedBody = await readValidatedBody(event, schema.presence.parse)
+	const managed = await auth.getManagedGuilds(event)
+	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+
+	db.prepare("UPDATE guild_space SET presence = ? WHERE guild_id = ?").run(+!!parsedBody.presence, parsedBody.guild_id)
+	setPresence.checkPresenceEnabledGuilds()
 
 	return null // 204
 }))

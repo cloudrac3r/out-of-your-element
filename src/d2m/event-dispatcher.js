@@ -374,11 +374,12 @@ module.exports = {
 	},
 
 	/**
-	 * @param {string} userID
-	 * @param {string} [status]
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayPresenceUpdateDispatchData} data
 	 */
-	async onPresenceUpdate(userID, status) {
+	async onPresenceUpdate(client, data) {
+		const status = data.status
 		if (!status) return
-		setPresence.setPresence(userID, status)
+		setPresence.setPresence(data.user.id, data.guild_id, status)
 	}
 }

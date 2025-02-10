@@ -33,6 +33,7 @@ export type Models = {
 		guild_id: string
 		space_id: string
 		privacy_level: number
+		presence: 0 | 1
 	}
 
 	guild_active: {

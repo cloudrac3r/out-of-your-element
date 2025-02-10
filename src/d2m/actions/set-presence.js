@@ -11,11 +11,22 @@ const presenceDelay = 1500
 /** @type {Map<string, NodeJS.Timeout>} user ID -> cancelable timeout */
 const presenceDelayMap = new Map()
 
+// Access the list of enabled guilds as needed rather than like multiple times per second when a user changes presence
+/** @type {Set<string>} */
+let presenceEnabledGuilds
+function checkPresenceEnabledGuilds() {
+	presenceEnabledGuilds = new Set(select("guild_space", "guild_id", {presence: 1}).pluck().all())
+}
+checkPresenceEnabledGuilds()
+
 /**
  * @param {string} userID Discord user ID
+ * @param {string} guildID Discord guild ID that this presence applies to (really, the same presence applies to every single guild, but is delivered separately)
  * @param {string} status status field from Discord's PRESENCE_UPDATE event
  */
-function setPresence(userID, status) {
+function setPresence(userID, guildID, status) {
+	// check if we care about this guild
+	if (!presenceEnabledGuilds.has(guildID)) return
 	// cancel existing timer if one is already set
 	if (presenceDelayMap.has(userID)) {
 		clearTimeout(presenceDelayMap.get(userID))
@@ -43,3 +54,4 @@ function setPresenceCallback(user_id, status) {
 }
 
 module.exports.setPresence = setPresence
+module.exports.checkPresenceEnabledGuilds = checkPresenceEnabledGuilds
