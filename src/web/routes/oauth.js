@@ -5,7 +5,6 @@ const {randomUUID} = require("crypto")
 const {defineEventHandler, getValidatedQuery, sendRedirect, createError} = require("h3")
 const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
-const fetch = require("node-fetch")
 const getRelativePath = require("get-relative-path")
 
 const {as, db, sync} = require("../../passthrough")

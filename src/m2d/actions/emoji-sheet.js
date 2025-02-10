@@ -1,10 +1,8 @@
 // @ts-check
 
-const assert = require("assert")
-const fetch = require("node-fetch").default
-
-const utils = require("../converters/utils")
+const {Readable} = require("stream")
 const {sync} = require("../../passthrough")
+const assert = require("assert").strict
 
 /** @type {import("../converters/emoji-sheet")} */
 const emojiSheetConverter = sync.require("../converters/emoji-sheet")
@@ -18,16 +16,16 @@ const api = sync.require("../../matrix/api")
  */
 async function getAndConvertEmoji(mxc) {
 	const abortController = new AbortController()
-	/** @type {import("node-fetch").Response} */
 	// If it turns out to be a GIF, we want to abandon the connection without downloading the whole thing.
 	// If we were using connection pooling, we would be forced to download the entire GIF.
 	// So we set no agent to ensure we are not connection pooling.
-	// @ts-ignore the signal is slightly different from the type it wants (still works fine)
-	const res = await api.getMedia(mxc, {agent: false, signal: abortController.signal})
-	return emojiSheetConverter.convertImageStream(res.body, () => {
+	const res = await api.getMedia(mxc, {signal: abortController.signal})
+	// @ts-ignore
+	const readable = Readable.fromWeb(res.body)
+	return emojiSheetConverter.convertImageStream(readable, () => {
 		abortController.abort()
-		res.body.pause()
-		res.body.emit("end")
+		readable.emit("end")
+		readable.on("error", () => {}) // DOMException [AbortError]: This operation was aborted
 	})
 }
 

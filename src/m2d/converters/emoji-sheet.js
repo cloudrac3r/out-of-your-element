@@ -48,7 +48,7 @@ async function compositeMatrixEmojis(mxcs, mxcDownloader) {
 }
 
 /**
- * @param {import("node-fetch").Response["body"]} streamIn
+ * @param {NodeJS.ReadableStream} streamIn
  * @param {() => any} stopStream
  * @returns {Promise<Buffer | undefined>} Uncompressed PNG image
  */

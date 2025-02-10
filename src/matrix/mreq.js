@@ -1,6 +1,5 @@
 // @ts-check
 
-const fetch = require("node-fetch").default
 const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
 const getStream = require("get-stream")
@@ -22,7 +21,7 @@ class MatrixServerError extends Error {
 /**
  * @param {string} method
  * @param {string} url
- * @param {any} [body]
+ * @param {string | object | ReadableStream | stream.Readable} [body]
  * @param {any} [extra]
  */
 async function mreq(method, url, body, extra = {}) {
@@ -30,16 +29,19 @@ async function mreq(method, url, body, extra = {}) {
 		body = JSON.stringify(body)
 	} else if (body instanceof stream.Readable && reg.ooye.content_length_workaround) {
 		body = await getStream.buffer(body)
+	} else if (body instanceof ReadableStream && reg.ooye.content_length_workaround) {
+		body = await stream.consumers.buffer(body)
 	}
 
-	const opts = mixin({
+	/** @type {RequestInit} */
+	const opts = {
 		method,
 		body,
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
-		}
-	}, extra)
-
+		},
+		...extra
+	}
 	// console.log(baseUrl + url, opts)
 	const res = await fetch(baseUrl + url, opts)
 	const root = await res.json()
@@ -55,7 +57,7 @@ async function mreq(method, url, body, extra = {}) {
 			writeRegistration(reg)
 			return root
 		}
-		delete opts.headers.Authorization
+		delete opts.headers?.["Authorization"]
 		throw new MatrixServerError(root, {baseUrl, url, ...opts})
 	}
 	return root

@@ -42,7 +42,6 @@
     "heatsync": "^2.6.0",
     "lru-cache": "^10.4.3",
     "minimist": "^1.2.8",
-    "node-fetch": "^2.6.7",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.33.4",
     "snowtransfer": "^0.10.5",
@@ -55,7 +54,6 @@
   "devDependencies": {
     "@cloudrac3r/tap-dot": "^2.0.3",
     "@types/node": "^18.16.0",
-    "@types/node-fetch": "^2.6.3",
     "c8": "^10.1.2",
     "cross-env": "^7.0.3",
     "discord-api-types": "^0.37.60",

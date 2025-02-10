@@ -1,7 +1,5 @@
 // @ts-check
 
-const fetch = require("node-fetch").default
-
 const passthrough = require("../passthrough")
 const {sync, db, select} = passthrough
 /** @type {import("./mreq")} */
@@ -47,7 +45,7 @@ async function uploadDiscordFileToMxc(path) {
 	}
 
 	// Download from Discord
-	const promise = fetch(url, {}).then(/** @param {import("node-fetch").Response} res */ async res => {
+	const promise = fetch(url, {}).then(async res => {
 		// Upload to Matrix
 		const root = await module.exports._actuallyUploadDiscordFileToMxc(urlNoExpiry, res)
 
@@ -62,6 +60,10 @@ async function uploadDiscordFileToMxc(path) {
 	return promise
 }
 
+/**
+ * @param {string} url
+ * @param {Response} res
+ */
 async function _actuallyUploadDiscordFileToMxc(url, res) {
 	const body = res.body
 	/** @type {import("../types").R.FileUploaded} */

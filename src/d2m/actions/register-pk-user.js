@@ -3,10 +3,9 @@
 const assert = require("assert")
 const {reg} = require("../../matrix/read-registration")
 const Ty = require("../../types")
-const fetch = require("node-fetch").default
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {sync, db, select} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */

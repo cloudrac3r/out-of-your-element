@@ -5,7 +5,6 @@ const DiscordTypes = require("discord-api-types/v10")
 const {Readable} = require("stream")
 const assert = require("assert").strict
 const crypto = require("crypto")
-const fetch = require("node-fetch").default
 const passthrough = require("../../passthrough")
 const {sync, discord, db, select} = passthrough
 

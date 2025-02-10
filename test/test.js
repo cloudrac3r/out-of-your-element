@@ -2,15 +2,12 @@
 
 const fs = require("fs")
 const {join} = require("path")
-const stp = require("stream").promises
 const sqlite = require("better-sqlite3")
+const {Writable} = require("stream")
 const migrate = require("../src/db/migrate")
 const HeatSync = require("heatsync")
 const {test, extend} = require("supertape")
 const data = require("./data")
-/** @type {import("node-fetch").default} */
-// @ts-ignore
-const fetch = require("node-fetch")
 const {green} = require("ansi-colors")
 
 const passthrough = require("../src/passthrough")
@@ -86,7 +83,8 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 			async function download({url, to}) {
 				if (await fs.existsSync(to)) return
 				const res = await fetch(url)
-				await stp.pipeline(res.body, fs.createWriteStream(to, {encoding: "binary"}))
+				// @ts-ignore
+				await res.body.pipeTo(Writable.toWeb(fs.createWriteStream(to, {encoding: "binary"})))
 			}
 			await allReporter([
 				{url: "https://cadence.moe/friends/ooye_test/RLMgJGfgTPjIQtvvWZsYjhjy.png", to: "test/res/RLMgJGfgTPjIQtvvWZsYjhjy.png"},

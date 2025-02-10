@@ -164,7 +164,7 @@ To get into the rooms on your Matrix account, use the `/invite [your mxid here]`
 
 ## Dependency justification
 
-Total transitive production dependencies: 148
+Total transitive production dependencies: 144
 
 ### <font size="+2">🦕</font>
 
@@ -197,7 +197,6 @@ Total transitive production dependencies: 148
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
-* (3) node-fetch@2: I like it and it does what I want. Version 2 is used because version 3 is ESM-only.
 * (0) prettier-bytes: It does what I want and has no dependencies.
 * (2) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
