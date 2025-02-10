@@ -36,6 +36,7 @@ Most features you'd expect in both directions, plus a little extra spice:
 * Attachments
 * Spoiler attachments
 * Embeds
+* Presence
 * Guild-Space details syncing
 * Channel-Room details syncing
 * Custom emoji list syncing

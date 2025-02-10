@@ -33,6 +33,8 @@ const mxUtils = require("../m2d/converters/utils")
 const speedbump = sync.require("./actions/speedbump")
 /** @type {import("./actions/retrigger")} */
 const retrigger = sync.require("./actions/retrigger")
+/** @type {import("./actions/set-presence")} */
+const setPresence = sync.require("./actions/set-presence")
 
 /** @type {any} */ // @ts-ignore bad types from semaphore
 const Semaphore = require("@chriscdn/promise-semaphore")
@@ -369,5 +371,14 @@ module.exports = {
 	 */
 	async onExpressionsUpdate(client, data) {
 		await createSpace.syncSpaceExpressions(data, false)
+	},
+
+	/**
+	 * @param {string} userID
+	 * @param {string} [status]
+	 */
+	async onPresenceUpdate(userID, status) {
+		if (!status) return
+		setPresence.setPresence(userID, status)
 	}
 }

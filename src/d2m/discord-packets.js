@@ -196,6 +196,9 @@ const utils = {
 
 				} else if (message.t === "INTERACTION_CREATE") {
 					await interactions.dispatchInteraction(message.d)
+
+				} else if (message.t === "PRESENCE_UPDATE") {
+					eventDispatcher.onPresenceUpdate(message.d.user.id, message.d.status)
 				}
 
 			} catch (e) {

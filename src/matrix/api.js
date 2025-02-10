@@ -408,6 +408,14 @@ async function setAccountData(type, content, mxid) {
 	await mreq.mreq("PUT", `/client/v3/user/${mxid}/account_data/${type}`, content)
 }
 
+/**
+ * @param {"online" | "offline" | "unavailable"} presence
+ * @param {string} mxid
+ */
+async function setPresence(presence, mxid) {
+	await mreq.mreq("PUT", path(`/client/v3/presence/${mxid}/status`, mxid), {presence})
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -440,3 +448,4 @@ module.exports.ackEvent = ackEvent
 module.exports.getAlias = getAlias
 module.exports.getAccountData = getAccountData
 module.exports.setAccountData = setAccountData
+module.exports.setPresence = setPresence
