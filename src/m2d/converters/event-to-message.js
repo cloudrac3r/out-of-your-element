@@ -476,7 +476,7 @@ async function eventToMessage(event, guild, di) {
 	// Try to extract an accurate display name and avatar URL from the member event
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
-	if (member.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(member.avatar_url) || undefined
+	if (member.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(member.avatar_url)
 	// If the display name is too long to be put into the webhook (80 characters is the maximum),
 	// put the excess characters into displayNameRunoff, later to be put at the top of the message
 	let [displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
@@ -512,8 +512,7 @@ async function eventToMessage(event, guild, di) {
 			// Is it editing a reply? We need special handling if it is.
 			// Get the original event, then check if it was a reply
 			const originalEvent = await di.api.getEvent(event.room_id, originalEventId)
-			if (!originalEvent) return
-			const repliedToEventId = originalEvent.content["m.relates_to"]?.["m.in_reply_to"]?.event_id
+			const repliedToEventId = originalEvent?.content?.["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
 
 			// After all that, it's an edit of a reply.
@@ -576,34 +575,27 @@ async function eventToMessage(event, guild, di) {
 			if (row) {
 				replyLine += `https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
 			}
-			const sender = repliedToEvent.sender
-			const authorID = getUserOrProxyOwnerID(sender)
-			if (authorID) {
-				replyLine += `<@${authorID}>`
-			} else {
-				let senderName = select("member_cache", "displayname", {mxid: sender}).pluck().get()
-				if (!senderName) {
-					const match = sender.match(/@([^:]*)/)
-					assert(match)
-					senderName = match[1]
-				}
-				replyLine += `**Ⓜ${senderName}**`
-			}
 			// If the event has been edited, the homeserver will include the relation in `unsigned`.
 			if (repliedToEvent.unsigned?.["m.relations"]?.["m.replace"]?.content?.["m.new_content"]) {
 				repliedToEvent = repliedToEvent.unsigned["m.relations"]["m.replace"] // Note: this changes which event_id is in repliedToEvent.
 				repliedToEvent.content = repliedToEvent.content["m.new_content"]
 			}
-			let contentPreview
+			/** @type {string} */
+			let repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 			const fileReplyContentAlternative = attachmentEmojis.get(repliedToEvent.content.msgtype)
+			let contentPreview
 			if (fileReplyContentAlternative) {
 				contentPreview = " " + fileReplyContentAlternative
 			} else if (repliedToEvent.unsigned?.redacted_because) {
 				contentPreview = " (in reply to a deleted message)"
+			} else if (typeof repliedToContent !== "string") {
+				// in reply to a weird metadata event like m.room.name, m.room.member...
+				// I'm not implementing text fallbacks for arbitrary room events. this should cover most cases
+				// this has never ever happened in the wild anyway
+				repliedToEvent.sender = ""
+				contentPreview = " (channel details edited)"
 			} else {
 				// Generate a reply preview for a standard message
-				/** @type {string} */
-				let repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 				repliedToContent = repliedToContent.replace(/.*<\/mx-reply>/s, "") // Remove everything before replies, so just use the actual message body
 				repliedToContent = repliedToContent.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
 				repliedToContent = repliedToContent.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
@@ -623,6 +615,15 @@ async function eventToMessage(event, guild, di) {
 				} else {
 					contentPreview = ""
 				}
+			}
+			const sender = repliedToEvent.sender
+			const authorID = getUserOrProxyOwnerID(sender)
+			if (authorID) {
+				replyLine += `<@${authorID}>`
+			} else {
+				let senderName = select("member_cache", "displayname", {mxid: sender}).pluck().get()
+				if (!senderName) senderName = sender.match(/@([^:]*)/)?.[1]
+				if (senderName) replyLine += `**Ⓜ${senderName}**`
 			}
 			replyLine = `-# > ${replyLine}${contentPreview}\n`
 		})()

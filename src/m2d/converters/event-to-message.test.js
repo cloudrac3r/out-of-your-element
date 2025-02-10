@@ -2625,6 +2625,52 @@ test("event2message: rich reply to a deleted event", async t => {
 	)
 })
 
+test("event2message: rich reply to a state event with no body", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@ampflower:matrix.org",
+			content: {
+				msgtype: "m.text",
+				body: "> <@ampflower:matrix.org> changed the room topic\n\nnice room topic",
+				format: "org.matrix.custom.html",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU?via=cadence.moe\">In reply to</a> <a href=\"https://matrix.to/#/@ampflower:matrix.org\">@ampflower:matrix.org</a> changed the room topic<br></blockquote></mx-reply>nice room topic",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU"
+					}
+				}
+			},
+			event_id: "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
+		 }, data.guild.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU", {
+					type: "m.room.topic",
+					sender: "@ampflower:matrix.org",
+					content: {
+						topic: "you're cute"
+					},
+					user_id: "@ampflower:matrix.org"
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Ampflower 🌺",
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647> (channel details edited)\nnice room topic",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/PRfhXYBTOalvgQYtmCLeUXko",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: raw mentioning discord users in plaintext body works", async t => {
 	t.deepEqual(
 		await eventToMessage({
