@@ -81,7 +81,7 @@ html(lang="en")
               else if managed.size
                 button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr24.s-user-card.bar0.fc-black(popovertarget="guilds")
                   | Your servers
-              else
+              else if session.data.mxid || session.data.userID
                 .d-flex.ai-center
                   .s-badge.s-badge__bot.py6.px16.bar-md
                     | No servers available
