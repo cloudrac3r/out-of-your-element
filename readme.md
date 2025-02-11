@@ -164,14 +164,14 @@ To get into the rooms on your Matrix account, use the `/invite [your mxid here]`
 
 ## Dependency justification
 
-Total transitive production dependencies: 143
+Total transitive production dependencies: 139
 
 ### <font size="+2">🦕</font>
 
 * (31) better-sqlite3: SQLite3 is the best database, and this is the best library for it.
 * (27) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
 * (16) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
-* (14) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for a web server.
+* (10) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for a web server.
 * (11) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets.
 
 ### <font size="-1">🪱</font>

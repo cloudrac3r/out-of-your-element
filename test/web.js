@@ -68,6 +68,7 @@ class Router {
 		}
 
 		return this.routes.get(key)(Object.assign(event, {
+			__is_event__: true,
 			method: method.toUpperCase(),
 			path: `${url.pathname}${url.search}`,
 			_requestBody: options.body,
