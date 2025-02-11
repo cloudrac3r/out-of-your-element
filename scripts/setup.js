@@ -180,7 +180,7 @@ function defineEchoHandler() {
 				process.stdout.write(magenta(" checking, please wait..."))
 				try {
 					snow = new SnowTransfer(token)
-					client = await snow.requestHandler.request(`/applications/@me`, {}, "get")
+					client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
 					return true
 				} catch (e) {
 					return e.message
@@ -197,7 +197,7 @@ function defineEchoHandler() {
 				message: "Press Enter when you've enabled them",
 				validate: async token => {
 					process.stdout.write(magenta("checking, please wait..."))
-					client = await snow.requestHandler.request(`/applications/@me`, {}, "get")
+					client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
 					if (client.flags & mandatoryIntentFlags) {
 						return true
 					} else {
@@ -225,7 +225,7 @@ function defineEchoHandler() {
 				message: "Press Enter when you've added it",
 				validate: async token => {
 					process.stdout.write(magenta("checking, please wait..."))
-					client = await snow.requestHandler.request(`/applications/@me`, {}, "get")
+					client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
 					if (client.redirect_uris.includes(expectedUri)) {
 						return true
 					} else {

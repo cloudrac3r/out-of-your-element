@@ -3,11 +3,11 @@
 const {z} = require("zod")
 const {randomUUID} = require("crypto")
 const {defineEventHandler, getValidatedQuery, sendRedirect, createError} = require("h3")
-const {SnowTransfer} = require("snowtransfer")
+const {SnowTransfer, tokenless} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const getRelativePath = require("get-relative-path")
 
-const {as, db, sync} = require("../../passthrough")
+const {discord, as, db, sync} = require("../../passthrough")
 const {id} = require("../../../addbot")
 /** @type {import("../auth")} */
 const auth = sync.require("../auth")
@@ -59,21 +59,10 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	if (!savedState) throw createError({status: 400, message: "Missing state", data: "Missing saved state parameter. Please try again, and make sure you have cookies enabled."})
 	if (savedState != parsedQuery.data.state) return tryAgain()
 
-	const res = await fetch("https://discord.com/api/oauth2/token", {
-		method: "post",
-		body: new URLSearchParams({
-			grant_type: "authorization_code",
-			client_id: id,
-			client_secret: reg.ooye.discord_client_secret,
-			redirect_uri,
-			code: parsedQuery.data.code
-		})
-	})
-	const root = await res.json()
-
-	const parsedToken = schema.token.safeParse(root)
-	if (!res.ok || !parsedToken.success) {
-		throw createError({status: 502, message: "Invalid token response", data: `Discord completed OAuth, but returned this instead of an OAuth access token: ${JSON.stringify(root)}`})
+	const oauthResult = await tokenless.getOauth2Token(id, redirect_uri, reg.ooye.discord_client_secret, parsedQuery.data.code)
+	const parsedToken = schema.token.safeParse(oauthResult)
+	if (!parsedToken.success) {
+		throw createError({status: 502, message: "Invalid token response", data: `Discord completed OAuth, but returned this instead of an OAuth access token: ${JSON.stringify(oauthResult)}`})
 	}
 
 	const userID = Buffer.from(parsedToken.data.access_token.split(".")[0], "base64").toString()

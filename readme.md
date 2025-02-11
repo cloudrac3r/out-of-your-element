@@ -164,7 +164,7 @@ To get into the rooms on your Matrix account, use the `/invite [your mxid here]`
 
 ## Dependency justification
 
-Total transitive production dependencies: 144
+Total transitive production dependencies: 143
 
 ### <font size="+2">🦕</font>
 
@@ -188,6 +188,7 @@ Total transitive production dependencies: 144
 * (0) ansi-colors: Helps with interactive prompting for the initial setup, and it's already pulled in by enquirer.
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
+* (0) discord-api-types: Bitfields needed at runtime and types needed for development.
 * (0) domino: DOM implementation that's already pulled in by turndown.
 * (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
@@ -198,7 +199,7 @@ Total transitive production dependencies: 144
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
 * (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
 * (0) prettier-bytes: It does what I want and has no dependencies.
-* (2) snowtransfer: Discord API library with bring-your-own-caching that I trust.
+* (0) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
 * (0) uqr: QR code SVG generator. Used on the website to scan in an invite link.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
