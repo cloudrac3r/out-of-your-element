@@ -2,6 +2,7 @@
 
 const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
+const {ReadableStream} = require("stream/web")
 const getStream = require("get-stream")
 
 const {reg, writeRegistration} = require("./read-registration.js")
@@ -30,18 +31,18 @@ async function mreq(method, url, body, extra = {}) {
 	} else if (body instanceof stream.Readable && reg.ooye.content_length_workaround) {
 		body = await getStream.buffer(body)
 	} else if (body instanceof ReadableStream && reg.ooye.content_length_workaround) {
-		body = await stream.consumers.buffer(body)
+		body = await stream.consumers.buffer(stream.Readable.fromWeb(body))
 	}
 
 	/** @type {RequestInit} */
-	const opts = {
+	const opts = mixin({
 		method,
 		body,
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
 		},
-		...extra
-	}
+		...(body && {duplex: "half"}), // https://github.com/octokit/request.js/pull/571/files
+	}, extra)
 	// console.log(baseUrl + url, opts)
 	const res = await fetch(baseUrl + url, opts)
 	const root = await res.json()
