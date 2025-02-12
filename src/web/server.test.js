@@ -1,5 +1,6 @@
 // @ts-check
 
+const {ReadableStream} = require("stream/web")
 const {test} = require("supertape")
 const {router} = require("../../test/web")
 const assert = require("assert").strict

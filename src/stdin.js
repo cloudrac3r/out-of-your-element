@@ -19,6 +19,7 @@ const eventDispatcher = sync.require("./d2m/event-dispatcher")
 const updatePins = sync.require("./d2m/actions/update-pins")
 const speedbump = sync.require("./d2m/actions/speedbump")
 const ks = sync.require("./matrix/kstate")
+const setPresence = sync.require("./d2m/actions/set-presence")
 const guildID = "112760669178241024"
 
 const extraContext = {}

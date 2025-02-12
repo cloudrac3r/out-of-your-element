@@ -38,13 +38,14 @@ const guildPresenceSetting = new class {
 	}
 }
 
-class Presence {
+class Presence extends sync.ReloadableClass {
 	/** @type {string} */ userID
 	/** @type {{presence: "online" | "offline" | "unavailable", status_msg?: string}} */ data
 	/** @private @type {?string | undefined} */ mxid
 	/** @private @type {number} */ delay = Math.random()
 
 	constructor(userID) {
+		super()
 		this.userID = userID
 	}
 
@@ -66,12 +67,13 @@ class Presence {
 		// This random delay will space them out over the whole 28 second cycle.
 		setTimeout(() => {
 			api.setPresence(this.data, mxid).catch(() => {})
-		}, this.delay)
+		}, this.delay * presenceLoopInterval).unref()
 	}
 }
+sync.reloadClassMethods(Presence)
 
 const presenceTracker = new class {
-	/** @private @type {Map<string, Presence>} userID -> Presence */ presences
+	/** @private @type {Map<string, Presence>} userID -> Presence */ presences = sync.remember(() => new Map())
 
 	constructor() {
 		sync.addTemporaryInterval(() => this.syncPresences(), presenceLoopInterval)
