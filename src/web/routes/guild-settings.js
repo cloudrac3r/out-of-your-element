@@ -63,7 +63,7 @@ as.router.post("/api/presence", defineEventHandler(async event => {
 	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 	db.prepare("UPDATE guild_space SET presence = ? WHERE guild_id = ?").run(+!!parsedBody.presence, parsedBody.guild_id)
-	setPresence.checkPresenceEnabledGuilds()
+	setPresence.guildPresenceSetting.update()
 
 	return null // 204
 }))

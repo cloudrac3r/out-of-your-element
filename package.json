@@ -60,8 +60,8 @@
     "supertape": "^10.4.0"
   },
   "scripts": {
-    "start": "node start.js",
-    "setup": "node scripts/setup.js",
+    "start": "node --enable-source-maps start.js",
+    "setup": "node --enable-source-maps scripts/setup.js",
     "addbot": "node addbot.js",
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap --no-worker test/test.js | tap-dot",
     "test-slow": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap --no-worker test/test.js -- --slow | tap-dot",

@@ -380,6 +380,6 @@ module.exports = {
 	async onPresenceUpdate(client, data) {
 		const status = data.status
 		if (!status) return
-		setPresence.setPresence(data.user.id, data.guild_id, status)
+		setPresence.presenceTracker.incomingPresence(data.user.id, data.guild_id, status)
 	}
 }

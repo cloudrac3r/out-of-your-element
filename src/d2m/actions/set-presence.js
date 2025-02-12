@@ -14,91 +14,100 @@ const api = sync.require("../../matrix/api")
 	The first phase stores Discord presence data in memory.
 	The second phase loops over the memory and sends it on to Matrix.
 
-	In the first phase, for optimisation reasons, we want to do as little work as possible if the presence doesn't actually need to be sent all the way through.
-	* Presence can be deactivated per-guild in OOYE settings. If it's deactivated for all of a user's guilds, we shouldn't send them to the second phase.
-	* Presence can be sent for users without sims. In this case, we shouldn't send them to the second phase.
-	* Presence can be sent multiple times in a row for the same user for each guild we share. We want to batch these up so we only query the mxid and enter the second phase once per user.
+	Optimisations:
+	* Presence can be deactivated per-guild in OOYE settings. If the user doesn't share any presence-enabled-guilds with us, we don't need to do anything.
+	* Presence can be sent for users without sims. In this case, they will be discarded from memory when the next loop begins.
+	* Matrix ID is cached in memory on the Presence class. The alternative to this is querying it every time we receive a presence change event in a valid guild.
+	* Presence can be sent multiple times in a row for the same user for each guild we share. The loop timer prevents these "changes" from individually reaching the homeserver.
 */
 
-
-// ***** first phase *****
-
-
-// Delay before querying user details and putting them in memory.
-const presenceDelay = 1500
-
-/** @type {Map<string, NodeJS.Timeout>} user ID -> cancelable timeout */
-const presenceDelayMap = new Map()
-
-// Access the list of enabled guilds as needed rather than like multiple times per second when a user changes presence
-/** @type {Set<string>} */
-let presenceEnabledGuilds
-function checkPresenceEnabledGuilds() {
-	presenceEnabledGuilds = new Set(select("guild_space", "guild_id", {presence: 1}).pluck().all())
-}
-checkPresenceEnabledGuilds()
-
-/**
- * This function is called for each Discord presence packet.
- * @param {string} userID Discord user ID
- * @param {string} guildID Discord guild ID that this presence applies to (really, the same presence applies to every single guild, but is delivered separately by Discord for some reason)
- * @param {string} status status field from Discord's PRESENCE_UPDATE event
- */
-function setPresence(userID, guildID, status) {
-	// check if we care about this guild
-	if (!presenceEnabledGuilds.has(guildID)) return
-	// cancel existing timer if one is already set
-	if (presenceDelayMap.has(userID)) {
-		clearTimeout(presenceDelayMap.get(userID))
-	}
-	// new timer, which will run if nothing else comes in soon
-	presenceDelayMap.set(userID, setTimeout(setPresenceCallback, presenceDelay, userID, status).unref())
-}
-
-/**
- * @param {string} user_id Discord user ID
- * @param {string} status status field from Discord's PRESENCE_UPDATE event
- */
-function setPresenceCallback(user_id, status) {
-	presenceDelayMap.delete(user_id)
-	const mxid = select("sim", "mxid", {user_id}).pluck().get()
-	if (!mxid) return
-	const presence =
-		( status === "online" ? "online"
-		: status === "offline" ? "offline"
-		: "unavailable") // idle, dnd, and anything else they dream up in the future
-	if (presence === "offline") {
-		userPresence.delete(mxid) // stop syncing next cycle
-	} else {
-		const delay = userPresence.get(mxid)?.delay || presenceLoopInterval * Math.random() // distribute the updates across the presence loop
-		userPresence.set(mxid, {data: {presence}, delay}) // will be synced next cycle
-	}
-}
-
-
-// ***** second phase *****
-
-
-// Synapse expires each user's presence after 30 seconds and makes them offline, so we have loop every 28 seconds and update each user again.
+// Synapse expires each user's presence after 30 seconds and makes them offline, so we have to loop every 28 seconds and update each user again.
 const presenceLoopInterval = 28e3
 
-/** @type {Map<string, {data: {presence: "online" | "offline" | "unavailable", status_msg?: string}, delay: number}>} mxid -> presence data to send to api */
-const userPresence = new Map()
-
-sync.addTemporaryInterval(() => {
-	for (const [mxid, memory] of userPresence.entries()) {
-		// I haven't tried, but assuming Synapse explodes if you try to update too many presences at the same time,
-		// I'll space them out over the whole 28 second cycle.
-		setTimeout(() => {
-			const d = new Date().toISOString().slice(0, 19)
-			api.setPresence(memory.data, mxid).catch(e => {
-				console.error("d->m: Skipping presence update failure:")
-				console.error(e)
-			})
-		}, memory.delay)
+// Cache the list of enabled guilds rather than accessing it like multiple times per second when any user changes presence
+const guildPresenceSetting = new class {
+	/** @private @type {Set<string>} */ guilds
+	constructor() {
+		this.update()
 	}
-}, presenceLoopInterval)
+	update() {
+		this.guilds = new Set(select("guild_space", "guild_id", {presence: 1}).pluck().all())
+	}
+	isEnabled(guildID) {
+		return this.guilds.has(guildID)
+	}
+}
 
+class Presence {
+	/** @type {string} */ userID
+	/** @type {{presence: "online" | "offline" | "unavailable", status_msg?: string}} */ data
+	/** @private @type {?string | undefined} */ mxid
+	/** @private @type {number} */ delay = Math.random()
 
-module.exports.setPresence = setPresence
-module.exports.checkPresenceEnabledGuilds = checkPresenceEnabledGuilds
+	constructor(userID) {
+		this.userID = userID
+	}
+
+	/**
+	 * @param {string} status status field from Discord's PRESENCE_UPDATE event
+	 */
+	setData(status) {
+		const presence =
+			( status === "online" ? "online"
+			: status === "offline" ? "offline"
+			: "unavailable")
+		this.data = {presence}
+	}
+
+	sync(presences) {
+		const mxid = this.mxid ??= select("sim", "mxid", {user_id: this.userID}).pluck().get()
+		if (!mxid) return presences.delete(this.userID)
+		// I haven't tried, but I assume Synapse explodes if you try to update too many presences at the same time.
+		// This random delay will space them out over the whole 28 second cycle.
+		setTimeout(() => {
+			api.setPresence(this.data, mxid).catch(() => {})
+		}, this.delay)
+	}
+}
+
+const presenceTracker = new class {
+	/** @private @type {Map<string, Presence>} userID -> Presence */ presences
+
+	constructor() {
+		sync.addTemporaryInterval(() => this.syncPresences(), presenceLoopInterval)
+	}
+
+	/**
+	 * This function is called for each Discord presence packet.
+	 * @param {string} userID Discord user ID
+	 * @param {string} guildID Discord guild ID that this presence applies to (really, the same presence applies to every single guild, but is delivered separately by Discord for some reason)
+	 * @param {string} status status field from Discord's PRESENCE_UPDATE event
+	 */
+	incomingPresence(userID, guildID, status) {
+		// stop tracking offline presence objects - they will naturally expire and fall offline on the homeserver
+		if (status === "offline") return this.presences.delete(userID)
+		// check if we care about this guild
+		if (!guildPresenceSetting.isEnabled(guildID)) return
+		// start tracking presence for user (we'll check if they have a sim in the next sync loop)
+		this.getOrCreatePresence(userID).setData(status)
+	}
+
+	/** @private */
+	getOrCreatePresence(userID) {
+		return this.presences.get(userID) || (() => {
+			const presence = new Presence(userID)
+			this.presences.set(userID, presence)
+			return presence
+		})()
+	}
+
+	/** @private */
+	syncPresences() {
+		for (const presence of this.presences.values()) {
+			presence.sync(this.presences)
+		}
+	}
+}
+
+module.exports.presenceTracker = presenceTracker
+module.exports.guildPresenceSetting = guildPresenceSetting
