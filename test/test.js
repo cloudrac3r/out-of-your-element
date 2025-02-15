@@ -20,6 +20,10 @@ reg.ooye.server_name = "cadence.moe"
 reg.id = "baby"
 reg.as_token = "don't actually take authenticated actions on the server"
 reg.hs_token = "don't actually take authenticated actions on the server"
+reg.namespaces = {
+	users: [{regex: "@_ooye_.*:cadence.moe", exclusive: true}],
+	aliases: [{regex: "#_ooye_.*:cadence.moe", exclusive: true}]
+}
 reg.ooye.bridge_origin = "https://bridge.example.org"
 
 const sync = new HeatSync({watchFS: false})
