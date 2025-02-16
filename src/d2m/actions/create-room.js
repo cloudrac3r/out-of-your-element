@@ -238,6 +238,7 @@ async function postApplyPowerLevels(kstate, callback) {
 	const powerLevelContent = kstate["m.room.power_levels/"]
 	const kstateWithoutPowerLevels = {...kstate}
 	delete kstateWithoutPowerLevels["m.room.power_levels/"]
+	delete kstateWithoutPowerLevels["chat.schildi.hide_ui/read_receipts"]
 
 	/** @type {string} */
 	const roomID = await callback(kstateWithoutPowerLevels)
