@@ -37,16 +37,15 @@ async function resolvePendingFiles(message) {
 		if ("key" in p) {
 			// Encrypted file
 			const d = crypto.createDecipheriv("aes-256-ctr", Buffer.from(p.key, "base64url"), Buffer.from(p.iv, "base64url"))
-			// @ts-ignore
-			await api.getMedia(p.mxc).then(res => res.body.pipe(d))
+			await api.getMedia(p.mxc).then(res => Readable.fromWeb(res.body).pipe(d))
 			return {
 				name: p.name,
 				file: d
 			}
 		} else {
 			// Unencrypted file
-			/** @type {Readable} */ // @ts-ignore
-			const body = await api.getMedia(p.mxc).then(res => res.body)
+			/** @type {Readable} */
+			const body = await api.getMedia(p.mxc).then(res => Readable.fromWeb(res.body))
 			return {
 				name: p.name,
 				file: body

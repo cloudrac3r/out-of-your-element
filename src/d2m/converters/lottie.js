@@ -21,7 +21,7 @@ const Rlottie = (async () => {
 
 /**
  * @param {string} text
- * @returns {Promise<import("stream").Readable>}
+ * @returns {Promise<NodeJS.ReadableStream>}
  */
 async function convert(text) {
 	const r = await Rlottie

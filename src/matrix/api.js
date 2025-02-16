@@ -343,16 +343,20 @@ async function ping() {
 /**
  * @param {string} mxc
  * @param {RequestInit} [init]
+ * @return {Promise<Response & {body: import("stream/web").ReadableStream<Uint8Array>}>}
  */
-function getMedia(mxc, init = {}) {
+async function getMedia(mxc, init = {}) {
 	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
 	assert(mediaParts)
-	return fetch(`${mreq.baseUrl}/client/v1/media/download/${mediaParts[1]}/${mediaParts[2]}`, {
+	const res = await fetch(`${mreq.baseUrl}/client/v1/media/download/${mediaParts[1]}/${mediaParts[2]}`, {
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
 		},
 		...init
 	})
+	assert(res.body)
+	// @ts-ignore
+	return res
 }
 
 /**
