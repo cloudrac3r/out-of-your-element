@@ -1,6 +1,6 @@
 // @ts-check
 
-const {ReadableStream} = require("stream/web")
+const streamWeb = require("stream/web")
 const {test} = require("supertape")
 const {router} = require("../../test/web")
 const assert = require("assert").strict
@@ -30,7 +30,7 @@ test("web server: compresses static resources", async t => {
 			"accept-encoding": "gzip"
 		}
 	})
-	assert(content instanceof ReadableStream)
+	assert(content instanceof streamWeb.ReadableStream)
 	const firstChunk = await content.getReader().read()
 	t.ok(firstChunk.value instanceof Uint8Array, "can get data")
 	t.deepEqual(firstChunk.value.slice(0, 3), Uint8Array.from([31, 139, 8]), "has compressed gzip header")

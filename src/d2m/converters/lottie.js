@@ -21,7 +21,7 @@ const Rlottie = (async () => {
 
 /**
  * @param {string} text
- * @returns {Promise<NodeJS.ReadableStream>}
+ * @returns {Promise<stream.Readable>}
  */
 async function convert(text) {
 	const r = await Rlottie
@@ -41,6 +41,7 @@ async function convert(text) {
 	png.data = Buffer.from(rendered)
 	// png.pack() is a bad stream and will throw away any data it sends if it's not connected to a destination straight away.
 	// We use Duplex.from to convert it into a good stream.
+	// @ts-ignore
 	return stream.Duplex.from(png.pack())
 }
 

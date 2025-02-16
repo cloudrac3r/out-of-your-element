@@ -1,5 +1,6 @@
 // @ts-check
 
+const assert = require("assert")
 const fs = require("fs")
 const {join} = require("path")
 const h3 = require("h3")
@@ -38,8 +39,8 @@ function compressResponse(event, response) {
 	if (!getRequestHeader(event, "accept-encoding")?.includes("gzip")) return
 	/* c8 ignore next */
 	if (typeof response.body !== "string") return
-	/** @type {ReadableStream} */ // @ts-ignore
 	const stream = new Response(response.body).body
+	assert(stream)
 	setResponseHeader(event, "content-encoding", "gzip")
 	response.body = stream.pipeThrough(new CompressionStream("gzip"))
 }

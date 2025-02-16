@@ -2,7 +2,7 @@
 
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
-const {Readable} = require("stream")
+const stream = require("stream")
 const chunk = require("chunk-text")
 const TurndownService = require("@cloudrac3r/turndown")
 const domino = require("domino")
@@ -820,7 +820,7 @@ async function eventToMessage(event, guild, di) {
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
-	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]})[]} */
+	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
 	const messages = chunks.map(content => ({
 		content,
 		allowed_mentions: {

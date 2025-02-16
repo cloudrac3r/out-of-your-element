@@ -1,8 +1,7 @@
 // @ts-check
 
-const {Readable} = require("stream")
+const stream = require("stream")
 const {sync} = require("../../passthrough")
-const assert = require("assert").strict
 
 /** @type {import("../converters/emoji-sheet")} */
 const emojiSheetConverter = sync.require("../converters/emoji-sheet")
@@ -20,8 +19,7 @@ async function getAndConvertEmoji(mxc) {
 	// If we were using connection pooling, we would be forced to download the entire GIF.
 	// So we set no agent to ensure we are not connection pooling.
 	const res = await api.getMedia(mxc, {signal: abortController.signal})
-	// @ts-ignore
-	const readable = Readable.fromWeb(res.body)
+	const readable = stream.Readable.fromWeb(res.body)
 	return emojiSheetConverter.convertImageStream(readable, () => {
 		abortController.abort()
 		readable.emit("end")

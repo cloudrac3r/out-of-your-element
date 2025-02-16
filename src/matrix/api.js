@@ -2,6 +2,7 @@
 
 const Ty = require("../types")
 const assert = require("assert").strict
+const streamWeb = require("stream/web")
 
 const passthrough = require("../passthrough")
 const {sync} = passthrough
@@ -343,7 +344,7 @@ async function ping() {
 /**
  * @param {string} mxc
  * @param {RequestInit} [init]
- * @return {Promise<Response & {body: import("stream/web").ReadableStream<Uint8Array>}>}
+ * @return {Promise<Response & {body: streamWeb.ReadableStream<Uint8Array>}>}
  */
 async function getMedia(mxc, init = {}) {
 	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)

@@ -1,6 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
+const stream = require("stream")
 const {pipeline} = require("stream").promises
 const sharp = require("sharp")
 const {GIFrame} = require("@cloudrac3r/giframe")
@@ -48,7 +49,7 @@ async function compositeMatrixEmojis(mxcs, mxcDownloader) {
 }
 
 /**
- * @param {NodeJS.ReadableStream} streamIn
+ * @param {stream.Readable} streamIn
  * @param {() => any} stopStream
  * @returns {Promise<Buffer | undefined>} Uncompressed PNG image
  */

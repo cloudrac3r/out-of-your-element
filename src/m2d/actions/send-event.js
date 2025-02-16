@@ -2,7 +2,7 @@
 
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
-const {Readable} = require("stream")
+const stream = require("stream")
 const assert = require("assert").strict
 const crypto = require("crypto")
 const passthrough = require("../../passthrough")
@@ -22,8 +22,8 @@ const editMessage = sync.require("../../d2m/actions/edit-message")
 const emojiSheet = sync.require("../actions/emoji-sheet")
 
 /**
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | Readable})[]}} message
- * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Readable}[]}>}
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | stream.Readable})[]}} message
+ * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}>}
  */
 async function resolvePendingFiles(message) {
 	if (!message.pendingFiles) return message
@@ -37,15 +37,14 @@ async function resolvePendingFiles(message) {
 		if ("key" in p) {
 			// Encrypted file
 			const d = crypto.createDecipheriv("aes-256-ctr", Buffer.from(p.key, "base64url"), Buffer.from(p.iv, "base64url"))
-			await api.getMedia(p.mxc).then(res => Readable.fromWeb(res.body).pipe(d))
+			await api.getMedia(p.mxc).then(res => stream.Readable.fromWeb(res.body).pipe(d))
 			return {
 				name: p.name,
 				file: d
 			}
 		} else {
 			// Unencrypted file
-			/** @type {Readable} */
-			const body = await api.getMedia(p.mxc).then(res => Readable.fromWeb(res.body))
+			const body = await api.getMedia(p.mxc).then(res => stream.Readable.fromWeb(res.body))
 			return {
 				name: p.name,
 				file: body

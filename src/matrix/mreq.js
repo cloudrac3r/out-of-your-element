@@ -2,7 +2,7 @@
 
 const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
-const {ReadableStream} = require("stream/web")
+const streamWeb = require("stream/web")
 const getStream = require("get-stream")
 
 const {reg, writeRegistration} = require("./read-registration.js")
@@ -22,7 +22,7 @@ class MatrixServerError extends Error {
 /**
  * @param {string} method
  * @param {string} url
- * @param {string | object | ReadableStream | stream.Readable} [body]
+ * @param {string | object | streamWeb.ReadableStream | stream.Readable} [body]
  * @param {any} [extra]
  */
 async function mreq(method, url, body, extra = {}) {
@@ -30,7 +30,7 @@ async function mreq(method, url, body, extra = {}) {
 		body = JSON.stringify(body)
 	} else if (body instanceof stream.Readable && reg.ooye.content_length_workaround) {
 		body = await getStream.buffer(body)
-	} else if (body instanceof ReadableStream && reg.ooye.content_length_workaround) {
+	} else if (body instanceof streamWeb.ReadableStream && reg.ooye.content_length_workaround) {
 		body = await stream.consumers.buffer(stream.Readable.fromWeb(body))
 	}
 

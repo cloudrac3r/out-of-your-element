@@ -33,7 +33,7 @@ async function convert(stickerItem) {
 	if (res.status !== 200) throw new Error("Sticker data file not found.")
 	const text = await res.text()
 
-	// Convert to PNG (readable stream)
+	// Convert to PNG (stream.Readable)
 	const readablePng = await convertLottie.convert(text)
 
 	// Upload to MXC
