@@ -164,8 +164,11 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	const selfPowerLevel = powerLevelsStateContent?.users?.[me] || powerLevelsStateContent?.users_default || 0
 	if (selfPowerLevel < (powerLevelsStateContent?.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
 
-	// Insert database entry
-	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id) VALUES (?, ?, ?, ?)").run(channel.id, parsedBody.matrix, channel.name, guildID)
+	// Insert database entry, but keep the room's existing properties if they are set
+	const nick = await api.getStateEvent(parsedBody.matrix, "m.room.name", "").then(content => content.name || null).catch(() => null)
+	const avatar = await api.getStateEvent(parsedBody.matrix, "m.room.avatar", "").then(content => content.url || null).catch(() => null)
+	const topic = await api.getStateEvent(parsedBody.matrix, "m.room.topic", "").then(content => content.topic || null).catch(() => null)
+	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id, nick, custom_avatar, custom_topic) VALUES (?, ?, ?, ?, ?, ?, ?)").run(channel.id, parsedBody.matrix, channel.name, guildID, nick, avatar, topic)
 
 	// Sync room data and space child
 	await createRoom.syncRoom(parsedBody.discord)

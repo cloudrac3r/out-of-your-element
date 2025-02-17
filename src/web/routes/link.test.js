@@ -508,12 +508,13 @@ test("web link room: successfully calls createRoom", async t => {
 				return roomID
 			},
 			async getStateEvent(roomID, type, key) {
-				called++
 				if (type === "m.room.power_levels") {
+					called++
 					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
 					t.equal(key, "")
 					return {users: {"@_ooye_bot:cadence.moe": 100}}
 				} else if (type === "m.space.child") {
+					called++
 					t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 					t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
 					return {via: ["cadence.moe"]}
