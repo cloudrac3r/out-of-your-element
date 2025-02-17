@@ -107,7 +107,10 @@ module.exports = {
 		const bridgedChannels = select("channel_room", "channel_id").pluck().all()
 		const preparedExists = db.prepare("SELECT channel_id FROM message_channel WHERE channel_id = ? LIMIT 1")
 		const preparedGet = select("event_message", "event_id", {}, "WHERE message_id = ?").pluck()
-		for (const channel of guild.channels.concat(guild.threads)) {
+		/** @type {(DiscordTypes.APIChannel & {type: DiscordTypes.GuildChannelType})[]} */
+		let channels = []
+		channels = channels.concat(guild.channels, guild.threads)
+		for (const channel of channels) {
 			if (!bridgedChannels.includes(channel.id)) continue
 			if (!("last_message_id" in channel) || !channel.last_message_id) continue
 
