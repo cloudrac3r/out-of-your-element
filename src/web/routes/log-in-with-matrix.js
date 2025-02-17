@@ -17,10 +17,12 @@ const auth = sync.require("../auth")
 
 const schema = {
 	form: z.object({
-		mxid: z.string()
+		mxid: z.string(),
+		next: z.string().optional()
 	}),
 	token: z.object({
-		token: z.string()
+		token: z.string().optional(),
+		next: z.string().optional()
 	})
 }
 
@@ -43,17 +45,16 @@ const validToken = new LRUCache({max: 200})
 */
 
 as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
-	const parsed = await getValidatedQuery(event, schema.token.safeParse)
+	let {token, next} = await getValidatedQuery(event, schema.token.parse)
 
-	if (!parsed.success) {
+	if (!token) {
 		// We are in the first request and need to tell them to input their mxid
-		return pugSync.render(event, "log-in-with-matrix.pug", {})
+		return pugSync.render(event, "log-in-with-matrix.pug", {next})
 	}
 
 	const userAgent = getRequestHeader(event, "User-Agent")
 	if (userAgent?.match(/bot/)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
 
-	const token = parsed.data.token
 	if (!validToken.has(token)) return sendRedirect(event, `${reg.ooye.bridge_origin}/log-in-with-matrix`, 302)
 
 	const session = await auth.useSession(event)
@@ -63,12 +64,13 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 
 	await session.update({mxid})
 
-	return sendRedirect(event, "./", 302) // open to homepage where they can see they're logged in
+	if (!next) next = "./" // open to homepage where they can see they're logged in
+	return sendRedirect(event, next, 302)
 }))
 
 as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 	const api = getAPI(event)
-	const {mxid} = await readValidatedBody(event, schema.form.parse)
+	const {mxid, next} = await readValidatedBody(event, schema.form.parse)
 	let roomID = null
 
 	// Don't extend a duplicate invite for the same user
@@ -117,7 +119,11 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 	validToken.set(token, mxid)
 
 	console.log(`web log in requested for ${mxid}`)
-	const body = `Hi, this is Out Of Your Element! You just clicked the "log in" button on the website.\nOpen this link to finish: ${reg.ooye.bridge_origin}/log-in-with-matrix?token=${token}\nThe link can be used once.`
+	const paramsObject = {token}
+	if (next) paramsObject.next = next
+	const params = new URLSearchParams(paramsObject)
+	let link = `${reg.ooye.bridge_origin}/log-in-with-matrix?${params.toString()}`
+	const body = `Hi, this is Out Of Your Element! You just clicked the "log in" button on the website.\nOpen this link to finish: ${link}\nThe link can be used once.`
 	await api.sendEvent(roomID, "m.room.message", {
 		msgtype: "m.text",
 		body

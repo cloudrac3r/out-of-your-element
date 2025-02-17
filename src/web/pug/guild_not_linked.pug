@@ -18,8 +18,10 @@ block body
     div
       != icons.Icons.IconInfo
     div
+      - const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
       strong You picked self-service mode
       .mt4 To complete setup, you need to manually choose a Matrix space to link with #[strong= guild.name].
+      .mt4 On Matrix, invite #[code.s-code-block: a.fc-black.s-link(href=`https://matrix.to/#/${self}` target="_blank")= self] to a space. Then you can pick the space on this page.
 
   h3.mt32.fs-category Choose a space
 
@@ -33,13 +35,12 @@ block body
       else
         if session.data.mxid
           tr
-            - const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-            td.p16 On Matrix, invite #[code.s-code-block: a.s-link(href=`https://matrix.to/#/${self}` target="_blank")= self] to a space. Then you can pick it from this list.
+            td.p16 Invite the bridge to a space, and the space will show up here.
         else
           tr
             td.d-flex.ai-center.pl16.g16
               | You need to log in with Matrix first.
-              a.s-btn.s-btn__matrix.s-btn__outlined(href=rel("/log-in-with-matrix")) Log in with Matrix
+              a.s-btn.s-btn__matrix.s-btn__outlined(href=rel(`/log-in-with-matrix`, {next: `./guild?guild_id=${guild_id}`})) Log in with Matrix
 
   h3.mt48.fs-category Auto-create
   .s-card

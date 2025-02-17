@@ -39,7 +39,14 @@ function render(event, filename, locals) {
 				defaultContentType(event, "text/html; charset=utf-8")
 				const session = await auth.useSession(event)
 				const managed = await auth.getManagedGuilds(event)
-				const rel = x => getRelativePath(event.path, x)
+				const rel = (to, paramsObject) => {
+					let result = getRelativePath(event.path, to)
+					if (paramsObject) {
+						const params = new URLSearchParams(paramsObject)
+						result += "?" + params.toString()
+					}
+					return result
+				}
 				return template(Object.assign({},
 					getQuery(event), // Query parameters can be easily accessed on the top level but don't allow them to overwrite anything
 					globals, // Globals

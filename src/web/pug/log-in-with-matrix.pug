@@ -7,6 +7,8 @@ block body
   .d-flex.g16#form-container
     .fl-grow1
       form.d-flex.gy16.fd-column(method="post" action="/api/log-in-with-matrix" hx-post="/api/log-in-with-matrix" hx-indicator="#log-in-button" hx-select="#ok" hx-target="#form-container")
+        if next
+          input(type="hidden" name="next" value=next)
         .d-flex.gy4.fd-column
           label.s-label(for="mxid") Your Matrix ID
           input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
