@@ -38,7 +38,7 @@ const guildPresenceSetting = new class {
 	}
 }
 
-class Presence extends sync.ReloadableClass {
+class Presence extends sync.reloadClassMethods(() => Presence) {
 	/** @type {string} */ userID
 	/** @type {{presence: "online" | "offline" | "unavailable", status_msg?: string}} */ data
 	/** @private @type {?string | undefined} */ mxid
@@ -70,7 +70,6 @@ class Presence extends sync.ReloadableClass {
 		}, this.delay * presenceLoopInterval).unref()
 	}
 }
-sync.reloadClassMethods(Presence)
 
 const presenceTracker = new class {
 	/** @private @type {Map<string, Presence>} userID -> Presence */ presences = sync.remember(() => new Map())
