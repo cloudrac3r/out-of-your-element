@@ -1,7 +1,7 @@
 const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
 const data = require("../../../test/data")
-const Ty = require("../../types")
+const {db} = require("../../passthrough")
 
 test("message2event embeds: nothing but a field", async t => {
 	const events = await messageToEvent(data.message_with_embeds.nothing_but_a_field, data.guild.general, {})
@@ -348,6 +348,19 @@ test("message2event embeds: if discord creates an embed preview for a discord ch
 		body: "(test https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU?via=cadence.moe&via=matrix.org)",
 		format: "org.matrix.custom.html",
 		formatted_body: `(test <a href="https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$NB6nPgO2tfXyIwwDSF0Ga0BUrsgX1S-0Xl-jAvI8ucU?via=cadence.moe&amp;via=matrix.org</a>)`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event embeds: nothing generated if embeds are disabled in settings", async t => {
+	db.prepare("UPDATE guild_space SET url_preview = 0 WHERE guild_id = ?").run(data.guild.general.id)
+	const events = await messageToEvent(data.message_with_embeds.youtube_video, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E\n\n\nJutomi I'm gonna make these sounds in your walls tonight",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E">https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E</a><br><br><br>Jutomi I'm gonna make these sounds in your walls tonight`,
 		"m.mentions": {}
 	}])
 })

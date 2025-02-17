@@ -34,6 +34,7 @@ export type Models = {
 		space_id: string
 		privacy_level: number
 		presence: 0 | 1
+		url_preview: 0 | 1
 	}
 
 	guild_active: {

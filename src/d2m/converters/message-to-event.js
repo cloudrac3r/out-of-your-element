@@ -597,7 +597,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Then embeds
+	const urlPreviewEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 	for (const embed of message.embeds || []) {
+		if (!urlPreviewEnabled && !message.author?.bot) {
+			continue // show embeds for everyone if enabled, or bot users only if disabled (bots often send content in embeds)
+		}
+
 		if (embed.type === "image") {
 			continue // Matrix's own URL previews are fine for images.
 		}

@@ -27,6 +27,10 @@ const schema = {
 		guild_id: z.string(),
 		autocreate: z.string().optional()
 	}),
+	urlPreview: z.object({
+		guild_id: z.string(),
+		url_preview: z.string().optional()
+	}),
 	presence: z.object({
 		guild_id: z.string(),
 		presence: z.string().optional()
@@ -53,6 +57,16 @@ as.router.post("/api/autocreate", defineEventHandler(async event => {
 			return sendRedirect(event, "", 302)
 		}
 	}
+
+	return null // 204
+}))
+
+as.router.post("/api/url-preview", defineEventHandler(async event => {
+	const parsedBody = await readValidatedBody(event, schema.urlPreview.parse)
+	const managed = await auth.getManagedGuilds(event)
+	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+
+	db.prepare("UPDATE guild_space SET url_preview = ? WHERE guild_id = ?").run(+!!parsedBody.url_preview, parsedBody.guild_id)
 
 	return null // 204
 }))

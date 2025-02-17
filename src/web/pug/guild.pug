@@ -102,13 +102,24 @@ block body
       #autocreate-loading
 
   if space_id
+    h3.mt32.fs-category URL preview
+    .s-card
+      form.d-flex.ai-center.g8
+        label.s-label.fl-grow1(for="url-preview")
+          | Show Discord's URL previews on Matrix
+          p.s-description Shows info about links posted to chat. Discord's previews are generally better quality than Synapse's, especially for social media and videos.
+        - let value = !!select("guild_space", "url_preview", {guild_id}).pluck().get()
+        input(type="hidden" name="guild_id" value=guild_id)
+        input.s-toggle-switch.order-last#autocreate(name="url_preview" type="checkbox" hx-post="/api/url-preview" hx-indicator="#url-preview-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        #url-preview-loading
+
     h3.mt32.fs-category Presence
     .s-card
       form.d-flex.ai-center.g8
         label.s-label.fl-grow1(for="presence")
           | Show online statuses on Matrix
           p.s-description This might cause lag on really big Discord servers.
-        - let value = !!select("guild_space", "presence", {guild_id}).pluck().get()
+        - value = !!select("guild_space", "presence", {guild_id}).pluck().get()
         input(type="hidden" name="guild_id" value=guild_id)
         input.s-toggle-switch.order-last#autocreate(name="presence" type="checkbox" hx-post="/api/presence" hx-indicator="#presence-loading" hx-disabled-elt="this" checked=value autocomplete="off")
         #presence-loading
