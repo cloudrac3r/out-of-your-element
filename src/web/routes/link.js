@@ -7,7 +7,9 @@ const DiscordTypes = require("discord-api-types/v10")
 
 const {discord, db, as, sync, select, from} = require("../../passthrough")
 /** @type {import("../auth")} */
-const auth = require("../auth")
+const auth = sync.require("../auth")
+/** @type {import("../../matrix/mreq")} */
+const mreq = sync.require("../../matrix/mreq")
 const {reg} = require("../../matrix/read-registration")
 
 /**
@@ -74,21 +76,23 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	if (existing) throw createError({status: 400, message: "Bad Request", data: `Guild ID ${guildID} or space ID ${spaceID} are already bridged and cannot be reused`})
 
 	// Check space exists and bridge is joined
-	const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-	/** @type {Ty.Event.M_Room_Member?} */
-	let memberEvent = null
 	try {
-		memberEvent = await api.getStateEvent(spaceID, "m.room.member", self)
-	} catch (e) {}
-	if (memberEvent?.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix space does not exist"})
+		await api.joinRoom(parsedBody.space_id)
+	} catch (e) {
+		if (e instanceof mreq.MatrixServerError) {
+			throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
+		}
+		throw e
+	}
 
 	// Check bridge has PL 100
+	const me = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 	/** @type {Ty.Event.M_Power_Levels?} */
 	let powerLevelsStateContent = null
 	try {
 		powerLevelsStateContent = await api.getStateEvent(spaceID, "m.room.power_levels", "")
 	} catch (e) {}
-	const selfPowerLevel = powerLevelsStateContent?.users?.[self] || powerLevelsStateContent?.users_default || 0
+	const selfPowerLevel = powerLevelsStateContent?.users?.[me] || powerLevelsStateContent?.users_default || 0
 	if (selfPowerLevel < (powerLevelsStateContent?.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix space"})
 
 	// Check inviting user is a moderator in the space
@@ -141,21 +145,23 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	if (!Array.isArray(spaceChildEvent?.via)) throw createError({status: 400, message: "Bad Request", data: "Matrix room needs to be part of the bridged space"})
 
 	// Check room exists and bridge is joined
-	const self = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-	/** @type {Ty.Event.M_Room_Member?} */
-	let memberEvent = null
 	try {
-		memberEvent = await api.getStateEvent(parsedBody.matrix, "m.room.member", self)
-	} catch (e) {}
-	if (memberEvent?.membership !== "join") throw createError({status: 400, message: "Bad Request", data: "Matrix room does not exist"})
+		await api.joinRoom(parsedBody.matrix)
+	} catch (e) {
+		if (e instanceof mreq.MatrixServerError) {
+			throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
+		}
+		throw e
+	}
 
 	// Check bridge has PL 100
+	const me = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 	/** @type {Ty.Event.M_Power_Levels?} */
 	let powerLevelsStateContent = null
 	try {
 		powerLevelsStateContent = await api.getStateEvent(parsedBody.matrix, "m.room.power_levels", "")
 	} catch (e) {}
-	const selfPowerLevel = powerLevelsStateContent?.users?.[self] || powerLevelsStateContent?.users_default || 0
+	const selfPowerLevel = powerLevelsStateContent?.users?.[me] || powerLevelsStateContent?.users_default || 0
 	if (selfPowerLevel < (powerLevelsStateContent?.state_default || 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
 
 	// Insert database entry
