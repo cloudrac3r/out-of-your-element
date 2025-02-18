@@ -23,7 +23,16 @@ async function addReaction(event) {
 	const discordPreferredEncoding = await emoji.encodeEmoji(key, event.content.shortcode)
 	if (!discordPreferredEncoding) return
 
-	await discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding) // acting as the discord bot itself
+	try {
+		await discord.snow.channel.createReaction(channelID, messageID, discordPreferredEncoding) // acting as the discord bot itself
+	} catch (e) {
+		if (e.message?.includes("Maximum number of reactions reached")) {
+			// we'll silence this particular error to avoid spamming the chat
+			// not adding it to the database otherwise a m->d removal would try calling the API
+			return
+		}
+		throw e
+	}
 
 	db.prepare("REPLACE INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES (?, ?, ?)").run(utils.getEventIDHash(event.event_id), messageID, discordPreferredEncoding)
 }
