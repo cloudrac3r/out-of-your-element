@@ -17,7 +17,7 @@ const auth = sync.require("../auth")
 
 const schema = {
 	form: z.object({
-		mxid: z.string(),
+		mxid: z.string().regex(/^@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)$/),
 		next: z.string().optional()
 	}),
 	token: z.object({

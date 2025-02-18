@@ -16,6 +16,24 @@ test("log in with matrix: shows web page with form on first request", async t =>
 
 let token
 
+test("log in with matrix: checks if mxid format looks valid", async t => {
+	const [error] = await tryToCatch(() => router.test("post", "/api/log-in-with-matrix", {
+		body: {
+			mxid: "x@cadence:cadence.moe"
+		}
+	}))
+	t.equal(error.data.issues[0].validation, "regex")
+})
+
+test("log in with matrix: checks if mxid domain format looks valid", async t => {
+	const [error] = await tryToCatch(() => router.test("post", "/api/log-in-with-matrix", {
+		body: {
+			mxid: "@cadence:cadence."
+		}
+	}))
+	t.equal(error.data.issues[0].validation, "regex")
+})
+
 test("log in with matrix: sends message when there is no m.direct data", async t => {
 	const event = {}
 	let called = 0
