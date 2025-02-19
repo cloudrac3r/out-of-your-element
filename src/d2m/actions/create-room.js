@@ -480,22 +480,22 @@ async function unbridgeDeletedChannel(channel, guildID) {
 		// remove room from being a space member
 		await api.sendState(roomID, "m.space.parent", row.space_id, {})
 		await api.sendState(row.space_id, "m.space.child", roomID, {})
-
-		// leave room
-		await api.leaveRoom(roomID)
 	}
 
 	// if it is a self-service room, remove sim members
 	// (the room can be used with less clutter and the member list makes sense if it's bridged somewhere else)
 	if (row.autocreate === 0) {
 		// remove sim members
-		const members = select("sim_member", "mxid", {room_id: roomID}).pluck().all()
+		const members = db.prepare("SELECT mxid FROM sim_member WHERE room_id = ? AND mxid <> ?").pluck().all(roomID, bot)
 		const preparedDelete = db.prepare("DELETE FROM sim_member WHERE room_id = ? AND mxid = ?")
 		for (const mxid of members) {
 			await api.leaveRoom(roomID, mxid)
 			preparedDelete.run(roomID, mxid)
 		}
 	}
+
+	// leave room
+	await api.leaveRoom(roomID)
 }
 
 /**

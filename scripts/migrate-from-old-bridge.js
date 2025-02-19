@@ -115,7 +115,7 @@ async function migrateGuild(guild) {
 			// (By the way, thread_parent is always null here because thread rooms would never be migrated because they are not in the old bridge.)
 			db.transaction(() => {
 				db.prepare("DELETE FROM channel_room WHERE channel_id = ?").run(channel.id)
-				db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, custom_avatar) VALUES (?, ?, ?, ?, ?)").run(channel.id, row.matrix_id, channel.name, preMigrationRow.nick, preMigrationRow.custom_avatar)
+				db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, custom_avatar, guild_id) VALUES (?, ?, ?, ?, ?, ?)").run(channel.id, row.matrix_id, channel.name, preMigrationRow.nick, preMigrationRow.custom_avatar, guild.id)
 				console.log(`-- -- Added to database (transferred properties from previous OOYE room)`)
 			})()
 		} else {

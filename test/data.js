@@ -105,6 +105,7 @@ module.exports = {
 		}
 	},
 	guild: {
+		/** @type {DiscordTypes.APIGuild} */ // @ts-ignore
 		general: {
 			owner_id: "112760500130975744",
 			premium_tier: 3,
