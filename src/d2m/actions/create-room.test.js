@@ -153,6 +153,9 @@ test("channel2room: read-only discord channel", async t => {
 		},
 		"m.room.power_levels/": {
 			events_default: 50, // <-- it should be read-only!
+			events: {
+				"m.reaction": 0
+			},
 			notifications: {
 				room: 20,
 			},

@@ -74,6 +74,9 @@ module.exports = {
 			},
 			"m.room.power_levels/": {
 				events_default: 0,
+				events: {
+					"m.reaction": 0
+				},
 				users: {
 					"@test_auto_invite:example.org": 100
 				},

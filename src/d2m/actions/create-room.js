@@ -146,6 +146,9 @@ async function channelToKState(channel, guild, di) {
 		/** @type {Ty.Event.M_Power_Levels} */
 		"m.room.power_levels/": {
 			events_default: everyoneCanSend ? 0 : 50,
+			events: {
+				"m.reaction": 0
+			},
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
 			},
