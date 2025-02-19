@@ -5,7 +5,7 @@ const util = require("util")
 const {addbot} = require("../addbot")
 
 const passthrough = require("./passthrough")
-const {discord, sync, db} = passthrough
+const {discord, sync, db, select, from, as} = passthrough
 
 const data = sync.require("../test/data")
 const createSpace = sync.require("./d2m/actions/create-space")
@@ -20,19 +20,17 @@ const updatePins = sync.require("./d2m/actions/update-pins")
 const speedbump = sync.require("./d2m/actions/speedbump")
 const ks = sync.require("./matrix/kstate")
 const setPresence = sync.require("./d2m/actions/set-presence")
+const channelWebhook = sync.require("./m2d/actions/channel-webhook")
 const guildID = "112760669178241024"
 
-const extraContext = {}
-
 if (process.stdin.isTTY) {
-	setImmediate(() => { // assign after since old extraContext data will get removed
+	setImmediate(() => {
 		if (!passthrough.repl) {
 			const cli = repl.start({ prompt: "", eval: customEval, writer: s => s })
-			Object.assign(cli.context, extraContext, passthrough)
+			Object.assign(cli.context, passthrough)
 			passthrough.repl = cli
-		} else {
-			Object.assign(passthrough.repl.context, extraContext)
 		}
+		// @ts-ignore
 		sync.addTemporaryListener(passthrough.repl, "exit", () => process.exit())
 	})
 }
@@ -61,9 +59,3 @@ async function customEval(input, _context, _filename, callback) {
 		return callback(null, util.inspect(e, false, 100, true))
 	}
 }
-
-sync.events.once(__filename, () => {
-	for (const key in extraContext) {
-		delete passthrough.repl.context[key]
-	}
-})
