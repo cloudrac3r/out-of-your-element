@@ -56,9 +56,9 @@ block body
     .fl-grow1
       h2.fs-headline1 Invite a Matrix user
 
-      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" hx-post="/api/invite" hx-indicator="#invite-button")
+      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" hx-post="/api/invite" hx-trigger="submit" hx-swap="none" hx-on::after-request="if (event.detail.successful) this.reset()" hx-disabled-elt="input, button" hx-indicator="#invite-button")
         label.s-label(for="mxid") Matrix ID
-        input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")
+        input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org" pattern="@([^:]+):([a-z0-9:\-]+\.[a-z0-9.:\-]+)")
         label.s-label(for="permissions") Permissions
         .s-select
           select#permissions(name="permissions")
