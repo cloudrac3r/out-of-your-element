@@ -9,6 +9,49 @@ mixin guild(guild)
     ul.s-user-card--awards
       li #{discord.guildChannelMap.get(guild.id).filter(c => [0, 5, 15, 16].includes(discord.channels.get(c).type)).length} channels
 
+mixin define-theme(name, h, s, l)
+  style.
+    :root {
+      --#{name}-h: #{h};
+      --#{name}-s: #{s};
+      --#{name}-l: #{l};
+      --#{name}: var(--#{name}-400);
+      --#{name}-100: hsl(var(--#{name}-h), calc(var(--#{name}-s) + 0 * 1%), clamp(70%, calc(var(--#{name}-l) + 50 * 1%), 95%));
+      --#{name}-200: hsl(var(--#{name}-h), calc(var(--#{name}-s) + 0 * 1%), clamp(55%, calc(var(--#{name}-l) + 35 * 1%), 90%));
+      --#{name}-300: hsl(var(--#{name}-h), calc(var(--#{name}-s) + 0 * 1%), clamp(35%, calc(var(--#{name}-l) + 15 * 1%), 75%));
+      --#{name}-400: hsl(var(--#{name}-h), calc(var(--#{name}-s) + 0 * 1%), clamp(20%, calc(var(--#{name}-l) + 0 * 1%), 60%));
+      --#{name}-500: hsl(var(--#{name}-h), calc(var(--#{name}-s) + 0 * 1%), clamp(15%, calc(var(--#{name}-l) + -14 * 1%), 45%));
+      --#{name}-600: hsl(var(--#{name}-h), calc(var(--#{name}-s) + 0 * 1%), clamp(5%, calc(var(--#{name}-l) + -26 * 1%), 30%));
+    }
+
+mixin define-themed-button(name, theme)
+  style.
+    .s-btn.s-btn__#{name} {
+      --_bu-bg-active: var(--#{theme}-300);
+      --_bu-bg-hover: var(--#{theme}-200);
+      --_bu-bg-selected: var(--#{theme}-300);
+      --_bu-fc: var(--#{theme}-500);
+      --_bu-fc-active: var(--_bu-fc);
+      --_bu-fc-hover: var(--#{theme}-500);
+      --_bu-fc-selected: var(--#{theme}-600);
+      --_bu-filled-bc: transparent;
+      --_bu-filled-bc-selected: var(--_bu-filled-bc);
+      --_bu-filled-bg: var(--#{theme}-400);
+      --_bu-filled-bg-active: var(--#{theme}-500);
+      --_bu-filled-bg-hover: var(--#{theme}-500);
+      --_bu-filled-bg-selected: var(--#{theme}-600);
+      --_bu-filled-fc: var(--white);
+      --_bu-filled-fc-active: var(--_bu-filled-fc);
+      --_bu-filled-fc-hover: var(--_bu-filled-fc);
+      --_bu-filled-fc-selected: var(--_bu-filled-fc);
+      --_bu-outlined-bc: var(--#{theme}-400);
+      --_bu-outlined-bc-selected: var(--#{theme}-500);
+      --_bu-outlined-bg-selected: var(--_bu-bg-selected);
+      --_bu-outlined-fc-selected: var(--_bu-fc-selected);
+      --_bu-number-fc: var(--white);
+      --_bu-number-fc-filled: var(--#{theme});
+    }
+
 doctype html
 html(lang="en")
   head
@@ -30,34 +73,12 @@ html(lang="en")
         --_ts-multiple-bg: var(--green-400);
         --_ts-multiple-fc: var(--white);
       }
-      .s-btn.s-btn__matrix {
-        --_bu-bg-active: var(--black-300);
-        --_bu-bg-hover: var(--black-200);
-        --_bu-bg-selected: var(--black-300);
-        --_bu-fc: var(--black-500);
-        --_bu-fc-active: var(--_bu-fc);
-        --_bu-fc-hover: var(--black-500);
-        --_bu-fc-selected: var(--black-600);
-        --_bu-filled-bc: transparent;
-        --_bu-filled-bc-selected: var(--_bu-filled-bc);
-        --_bu-filled-bg: var(--black-400);
-        --_bu-filled-bg-active: var(--black-500);
-        --_bu-filled-bg-hover: var(--black-500);
-        --_bu-filled-bg-selected: var(--black-600);
-        --_bu-filled-fc: var(--white);
-        --_bu-filled-fc-active: var(--_bu-filled-fc);
-        --_bu-filled-fc-hover: var(--_bu-filled-fc);
-        --_bu-filled-fc-selected: var(--_bu-filled-fc);
-        --_bu-outlined-bc: var(--black-400);
-        --_bu-outlined-bc-selected: var(--black-500);
-        --_bu-outlined-bg-selected: var(--_bu-bg-selected);
-        --_bu-outlined-fc-selected: var(--_bu-fc-selected);
-        --_bu-number-fc: var(--white);
-        --_bu-number-fc-filled: var(--black);
-      }
       .s-btn__dropdown:has(+ :popover-open) {
         background-color: var(--theme-topbar-item-background-hover, var(--black-200)) !important;
       }
+    +define-theme("blurple", "236", "84%", "64%")
+    +define-themed-button("blurple", "blurple")
+    +define-themed-button("matrix", "black")
   body.themed.theme-system
     header.s-topbar
       .s-topbar--skip-link(href="#content") Skip to main content
@@ -72,7 +93,7 @@ html(lang="en")
                   != icons.Icons.IconSpeechBubble
                   = ` Log in with Matrix`
               if !session.data.userID
-                a.s-btn.s-btn__icon.s-btn__featured.s-btn__outlined.as-center(href=rel("/oauth"))
+                a.s-btn.s-btn__icon.s-btn__blurple.s-btn__outlined.as-center(href=rel("/oauth"))
                   != icons.Icons.IconDiscord
                   = ` Log in with Discord`
               if guild_id && managed.has(guild_id) && discord.guilds.has(guild_id)
