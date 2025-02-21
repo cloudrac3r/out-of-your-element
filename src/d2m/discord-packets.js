@@ -6,8 +6,9 @@ const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../passthrough")
 const {sync, db} = passthrough
 
-/** @type {{run: (guildID: string, channelID: string) => any}} */
-const populateGuildID = db.prepare("UPDATE channel_room SET guild_id = ? WHERE channel_id = ?")
+function populateGuildID(guildID, channelID) {
+	db.prepare("UPDATE channel_room SET guild_id = ? WHERE channel_id = ?").run(guildID, channelID)
+}
 
 const utils = {
 	/**
@@ -39,14 +40,14 @@ const utils = {
 				channel.guild_id = message.d.id
 				arr.push(channel.id)
 				client.channels.set(channel.id, channel)
-				populateGuildID.run(message.d.id, channel.id)
+				populateGuildID(message.d.id, channel.id)
 			}
 			for (const thread of message.d.threads || []) {
 				// @ts-ignore
 				thread.guild_id = message.d.id
 				arr.push(thread.id)
 				client.channels.set(thread.id, thread)
-				populateGuildID.run(message.d.id, thread.id)
+				populateGuildID(message.d.id, thread.id)
 			}
 
 			if (listen === "full") {
@@ -103,7 +104,7 @@ const utils = {
 		} else if (message.t === "THREAD_CREATE") {
 			client.channels.set(message.d.id, message.d)
 			if (message.d["guild_id"]) {
-				populateGuildID.run(message.d["guild_id"], message.d.id)
+				populateGuildID(message.d["guild_id"], message.d.id)
 				const channels = client.guildChannelMap.get(message.d["guild_id"])
 				if (channels && !channels.includes(message.d.id)) channels.push(message.d.id)
 			}
@@ -131,7 +132,7 @@ const utils = {
 		} else if (message.t === "CHANNEL_CREATE") {
 			client.channels.set(message.d.id, message.d)
 			if (message.d["guild_id"]) { // obj[prop] notation can be used to access a property without typescript complaining that it doesn't exist on all values something can have
-				populateGuildID.run(message.d["guild_id"], message.d.id)
+				populateGuildID(message.d["guild_id"], message.d.id)
 				const channels = client.guildChannelMap.get(message.d["guild_id"])
 				if (channels && !channels.includes(message.d.id)) channels.push(message.d.id)
 			}
