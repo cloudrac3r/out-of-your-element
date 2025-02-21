@@ -54,50 +54,6 @@ It doesn't have to have its own dedicated domain name, you can also use a sub-pa
 
 You are likely already using a reverse proxy for running your homeserver, so this should just be a configuration change.
 
-## Example configuration for nginx, dedicated domain name
+## Example configurations
 
-Replace `bridge.cadence.moe` with the hostname you're using.
-
-```nix
-server {
-	listen 80;
-	listen [::]:80;
-	server_name bridge.cadence.moe;
-
-	return 301 https://bridge.cadence.moe$request_uri;
-}
-
-server {
-	listen 443 ssl http2;
-	listen [::]:443 ssl http2;
-	server_name bridge.cadence.moe;
-
-	# ssl parameters here...
-	client_max_body_size 5M;
-
-	location / {
-		add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
-		proxy_pass http://127.0.0.1:6693;
-	}
-}
-```
-
-## Example configuration for nginx, sharing a domain name
-
-Same as above, but change the following:
-
-- `location / {` -> `location /ooye/ {` (any sub-path you want; you MUST use a trailing slash or it won't work)
-- `proxy_pass http://127.0.0.1:6693;` -> `proxy_pass http://127.0.0.1:6693/;` (you MUST use a trailing slash on this too or it won't work)
-
-## Example configuration for Caddy, dedicated domain name
-
-```nix
-bridge.cadence.moe {
-	log {
-		output file /var/log/caddy/access.log
-		format console
-	}
-	encode gzip
-	reverse_proxy 127.0.0.1:6693
-}
-```
+[See the Get Started document for examples.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md).
