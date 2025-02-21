@@ -144,6 +144,7 @@ INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('288858540888686602', 'upstinky', 0, 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO');
 
 INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES
+('!jjmvBegULiLucuWEHU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 50),
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
 ('!kLRqKKUQXcibIMtOpl:cadence.moe', '@test_auto_invite:example.org', NULL, NULL, 0),
 ('!fGgIymcYWOqjbSRUdV:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', 'mxc://cadence.moe/azCAhThKTojXSZJRoWwZmhvU', 0),

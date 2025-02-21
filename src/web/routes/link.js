@@ -79,10 +79,7 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	try {
 		await api.joinRoom(parsedBody.space_id)
 	} catch (e) {
-		if (e instanceof mreq.MatrixServerError) {
-			throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
-		}
-		throw e
+		throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
 	}
 
 	// Check bridge has PL 100
@@ -148,10 +145,7 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	try {
 		await api.joinRoom(parsedBody.matrix)
 	} catch (e) {
-		if (e instanceof mreq.MatrixServerError) {
-			throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
-		}
-		throw e
+		throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
 	}
 
 	// Check bridge has PL 100

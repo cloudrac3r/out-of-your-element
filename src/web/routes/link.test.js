@@ -518,6 +518,18 @@ test("web link room: successfully calls createRoom", async t => {
 					t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 					t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
 					return {via: ["cadence.moe"]}
+				} else if (type === "m.room.name") {
+					called++
+					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
+					return {}
+				} else if (type === "m.room.avatar") {
+					called++
+					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
+					return {}
+				} else if (type === "m.room.topic") {
+					called++
+					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
+					return {}
 				}
 			},
 			async sendEvent(roomID, type, content) {
@@ -536,7 +548,7 @@ test("web link room: successfully calls createRoom", async t => {
 			}
 		}
 	})
-	t.equal(called, 5)
+	t.equal(called, 8)
 })
 
 // *****

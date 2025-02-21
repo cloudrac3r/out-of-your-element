@@ -54,7 +54,7 @@ test("web privacy level: checks permissions", async t => {
 	const [error] = await tryToCatch(() => router.test("post", "/api/privacy-level", {
 		body: {
 			guild_id: "112760669178241024",
-			level: "directory"
+			privacy_level: "directory"
 		}
 	}))
 	t.equal(error.data, "Can't change settings for a guild you don't have Manage Server permissions in")
@@ -68,7 +68,7 @@ test("web privacy level: updates privacy level", async t => {
 		},
 		body: {
 			guild_id: "112760669178241024",
-			level: "directory"
+			privacy_level: "directory"
 		},
 		createSpace: {
 			async syncSpaceFully(guildID) {
@@ -80,4 +80,17 @@ test("web privacy level: updates privacy level", async t => {
 	})
 	t.equal(called, 1)
 	t.equal(select("guild_space", "privacy_level", {guild_id: "112760669178241024"}).pluck().get(), 2) // directory = 2
+})
+
+test("web presence: updates presence", async t => {
+	await router.test("post", "/api/presence", {
+		sessionData: {
+			managedGuilds: ["112760669178241024"]
+		},
+		body: {
+			guild_id: "112760669178241024"
+			// presence is on by default - turn it off
+		}
+	})
+	t.equal(select("guild_space", "presence", {guild_id: "112760669178241024"}).pluck().get(), 0)
 })

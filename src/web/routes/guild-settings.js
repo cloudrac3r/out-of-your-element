@@ -20,77 +20,75 @@ function getCreateSpace(event) {
 	return event.context.createSpace || sync.require("../../d2m/actions/create-space")
 }
 
-/** @type {["invite", "link", "directory"]} */
-const levels = ["invite", "link", "directory"]
-const schema = {
-	autocreate: z.object({
-		guild_id: z.string(),
-		autocreate: z.string().optional()
-	}),
-	urlPreview: z.object({
-		guild_id: z.string(),
-		url_preview: z.string().optional()
-	}),
-	presence: z.object({
-		guild_id: z.string(),
-		presence: z.string().optional()
-	}),
-	privacyLevel: z.object({
-		guild_id: z.string(),
-		level: z.enum(levels)
+/**
+ * @typedef Options
+ * @prop {(value: string?) => number} transform
+ * @prop {(event: H3Event, guildID: string) => any} [after]
+ * @prop {keyof import("../../db/orm-defs").Models} table
+ */
+
+/**
+ * @template {string} T
+ * @param {T} key
+ * @param {Partial<Options>} [inputOptions]
+ */
+function defineToggle(key, inputOptions) {
+	/** @type {Options} */
+	const options = {
+		transform: x => +!!x, // convert toggle to 0 or 1
+		table: "guild_space"
+	}
+	Object.assign(options, inputOptions)
+	return defineEventHandler(async event => {
+		const bodySchema = z.object({
+			guild_id: z.string(),
+			[key]: z.string().optional()
+		})
+		/** @type {Record<T, string?> & Record<"guild_id", string> & Record<string, unknown>} */ // @ts-ignore
+		const parsedBody = await readValidatedBody(event, bodySchema.parse)
+		const managed = await auth.getManagedGuilds(event)
+		if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+
+		const value = options.transform(parsedBody[key])
+		assert(typeof value === "number")
+		db.prepare(`UPDATE ${options.table} SET ${key} = ? WHERE guild_id = ?`).run(value, parsedBody.guild_id)
+
+		return (options.after && await options.after(event, parsedBody.guild_id)) || null
 	})
 }
 
-as.router.post("/api/autocreate", defineEventHandler(async event => {
-	const parsedBody = await readValidatedBody(event, schema.autocreate.parse)
-	const managed = await auth.getManagedGuilds(event)
-	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
-
-	db.prepare("UPDATE guild_active SET autocreate = ? WHERE guild_id = ?").run(+!!parsedBody.autocreate, parsedBody.guild_id)
-
-	// If showing a partial page due to incomplete setup, need to refresh the whole page to show the alternate version
-	const spaceID = select("guild_space", "space_id", {guild_id: parsedBody.guild_id}).pluck().get()
-	if (!spaceID) {
-		if (getRequestHeader(event, "HX-Request")) {
-			setResponseHeader(event, "HX-Refresh", "true")
-		} else {
-			return sendRedirect(event, "", 302)
+as.router.post("/api/autocreate", defineToggle("autocreate", {
+	table: "guild_active",
+	after(event, guild_id) {
+		// If showing a partial page due to incomplete setup, need to refresh the whole page to show the alternate version
+		const spaceID = select("guild_space", "space_id", {guild_id}).pluck().get()
+		if (!spaceID) {
+			if (getRequestHeader(event, "HX-Request")) {
+				setResponseHeader(event, "HX-Refresh", "true")
+			} else {
+				return sendRedirect(event, "", 302)
+			}
 		}
 	}
-
-	return null // 204
 }))
 
-as.router.post("/api/url-preview", defineEventHandler(async event => {
-	const parsedBody = await readValidatedBody(event, schema.urlPreview.parse)
-	const managed = await auth.getManagedGuilds(event)
-	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+as.router.post("/api/url-preview", defineToggle("url_preview"))
 
-	db.prepare("UPDATE guild_space SET url_preview = ? WHERE guild_id = ?").run(+!!parsedBody.url_preview, parsedBody.guild_id)
-
-	return null // 204
+as.router.post("/api/presence", defineToggle("presence", {
+	after() {
+		setPresence.guildPresenceSetting.update()
+	}
 }))
 
-as.router.post("/api/presence", defineEventHandler(async event => {
-	const parsedBody = await readValidatedBody(event, schema.presence.parse)
-	const managed = await auth.getManagedGuilds(event)
-	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
-
-	db.prepare("UPDATE guild_space SET presence = ? WHERE guild_id = ?").run(+!!parsedBody.presence, parsedBody.guild_id)
-	setPresence.guildPresenceSetting.update()
-
-	return null // 204
-}))
-
-as.router.post("/api/privacy-level", defineEventHandler(async event => {
-	const parsedBody = await readValidatedBody(event, schema.privacyLevel.parse)
-	const managed = await auth.getManagedGuilds(event)
-	if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
-
-	const createSpace = getCreateSpace(event)
-	const i = levels.indexOf(parsedBody.level)
-	assert.notEqual(i, -1)
-	db.prepare("UPDATE guild_space SET privacy_level = ? WHERE guild_id = ?").run(i, parsedBody.guild_id)
-	await createSpace.syncSpaceFully(parsedBody.guild_id) // this is inefficient but OK to call infrequently on user request
-	return null // 204
+as.router.post("/api/privacy-level", defineToggle("privacy_level", {
+	transform(value) {
+		assert(value)
+		const i = ["invite", "link", "directory"].indexOf(value)
+		assert.notEqual(i, -1)
+		return i
+	},
+	async after(event, guildID) {
+		const createSpace = getCreateSpace(event)
+		await createSpace.syncSpaceFully(guildID) // this is inefficient but OK to call infrequently on user request
+	}
 }))
