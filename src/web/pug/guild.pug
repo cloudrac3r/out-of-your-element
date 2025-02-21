@@ -69,7 +69,8 @@ block body
         .grid--row-start2
           button.s-btn.s-btn__filled#invite-button Invite
     div
-      != svg
+      .s-card.d-flex.ai-center.jc-center(style="min-width: 130px; min-height: 130px;")
+        button.s-btn.s-btn__filled(hx-get=`/qr?guild_id=${guild_id}` hx-indicator="closest button" hx-swap="outerHTML" hx-disabled-elt="this") Show QR
 
   if space_id
     h2.mt48.fs-headline1 Matrix setup
@@ -133,19 +134,19 @@ block body
             | How people can join on Matrix
             span#privacy-level-loading
         .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
-          input(type="radio" name="level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
+          input(type="radio" name="privacy_level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
           label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
             != icons.Icons.IconPlusSm
             != icons.Icons.IconInternationalSm
             .fl-grow1 Directory
 
-          input(type="radio" name="level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
+          input(type="radio" name="privacy_level" value="link" id="privacy-level-link" checked=(privacy_level === 1))
           label.d-flex.gx8.jc-center.grid--row-start2(for="privacy-level-link")
             != icons.Icons.IconPlusSm
             != icons.Icons.IconLinkSm
             .fl-grow1 Link
 
-          input(type="radio" name="level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
+          input(type="radio" name="privacy_level" value="invite" id="privacy-level-invite" checked=(privacy_level === 0))
           label.d-flex.gx8.jc-center.grid--row-start1(for="privacy-level-invite")
             svg.svg-icon(width="14" height="14" viewBox="0 0 14 14")
             != icons.Icons.IconLockSm

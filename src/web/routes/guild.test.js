@@ -34,6 +34,16 @@ test("web guild: access denied when guild id messed up", async t => {
 	t.has(html, "the selected server doesn't exist")
 })
 
+test("web qr: access denied when guild id messed up", async t => {
+	const html = await router.test("get", "/qr?guild_id=1", {
+		sessionData: {
+			userID: "1",
+			managedGuilds: []
+		},
+	})
+	t.has(html, "the selected server doesn't exist")
+})
+
 test("web invite: access denied with invalid nonce", async t => {
 	const html = await router.test("get", "/invite?nonce=1")
 	t.match(html, /This QR code has expired./)
@@ -85,7 +95,7 @@ test("web guild: unbridged self-service guild shows available spaces", async t =
 })
 
 
-test("web guild: can view bridged guild", async t => {
+test("web guild: can view bridged guild when logged in with discord", async t => {
 	const html = await router.test("get", "/guild?guild_id=112760669178241024", {
 		sessionData: {
 			managedGuilds: ["112760669178241024"]
@@ -103,6 +113,34 @@ test("web guild: can view bridged guild", async t => {
 		}
 	})
 	t.has(html, `<h1 class="s-page-title--header">Psychonauts 3</h1>`)
+})
+
+test("web guild: can view bridged guild when logged in with matrix", async t => {
+	const html = await router.test("get", "/guild?guild_id=112760669178241024", {
+		sessionData: {
+			mxid: "@cadence:cadence.moe"
+		},
+		api: {
+			async getStateEvent(roomID, type, key) {
+				return {}
+			},
+			async getMembers(roomID, membership) {
+				return {chunk: []}
+			},
+			async getFullHierarchy(roomID) {
+				return []
+			}
+		}
+	})
+	t.has(html, `<h1 class="s-page-title--header">Psychonauts 3</h1>`)
+})
+
+test("web qr: generates nonce", async t => {
+	const html = await router.test("get", "/qr?guild_id=112760669178241024", {
+		sessionData: {
+			managedGuilds: ["112760669178241024"]
+		}
+	})
 	nonce = html.match(/data-nonce="([a-f0-9-]+)"/)?.[1]
 	t.ok(nonce)
 })

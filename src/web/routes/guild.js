@@ -21,6 +21,9 @@ const schema = {
 	guild: z.object({
 		guild_id: z.string().optional()
 	}),
+	qr: z.object({
+		guild_id: z.string().optional()
+	}),
 	invite: z.object({
 		mxid: z.string().regex(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/),
 		permissions: z.enum(["default", "moderator", "admin"]),
@@ -127,6 +130,33 @@ as.router.get("/guild", defineEventHandler(async event => {
 		return pugSync.render(event, "guild_not_linked.pug", {guild, guild_id, spaces})
 	}
 
+	// Easy mode guild that hasn't been linked yet - need to remove elements that would require an existing space
+	if (!row.space_id) {
+		const links = getChannelRoomsLinks(guild_id, [])
+		return pugSync.render(event, "guild.pug", {guild, guild_id, ...links, ...row})
+	}
+
+	// Linked guild
+	const api = getAPI(event)
+	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
+	const banned = await api.getMembers(row.space_id, "ban")
+	const rooms = await api.getFullHierarchy(row.space_id)
+	const links = getChannelRoomsLinks(guild_id, rooms)
+	return pugSync.render(event, "guild.pug", {guild, guild_id, mods, banned, ...links, ...row})
+}))
+
+as.router.get("/qr", defineEventHandler(async event => {
+	const {guild_id} = await getValidatedQuery(event, schema.qr.parse)
+	const managed = await auth.getManagedGuilds(event)
+	const row = from("guild_active").join("guild_space", "guild_id", "left").select("space_id", "privacy_level", "autocreate").where({guild_id}).get()
+	// @ts-ignore
+	const guild = discord.guilds.get(guild_id)
+
+	// Permission problems
+	if (!guild_id || !guild || !managed.has(guild_id) || !row) {
+		return pugSync.render(event, "guild_access_denied.pug", {guild_id, row})
+	}
+
 	const nonce = randomUUID()
 	validNonce.set(nonce, guild_id)
 
@@ -137,19 +167,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 	const svg = generatedSvg.replace(/viewBox="0 0 ([0-9]+) ([0-9]+)"/, `data-nonce="${nonce}" width="$1" height="$2" $&`)
 	assert.notEqual(svg, generatedSvg)
 
-	// Easy mode guild that hasn't been linked yet - need to remove elements that would require an existing space
-	if (!row.space_id) {
-		const links = getChannelRoomsLinks(guild_id, [])
-		return pugSync.render(event, "guild.pug", {guild, guild_id, svg, ...links, ...row})
-	}
-
-	// Linked guild
-	const api = getAPI(event)
-	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
-	const banned = await api.getMembers(row.space_id, "ban")
-	const rooms = await api.getFullHierarchy(row.space_id)
-	const links = getChannelRoomsLinks(guild_id, rooms)
-	return pugSync.render(event, "guild.pug", {guild, guild_id, svg, mods, banned, ...links, ...row})
+	return svg
 }))
 
 as.router.get("/invite", defineEventHandler(async event => {
