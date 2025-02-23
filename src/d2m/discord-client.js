@@ -1,5 +1,6 @@
 // @ts-check
 
+const DiscordTypes = require("discord-api-types/v10")
 const {Endpoints, SnowTransfer} = require("snowtransfer")
 const {reg} = require("../matrix/read-registration")
 const {Client: CloudStorm} = require("cloudstorm")
@@ -36,15 +37,15 @@ class DiscordClient {
 			}
 		})
 		this.ready = false
-		/** @type {import("discord-api-types/v10").APIUser} */
+		/** @type {DiscordTypes.APIUser} */
 		// @ts-ignore avoid setting as or null because we know we need to wait for ready anyways
 		this.user = null
-		/** @type {Pick<import("discord-api-types/v10").APIApplication, "id" | "flags">} */
+		/** @type {Pick<DiscordTypes.APIApplication, "id" | "flags">} */
 		// @ts-ignore
 		this.application = null
-		/** @type {Map<string, import("discord-api-types/v10").APIChannel>} */
+		/** @type {Map<string, DiscordTypes.APIChannel>} */
 		this.channels = new Map()
-		/** @type {Map<string, import("discord-api-types/v10").APIGuild>} */
+		/** @type {Map<string, DiscordTypes.APIGuild & {members: DiscordTypes.APIGuildMember[]}>} */ // we get members from the GUILD_CREATE and we do maintain it
 		this.guilds = new Map()
 		/** @type {Map<string, Array<string>>} */
 		this.guildChannelMap = new Map()

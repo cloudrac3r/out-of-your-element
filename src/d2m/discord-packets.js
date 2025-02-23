@@ -32,6 +32,7 @@ const utils = {
 			console.log(`Discord logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
 
 		} else if (message.t === "GUILD_CREATE") {
+			message.d.members = message.d.members.filter(m => m.user.id === client.user.id) // only keep the bot's own member - it's needed to determine private channels on web
 			client.guilds.set(message.d.id, message.d)
 			const arr = []
 			client.guildChannelMap.set(message.d.id, arr)
@@ -99,6 +100,13 @@ const utils = {
 					// Role doesn't already exist.
 					guild.roles.push(...newRoles)
 				}
+			}
+
+		} else if (message.t === "GUILD_MEMBER_UPDATE") {
+			const guild = client.guilds.get(message.d.guild_id)
+			const member = guild?.members.find(m => m.user.id === message.d.user.id)
+			if (member) { // only update existing members (i.e. the bot's own member) - don't want to inflate the cache with new irrelevant ones
+				Object.assign(member, message.d)
 			}
 
 		} else if (message.t === "THREAD_CREATE") {

@@ -1,5 +1,6 @@
 // @ts-check
 
+const DiscordTypes = require("discord-api-types/v10")
 const assert = require("assert/strict")
 const {z} = require("zod")
 const {H3Event, defineEventHandler, sendRedirect, createError, getValidatedQuery, readValidatedBody, setResponseHeader} = require("h3")
@@ -8,6 +9,7 @@ const {LRUCache} = require("lru-cache")
 const Ty = require("../../types")
 const uqr = require("uqr")
 
+const {id: botID} = require("../../../addbot")
 const {discord, as, sync, select, from, db} = require("../../passthrough")
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
@@ -15,6 +17,8 @@ const pugSync = sync.require("../pug-sync")
 const createSpace = sync.require("../../d2m/actions/create-space")
 /** @type {import("../auth")} */
 const auth = require("../auth")
+/** @type {import("../../discord/utils")} */
+const utils = sync.require("../../discord/utils")
 const {reg} = require("../../matrix/read-registration")
 
 const schema = {
@@ -68,10 +72,11 @@ function filterTo(xs, fn) {
 }
 
 /**
- * @param {string} guildID
+ * @param {DiscordTypes.APIGuild} guild
  * @param {Ty.R.Hierarchy[]} rooms
+ * @param {string[]} roles
  */
-function getChannelRoomsLinks(guildID, rooms) {
+function getChannelRoomsLinks(guild, rooms, roles) {
 	function getPosition(channel) {
 		let position = 0
 		let looking = channel
@@ -83,7 +88,7 @@ function getChannelRoomsLinks(guildID, rooms) {
 		return position
 	}
 
-	let channelIDs = discord.guildChannelMap.get(guildID)
+	let channelIDs = discord.guildChannelMap.get(guild.id)
 	assert(channelIDs)
 
 	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
@@ -93,8 +98,13 @@ function getChannelRoomsLinks(guildID, rooms) {
 	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel) - getPosition(b.channel))
 
 	let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
+	/** @type {DiscordTypes.APIGuildChannel[]} */ // @ts-ignore
 	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c))
 	let removedWrongTypeChannels = filterTo(unlinkedChannels, c => c && [0, 5].includes(c.type))
+	let removedPrivateChannels = filterTo(unlinkedChannels, c => {
+		const permissions = utils.getPermissions(roles, guild.roles, botID, c["permission_overwrites"])
+		return utils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
+	})
 	unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
 
 	let linkedRoomIDs = linkedChannels.map(c => c.room_id)
@@ -107,7 +117,7 @@ function getChannelRoomsLinks(guildID, rooms) {
 
 	return {
 		linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms,
-		removedUncachedChannels, removedWrongTypeChannels, removedLinkedRooms, removedWrongTypeRooms, removedArchivedThreadRooms
+		removedUncachedChannels, removedWrongTypeChannels, removedPrivateChannels, removedLinkedRooms, removedWrongTypeRooms, removedArchivedThreadRooms
 	}
 }
 
@@ -130,16 +140,18 @@ as.router.get("/guild", defineEventHandler(async event => {
 		return pugSync.render(event, "guild_not_linked.pug", {guild, guild_id, spaces})
 	}
 
+	const roles = guild.members?.find(m => m.user.id === botID)?.roles || []
+
 	// Easy mode guild that hasn't been linked yet - need to remove elements that would require an existing space
 	if (!row.space_id) {
-		const links = getChannelRoomsLinks(guild_id, [])
+		const links = getChannelRoomsLinks(guild, [], roles)
 		return pugSync.render(event, "guild.pug", {guild, guild_id, ...links, ...row})
 	}
 
 	// Linked guild
 	const api = getAPI(event)
 	const rooms = await api.getFullHierarchy(row.space_id)
-	const links = getChannelRoomsLinks(guild_id, rooms)
+	const links = getChannelRoomsLinks(guild, rooms, roles)
 	return pugSync.render(event, "guild.pug", {guild, guild_id, ...links, ...row})
 }))
 

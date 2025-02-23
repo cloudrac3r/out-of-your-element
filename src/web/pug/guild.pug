@@ -192,12 +192,17 @@ block body
           .s-card.p0
             ul.my8.ml24
               each row in removedUncachedChannels
-                li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`)= row.nick || row.name
+                li: a(href=`https://discord.com/channels/${guild_id}/${row.id}`)= row.nick || row.name
           h3.mt24 Unavailable channels: Wrong type
           .s-card.p0
             ul.my8.ml24
               each row in removedWrongTypeChannels
-                li: a(href=`https://discord.com/channels/${guild_id}/${row.channel_id}`) (#{row.type}) #{row.name}
+                li: a(href=`https://discord.com/channels/${guild_id}/${row.id}`) (#{row.type}) #{row.name}
+          h3.mt24 Unavailable channels: Bridge can't access
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedPrivateChannels
+                li: a(href=`https://discord.com/channels/${guild_id}/${row.id}`)= row.name
         div- // Rooms
           h3.mt24 Unavailable rooms: Already linked
           .s-card.p0
