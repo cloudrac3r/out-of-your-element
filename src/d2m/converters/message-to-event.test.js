@@ -724,6 +724,20 @@ test("message2event: infinidoge's reply to ami's matrix smalltext singleline rep
 	}])
 })
 
+test("message2event: reply to a Discord message that wasn't bridged", async t => {
+	const events = await messageToEvent(data.message.reply_to_unknown_message, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+      body: `> In reply to a 1-day-old unbridged message:`
+			+ `\n> Occimyy: BILLY BOB THE GREAT`
+			+ `\n\nenigmatic`,
+      format: "org.matrix.custom.html",
+      formatted_body: `<blockquote>In reply to a 1-day-old unbridged message from Occimyy:<br>BILLY BOB THE GREAT</blockquote>enigmatic`,
+		"m.mentions": {}
+	}])
+})
+
 test("message2event: simple written @mention for matrix user", async t => {
 	const events = await messageToEvent(data.message.simple_written_at_mention_for_matrix, data.guild.general, {}, {
 		api: {

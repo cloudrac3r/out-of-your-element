@@ -1146,6 +1146,93 @@ module.exports = {
 				components: []
 			}
 		},
+		reply_to_unknown_message: {
+			type: 19,
+			content: "enigmatic",
+			mentions: [
+				{
+					id: "1060361805152669766",
+					username: "occimyy",
+					avatar: "009d2bf557bca7d4f5a1d5b75a4e2eea",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "Lily",
+					avatar_decoration_data: null,
+					banner_color: null,
+					clan: null,
+					primary_guild: null
+				}
+			],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2025-02-22T23:34:14.036000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1343002945670746173",
+			channel_id: "392141322863116319",
+			author: {
+				id: "114147806469554185",
+				username: "extremity",
+				avatar: "0c73816563bf912ccebf1a0f1546cfe4",
+				discriminator: "0",
+				public_flags: 768,
+				flags: 768,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 0,
+				channel_id: "392141322863116319",
+				message_id: "1342606571380674560",
+				guild_id: "112760669178241024"
+			},
+			position: 0,
+			referenced_message: {
+				type: 0,
+				content: "BILLY BOB THE GREAT",
+				mentions: [],
+				mention_roles: [],
+				attachments: [],
+				embeds: [],
+				timestamp: "2025-02-21T21:19:11.041000+00:00",
+				edited_timestamp: null,
+				flags: 0,
+				components: [],
+				id: "1342606571380674560",
+				channel_id: "392141322863116319",
+				author: {
+					id: "1060361805152669766",
+					username: "occimyy",
+					avatar: "009d2bf557bca7d4f5a1d5b75a4e2eea",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "Occimyy",
+					avatar_decoration_data: null,
+					banner_color: null,
+					clan: null,
+					primary_guild: null
+				},
+				pinned: false,
+				mention_everyone: false,
+				tts: false
+			}
+		},
 		attachment_no_content: {
 			id: "1124628646670389348",
 			type: 0,

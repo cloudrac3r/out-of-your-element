@@ -33,7 +33,9 @@ test("message2event embeds: reply with just an embed", async t => {
 		$type: "m.room.message",
 		msgtype: "m.notice",
 		"m.mentions": {},
-		body: "| ## ⏺️ dynastic (@dynastic) https://twitter.com/i/user/719631291747078145"
+		body: "> In reply to an unbridged message:"
+      	+ "\n> PokemonGod: https://twitter.com/dynastic/status/1707484191963648161"
+			+ "\n\n| ## ⏺️ dynastic (@dynastic) https://twitter.com/i/user/719631291747078145"
 			+ "\n| \n| does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?"
 			+ "\n| \n| ### Retweets"
 			+ "\n| 119"
@@ -41,7 +43,8 @@ test("message2event embeds: reply with just an embed", async t => {
 			+ "\n| 5581"
 			+ "\n| — Twitter",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><p><strong><a href="https://twitter.com/i/user/719631291747078145">⏺️ dynastic (@dynastic)</a></strong>'
+		formatted_body: '<blockquote>In reply to an unbridged message from PokemonGod:<br><a href=\"https://twitter.com/dynastic/status/1707484191963648161\">https://twitter.com/dynastic/status/1707484191963648161</a></blockquote>'
+			+ '<blockquote><p><strong><a href="https://twitter.com/i/user/719631291747078145">⏺️ dynastic (@dynastic)</a></strong>'
 			+ '</p><p>does anyone know where to find that one video of the really mysterious yam-like object being held up to a bunch of random objects, like clocks, and they have unexplained impossible reactions to it?'
 			+ '</p><p><strong>Retweets</strong><br>119</p><p><strong>Likes</strong><br>5581</p>— Twitter</blockquote>'
 	}])

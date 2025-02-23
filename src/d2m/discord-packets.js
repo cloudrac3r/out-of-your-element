@@ -171,6 +171,7 @@ const utils = {
 					await eventDispatcher.onThreadCreate(client, message.d)
 
 				} else if (message.t === "THREAD_UPDATE") {
+					// @ts-ignore
 					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
 
 				} else if (message.t === "MESSAGE_CREATE") {

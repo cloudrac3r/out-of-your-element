@@ -262,7 +262,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 				- So make sure we don't do anything in this case.
 	*/
 	const mentions = {}
+	/** @type {{event_id: string, room_id: string, source: number}?} */
 	let repliedToEventRow = null
+	let repliedToUnknownEvent = false
 	let repliedToEventSenderMxid = null
 
 	if (message.mention_everyone) mentions.room = true
@@ -278,6 +280,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id").select("event_id", "room_id", "source").and("WHERE message_id = ? AND part = 0").get(message.message_reference.message_id)
 		if (row) {
 			repliedToEventRow = row
+		} else if (message.referenced_message) {
+			repliedToUnknownEvent = true
 		}
 	} else if (dUtils.isWebhookMessage(message) && message.embeds[0]?.author?.name?.endsWith("↩️")) {
 		// It could be a PluralKit emulated reply, let's see if it has a message link
@@ -451,7 +455,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Fallback body/formatted_body for replies
 		// This branch is optional - do NOT change anything apart from the reply fallback, since it may not be run
-		if (repliedToEventRow && options.includeReplyFallback !== false) {
+		if ((repliedToEventRow || repliedToUnknownEvent) && options.includeReplyFallback !== false) {
 			let repliedToDisplayName
 			let repliedToUserHtml
 			if (repliedToEventRow?.source === 0 && repliedToEventSenderMxid) {
@@ -481,12 +485,33 @@ async function messageToEvent(message, guild, options = {}, di) {
 				discordOnly: true,
 				escapeHTML: false,
 			})
-			html = `<mx-reply><blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
-				+ `<br>${repliedToHtml}</blockquote></mx-reply>`
-				+ html
-			body = (`${repliedToDisplayName}: ` // scenario 1 part B for mentions
-				+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
-				+ "\n\n" + body
+			if (repliedToEventRow) {
+				// Generate a reply pointing to the Matrix event we found
+				html = `<mx-reply><blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
+					+ `<br>${repliedToHtml}</blockquote></mx-reply>`
+					+ html
+				body = (`${repliedToDisplayName}: ` // scenario 1 part B for mentions
+					+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
+					+ "\n\n" + body
+			} else { // repliedToUnknownEvent
+				// This reply can't point to the Matrix event because it isn't bridged, we need to indicate this.
+				assert(message.referenced_message)
+				const dateDifference = new Date(message.timestamp).getTime() - new Date(message.referenced_message.timestamp).getTime()
+				const oneHour = 60 * 60 * 1000
+				if (dateDifference < oneHour) {
+					var dateDisplay = "n"
+				} else if (dateDifference < 25 * oneHour) {
+					var dateDisplay = ` ${Math.floor(dateDifference / oneHour)}-hour-old`
+				} else {
+					var dateDisplay = ` ${Math.round(dateDifference / (24 * oneHour))}-day-old`
+				}
+				html = `<blockquote>In reply to a${dateDisplay} unbridged message from ${repliedToDisplayName}:`
+					+ `<br>${repliedToHtml}</blockquote>`
+					+ html
+				body = (`In reply to a${dateDisplay} unbridged message:\n${repliedToDisplayName}: `
+					+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
+					+ "\n\n" + body
+			}
 		}
 
 		const newTextMessageEvent = {
