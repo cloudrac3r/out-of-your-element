@@ -11,7 +11,9 @@ mixin badge-private
     | Private
 
 mixin discord(channel, radio=false)
-  - let permissions = dUtils.getPermissions([], guild.roles, null, channel.permission_overwrites)
+  //- Previously, we passed guild.roles as the second parameter, but this doesn't quite match Discord's behaviour. See issue #42 for why this was changed.
+  //- Basically we just want to assign badges based on the channel overwrites, without considering the guild's base permissions. /shrug
+  - let permissions = dUtils.getPermissions([], [{id: guild_id, name: "@everyone", permissions: 1<<10 | 1<<11}], null, channel.permission_overwrites)
   .s-user-card.s-user-card__small
     if !dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
       != icons.Icons.IconLock
