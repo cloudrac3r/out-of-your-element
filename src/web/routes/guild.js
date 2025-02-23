@@ -138,11 +138,9 @@ as.router.get("/guild", defineEventHandler(async event => {
 
 	// Linked guild
 	const api = getAPI(event)
-	const mods = await api.getStateEvent(row.space_id, "m.room.power_levels", "")
-	const banned = await api.getMembers(row.space_id, "ban")
 	const rooms = await api.getFullHierarchy(row.space_id)
 	const links = getChannelRoomsLinks(guild_id, rooms)
-	return pugSync.render(event, "guild.pug", {guild, guild_id, mods, banned, ...links, ...row})
+	return pugSync.render(event, "guild.pug", {guild, guild_id, ...links, ...row})
 }))
 
 as.router.get("/qr", defineEventHandler(async event => {
