@@ -54,7 +54,7 @@ block body
   .s-page-title.mb24
     h1.s-page-title--header= guild.name
 
-  .d-flex.g16
+  .d-flex.g16(class="sm:fw-wrap")
     .fl-grow1
       h2.fs-headline1 Invite a Matrix user
 
@@ -71,70 +71,16 @@ block body
         .grid--row-start2
           button.s-btn.s-btn__filled#invite-button Invite
     div
-      .s-card.d-flex.ai-center.jc-center(style="min-width: 130px; min-height: 130px;")
-        button.s-btn.s-btn__filled(hx-get=`/qr?guild_id=${guild_id}` hx-indicator="closest button" hx-swap="outerHTML" hx-disabled-elt="this") Show QR
+      .s-card.d-flex.ai-center.jc-center(style="min-width: 132px; min-height: 132px;")
+        button.s-btn(class=space_id ? "s-btn__muted" : "s-btn__filled" hx-get=`/qr?guild_id=${guild_id}` hx-indicator="closest button" hx-swap="outerHTML" hx-disabled-elt="this") Show QR
 
   if space_id
-    h2.mt48.fs-headline1 Matrix setup
-
-    h3.mt32.fs-category Linked channels
-
-    .s-card.bs-sm.p0
-      form.s-table-container(method="post" action="/api/unlink" hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
-        input(type="hidden" name="guild_id" value=guild_id)
-        table.s-table.s-table__bx-simple
-          each row in linkedChannelsWithDetails
-            tr
-              td.w40: +discord(row.channel)
-              td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post="/api/unlink" hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
-              td: +matrix(row)
-          else
-            tr
-              td(colspan="3")
-                .s-empty-state No channels linked between Discord and Matrix yet...
-
-  h3.mt32.fs-category Auto-create
-  .s-card
-    form.d-flex.ai-center.g8
-      label.s-label.fl-grow1(for="autocreate")
-        | Create new Matrix rooms automatically
-        p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
-      - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
-      input(type="hidden" name="guild_id" value=guild_id)
-      input.s-toggle-switch.order-last#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value autocomplete="off")
-      #autocreate-loading
-
-  if space_id
-    h3.mt32.fs-category URL preview
-    .s-card
-      form.d-flex.ai-center.g8
-        label.s-label.fl-grow1(for="url-preview")
-          | Show Discord's URL previews on Matrix
-          p.s-description Shows info about links posted to chat. Discord's previews are generally better quality than Synapse's, especially for social media and videos.
-        - let value = !!select("guild_space", "url_preview", {guild_id}).pluck().get()
-        input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch.order-last#autocreate(name="url_preview" type="checkbox" hx-post="/api/url-preview" hx-indicator="#url-preview-loading" hx-disabled-elt="this" checked=value autocomplete="off")
-        #url-preview-loading
-
-    h3.mt32.fs-category Presence
-    .s-card
-      form.d-flex.ai-center.g8
-        label.s-label.fl-grow1(for="presence")
-          | Show online statuses on Matrix
-          p.s-description This might cause lag on really big Discord servers.
-        - value = !!select("guild_space", "presence", {guild_id}).pluck().get()
-        input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch.order-last#autocreate(name="presence" type="checkbox" hx-post="/api/presence" hx-indicator="#presence-loading" hx-disabled-elt="this" checked=value autocomplete="off")
-        #presence-loading
-
     h3.mt32.fs-category Privacy level
+      span#privacy-level-loading
     .s-card
       form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
         input(type="hidden" name="guild_id" value=guild_id)
-        .d-flex.ai-center.mb4
-          label.s-label.fl-grow1
-            | How people can join on Matrix
-            span#privacy-level-loading
+
         .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
           input(type="radio" name="privacy_level" value="directory" id="privacy-level-directory" checked=(privacy_level === 2))
           label.d-flex.gx8.jc-center.grid--row-start3(for="privacy-level-directory")
@@ -158,6 +104,56 @@ block body
           p.s-description.m0 Shareable invite links, like Discord
           p.s-description.m0 Publicly listed in directory, like Discord server discovery
 
+    h2.mt48.fs-headline1 Features
+    .s-card.d-grid.px0.g16
+      form.d-flex.ai-center.g16
+        #url-preview-loading.p8
+        - let value = !!select("guild_space", "url_preview", {guild_id}).pluck().get()
+        input(type="hidden" name="guild_id" value=guild_id)
+        input.s-toggle-switch#url-preview(name="url_preview" type="checkbox" hx-post="/api/url-preview" hx-indicator="#url-preview-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        label.s-label.fl-grow1(for="url-preview")
+          | Show Discord's URL previews on Matrix
+          p.s-description Shows info about links posted to chat. Discord's previews are generally better quality than Synapse's, especially for social media and videos.
+
+      form.d-flex.ai-center.g16
+        #presence-loading.p8
+        - value = !!select("guild_space", "presence", {guild_id}).pluck().get()
+        input(type="hidden" name="guild_id" value=guild_id)
+        input.s-toggle-switch#presence(name="presence" type="checkbox" hx-post="/api/presence" hx-indicator="#presence-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        label.s-label(for="presence")
+          | Show online statuses on Matrix
+          p.s-description This might cause lag on really big Discord servers.
+
+  if space_id
+    h2.mt48.fs-headline1 Channel setup
+
+    h3.mt32.fs-category Linked channels
+    .s-card.bs-sm.p0
+      form.s-table-container(method="post" action="/api/unlink" hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
+        input(type="hidden" name="guild_id" value=guild_id)
+        table.s-table.s-table__bx-simple
+          each row in linkedChannelsWithDetails
+            tr
+              td.w40: +discord(row.channel)
+              td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post="/api/unlink" hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
+              td: +matrix(row)
+          else
+            tr
+              td(colspan="3")
+                .s-empty-state No channels linked between Discord and Matrix yet...
+
+  h3.fs-category.mt32 Auto-create
+  .s-card.d-grid.px0
+    form.d-flex.ai-center.g16
+      #autocreate-loading.p8
+      - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
+      input(type="hidden" name="guild_id" value=guild_id)
+      input.s-toggle-switch#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+      label.s-label.fl-grow1(for="autocreate")
+        | Create new Matrix rooms automatically
+        p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
+
+  if space_id
     h3.mt32.fs-category Manually link channels
     form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="input, button" hx-indicator="#link-button")
       .fl-grow2.s-btn-group.fd-column.w40

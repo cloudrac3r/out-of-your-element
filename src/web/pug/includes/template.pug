@@ -91,11 +91,13 @@ html(lang="en")
               if !session.data.mxid
                 a.s-btn.s-btn__icon.s-btn__matrix.s-btn__outlined.as-center(href=rel("/log-in-with-matrix"))
                   != icons.Icons.IconSpeechBubble
-                  = ` Log in with Matrix`
+                  = ` Log in`
+                  span(class="sm:d-none")= ` with Matrix`
               if !session.data.userID
                 a.s-btn.s-btn__icon.s-btn__blurple.s-btn__outlined.as-center(href=rel("/oauth"))
                   != icons.Icons.IconDiscord
-                  = ` Log in with Discord`
+                  = ` Log in`
+                  span(class="sm:d-none")= ` with Discord`
               if guild_id && managed.has(guild_id) && discord.guilds.has(guild_id)
                 button.s-topbar--item.s-btn.s-btn__muted.s-btn__dropdown.pr32.bar0.s-user-card(popovertarget="guilds")
                   +guild(discord.guilds.get(guild_id))
