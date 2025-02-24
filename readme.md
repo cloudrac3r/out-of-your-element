@@ -39,4 +39,4 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 
 ## Get started!
 
-[Read the installation instructions →](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/install.md)
+[Read the installation instructions →](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md)
