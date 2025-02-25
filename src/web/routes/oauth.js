@@ -37,13 +37,15 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	const session = await auth.useSession(event)
 	let scope = "guilds"
 
-	const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)
-	if (parsedFirstQuery.data?.action === "add") {
-		scope = "bot+guilds"
-		await session.update({selfService: false})
-	} else if (parsedFirstQuery.data?.action === "add-self-service") {
-		scope = "bot+guilds"
-		await session.update({selfService: true})
+	if (!reg.ooye.web_password || reg.ooye.web_password === session.data.password) {
+		const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)
+		if (parsedFirstQuery.data?.action === "add") {
+			scope = "bot+guilds"
+			await session.update({selfService: false})
+		} else if (parsedFirstQuery.data?.action === "add-self-service") {
+			scope = "bot+guilds"
+			await session.update({selfService: true})
+		}
 	}
 
 	async function tryAgain() {

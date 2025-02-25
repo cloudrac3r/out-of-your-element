@@ -1,24 +1,56 @@
 extends includes/template.pug
 
 block body
-  .s-page-title.mb24
-    h1.s-page-title--header Bridge a Discord server
+  - let locked = reg.ooye.web_password && reg.ooye.web_password !== session.data.password
 
-  .d-grid.g24.grid__2(class="sm:grid__1")
-    .s-card.bs-md.d-flex.fd-column
-      h2 Easy mode
-      p Add the bot to your Discord server.
-      p It will automatically create new Matrix rooms for you.
-      .fl-grow1
-      a.s-btn.s-btn__filled.s-btn__icon(href=rel("/oauth?action=add"))
-        != icons.Icons.IconPlus
-        = ` Add to server`
-    .s-card.bs-md.d-flex.fd-column
-      h2 Self-service
-      p OOYE will link an existing Discord server and Matrix space together.
-      p Choose this option if you already have a community set up on Matrix.
-      p Or, choose this if you're migrating from a different bridge.
-      .fl-grow1
-      a.s-btn.s-btn__outlined.s-btn__icon(href=rel("/oauth?action=add-self-service"))
-        != icons.Icons.IconUnorderedList
-        = ` Set up self-service`
+  if locked
+    aside.s-notice.s-notice__warning.p8
+      .d-flex.flex__center.jc-space-between.s-banner--container.g8(class="md:fw-wrap")
+        .d-flex.ai-center.g8
+          .flex--item!= icons.Icons.IconLock
+          p.m0 <strong>Private instance.</strong> You need the password to use this instance of Out Of Your Element.
+        form(method="post" action="/api/password")
+          input.s-input(placeholder="Enter password" name="password")
+
+    .h32
+
+    .s-page-title.mb24
+      h1.s-page-title--header Out Of Your Element
+
+  else
+    .s-page-title.mb24
+      h1.s-page-title--header Bridge a Discord server
+
+    .d-grid.g24.grid__2.mb24(class="sm:grid__1")
+      .s-card.bs-md.d-flex.fd-column
+        h2 Easy mode
+        p Add the bot to your Discord server.
+        p It will automatically create new Matrix rooms for you.
+        .fl-grow1
+        a.s-btn.s-btn__filled.s-btn__icon(href=rel("/oauth?action=add"))
+          != icons.Icons.IconPlus
+          = ` Add to server`
+      .s-card.bs-md.d-flex.fd-column
+        h2 Self-service
+        p OOYE will link an existing Discord server and Matrix space together.
+        p Choose this option if you already have a community set up on Matrix.
+        p Or, choose this if you're migrating from a different bridge.
+        .fl-grow1
+        a.s-btn.s-btn__outlined.s-btn__icon(href=rel("/oauth?action=add-self-service"))
+          != icons.Icons.IconUnorderedList
+          = ` Set up self-service`
+
+  .s-prose
+    h2 What is this?
+    p #[a(href="https://gitdab.com/cadence/out-of-your-element") Out Of Your Element] is a bridge between the Discord and Matrix chat apps. It lets people on both platforms chat with each other without needing to get everyone on the same app.
+    p Just chat like usual, and the bridge will forward messages back and forth between the two platforms, so everyone sees the whole conversation.
+    p All kinds of content are supported, including pictures, threads, emojis, and @mentions.
+    p It's really easy to set up, even if you only have Discord. Just add the bot to your server, and it'll make everything available on Matrix automatically.
+
+    if locked
+      h2 This is a private instance
+      p Anybody can run their own instance of the Out Of Your Element software. The person running this instance has made it private, so you can't add it to your server just yet. If you know the people in charge of #{reg.ooye.server_name}, ask them for the password.
+
+      h2 Run your own instance
+      p You can still use Out Of Your Element by running your own copy of the software, but this requires some technical skill.
+      p To get started, #[a(href="https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md") check the installation instructions.]

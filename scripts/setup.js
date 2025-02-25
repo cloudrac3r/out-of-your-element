@@ -141,6 +141,7 @@ function defineEchoHandler() {
 		console.log("OOYE has its own web server. It needs to be accessible on the public internet.")
 		console.log("You need to enter a public URL where you will be able to host this web server.")
 		console.log("OOYE listens on localhost:6693, so you will probably have to set up a reverse proxy.")
+		console.log("Examples: https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md#appendix")
 		console.log("Now listening on port 6693. Feel free to send some test requests.")
 		/** @type {{bridge_origin: string}} */
 		const bridgeOriginResponse = await prompt({
@@ -207,6 +208,15 @@ function defineEchoHandler() {
 			})
 		}
 
+		console.log("Would you like to require a password to add your bot to servers? This will discourage others from using your bridge.")
+		console.log("Important: To make it truly private, you MUST ALSO disable Public Bot in the Discord bot configuration page.")
+		/** @type {{web_password: string}} */
+		const passwordResponse = await prompt({
+			type: "text",
+			name: "web_password",
+			message: "Choose a simple password (optional)"
+		})
+
 		console.log("What is your Discord client secret?")
 		console.log(`You can find it in the application's OAuth2 section: https://discord.com/developers/applications/${client.id}/oauth2`)
 		/** @type {{discord_client_secret: string}} */
@@ -244,7 +254,8 @@ function defineEchoHandler() {
 				...bridgeOriginResponse,
 				server_origin: serverOrigin,
 				...discordTokenResponse,
-				...clientSecretResponse
+				...clientSecretResponse,
+				...passwordResponse
 			}
 		}
 		registration.reg = reg

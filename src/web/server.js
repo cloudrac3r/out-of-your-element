@@ -30,8 +30,9 @@ sync.require("./routes/download-discord")
 sync.require("./routes/guild-settings")
 sync.require("./routes/guild")
 sync.require("./routes/link")
-sync.require("./routes/oauth")
 sync.require("./routes/log-in-with-matrix")
+sync.require("./routes/oauth")
+sync.require("./routes/password")
 
 // Files
 

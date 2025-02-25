@@ -71,7 +71,7 @@ server {
 	client_max_body_size 5M;
 
 	location / {
-		add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+		add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
 		proxy_pass http://127.0.0.1:6693;
 	}
 }

@@ -23,7 +23,7 @@ async function getManagedGuilds(event) {
 
 /**
  * @param {h3.H3Event} event
- * @returns {ReturnType<typeof h3.useSession<{userID?: string, mxid?: string, managedGuilds?: string[], state?: string, selfService?: boolean}>>}
+ * @returns {ReturnType<typeof h3.useSession<{userID?: string, mxid?: string, managedGuilds?: string[], state?: string, selfService?: boolean, password?: string}>>}
  */
 function useSession(event) {
 	return h3.useSession(event, {password: reg.as_token})
