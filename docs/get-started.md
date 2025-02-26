@@ -34,7 +34,7 @@ Follow these steps:
 
 ## Update
 
-Out Of Your Element regularly releases new versions. Here's how to update:
+New versions are announced in [#updates](https://matrix.to/#/#ooye-updates:cadence.moe) and listed on [releases](https://gitdab.com/cadence/out-of-your-element/releases). Here's how to update:
 
 1. Fetch the repo and checkout the latest release tag.
 
