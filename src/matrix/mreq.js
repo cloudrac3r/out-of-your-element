@@ -1,9 +1,9 @@
 // @ts-check
 
-const mixin = require("@cloudrac3r/mixin-deep")
 const stream = require("stream")
 const streamWeb = require("stream/web")
-const getStream = require("get-stream")
+const {buffer} = require("stream/consumers")
+const mixin = require("@cloudrac3r/mixin-deep")
 
 const {reg, writeRegistration} = require("./read-registration.js")
 
@@ -20,19 +20,32 @@ class MatrixServerError extends Error {
 }
 
 /**
+ * @param {undefined | string | object | streamWeb.ReadableStream | stream.Readable} body
+ * @returns {Promise<string | streamWeb.ReadableStream | stream.Readable | Buffer>}
+ */
+async function _convertBody(body) {
+	if (body == undefined || Object.is(body.constructor, Object)) {
+		return JSON.stringify(body) // almost every POST request is going to follow this one
+	} else if (body instanceof stream.Readable && reg.ooye.content_length_workaround) {
+		return await buffer(body) // content length workaround is set, so convert to buffer. the buffer consumer accepts node streams.
+	} else if (body instanceof stream.Readable) {
+		return stream.Readable.toWeb(body) // native fetch can only consume web streams
+	} else if (body instanceof streamWeb.ReadableStream && reg.ooye.content_length_workaround) {
+		return await buffer(body) // content lenght workaround is set, so convert to buffer. the buffer consumer accepts async iterables, which web streams are.
+	}
+	return body
+}
+
+/* c8 ignore start */
+
+/**
  * @param {string} method
  * @param {string} url
- * @param {string | object | streamWeb.ReadableStream | stream.Readable} [body]
+ * @param {string | object | streamWeb.ReadableStream | stream.Readable} [bodyIn]
  * @param {any} [extra]
  */
-async function mreq(method, url, body, extra = {}) {
-	if (body == undefined || Object.is(body.constructor, Object)) {
-		body = JSON.stringify(body)
-	} else if (body instanceof stream.Readable && reg.ooye.content_length_workaround) {
-		body = await getStream.buffer(body)
-	} else if (body instanceof streamWeb.ReadableStream && reg.ooye.content_length_workaround) {
-		body = await stream.consumers.buffer(stream.Readable.fromWeb(body))
-	}
+async function mreq(method, url, bodyIn, extra = {}) {
+	const body = await _convertBody(bodyIn)
 
 	/** @type {RequestInit} */
 	const opts = mixin({
@@ -86,3 +99,4 @@ module.exports.MatrixServerError = MatrixServerError
 module.exports.baseUrl = baseUrl
 module.exports.mreq = mreq
 module.exports.withAccessToken = withAccessToken
+module.exports._convertBody = _convertBody

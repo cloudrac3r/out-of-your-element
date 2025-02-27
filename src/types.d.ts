@@ -167,6 +167,8 @@ export namespace Event {
 	export type M_Room_Message_File = {
 		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
 		body: string
+		format?: "org.matrix.custom.html"
+		formatted_body?: string
 		filename?: string
 		url: string
 		info?: any
@@ -184,6 +186,8 @@ export namespace Event {
 	export type M_Room_Message_Encrypted_File = {
 		msgtype: "m.file" | "m.image" | "m.video" | "m.audio"
 		body: string
+		format?: "org.matrix.custom.html"
+		formatted_body?: string
 		filename?: string
 		file: {
 			url: string

@@ -1,14 +1,14 @@
 // @ts-check
 
 const streamWeb = require("stream/web")
-const {test} = require("supertape")
+const {test} = require("../../test/web")
 const {router} = require("../../test/web")
 const assert = require("assert").strict
 
 require("./server")
 
 test("web server: can get home", async t => {
-	t.match(await router.test("get", "/", {}), /Add the bot to your Discord server./)
+	t.has(await router.test("get", "/", {}), /a bridge between the Discord and Matrix chat apps/)
 })
 
 test("web server: can get htmx", async t => {

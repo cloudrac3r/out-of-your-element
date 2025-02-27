@@ -89,14 +89,14 @@ Whether you read those or not, I'm more than happy to help you 1-on-1 with codin
 
 # Dependency justification
 
-Total transitive production dependencies: 139
+Total transitive production dependencies: 137
 
 ### <font size="+2">🦕</font>
 
 * (31) better-sqlite3: SQLite3 is the best database, and this is the best library for it.
 * (27) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
 * (16) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
-* (10) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for a web server.
+* (9) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for a web server.
 * (11) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets.
 
 ### <font size="-1">🪱</font>
@@ -118,7 +118,6 @@ Total transitive production dependencies: 139
 * (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
 * (0) get-relative-path: Looks fine. No dependencies.
-* (0) get-stream: Only needed if content_length_workaround is true.
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.

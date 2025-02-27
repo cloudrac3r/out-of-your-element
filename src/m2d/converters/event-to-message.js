@@ -315,7 +315,7 @@ function getUserOrProxyOwnerID(mxid) {
  * At the time of this executing, we know what the end of message emojis are, and we know that at least one of them is unknown.
  * This function will strip them from the content and generate the correct pending file of the sprite sheet.
  * @param {string} content
- * @param {{id: string, name: string}[]} attachments
+ * @param {{id: string, filename: string}[]} attachments
  * @param {({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} pendingFiles
  * @param {(mxc: string) => Promise<Buffer | undefined>} mxcDownloader function that will download the mxc URLs and convert to uncompressed PNG data. use `getAndConvertEmoji` or a mock.
  */
@@ -329,9 +329,9 @@ async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles,
 	// Create a sprite sheet of known and unknown emojis from the end of the message
 	const buffer = await emojiSheet.compositeMatrixEmojis(endOfMessageEmojis, mxcDownloader)
 	// Attach it
-	const name = "emojis.png"
-	attachments.push({id: String(attachments.length), name})
-	pendingFiles.push({name, buffer})
+	const filename = "emojis.png"
+	attachments.push({id: String(attachments.length), filename})
+	pendingFiles.push({name: filename, buffer})
 	return content
 }
 
@@ -486,6 +486,7 @@ async function eventToMessage(event, guild, di) {
 	}
 
 	let content = event.content.body // ultimate fallback
+	/** @type {{id: string, filename: string}[]} */
 	const attachments = []
 	/** @type {({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} */
 	const pendingFiles = []
@@ -493,7 +494,45 @@ async function eventToMessage(event, guild, di) {
 	const ensureJoined = []
 
 	// Convert content depending on what the message is
-	if (event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")) {
+	// Handle images first - might need to handle their `body`/`formatted_body` as well, which will fall through to the text processor
+	let shouldProcessTextEvent = event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")
+	if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
+		content = ""
+		const filename = event.content.filename || event.content.body
+		if ("url" in event.content) {
+			// Unencrypted
+			attachments.push({id: "0", filename})
+			pendingFiles.push({name: filename, mxc: event.content.url})
+		} else {
+			// Encrypted
+			assert.equal(event.content.file.key.alg, "A256CTR")
+			attachments.push({id: "0", filename})
+			pendingFiles.push({name: filename, mxc: event.content.file.url, key: event.content.file.key.k, iv: event.content.file.iv})
+		}
+		// Check if we also need to process a text event for this image - if it has a caption that's different from its filename
+		if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {
+			shouldProcessTextEvent = true
+		}
+	}
+	if (event.type === "m.sticker") {
+		content = ""
+		let filename = event.content.body
+		if (event.type === "m.sticker") {
+			let mimetype
+			if (event.content.info?.mimetype?.includes("/")) {
+				mimetype = event.content.info.mimetype
+			} else {
+				const res = await di.api.getMedia(event.content.url, {method: "HEAD"})
+				if (res.status === 200) {
+					mimetype = res.headers.get("content-type")
+				}
+				if (!mimetype) throw new Error(`Server error ${res.status} or missing content-type while detecting sticker mimetype`)
+			}
+			filename += "." + mimetype.split("/")[1]
+		}
+		attachments.push({id: "0", filename})
+		pendingFiles.push({name: filename, mxc: event.content.url})
+	} else if (shouldProcessTextEvent) {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
 		// this event ---is an edit of--> original event ---is a reply to--> past event
 		await (async () => {
@@ -780,40 +819,6 @@ async function eventToMessage(event, guild, di) {
 			// @ts-ignore bad type from turndown
 			content = turndownService.escape(content)
 		}
-	} else if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
-		content = ""
-		const filename = event.content.filename || event.content.body
-		// A written `event.content.body` will be bridged to Discord's image `description` which is like alt text.
-		// Bridging as description rather than message content in order to match Matrix clients (Element, Neochat) which treat this as alt text or title text.
-		const description = (event.content.body !== event.content.filename && event.content.filename && event.content.body) || undefined
-		if ("url" in event.content) {
-			// Unencrypted
-			attachments.push({id: "0", description, filename})
-			pendingFiles.push({name: filename, mxc: event.content.url})
-		} else {
-			// Encrypted
-			assert.equal(event.content.file.key.alg, "A256CTR")
-			attachments.push({id: "0", description, filename})
-			pendingFiles.push({name: filename, mxc: event.content.file.url, key: event.content.file.key.k, iv: event.content.file.iv})
-		}
-	} else if (event.type === "m.sticker") {
-		content = ""
-		let filename = event.content.body
-		if (event.type === "m.sticker") {
-			let mimetype
-			if (event.content.info?.mimetype?.includes("/")) {
-				mimetype = event.content.info.mimetype
-			} else {
-				const res = await di.api.getMedia(event.content.url, {method: "HEAD"})
-				if (res.status === 200) {
-					mimetype = res.headers.get("content-type")
-				}
-				if (!mimetype) throw new Error(`Server error ${res.status} or missing content-type while detecting sticker mimetype`)
-			}
-			filename += "." + mimetype.split("/")[1]
-		}
-		attachments.push({id: "0", filename})
-		pendingFiles.push({name: filename, mxc: event.content.url})
 	}
 
 	content = displayNameRunoff + replyLine + content

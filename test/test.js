@@ -29,6 +29,7 @@ reg.ooye.bridge_origin = "https://bridge.example.org"
 const sync = new HeatSync({watchFS: false})
 
 const discord = {
+	// @ts-ignore - only ignore guilds, because my data dump is missing random properties
 	guilds: new Map([
 		[data.guild.general.id, data.guild.general],
 		[data.guild.fna.id, data.guild.fna],
@@ -130,6 +131,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/matrix/kstate.test")
 	require("../src/matrix/api.test")
 	require("../src/matrix/file.test")
+	require("../src/matrix/mreq.test")
 	require("../src/matrix/read-registration.test")
 	require("../src/matrix/txnid.test")
 	require("../src/d2m/actions/create-room.test")
