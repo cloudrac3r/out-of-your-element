@@ -6,6 +6,8 @@ Modern Matrix-to-Discord appservice bridge, created by [@cadence:cadence.moe](ht
 
 [![Releases](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=plastic&color=green)](https://gitdab.com/cadence/out-of-your-element/releases) [![Discuss on Matrix](https://img.shields.io/badge/discuss-%23out--of--your--element-white?style=plastic)](https://matrix.to/#/#out-of-your-element:cadence.moe)
 
+![](https://cadence.moe/i/f42a3f)
+
 ## Why a new bridge?
 
 * Modern: Supports new Discord features like replies, threads and stickers, and new Matrix features like edits, spaces and space membership.
