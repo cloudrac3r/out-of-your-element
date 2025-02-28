@@ -50,10 +50,6 @@ When you use `npm run setup` as part of OOYE's initial setup, it will guide you 
 
 When OOYE is running, the web server runs on port 6693. (To use a different port or a UNIX socket, edit registration.yaml's `socket` setting and restart.)
 
-It doesn't have to have its own dedicated domain name, you can also use a sub-path on an existing domain, like the domain of your Matrix homeserver. See the end of this document for more information.
+It doesn't have to have its own dedicated domain name, you can also use a sub-path on an existing domain, like the domain of your Matrix homeserver. You are likely already using a reverse proxy to run your homeserver, so this should just be a configuration change.
 
-You are likely already using a reverse proxy for running your homeserver, so this should just be a configuration change.
-
-## Example configurations
-
-[See the Get Started document for examples.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md).
+[See here for sample configurations!](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md#appendix)
