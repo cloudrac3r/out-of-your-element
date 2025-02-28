@@ -5,8 +5,7 @@ const streamWeb = require("stream/web")
 const {buffer} = require("stream/consumers")
 const mixin = require("@cloudrac3r/mixin-deep")
 
-const {reg, writeRegistration} = require("./read-registration.js")
-
+const {reg} = require("./read-registration.js")
 const baseUrl = `${reg.ooye.server_origin}/_matrix`
 
 class MatrixServerError extends Error {
@@ -56,21 +55,11 @@ async function mreq(method, url, bodyIn, extra = {}) {
 		},
 		...(body && {duplex: "half"}), // https://github.com/octokit/request.js/pull/571/files
 	}, extra)
-	// console.log(baseUrl + url, opts)
+
 	const res = await fetch(baseUrl + url, opts)
 	const root = await res.json()
 
 	if (!res.ok || root.errcode) {
-		if (root.error?.includes("Content-Length") && !reg.ooye.content_length_workaround) {
-			reg.ooye.content_length_workaround = true
-			const root = await mreq(method, url, body, extra)
-			console.error("OOYE cannot stream uploads to Synapse. The `content_length_workaround` option"
-				+ "\nhas been activated in registration.yaml, which works around the problem, but"
-				+ "\nhalves the speed of bridging d->m files. A better way to resolve this problem"
-				+ "\nis to run an nginx reverse proxy to Synapse and re-run OOYE setup.")
-			writeRegistration(reg)
-			return root
-		}
 		delete opts.headers?.["Authorization"]
 		throw new MatrixServerError(root, {baseUrl, url, ...opts})
 	}

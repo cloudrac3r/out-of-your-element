@@ -1,6 +1,9 @@
 // @ts-check
 
 const passthrough = require("../passthrough")
+const {reg, writeRegistration} = require("./read-registration.js")
+const Ty = require("../types")
+
 const {sync, db, select} = passthrough
 /** @type {import("./mreq")} */
 const mreq = sync.require("./mreq")
@@ -44,11 +47,8 @@ async function uploadDiscordFileToMxc(path) {
 		return existingFromDb
 	}
 
-	// Download from Discord
-	const promise = fetch(url, {}).then(async res => {
-		// Upload to Matrix
-		const root = await module.exports._actuallyUploadDiscordFileToMxc(urlNoExpiry, res)
-
+	// Download from Discord and upload to Matrix
+	const promise = module.exports._actuallyUploadDiscordFileToMxc(url).then(root => {
 		// Store relationship in database
 		db.prepare("INSERT INTO file (discord_url, mxc_url) VALUES (?, ?)").run(urlNoExpiry, root.content_uri)
 		inflight.delete(urlNoExpiry)
@@ -62,17 +62,31 @@ async function uploadDiscordFileToMxc(path) {
 
 /**
  * @param {string} url
- * @param {Response} res
+ * @returns {Promise<Ty.R.FileUploaded>}
  */
-async function _actuallyUploadDiscordFileToMxc(url, res) {
-	const body = res.body
-	/** @type {import("../types").R.FileUploaded} */
-	const root = await mreq.mreq("POST", "/media/v3/upload", body, {
-		headers: {
-			"Content-Type": res.headers.get("content-type")
+async function _actuallyUploadDiscordFileToMxc(url) {
+	const res = await fetch(url, {})
+	try {
+		/** @type {Ty.R.FileUploaded} */
+		const root = await mreq.mreq("POST", "/media/v3/upload", res.body, {
+			headers: {
+				"Content-Type": res.headers.get("content-type")
+			}
+		})
+		return root
+	} catch (e) {
+		if (e instanceof mreq.MatrixServerError && e.data.error?.includes("Content-Length") && !reg.ooye.content_length_workaround) {
+			reg.ooye.content_length_workaround = true
+			const root = await _actuallyUploadDiscordFileToMxc(url)
+			console.error("OOYE cannot stream uploads to Synapse. The `content_length_workaround` option"
+				+ "\nhas been activated in registration.yaml, which works around the problem, but"
+				+ "\nhalves the speed of bridging d->m files. A better way to resolve this problem"
+				+ "\nis to run an nginx reverse proxy to Synapse and re-run OOYE setup.")
+			writeRegistration(reg)
+			return root
 		}
-	})
-	return root
+		throw e
+	}
 }
 
 function guildIcon(guild) {
