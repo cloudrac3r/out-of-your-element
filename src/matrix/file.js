@@ -98,8 +98,8 @@ function userAvatar(user) {
 }
 
 function memberAvatar(guildID, user, member) {
-	if (!member.avatar) return userAvatar(user)
-	return `/guilds/${guildID}/users/${user.id}/avatars/${member.avatar}.png?size=${IMAGE_SIZE}`
+	if (!member?.avatar) return userAvatar(user)
+	return `/guilds/${guildID}/users/${user.id}/avatars/${member?.avatar}.png?size=${IMAGE_SIZE}`
 }
 
 function emoji(emojiID, animated) {

@@ -31,10 +31,8 @@ async function sendMessage(message, channel, guild, row) {
 	if (!dUtils.isWebhookMessage(message)) {
 		if (message.author.id === discord.application.id) {
 			// no need to sync the bot's own user
-		} else if (message.member) { // available on a gateway message create event
+		} else {
 			senderMxid = await registerUser.syncUser(message.author, message.member, channel, guild, roomID)
-		} else { // well, good enough...
-			senderMxid = await registerUser.ensureSimJoined(message.author, roomID)
 		}
 	} else if (row && row.speedbump_webhook_id === message.webhook_id) {
 		// Handle the PluralKit public instance

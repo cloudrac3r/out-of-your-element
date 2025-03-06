@@ -97,12 +97,12 @@ async function ensureSimJoined(user, roomID) {
 
 /**
  * @param {DiscordTypes.APIUser} user
- * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
+ * @param {Omit<DiscordTypes.APIGuildMember, "user"> | undefined} member
  */
 async function memberToStateContent(user, member, guildID) {
 	let displayname = user.username
 	if (user.global_name) displayname = user.global_name
-	if (member.nick) displayname = member.nick
+	if (member?.nick) displayname = member.nick
 
 	const content = {
 		displayname,
@@ -117,7 +117,7 @@ async function memberToStateContent(user, member, guildID) {
 		}
 	}
 
-	if (member.avatar || user.avatar) {
+	if (member?.avatar || user.avatar) {
 		// const avatarPath = file.userAvatar(user) // the user avatar only
 		const avatarPath = file.memberAvatar(guildID, user, member) // the member avatar or the user avatar
 		content["moe.cadence.ooye.member"].avatar = avatarPath
@@ -130,12 +130,14 @@ async function memberToStateContent(user, member, guildID) {
 /**
  * https://gitdab.com/cadence/out-of-your-element/issues/9
  * @param {DiscordTypes.APIUser} user
- * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
+ * @param {Omit<DiscordTypes.APIGuildMember, "user"> | undefined} member
  * @param {DiscordTypes.APIGuild} guild
  * @param {DiscordTypes.APIGuildChannel} channel
  * @returns {number} 0 to 100
  */
 function memberToPowerLevel(user, member, guild, channel) {
+	if (!member) return 0
+
 	const permissions = utils.getPermissions(member.roles, guild.roles, user.id, channel.permission_overwrites)
 	/*
 	 * PL 100 = Administrator = People who can brick the room. RATIONALE:
@@ -179,7 +181,7 @@ function _hashProfileContent(content, powerLevel) {
  * 4. Compare against the previously known state content, which is helpfully stored in the database
  * 5. If the state content or power level have changed, send them to Matrix and update them in the database for next time
  * @param {DiscordTypes.APIUser} user
- * @param {Omit<DiscordTypes.APIGuildMember, "user">} member
+ * @param {Omit<DiscordTypes.APIGuildMember, "user"> | undefined} member
  * @param {DiscordTypes.APIGuildChannel} channel
  * @param {DiscordTypes.APIGuild} guild
  * @param {string} roomID
