@@ -17,7 +17,7 @@ block body
       .fl-grow1
         h2.fs-headline1 Invite a Matrix user
 
-        form.d-flex.gy16.fd-column(method="post" action="/api/invite" hx-post="/api/invite" hx-indicator="#invite-button" hx-select="#ok" hx-target="#form-container")
+        form.d-flex.gy16.fd-column(method="post" action=rel("/api/invite") hx-post=rel("/api/invite") hx-indicator="#invite-button" hx-select="#ok" hx-target="#form-container")
           .d-flex.gy4.fd-column
             label.s-label(for="mxid") Matrix ID
             input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org")

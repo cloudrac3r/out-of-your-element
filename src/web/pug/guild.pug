@@ -58,7 +58,7 @@ block body
     .fl-grow1
       h2.fs-headline1 Invite a Matrix user
 
-      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action="/api/invite" hx-post="/api/invite" hx-trigger="submit" hx-swap="none" hx-on::after-request="if (event.detail.successful) this.reset()" hx-disabled-elt="input, button" hx-indicator="#invite-button")
+      form.d-grid.g-af-column.gy4.gx8.jc-start(method="post" action=rel("/api/invite") hx-post=rel("/api/invite") hx-trigger="submit" hx-swap="none" hx-on::after-request="if (event.detail.successful) this.reset()" hx-disabled-elt="input, button" hx-indicator="#invite-button")
         label.s-label(for="mxid") Matrix ID
         input.fl-grow1.s-input.wmx3#mxid(name="mxid" required placeholder="@user:example.org" pattern="@([^:]+):([a-z0-9:\\-]+\\.[a-z0-9.:\\-]+)")
         label.s-label(for="permissions") Permissions
@@ -78,7 +78,7 @@ block body
     h3.mt32.fs-category Privacy level
       span#privacy-level-loading
     .s-card
-      form(hx-post="/api/privacy-level" hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
+      form(hx-post=rel("/api/privacy-level") hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
         input(type="hidden" name="guild_id" value=guild_id)
 
         .s-toggle-switch.s-toggle-switch__multiple.s-toggle-switch__incremental.d-grid.gx16.ai-center(style="grid-template-columns: auto 1fr")
@@ -110,7 +110,7 @@ block body
         #url-preview-loading.p8
         - let value = !!select("guild_space", "url_preview", {guild_id}).pluck().get()
         input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch#url-preview(name="url_preview" type="checkbox" hx-post="/api/url-preview" hx-indicator="#url-preview-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        input.s-toggle-switch#url-preview(name="url_preview" type="checkbox" hx-post=rel("/api/url-preview") hx-indicator="#url-preview-loading" hx-disabled-elt="this" checked=value autocomplete="off")
         label.s-label.fl-grow1(for="url-preview")
           | Show Discord's URL previews on Matrix
           p.s-description Shows info about links posted to chat. Discord's previews are generally better quality than Synapse's, especially for social media and videos.
@@ -119,7 +119,7 @@ block body
         #presence-loading.p8
         - value = !!select("guild_space", "presence", {guild_id}).pluck().get()
         input(type="hidden" name="guild_id" value=guild_id)
-        input.s-toggle-switch#presence(name="presence" type="checkbox" hx-post="/api/presence" hx-indicator="#presence-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        input.s-toggle-switch#presence(name="presence" type="checkbox" hx-post=rel("/api/presence") hx-indicator="#presence-loading" hx-disabled-elt="this" checked=value autocomplete="off")
         label.s-label(for="presence")
           | Show online statuses on Matrix
           p.s-description This might cause lag on really big Discord servers.
@@ -129,13 +129,13 @@ block body
 
     h3.mt32.fs-category Linked channels
     .s-card.bs-sm.p0
-      form.s-table-container(method="post" action="/api/unlink" hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
+      form.s-table-container(method="post" action=rel("/api/unlink") hx-confirm="Do you want to unlink these channels?\nIt may take a moment to clean up Matrix resources.")
         input(type="hidden" name="guild_id" value=guild_id)
         table.s-table.s-table__bx-simple
           each row in linkedChannelsWithDetails
             tr
               td.w40: +discord(row.channel)
-              td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post="/api/unlink" hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
+              td.p2: button.s-btn.s-btn__muted.s-btn__xs(name="channel_id" value=row.channel.id hx-post=rel("/api/unlink") hx-trigger="click" hx-disabled-elt="this")!= icons.Icons.IconLinkSm
               td: +matrix(row)
           else
             tr
@@ -148,14 +148,14 @@ block body
       #autocreate-loading.p8
       - let value = !!select("guild_active", "autocreate", {guild_id}).pluck().get()
       input(type="hidden" name="guild_id" value=guild_id)
-      input.s-toggle-switch#autocreate(name="autocreate" type="checkbox" hx-post="/api/autocreate" hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+      input.s-toggle-switch#autocreate(name="autocreate" type="checkbox" hx-post=rel("/api/autocreate") hx-indicator="#autocreate-loading" hx-disabled-elt="this" checked=value autocomplete="off")
       label.s-label.fl-grow1(for="autocreate")
         | Create new Matrix rooms automatically
         p.s-description If you want, OOYE can automatically create new Matrix rooms and link them when an unlinked Discord channel is spoken in.
 
   if space_id
     h3.mt32.fs-category Manually link channels
-    form.d-flex.g16.ai-start(hx-post="/api/link" hx-trigger="submit" hx-disabled-elt="input, button" hx-indicator="#link-button")
+    form.d-flex.g16.ai-start(hx-post=rel("/api/link") hx-trigger="submit" hx-disabled-elt="input, button" hx-indicator="#link-button")
       .fl-grow2.s-btn-group.fd-column.w40
         each channel in unlinkedChannels
           input.s-btn--radio(type="radio" name="discord" required id=channel.id value=channel.id)

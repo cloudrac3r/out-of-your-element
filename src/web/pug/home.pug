@@ -9,7 +9,7 @@ block body
         .d-flex.ai-center.g8
           .flex--item!= icons.Icons.IconLock
           p.m0 <strong>Private instance.</strong> You need the password to use this instance of Out Of Your Element.
-        form(method="post" action="/api/password")
+        form(method="post" action=rel("/api/password"))
           input.s-input(placeholder="Enter password" name="password")
 
     .h32

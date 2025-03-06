@@ -25,13 +25,13 @@ block body
 
   h3.mt32.fs-category Choose a space
 
-  form.s-card.bs-sm.p0.s-table-container.bar-md(method="post" action="/api/link-space")
+  form.s-card.bs-sm.p0.s-table-container.bar-md(method="post" action=rel("/api/link-space"))
     input(type="hidden" name="guild_id" value=guild_id)
     table.s-table.s-table__bx-simple
       each space in spaces
         tr
           td.p0: +space(space)
-          td: button.s-btn(name="space_id" value=space.room_id hx-post="/api/link-space" hx-trigger="click" hx-disabled-elt="this") Link with this space
+          td: button.s-btn(name="space_id" value=space.room_id hx-post=rel("/api/link-space") hx-trigger="click" hx-disabled-elt="this") Link with this space
       else
         if session.data.mxid
           tr
@@ -44,7 +44,7 @@ block body
 
   h3.mt48.fs-category Auto-create
   .s-card
-    form.d-flex.ai-center.g8(method="post" action="/api/autocreate" hx-post="/api/autocreate" hx-indicator="#easy-mode-button")
+    form.d-flex.ai-center.g8(method="post" action=rel("/api/autocreate") hx-post=rel("/api/autocreate") hx-indicator="#easy-mode-button")
       input(type="hidden" name="guild_id" value=guild_id)
       input(type="hidden" name="autocreate" value="true")
       label.s-label.fl-grow1

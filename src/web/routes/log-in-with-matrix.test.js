@@ -9,7 +9,7 @@ const {MatrixServerError} = require("../../matrix/mreq")
 test("log in with matrix: shows web page with form on first request", async t => {
 	const html = await router.test("get", "/log-in-with-matrix", {
 	})
-	t.has(html, `hx-post="/api/log-in-with-matrix"`)
+	t.has(html, `hx-post="api/log-in-with-matrix"`)
 })
 
 // ***** second request *****
