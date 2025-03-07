@@ -194,10 +194,13 @@ async function syncUser(user, member, channel, guild, roomID) {
 	const currentHash = _hashProfileContent(content, powerLevel)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
-	if (existingHash !== currentHash) {
+	const hashHasChanged = existingHash !== currentHash
+	// however, do not overwrite pre-existing data if we already have data and `member` is not accessible, because this would replace good data with bad data
+	const wouldOverwritePreExisting = existingHash && !member
+	if (hashHasChanged && !wouldOverwritePreExisting) {
 		// Update room member state
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
-		// Update power levels
+		// Update power levels (only if we can actually access the member roles)
 		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
 		const oldPowerLevel = powerLevelsStateContent.users?.[mxid] || 0
 		mixin(powerLevelsStateContent, {users: {[mxid]: powerLevel}})
