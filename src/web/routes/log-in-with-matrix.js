@@ -53,7 +53,7 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 	}
 
 	const userAgent = getRequestHeader(event, "User-Agent")
-	if (userAgent?.match(/bot/)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
+	if (userAgent?.match(/bot|matrix/)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
 
 	if (!validToken.has(token)) return sendRedirect(event, `${reg.ooye.bridge_origin}/log-in-with-matrix`, 302)
 
