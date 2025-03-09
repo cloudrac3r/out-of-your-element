@@ -79,8 +79,6 @@ html(lang="en")
       .s-btn__dropdown:has(+ :popover-open) {
         background-color: var(--theme-topbar-item-background-hover, var(--black-200)) !important;
       }
-    +define-theme("blurple", "236", "84%", "64%")
-    +define-themed-button("blurple", "blurple")
     +define-themed-button("matrix", "black")
   body.themed.theme-system
     header.s-topbar
@@ -97,7 +95,7 @@ html(lang="en")
                   = ` Log in`
                   span(class="sm:d-none")= ` with Matrix`
               if !session.data.userID
-                a.s-btn.s-btn__icon.s-btn__blurple.s-btn__outlined.as-center(href=rel("/oauth"))
+                a.s-btn.s-btn__icon.s-btn__featured.s-btn__outlined.as-center(href=rel("/oauth"))
                   != icons.Icons.IconDiscord
                   = ` Log in`
                   span(class="sm:d-none")= ` with Discord`
