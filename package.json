@@ -41,7 +41,7 @@
     "h3": "^1.15.1",
     "heatsync": "^2.7.2",
     "htmx.org": "^2.0.4",
-    "lru-cache": "^10.4.3",
+    "lru-cache": "^11.0.2",
     "minimist": "^1.2.8",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.33.4",
