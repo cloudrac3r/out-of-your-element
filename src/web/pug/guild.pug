@@ -72,7 +72,7 @@ block body
           button.s-btn.s-btn__filled#invite-button Invite
     div
       .s-card.d-flex.ai-center.jc-center(style="min-width: 132px; min-height: 132px;")
-        button.s-btn(class=space_id ? "s-btn__muted" : "s-btn__filled" hx-get=`/qr?guild_id=${guild_id}` hx-indicator="closest button" hx-swap="outerHTML" hx-disabled-elt="this") Show QR
+        button.s-btn(class=space_id ? "s-btn__muted" : "s-btn__filled" hx-get=rel(`/qr?guild_id=${guild_id}`) hx-indicator="closest button" hx-swap="outerHTML" hx-disabled-elt="this") Show QR
 
   if space_id
     h3.mt32.fs-category Privacy level
