@@ -96,7 +96,7 @@ Total transitive production dependencies: 137
 * (31) better-sqlite3: SQLite3 is the best database, and this is the best library for it.
 * (27) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
 * (16) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
-* (9) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, and more. 14 transitive dependencies is on the low end for a web server.
+* (9) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, self-service, and more.
 * (11) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets.
 
 ### <font size="-1">🪱</font>

@@ -382,7 +382,7 @@ function defineEchoHandler() {
 	// set profile data on discord...
 	const avatarImageBuffer = await fetch("https://cadence.moe/friends/out_of_your_element.png").then(res => res.arrayBuffer())
 	await discord.snow.user.updateSelf({avatar: "data:image/png;base64," + Buffer.from(avatarImageBuffer).toString("base64")})
-	await discord.snow.requestHandler.request(`/applications/@me`, {}, "patch", "json", {description: "Powered by **Out Of Your Element**\nhttps://gitdab.com/cadence/out-of-your-element"})
+	await discord.snow.bot.updateApplicationInfo({description: "Powered by **Out Of Your Element**\nhttps://gitdab.com/cadence/out-of-your-element"})
 	console.log("✅ Discord profile updated...")
 
 	// set profile data on homeserver...
