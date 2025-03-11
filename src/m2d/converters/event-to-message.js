@@ -546,7 +546,7 @@ async function eventToMessage(event, guild, di) {
 			if (!messageIDsToEdit.length) return
 
 			// Ok, it's an edit.
-			event.content = event.content["m.new_content"]
+			event = {...event, content: event.content["m.new_content"]}
 
 			// Is it editing a reply? We need special handling if it is.
 			// Get the original event, then check if it was a reply
