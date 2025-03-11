@@ -25,7 +25,14 @@ function convertTimestamp(timestamp) {
  * @param {number?} convertedTimestamp
  */
 async function updatePins(channelID, roomID, convertedTimestamp) {
-	const discordPins = await discord.snow.channel.getChannelPinnedMessages(channelID)
+	try {
+		var discordPins = await discord.snow.channel.getChannelPinnedMessages(channelID)
+	} catch (e) {
+		if (e.message === `{"message": "Missing Access", "code": 50001}`) {
+			return // Discord sends channel pins update events even for channels that the bot can't view/get pins in, just ignore it
+		}
+		throw e
+	}
 	const pinned = pinsToList.pinsToList(discordPins)
 
 	const kstate = await ks.roomToKState(roomID)
