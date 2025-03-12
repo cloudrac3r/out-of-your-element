@@ -96,7 +96,7 @@ class Router {
 
 const router = new Router()
 
-passthrough.as = {router}
+passthrough.as = {router, on() {}}
 
 module.exports.router = router
 module.exports.test = test

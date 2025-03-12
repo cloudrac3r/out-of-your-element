@@ -35,6 +35,8 @@ const speedbump = sync.require("./actions/speedbump")
 const retrigger = sync.require("./actions/retrigger")
 /** @type {import("./actions/set-presence")} */
 const setPresence = sync.require("./actions/set-presence")
+/** @type {import("../m2d/event-dispatcher")} */
+const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
 
 /** @type {any} */ // @ts-ignore bad types from semaphore
 const Semaphore = require("@chriscdn/promise-semaphore")
@@ -66,22 +68,19 @@ module.exports = {
 		const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!roomID) return
 
-		let stackLines = null
-		if (e.stack) {
-			stackLines = e.stack.split("\n")
-			let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
-			if (cloudstormLine !== -1) {
-				stackLines = stackLines.slice(0, cloudstormLine - 2)
-			}
-		}
-
 		const builder = new mxUtils.MatrixStringBuilder()
 		builder.addLine("\u26a0 Bridged event from Discord not delivered", "\u26a0 <strong>Bridged event from Discord not delivered</strong>")
 		builder.addLine(`Gateway event: ${gatewayMessage.t}`)
-		builder.addLine(e.toString())
-		if (stackLines) {
-			builder.addLine(`Error trace:\n${stackLines.join("\n")}`, `<details><summary>Error trace</summary><pre>${stackLines.join("\n")}</pre></details>`)
+
+		let errorIntroLine = e.toString()
+		if (e.cause) {
+			errorIntroLine += ` (cause: ${e.cause})`
 		}
+		builder.addLine(errorIntroLine)
+
+		const stack = matrixEventDispatcher.stringifyErrorStack(e)
+		builder.addLine(`Error trace:\n${stack}`, `<details><summary>Error trace</summary><pre>${stack}</pre></details>`)
+
 		builder.addLine("", `<details><summary>Original payload</summary><pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`)
 		await api.sendEvent(roomID, "m.room.message", {
 			...builder.get(),

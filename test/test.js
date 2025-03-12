@@ -29,7 +29,7 @@ reg.ooye.bridge_origin = "https://bridge.example.org"
 const sync = new HeatSync({watchFS: false})
 
 const discord = {
-	// @ts-ignore - only ignore guilds, because my data dump is missing random properties
+	// @ts-ignore - ignore guilds, because my data dump is missing random properties
 	guilds: new Map([
 		[data.guild.general.id, data.guild.general],
 		[data.guild.fna.id, data.guild.fna],
@@ -43,6 +43,7 @@ const discord = {
 	application: {
 		id: "684280192553844747"
 	},
+	// @ts-ignore - ignore channels, because my data dump is missing random properties
 	channels: new Map([
 		[data.channel.general.id, data.channel.general],
 		[data.channel.updates.id, data.channel.updates],
@@ -127,6 +128,13 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 
 	require("./addbot.test")
 	require("../src/db/orm.test")
+	require("../src/web/server.test")
+	require("../src/web/routes/download-discord.test")
+	require("../src/web/routes/download-matrix.test")
+	require("../src/web/routes/guild.test")
+	require("../src/web/routes/guild-settings.test")
+	require("../src/web/routes/link.test")
+	require("../src/web/routes/log-in-with-matrix.test")
 	require("../src/discord/utils.test")
 	require("../src/matrix/kstate.test")
 	require("../src/matrix/api.test")
@@ -147,6 +155,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/d2m/converters/remove-reaction.test")
 	require("../src/d2m/converters/thread-to-announcement.test")
 	require("../src/d2m/converters/user-to-mxid.test")
+	require("../src/m2d/event-dispatcher.test")
 	require("../src/m2d/converters/diff-pins.test")
 	require("../src/m2d/converters/event-to-message.test")
 	require("../src/m2d/converters/emoji.test")
@@ -157,11 +166,4 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/discord/interactions/permissions.test")
 	require("../src/discord/interactions/privacy.test")
 	require("../src/discord/interactions/reactions.test")
-	require("../src/web/server.test")
-	require("../src/web/routes/download-discord.test")
-	require("../src/web/routes/download-matrix.test")
-	require("../src/web/routes/guild.test")
-	require("../src/web/routes/guild-settings.test")
-	require("../src/web/routes/link.test")
-	require("../src/web/routes/log-in-with-matrix.test")
 })()

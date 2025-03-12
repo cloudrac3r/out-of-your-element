@@ -28,6 +28,58 @@ const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
 
+/**
+ * This function is adapted from Evan Kaufman's fantastic work.
+ * The original function and my adapted function are both MIT licensed.
+ * @url https://github.com/EvanK/npm-loggable-error/
+ * @param {number} [depth]
+ * @returns {string}
+*/
+function stringifyErrorStack(err, depth = 0) {
+	let collapsed = " ".repeat(depth);
+	if (!(err instanceof Error)) {
+		return collapsed + err
+	}
+
+	// add full stack trace if one exists, otherwise convert to string
+	let stackLines = ( err?.stack ?? `${err}` ).replace(/^/gm, " ".repeat(depth)).trim().split("\n")
+	let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
+	if (cloudstormLine !== -1) {
+		stackLines = stackLines.slice(0, cloudstormLine - 2)
+	}
+	collapsed += stackLines.join("\n")
+
+	const props = Object.getOwnPropertyNames(err).filter(p => !["message", "stack"].includes(p))
+
+	// only break into object notation if we have addtl props to dump
+	if (props.length) {
+		const dedent = " ".repeat(depth);
+		const indent = " ".repeat(depth + 2);
+
+		collapsed += " {\n";
+
+		// loop and print each (indented) prop name
+		for (let property of props) {
+			collapsed += `${indent}[${property}]: `;
+
+			// if another error object, stringify it too
+			if (err[property] instanceof Error) {
+				collapsed += stringifyErrorStack(err[property], depth + 2).trimStart();
+			}
+			// otherwise stringify as JSON
+			else {
+				collapsed += JSON.stringify(err[property]);
+			}
+
+			collapsed += "\n";
+		}
+
+		collapsed += `${dedent}}\n`;
+	}
+
+	return collapsed;
+}
+
 function guard(type, fn) {
 	return async function(event, ...args) {
 		try {
@@ -39,7 +91,12 @@ function guard(type, fn) {
 			if (Date.now() - lastReportedEvent < 5000) return
 			lastReportedEvent = Date.now()
 
-			const cloudflareErrorTitle = e.toString().match(/<!DOCTYPE html>.*?<title>discord\.com \| ([^<]*)<\/title>/s)?.[1]
+			let errorIntroLine = e.toString()
+			if (e.cause) {
+				errorIntroLine += ` (cause: ${e.cause})`
+			}
+
+			const cloudflareErrorTitle = errorIntroLine.match(/<!DOCTYPE html>.*?<title>discord\.com \| ([^<]*)<\/title>/s)?.[1]
 			if (cloudflareErrorTitle) {
 				return api.sendEvent(event.room_id, "m.room.message", {
 					msgtype: "m.text",
@@ -53,16 +110,16 @@ function guard(type, fn) {
 				})
 			}
 
-			let stackLines = e.stack.split("\n")
+			const stack = stringifyErrorStack(e)
 			api.sendEvent(event.room_id, "m.room.message", {
 				msgtype: "m.text",
 				body: "\u26a0 Matrix event not delivered to Discord. See formatted content for full details.",
 				format: "org.matrix.custom.html",
 				formatted_body: "\u26a0 <strong>Matrix event not delivered to Discord</strong>"
 					+ `<br>Event type: ${type}`
-					+ `<br>${e.toString()}`
+					+ `<br>${errorIntroLine}`
 					+ `<br><details><summary>Error trace</summary>`
-					+ `<pre>${stackLines.join("\n")}</pre></details>`
+					+ `<pre>${stack}</pre></details>`
 					+ `<details><summary>Original payload</summary>`
 					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details>`,
 				"moe.cadence.ooye.error": {
@@ -297,3 +354,5 @@ async event => {
 		db.prepare("UPDATE member_cache SET power_level = ? WHERE room_id = ? AND mxid = ?").run(newPower[mxid] || 0, event.room_id, mxid)
 	}
 }))
+
+module.exports.stringifyErrorStack = stringifyErrorStack
