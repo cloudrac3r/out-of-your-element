@@ -42,7 +42,7 @@ function stringifyErrorStack(err, depth = 0) {
 	}
 
 	// add full stack trace if one exists, otherwise convert to string
-	let stackLines = ( err?.stack ?? `${err}` ).replace(/^/gm, " ".repeat(depth)).trim().split("\n")
+	let stackLines = String(err?.stack ?? err).replace(/^/gm, " ".repeat(depth)).trim().split("\n")
 	let cloudstormLine = stackLines.findIndex(l => l.includes("/node_modules/cloudstorm/"))
 	if (cloudstormLine !== -1) {
 		stackLines = stackLines.slice(0, cloudstormLine - 2)
@@ -80,56 +80,72 @@ function stringifyErrorStack(err, depth = 0) {
 	return collapsed;
 }
 
+/**
+ * @param {string} roomID
+ * @param {"Discord" | "Matrix"} source
+ * @param {any} type
+ * @param {any} e
+ * @param {any} payload
+ */
+async function sendError(roomID, source, type, e, payload) {
+	console.error(`Error while processing a ${type} ${source} event:`)
+	console.error(e)
+	console.dir(payload, {depth: null})
+
+	if (Date.now() - lastReportedEvent < 5000) return null
+	lastReportedEvent = Date.now()
+
+	let errorIntroLine = e.toString()
+	if (e.cause) {
+		errorIntroLine += ` (cause: ${e.cause})`
+	}
+
+	const builder = new utils.MatrixStringBuilder()
+
+	const cloudflareErrorTitle = errorIntroLine.match(/<!DOCTYPE html>.*?<title>discord\.com \| ([^<]*)<\/title>/s)?.[1]
+	if (cloudflareErrorTitle) {
+		builder.addLine(
+			`\u26a0 Matrix event not delivered to Discord. Discord might be down right now. Cloudflare error: ${cloudflareErrorTitle}`,
+			`\u26a0 <strong>Matrix event not delivered to Discord</strong><br>Discord might be down right now. Cloudflare error: ${cloudflareErrorTitle}`
+		)
+	} else {
+		// What
+		const what = source === "Discord" ? "Bridged event from Discord not delivered" : "Matrix event not delivered to Discord"
+		builder.addLine(`\u26a0 ${what}`, `\u26a0 <strong>${what}</strong>`)
+
+		// Who
+		builder.addLine(`Event type: ${type}`)
+
+		// Why
+		builder.addLine(errorIntroLine)
+
+		// Where
+		const stack = stringifyErrorStack(e)
+		builder.addLine(`Error trace:\n${stack}`, `<details><summary>Error trace</summary><pre>${stack}</pre></details>`)
+
+		// How
+		builder.addLine("", `<details><summary>Original payload</summary><pre>${util.inspect(payload, false, 4, false)}</pre></details>`)
+	}
+
+	// Send
+	await api.sendEvent(roomID, "m.room.message", {
+		...builder.get(),
+		"moe.cadence.ooye.error": {
+			source: source.toLowerCase(),
+			payload
+		},
+		"m.mentions": {
+			user_ids: ["@cadence:cadence.moe"]
+		}
+	})
+}
+
 function guard(type, fn) {
 	return async function(event, ...args) {
 		try {
 			return await fn(event, ...args)
 		} catch (e) {
-			console.error(`Exception while processing a ${type} Matrix event:`)
-			console.dir(event, {depth: null})
-
-			if (Date.now() - lastReportedEvent < 5000) return
-			lastReportedEvent = Date.now()
-
-			let errorIntroLine = e.toString()
-			if (e.cause) {
-				errorIntroLine += ` (cause: ${e.cause})`
-			}
-
-			const cloudflareErrorTitle = errorIntroLine.match(/<!DOCTYPE html>.*?<title>discord\.com \| ([^<]*)<\/title>/s)?.[1]
-			if (cloudflareErrorTitle) {
-				return api.sendEvent(event.room_id, "m.room.message", {
-					msgtype: "m.text",
-					body: `\u26a0 Matrix event not delivered to Discord. Cloudflare error: ${cloudflareErrorTitle}.`,
-					format: "org.matrix.custom.html",
-					formatted_body: `\u26a0 <strong>Matrix event not delivered to Discord</strong><br>Cloudflare error: ${cloudflareErrorTitle}`,
-					"moe.cadence.ooye.error": {
-						source: "matrix",
-						payload: event
-					}
-				})
-			}
-
-			const stack = stringifyErrorStack(e)
-			api.sendEvent(event.room_id, "m.room.message", {
-				msgtype: "m.text",
-				body: "\u26a0 Matrix event not delivered to Discord. See formatted content for full details.",
-				format: "org.matrix.custom.html",
-				formatted_body: "\u26a0 <strong>Matrix event not delivered to Discord</strong>"
-					+ `<br>Event type: ${type}`
-					+ `<br>${errorIntroLine}`
-					+ `<br><details><summary>Error trace</summary>`
-					+ `<pre>${stack}</pre></details>`
-					+ `<details><summary>Original payload</summary>`
-					+ `<pre>${util.inspect(event, false, 4, false)}</pre></details>`,
-				"moe.cadence.ooye.error": {
-					source: "matrix",
-					payload: event
-				},
-				"m.mentions": {
-					user_ids: ["@cadence:cadence.moe"]
-				}
-			})
+			await sendError(event.room_id, "Matrix", type, e, event)
 		}
 	}
 }
@@ -356,3 +372,4 @@ async event => {
 }))
 
 module.exports.stringifyErrorStack = stringifyErrorStack
+module.exports.sendError = sendError

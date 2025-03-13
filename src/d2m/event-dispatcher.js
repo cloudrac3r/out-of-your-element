@@ -2,7 +2,6 @@
 
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
-const util = require("util")
 const {sync, db, select, from} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
@@ -27,8 +26,6 @@ const updatePins = sync.require("./actions/update-pins")
 const api = sync.require("../matrix/api")
 /** @type {import("../discord/utils")} */
 const dUtils = sync.require("../discord/utils")
-/** @type {import("../m2d/converters/utils")} */
-const mxUtils = require("../m2d/converters/utils")
 /** @type {import("./actions/speedbump")} */
 const speedbump = sync.require("./actions/speedbump")
 /** @type {import("./actions/retrigger")} */
@@ -42,8 +39,6 @@ const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
 const Semaphore = require("@chriscdn/promise-semaphore")
 const checkMissedPinsSema = new Semaphore()
 
-let lastReportedEvent = 0
-
 // Grab Discord events we care about for the bridge, check them, and pass them on
 
 module.exports = {
@@ -53,45 +48,14 @@ module.exports = {
 	 * @param {import("cloudstorm").IGatewayMessage} gatewayMessage
 	 */
 	async onError(client, e, gatewayMessage) {
-		console.error("hit event-dispatcher's error handler with this exception:")
-		console.error(e) // TODO: also log errors into a file or into the database, maybe use a library for this? or just wing it? definitely need to be able to store the formatted event body to load back in later
-		console.error(`while handling this ${gatewayMessage.t} gateway event:`)
-		console.dir(gatewayMessage.d, {depth: null})
-
-		if (gatewayMessage.t === "TYPING_START") return
-
-		if (Date.now() - lastReportedEvent < 5000) return
-		lastReportedEvent = Date.now()
-
 		const channelID = gatewayMessage.d["channel_id"]
 		if (!channelID) return
 		const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!roomID) return
 
-		const builder = new mxUtils.MatrixStringBuilder()
-		builder.addLine("\u26a0 Bridged event from Discord not delivered", "\u26a0 <strong>Bridged event from Discord not delivered</strong>")
-		builder.addLine(`Gateway event: ${gatewayMessage.t}`)
+		if (gatewayMessage.t === "TYPING_START") return
 
-		let errorIntroLine = e.toString()
-		if (e.cause) {
-			errorIntroLine += ` (cause: ${e.cause})`
-		}
-		builder.addLine(errorIntroLine)
-
-		const stack = matrixEventDispatcher.stringifyErrorStack(e)
-		builder.addLine(`Error trace:\n${stack}`, `<details><summary>Error trace</summary><pre>${stack}</pre></details>`)
-
-		builder.addLine("", `<details><summary>Original payload</summary><pre>${util.inspect(gatewayMessage.d, false, 4, false)}</pre></details>`)
-		await api.sendEvent(roomID, "m.room.message", {
-			...builder.get(),
-			"moe.cadence.ooye.error": {
-				source: "discord",
-				payload: gatewayMessage
-			},
-			"m.mentions": {
-				user_ids: ["@cadence:cadence.moe"]
-			}
-		})
+		await matrixEventDispatcher.sendError(roomID, "Discord", gatewayMessage.t, e, gatewayMessage.d)
 	},
 
 	/**
@@ -151,7 +115,7 @@ module.exports = {
 					backfill: true,
 					...messages[i]
 				}
-				await module.exports.onMessageCreate(client, simulatedGatewayDispatchData)
+				await module.exports.MESSAGE_CREATE(client, simulatedGatewayDispatchData)
 			}
 		}
 	},
@@ -198,7 +162,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.APIThreadChannel} thread
 	 */
-	async onThreadCreate(client, thread) {
+	async THREAD_CREATE(client, thread) {
 		const channelID = thread.parent_id || undefined
 		const parentRoomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!parentRoomID) return // Not interested in a thread if we aren't interested in its wider channel (won't autocreate)
@@ -210,7 +174,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayGuildUpdateDispatchData} guild
 	 */
-	async onGuildUpdate(client, guild) {
+	async GUILD_UPDATE(client, guild) {
 		const spaceID = select("guild_space", "space_id", {guild_id: guild.id}).pluck().get()
 		if (!spaceID) return
 		await createSpace.syncSpace(guild)
@@ -219,9 +183,8 @@ module.exports = {
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayChannelUpdateDispatchData} channelOrThread
-	 * @param {boolean} isThread
 	 */
-	async onChannelOrThreadUpdate(client, channelOrThread, isThread) {
+	async CHANNEL_UPDATE(client, channelOrThread) {
 		const roomID = select("channel_room", "room_id", {channel_id: channelOrThread.id}).pluck().get()
 		if (!roomID) return // No target room to update the data on
 		await createRoom.syncRoom(channelOrThread.id)
@@ -229,9 +192,17 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayChannelUpdateDispatchData} thread
+	 */
+	async THREAD_UPDATE(client, thread) {
+		await module.exports.CHANNEL_UPDATE(client, thread)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayChannelPinsUpdateDispatchData} data
 	 */
-	async onChannelPinsUpdate(client, data) {
+	async CHANNEL_PINS_UPDATE(client, data) {
 		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 		if (!roomID) return // No target room to update pins in
 		const convertedTimestamp = updatePins.convertTimestamp(data.last_pin_timestamp)
@@ -242,7 +213,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayChannelDeleteDispatchData} channel
 	 */
-	async onChannelDelete(client, channel) {
+	async CHANNEL_DELETE(client, channel) {
 		const guildID = channel["guild_id"]
 		if (!guildID) return // channel must have been a DM channel or something
 		const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
@@ -255,7 +226,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
 	 */
-	async onMessageCreate(client, message) {
+	async MESSAGE_CREATE(client, message) {
 		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
 		const channel = client.channels.get(message.channel_id)
 		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
@@ -285,7 +256,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayMessageUpdateDispatchData} data
 	 */
-	async onMessageUpdate(client, data) {
+	async MESSAGE_UPDATE(client, data) {
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.
 		// Otherwise, if there are embeds, then the system generated URL preview embeds.
@@ -303,7 +274,7 @@ module.exports = {
 		if (affected) return
 
 		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
-		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageUpdate, client, data)) return
+		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.MESSAGE_UPDATE, client, data)) return
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 		// @ts-ignore
@@ -321,7 +292,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayMessageReactionAddDispatchData} data
 	 */
-	async onReactionAdd(client, data) {
+	async MESSAGE_REACTION_ADD(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		await addReaction.addReaction(data)
 	},
@@ -338,25 +309,25 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayMessageDeleteDispatchData} data
 	 */
-	async onMessageDelete(client, data) {
+	async MESSAGE_DELETE(client, data) {
 		speedbump.onMessageDelete(data.id)
-		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.onMessageDelete, client, data)) return
+		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.MESSAGE_DELETE, client, data)) return
 		await deleteMessage.deleteMessage(data)
 	},
 
-		/**
+	/**
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayMessageDeleteBulkDispatchData} data
 	 */
-		async onMessageDeleteBulk(client, data) {
-			await deleteMessage.deleteMessageBulk(data)
-		},
+	async MESSAGE_DELETE_BULK(client, data) {
+		await deleteMessage.deleteMessageBulk(data)
+	},
 
 	/**
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayTypingStartDispatchData} data
 	 */
-	async onTypingStart(client, data) {
+	async TYPING_START(client, data) {
 		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 		if (!roomID) return
 		const mxid = from("sim").join("sim_member", "mxid").where({user_id: data.user_id, room_id: roomID}).pluck("mxid").get()
@@ -369,9 +340,17 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
-	 * @param {DiscordTypes.GatewayGuildEmojisUpdateDispatchData | DiscordTypes.GatewayGuildStickersUpdateDispatchData} data
+	 * @param {DiscordTypes.GatewayGuildEmojisUpdateDispatchData} data
 	 */
-	async onExpressionsUpdate(client, data) {
+	async GUILD_EMOJIS_UPDATE(client, data) {
+		await createSpace.syncSpaceExpressions(data, false)
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayGuildStickersUpdateDispatchData} data
+	 */
+	async GUILD_STICKERS_UPDATE(client, data) {
 		await createSpace.syncSpaceExpressions(data, false)
 	},
 
@@ -379,7 +358,7 @@ module.exports = {
 	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayPresenceUpdateDispatchData} data
 	 */
-	onPresenceUpdate(client, data) {
+	PRESENCE_UPDATE(client, data) {
 		const status = data.status
 		if (!status) return
 		setPresence.presenceTracker.incomingPresence(data.user.id, data.guild_id, status)

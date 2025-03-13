@@ -157,59 +157,17 @@ const utils = {
 		}
 
 		// Event dispatcher for OOYE bridge operations
-		if (listen === "full") {
+		if (listen === "full" && message.t) {
 			try {
-				if (message.t === "GUILD_UPDATE") {
-					await eventDispatcher.onGuildUpdate(client, message.d)
-
-				} else if (message.t === "GUILD_EMOJIS_UPDATE" || message.t === "GUILD_STICKERS_UPDATE") {
-					await eventDispatcher.onExpressionsUpdate(client, message.d)
-
-				} else if (message.t === "CHANNEL_UPDATE") {
-					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, false)
-
-				} else if (message.t === "CHANNEL_PINS_UPDATE") {
-					await eventDispatcher.onChannelPinsUpdate(client, message.d)
-
-				} else if (message.t === "CHANNEL_DELETE") {
-					await eventDispatcher.onChannelDelete(client, message.d)
-
-				} else if (message.t === "THREAD_CREATE") {
-					// @ts-ignore
-					await eventDispatcher.onThreadCreate(client, message.d)
-
-				} else if (message.t === "THREAD_UPDATE") {
-					// @ts-ignore
-					await eventDispatcher.onChannelOrThreadUpdate(client, message.d, true)
-
-				} else if (message.t === "MESSAGE_CREATE") {
-					await eventDispatcher.onMessageCreate(client, message.d)
-
-				} else if (message.t === "MESSAGE_UPDATE") {
-					await eventDispatcher.onMessageUpdate(client, message.d)
-
-				} else if (message.t === "MESSAGE_DELETE") {
-					await eventDispatcher.onMessageDelete(client, message.d)
-
-				} else if (message.t === "MESSAGE_DELETE_BULK") {
-					await eventDispatcher.onMessageDeleteBulk(client, message.d)
-
-				} else if (message.t === "TYPING_START") {
-					await eventDispatcher.onTypingStart(client, message.d)
-
-				} else if (message.t === "MESSAGE_REACTION_ADD") {
-					await eventDispatcher.onReactionAdd(client, message.d)
-
-				} else if (message.t === "MESSAGE_REACTION_REMOVE" || message.t === "MESSAGE_REACTION_REMOVE_EMOJI" || message.t === "MESSAGE_REACTION_REMOVE_ALL") {
+				if (message.t === "MESSAGE_REACTION_REMOVE" || message.t === "MESSAGE_REACTION_REMOVE_EMOJI" || message.t === "MESSAGE_REACTION_REMOVE_ALL") {
 					await eventDispatcher.onSomeReactionsRemoved(client, message.d)
 
 				} else if (message.t === "INTERACTION_CREATE") {
 					await interactions.dispatchInteraction(message.d)
 
-				} else if (message.t === "PRESENCE_UPDATE") {
-					eventDispatcher.onPresenceUpdate(client, message.d)
+				} else if (message.t in eventDispatcher) {
+					await eventDispatcher[message.t](client, message.d)
 				}
-
 			} catch (e) {
 				// Let OOYE try to handle errors too
 				await eventDispatcher.onError(client, e, message)
