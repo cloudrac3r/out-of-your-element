@@ -148,10 +148,10 @@ async function fetchMessage(messageID) {
 		try {
 			var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
 			if (res.ok) return res.json()
-			var errorGetter = res.json
+			var errorGetter = () => res.json()
 		} catch (e) {
 			// Catch any network issues too.
-			errorGetter = e.toString
+			errorGetter = () => e.toString()
 		}
 
 		// I think the backend needs some time to update.
