@@ -75,7 +75,8 @@ module.exports = {
 			"m.room.power_levels/": {
 				events_default: 0,
 				events: {
-					"m.reaction": 0
+					"m.reaction": 0,
+					"m.room.redaction": 0
 				},
 				users: {
 					"@test_auto_invite:example.org": 100
@@ -3025,6 +3026,7 @@ module.exports = {
 			},
 			webhook_id: "1109360903096369153"
 		},
+
 		reply_with_only_embed: {
 			type: 19,
 			tts: false,

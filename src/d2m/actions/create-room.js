@@ -147,7 +147,8 @@ async function channelToKState(channel, guild, di) {
 		"m.room.power_levels/": {
 			events_default: everyoneCanSend ? 0 : 50,
 			events: {
-				"m.reaction": 0
+				"m.reaction": 0,
+				"m.room.redaction": 0 // only affects redactions of own events, required to be able to un-react
 			},
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
