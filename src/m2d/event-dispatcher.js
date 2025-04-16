@@ -187,6 +187,7 @@ sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const messageResponses = await sendEvent.sendEvent(event)
+	if (!messageResponses.length) return
 	if (event.type === "m.room.message" && event.content.msgtype === "m.text") {
 		// @ts-ignore
 		await matrixCommandHandler.execute(event)
