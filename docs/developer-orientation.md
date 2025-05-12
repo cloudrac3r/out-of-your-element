@@ -121,7 +121,6 @@ Total transitive production dependencies: 137
 * (1) heatsync: Module hot-reloader that I trust.
 * (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
-* (0) minimist: It's already pulled in by better-sqlite3->prebuild-install.
 * (0) prettier-bytes: It does what I want and has no dependencies.
 * (0) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.

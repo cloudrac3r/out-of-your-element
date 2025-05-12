@@ -17,8 +17,6 @@ const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const {createApp, defineEventHandler, toNodeListener} = require("h3")
 
-const args = require("minimist")(process.argv.slice(2), {string: ["emoji-guild"]})
-
 // Move database file if it's still in the old location
 if (fs.existsSync("db")) {
 	if (fs.existsSync("db/ooye.db")) {
@@ -53,19 +51,6 @@ let {reg, getTemplateRegistration, writeRegistration, readRegistration, checkReg
 function die(message) {
 	console.error(message)
 	process.exit(1)
-}
-
-async function uploadAutoEmoji(snow, guild, name, filename) {
-	let emoji = guild.emojis.find(e => e.name === name)
-	if (!emoji) {
-		console.log(`   Uploading ${name}...`)
-		const data = fs.readFileSync(filename, null)
-		emoji = await snow.guildAssets.createEmoji(guild.id, {name, image: "data:image/png;base64," + data.toString("base64")})
-	} else {
-		console.log(`   Reusing ${name}...`)
-	}
-	db.prepare("REPLACE INTO auto_emoji (name, emoji_id, guild_id) VALUES (?, ?, ?)").run(emoji.name, emoji.id, guild.id)
-	return emoji
 }
 
 async function suggestWellKnown(serverUrlPrompt, url, otherwise) {
@@ -170,7 +155,7 @@ function defineEchoHandler() {
 		console.log("Go to https://discord.com/developers, create or pick an app, go to the Bot section, and reset the token.")
 		/** @type {SnowTransfer} */ // @ts-ignore
 		let snow = null
-		/** @type {{id: string, flags: number, redirect_uris: string[]}} */ // @ts-ignore
+		/** @type {{id: string, flags: number, redirect_uris: string[], description: string}} */ // @ts-ignore
 		let client = null
 		/** @type {{discord_token: string}} */
 		const discordTokenResponse = await prompt({
@@ -215,6 +200,25 @@ function defineEchoHandler() {
 			type: "text",
 			name: "web_password",
 			message: "Choose a simple password (optional)"
+		})
+
+		console.log("To fulfill license obligations, I recommend mentioning Out Of Your Element in your Discord bot's profile.")
+		console.log("On the Discord bot configuration page, go to General and add something like this to the description:")
+		console.log(cyan("Powered by **Out Of Your Element**"))
+		console.log(cyan("https://gitdab.com/cadence/out-of-your-element"))
+		await prompt({
+			type: "invisible",
+			name: "description",
+			message: "Press Enter to acknowledge",
+			validate: async token => {
+				process.stdout.write(magenta("checking, please wait..."))
+				client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
+				if (client.description?.match(/out.of.your.element/i)) {
+					return true
+				} else {
+					return "Description must name or link Out Of Your Element"
+				}
+			}
 		})
 
 		console.log("What is your Discord client secret?")
@@ -342,47 +346,24 @@ function defineEchoHandler() {
 
 	console.log("✅ Matrix appservice login works...")
 
-	// upload the L1 L2 emojis to some guild
-	const emojis = db.prepare("SELECT name FROM auto_emoji WHERE name = 'L1' OR name = 'L2'").pluck().all()
-	if (emojis.length !== 2) {
-		// If an argument was supplied, always use that one
-		let guild = null
-		if (args["emoji-guild"]) {
-			if (typeof args["emoji-guild"] === "string") {
-				guild = await discord.snow.guild.getGuild(args["emoji-guild"])
-			}
-			if (!guild) return die(`Error: You asked emojis to be uploaded to guild ID ${args["emoji-guild"]}, but the bot isn't in that guild.`)
+	// upload the L1 L2 emojis to user emojis
+	const emojis = await discord.snow.assets.getAppEmojis(client.id)
+	for (const name of ["L1", "L2"]) {
+		const existing = emojis.items.find(e => e.name === name)
+		if (existing) {
+			db.prepare("REPLACE INTO auto_emoji (name, emoji_id) VALUES (?, ?)").run(existing.name, existing.id)
+		} else {
+			const filename = join(__dirname, "../docs/img", `${name}.png`)
+			const data = fs.readFileSync(filename, null)
+			const uploaded = await discord.snow.assets.createAppEmoji(client.id, {name, image: "data:image/png;base64," + data.toString("base64")})
+			db.prepare("REPLACE INTO auto_emoji (name, emoji_id) VALUES (?, ?)").run(uploaded.name, uploaded.id)
 		}
-		// Otherwise, check if we have already registered an auto emoji guild
-		if (!guild) {
-			const guildID = passthrough.select("auto_emoji", "guild_id", {name: "_"}).pluck().get()
-			if (guildID) {
-				guild = await discord.snow.guild.getGuild(guildID, false)
-			}
-		}
-		// Otherwise, check if we should create a new guild
-		if (!guild) {
-			const guilds = await discord.snow.user.getGuilds({limit: 11, with_counts: false})
-			if (guilds.length < 10) {
-				console.log("   Creating a guild for emojis...")
-				guild = await discord.snow.guild.createGuild({name: "OOYE Emojis"})
-			}
-		}
-		// Otherwise, it's the user's problem
-		if (!guild) {
-			return die(`Error: The bot needs to upload some emojis. Please say where to upload them to. Run setup again with --emoji-guild=GUILD_ID`)
-		}
-		// Upload those emojis to the chosen location
-		db.prepare("REPLACE INTO auto_emoji (name, emoji_id, guild_id) VALUES ('_', '_', ?)").run(guild.id)
-		await uploadAutoEmoji(discord.snow, guild, "L1", join(__dirname, "../docs/img/L1.png"))
-		await uploadAutoEmoji(discord.snow, guild, "L2", join(__dirname, "../docs/img/L2.png"))
 	}
 	console.log("✅ Emojis are ready...")
 
 	// set profile data on discord...
 	const avatarImageBuffer = await fetch("https://cadence.moe/friends/out_of_your_element.png").then(res => res.arrayBuffer())
 	await discord.snow.user.updateSelf({avatar: "data:image/png;base64," + Buffer.from(avatarImageBuffer).toString("base64")})
-	await discord.snow.bot.updateApplicationInfo({description: "Powered by **Out Of Your Element**\nhttps://gitdab.com/cadence/out-of-your-element"})
 	console.log("✅ Discord profile updated...")
 
 	// set profile data on homeserver...

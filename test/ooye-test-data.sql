@@ -166,10 +166,9 @@ INSERT INTO member_power (mxid, room_id, power_level) VALUES
 INSERT INTO lottie (sticker_id, mxc_url) VALUES
 ('860171525772279849', 'mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR');
 
-INSERT INTO auto_emoji (name, emoji_id, guild_id) VALUES
-('L1', '1144820033948762203', '529176156398682115'),
-('L2', '1144820084079087647', '529176156398682115'),
-('_',  '_',                   '529176156398682115');
+INSERT INTO auto_emoji (name, emoji_id) VALUES
+('L1', '1144820033948762203'),
+('L2', '1144820084079087647');
 
 INSERT INTO media_proxy (permitted_hash) VALUES
 (-429802515645771439),

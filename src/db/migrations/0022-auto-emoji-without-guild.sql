@@ -1,0 +1,11 @@
+BEGIN TRANSACTION;
+
+DROP TABLE auto_emoji;
+
+CREATE TABLE auto_emoji (
+	name	TEXT NOT NULL,
+	emoji_id	TEXT NOT NULL,
+	PRIMARY KEY (name)
+) WITHOUT ROWID;
+
+COMMIT;
