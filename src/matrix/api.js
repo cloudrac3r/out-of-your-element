@@ -419,6 +419,14 @@ async function setPresence(data, mxid) {
 	await mreq.mreq("PUT", path(`/client/v3/presence/${mxid}/status`, mxid), data)
 }
 
+/**
+ * @param {string} mxid
+ * @returns {Promise<{displayname?: string, avatar_url?: string}>}
+ */
+function getProfile(mxid) {
+	return mreq.mreq("GET", `/client/v3/profile/${mxid}`)
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -452,3 +460,4 @@ module.exports.getAlias = getAlias
 module.exports.getAccountData = getAccountData
 module.exports.setAccountData = setAccountData
 module.exports.setPresence = setPresence
+module.exports.getProfile = getProfile
