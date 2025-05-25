@@ -477,14 +477,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 			if (repliedToContent == "") repliedToContent = "[Media]"
 			else if (!repliedToContent) repliedToContent = "[Replied-to message content wasn't provided by Discord]"
-			const repliedToHtml = markdown.toHTML(repliedToContent, {
-				discordCallback: getDiscordParseCallbacks(message, guild, true)
-			})
-			const repliedToBody = markdown.toHTML(repliedToContent, {
-				discordCallback: getDiscordParseCallbacks(message, guild, false),
-				discordOnly: true,
-				escapeHTML: false,
-			})
+			const {body: repliedToBody, html: repliedToHtml} = await transformContent(repliedToContent)
 			if (repliedToEventRow) {
 				// Generate a reply pointing to the Matrix event we found
 				html = `<mx-reply><blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
