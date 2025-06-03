@@ -31,6 +31,10 @@ async function addReaction(event) {
 			// not adding it to the database otherwise a m->d removal would try calling the API
 			return
 		}
+		if (e.message?.includes("Unknown Emoji")) {
+			// happens if a matrix user tries to add on to a super reaction
+			return
+		}
 		throw e
 	}
 
