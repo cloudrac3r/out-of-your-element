@@ -37,6 +37,7 @@ as.router.get("/api/message", defineEventHandler(async event => {
 		}))
 	))
 
+	/* c8 ignore next */
 	const primary = events.find(e => e.metadata.part === 0) || events[0]
 	const mxid = primary.metadata.sender
 	const source = primary.metadata.source === 0 ? "matrix" : "discord"
