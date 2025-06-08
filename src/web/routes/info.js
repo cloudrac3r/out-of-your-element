@@ -4,6 +4,9 @@ const {z} = require("zod")
 const {defineEventHandler, getValidatedQuery, H3Event} = require("h3")
 const {as, from, sync, select} = require("../../passthrough")
 
+/** @type {import("../../m2d/converters/utils")} */
+const mUtils = sync.require("../../m2d/converters/utils")
+
 /**
  * @param {H3Event} event
  * @returns {import("../../matrix/api")}
@@ -53,7 +56,8 @@ as.router.get("/api/message", defineEventHandler(async event => {
 			}
 		}
 		if (!matrix_author.displayname) matrix_author.displayname = mxid
-		if (!matrix_author.avatar_url) matrix_author.avatar_url = null
+		if (matrix_author.avatar_url) matrix_author.avatar_url = mUtils.getPublicUrlForMxc(matrix_author.avatar_url)
+		else matrix_author.avatar_url = null
 		matrix_author["mxid"] = mxid
 	}
 
