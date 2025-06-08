@@ -204,7 +204,7 @@ async function attachmentToEvent(mentions, attachment) {
  * - includeEditFallbackStar: false
  * - alwaysReturnFormattedBody: false - formatted_body will be skipped if it is the same as body because the message is plaintext. if you want the formatted_body to be returned anyway, for example to merge it with another message, then set this to true.
  * - scanTextForMentions: true - needs to be set to false when converting forwarded messages etc which may be from a different channel that can't be scanned.
- * @param {{api: import("../../matrix/api")}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow?: import("snowtransfer").SnowTransfer}} di simple-as-nails dependency injection for the matrix API
  */
 async function messageToEvent(message, guild, options = {}, di) {
 	const events = []
@@ -606,6 +606,49 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		const {body, html} = await transformContent(message.content)
 		await addTextEvent(body, html, msgtype)
+	}
+
+	// Then scheduled events
+	if (message.content && di?.snow) {
+		for (const match of [...message.content.matchAll(/discord\.gg\/([A-Za-z0-9]+)\?event=([0-9]{18,})/g)]) { // snowflake has minimum 18 because the events feature is at least that old
+			const invite = await di.snow.invite.getInvite(match[1], {guild_scheduled_event_id: match[2]})
+			const event = invite.guild_scheduled_event
+			if (!event) continue // the event ID provided was not valid
+
+			const formatter = new Intl.DateTimeFormat("en-NZ", {month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "shortGeneric"}) // 9 June at 3:00 pm NZT
+			const rep = new mxUtils.MatrixStringBuilder()
+
+			// Add time
+			if (event.scheduled_end_time) {
+				// @ts-ignore - no definition available for formatRange
+				rep.addParagraph(`Scheduled Event - ${formatter.formatRange(new Date(event.scheduled_start_time), new Date(event.scheduled_end_time))}`)
+			} else {
+				rep.addParagraph(`Scheduled Event - ${formatter.format(new Date(event.scheduled_start_time))}`)
+			}
+
+			// Add details
+			rep.addLine(`## ${event.name}`, tag`<strong>${event.name}</strong>`)
+			if (event.description) rep.addLine(event.description)
+
+			// Add location
+			if (event.entity_metadata?.location) {
+				rep.addParagraph(`📍 ${event.entity_metadata.location}`)
+			} else if (invite.channel?.name) {
+				const roomID = select("channel_room", "room_id", {channel_id: invite.channel.id}).pluck().get()
+				if (roomID) {
+					const via = await getViaServersMemo(roomID)
+					rep.addParagraph(`🔊 ${invite.channel.name} - https://matrix.to/#/${roomID}?${via}`, tag`🔊 ${invite.channel.name} - <a href="https://matrix.to/#/${roomID}?${via}">${invite.channel.name}</a>`)
+				} else {
+					rep.addParagraph(`🔊 ${invite.channel.name}`)
+				}
+			}
+
+			// Send like an embed
+			let {body, formatted_body: html} = rep.get()
+			body = body.split("\n").map(l => "| " + l).join("\n")
+			html = `<blockquote>${html}</blockquote>`
+			await addTextEvent(body, html, "m.notice")
+		}
 	}
 
 	// Then attachments

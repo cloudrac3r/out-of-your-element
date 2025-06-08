@@ -42,7 +42,7 @@ async function sendMessage(message, channel, guild, row) {
 		}
 	}
 
-	const events = await messageToEvent.messageToEvent(message, guild, {}, {api})
+	const events = await messageToEvent.messageToEvent(message, guild, {}, {api, snow: discord.snow})
 	const eventIDs = []
 	if (events.length) {
 		db.prepare("INSERT OR IGNORE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)

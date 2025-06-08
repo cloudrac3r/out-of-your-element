@@ -1165,3 +1165,131 @@ test("message2event: don't scan forwarded messages for mentions", async t => {
 		}
 	])
 })
+
+test("message2event: invite no details embed if no event", async t => {
+	const events = await messageToEvent({content: "https://discord.gg/placeholder?event=1381190945646710824"}, {}, {}, {
+		snow: {
+			invite: {
+				getInvite: async () => ({...data.invite.irl, guild_scheduled_event: null})
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "https://discord.gg/placeholder?event=1381190945646710824",
+			format: "org.matrix.custom.html",
+			formatted_body: "<a href=\"https://discord.gg/placeholder?event=1381190945646710824\">https://discord.gg/placeholder?event=1381190945646710824</a>",
+			"m.mentions": {},
+			msgtype: "m.text",
+		}
+	])
+})
+
+test("message2event: irl invite event renders embed", async t => {
+	const events = await messageToEvent({content: "https://discord.gg/placeholder?event=1381190945646710824"}, {}, {}, {
+		snow: {
+			invite: {
+				getInvite: async () => data.invite.irl
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "https://discord.gg/placeholder?event=1381190945646710824",
+			format: "org.matrix.custom.html",
+			formatted_body: "<a href=\"https://discord.gg/placeholder?event=1381190945646710824\">https://discord.gg/placeholder?event=1381190945646710824</a>",
+			"m.mentions": {},
+			msgtype: "m.text",
+		},
+		{
+			$type: "m.room.message",
+			msgtype: "m.notice",
+			body: `| Scheduled Event - 8 June at 10:00 pm NZT – 9 June at 12:00 am NZT`
+				+ `\n| ## forest exploration`
+				+ `\n| `
+				+ `\n| 📍 the dark forest`,
+			format: "org.matrix.custom.html",
+			formatted_body: `<blockquote><p>Scheduled Event - 8 June at 10:00 pm NZT – 9 June at 12:00 am NZT</p>`
+				+ `<strong>forest exploration</strong>`
+				+ `<p>📍 the dark forest</p></blockquote>`,
+			"m.mentions": {}
+		}
+	])
+})
+
+test("message2event: vc invite event renders embed", async t => {
+	const events = await messageToEvent({content: "https://discord.gg/placeholder?event=1381174024801095751"}, {}, {}, {
+		snow: {
+			invite: {
+				getInvite: async () => data.invite.vc
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "https://discord.gg/placeholder?event=1381174024801095751",
+			format: "org.matrix.custom.html",
+			formatted_body: "<a href=\"https://discord.gg/placeholder?event=1381174024801095751\">https://discord.gg/placeholder?event=1381174024801095751</a>",
+			"m.mentions": {},
+			msgtype: "m.text",
+		},
+		{
+			$type: "m.room.message",
+			msgtype: "m.notice",
+			body: `| Scheduled Event - 9 June at 3:00 pm NZT`
+				+ `\n| ## Cooking (Netrunners)`
+				+ `\n| Short circuited brain interfaces actually just means your brain is medium rare, yum.`
+				+ `\n| `
+				+ `\n| 🔊 Cooking`,
+			format: "org.matrix.custom.html",
+			formatted_body: `<blockquote><p>Scheduled Event - 9 June at 3:00 pm NZT</p>`
+				+ `<strong>Cooking (Netrunners)</strong><br>Short circuited brain interfaces actually just means your brain is medium rare, yum.`
+				+ `<p>🔊 Cooking</p></blockquote>`,
+			"m.mentions": {}
+		}
+	])
+})
+
+test("message2event: vc invite event renders embed with room link", async t => {
+	const events = await messageToEvent({content: "https://discord.gg/placeholder?event=1381174024801095751"}, {}, {}, {
+		api: {
+			getJoinedMembers: async () => ({
+				joined: {
+					"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
+				}
+			})
+		},
+		snow: {
+			invite: {
+				getInvite: async () => data.invite.known_vc
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "https://discord.gg/placeholder?event=1381174024801095751",
+			format: "org.matrix.custom.html",
+			formatted_body: "<a href=\"https://discord.gg/placeholder?event=1381174024801095751\">https://discord.gg/placeholder?event=1381174024801095751</a>",
+			"m.mentions": {},
+			msgtype: "m.text",
+		},
+		{
+			$type: "m.room.message",
+			msgtype: "m.notice",
+			body: `| Scheduled Event - 9 June at 3:00 pm NZT`
+				+ `\n| ## Cooking (Netrunners)`
+				+ `\n| Short circuited brain interfaces actually just means your brain is medium rare, yum.`
+				+ `\n| `
+				+ `\n| 🔊 Hey. - https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe?via=cadence.moe`,
+			format: "org.matrix.custom.html",
+			formatted_body: `<blockquote><p>Scheduled Event - 9 June at 3:00 pm NZT</p>`
+				+ `<strong>Cooking (Netrunners)</strong><br>Short circuited brain interfaces actually just means your brain is medium rare, yum.`
+				+ `<p>🔊 Hey. - <a href="https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe?via=cadence.moe">Hey.</a></p></blockquote>`,
+			"m.mentions": {}
+		}
+	])
+})
