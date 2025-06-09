@@ -4537,6 +4537,42 @@ test("event2message: @room in the middle of a link is not converted", async t =>
 	)
 })
 
+test("event2message: table", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "content<table><thead><tr><th>Col 1</th><th>Col 2</th><th>Col 3</th></tr></thead><tbody><tr><th>Apple</th><td>Banana</td><td>Cherry</td></tr><tr><th>Aardvark</th><td>Bee</td><td>Crocodile</td></tr><tr><td>Argon</td><td>Boron</td><td>Carbon</td></tr></tbody></table>more content"
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "content```"
+				+ "\nCol 1     Col 2   Col 3  "
+				+ "\n---------------------------"
+				+ "\nApple     Banana  Cherry "
+				+ "\nAardvark  Bee     Crocodile"
+				+ "\nArgon     Boron   Carbon   ```"
+				+ "more content",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
 slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet", async t => {
 	const messages = await eventToMessage({
 		type: "m.room.message",

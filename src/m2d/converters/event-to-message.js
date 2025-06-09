@@ -154,6 +154,27 @@ turndownService.addRule("listItem", {
 	}
 })
 
+turndownService.addRule("table", {
+	filter: "table",
+	replacement: function (content, node, options) {
+		const trs = node.querySelectorAll("tr").cache
+		/** @type {{text: string, tag: string}[][]} */
+		const tableText = trs.map(tr => [...tr.querySelectorAll("th, td")].map(cell => ({text: cell.textContent, tag: cell.tagName})))
+		const tableTextByColumn = tableText[0].map((col, i) => tableText.map(row => row[i]))
+		const columnWidths = tableTextByColumn.map(col => Math.max(...col.map(cell => cell.text.length)))
+		const resultRows = tableText.map((row, rowIndex) =>
+			row.map((cell, colIndex) =>
+				cell.text.padEnd(columnWidths[colIndex])
+			).join("  ")
+		)
+		const tableHasHeader = tableText[0].slice(1).some(cell => cell.tag === "TH")
+		if (tableHasHeader) {
+			resultRows.splice(1, 0, "-".repeat(columnWidths.reduce((a, c) => a + c + 2)))
+		}
+		return "```\n" + resultRows.join("\n") + "```"
+	}
+})
+
 /** @type {string[]} SPRITE SHEET EMOJIS FEATURE: mxc urls for the currently processing message */
 let endOfMessageEmojis = []
 turndownService.addRule("emoji", {
