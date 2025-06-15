@@ -321,6 +321,25 @@ test("message2event embeds: youtube video", async t => {
 	}])
 })
 
+test("message2event embeds: tenor gif should show a video link without a provider", async t => {
+	const events = await messageToEvent(data.message_with_embeds.tenor_gif, data.guild.general, {}, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "@Realdditors: get real https://tenor.com/view/get-real-gif-26176788",
+		format: "org.matrix.custom.html",
+		formatted_body: "<font color=\"#ff4500\">@Realdditors</font> get real <a href=\"https://tenor.com/view/get-real-gif-26176788\">https://tenor.com/view/get-real-gif-26176788</a>",
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "| 🎞️ https://media.tenor.com/Bz5pfRIu81oAAAPo/get-real.mp4",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote><p>🎞️ https://media.tenor.com/Bz5pfRIu81oAAAPo/get-real.mp4</p></blockquote>",
+		"m.mentions": {}
+	}])
+})
+
 test("message2event embeds: if discord creates an embed preview for a discord channel link, don't copy that embed", async t => {
 	const events = await messageToEvent(data.message_with_embeds.discord_server_included_punctuation_bad_discord, data.guild.general, {}, {
 		api: {

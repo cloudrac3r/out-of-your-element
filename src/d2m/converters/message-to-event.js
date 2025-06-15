@@ -676,7 +676,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const rep = new mxUtils.MatrixStringBuilder()
 
 		// Provider
-		if (embed.provider?.name) {
+		if (embed.provider?.name && embed.provider.name !== "Tenor") {
 			if (embed.provider.url) {
 				rep.addParagraph(`via ${embed.provider.name} ${embed.provider.url}`, tag`<sub><a href="${embed.provider.url}">${embed.provider.name}</a></sub>`)
 			} else {

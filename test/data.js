@@ -208,6 +208,25 @@ module.exports = {
 					hoist: true,
 					flags: 0,
 					color: 16745267
+				}, {
+					version: 1743122443142,
+					unicode_emoji: null,
+					tags: {},
+					position: 3,
+					permissions: "0",
+					name: "Realdditors",
+					mentionable: true,
+					managed: false,
+					id: "1182745800661540927",
+					icon: null,
+					hoist: false,
+					flags: 0,
+					colors: {
+						tertiary_color: null,
+						secondary_color: null,
+						primary_color: 16729344
+					},
+					color: 16729344
 				}
 			],
 			discovery_splash: null,
@@ -3778,6 +3797,64 @@ module.exports = {
 			edited_timestamp: null,
 			flags: 0,
 			components: []
+		},
+		tenor_gif: {
+			type: 0,
+			content: "<@&1182745800661540927> get real https://tenor.com/view/get-real-gif-26176788",
+			mentions: [],
+			mention_roles: [ "1182745800661540927" ],
+			attachments: [],
+			embeds: [
+				{
+					type: "gifv",
+					url: "https://tenor.com/view/get-real-gif-26176788",
+					provider: { name: "Tenor", url: "https://tenor.co" },
+					thumbnail: {
+						url: "https://media.tenor.com/Bz5pfRIu81oAAAAe/get-real.png",
+						proxy_url: "https://images-ext-1.discordapp.net/external/I71Ngw9drAKZhL_lhQRnAD_A-DkRNgN3EeZ2njv3Vi4/https/media.tenor.com/Bz5pfRIu81oAAAAe/get-real.png",
+						width: 632,
+						height: 640,
+						placeholder: "IBgSHwSYaIePiHh/d7h3d4eEJvkchZsA",
+						placeholder_version: 1,
+						flags: 0
+					},
+					video: {
+						url: "https://media.tenor.com/Bz5pfRIu81oAAAPo/get-real.mp4",
+						proxy_url: "https://images-ext-1.discordapp.net/external/vNEtsZd1p_mWQh-nEIa0ZBndMEo2_oa1sAOMyXsgoWI/https/media.tenor.com/Bz5pfRIu81oAAAPo/get-real.mp4",
+						width: 632,
+						height: 640,
+						placeholder: "IBgSHwSYaIePiHh/d7h3d4eEJvkchZsA",
+						placeholder_version: 1,
+						flags: 0
+					}
+				}
+			],
+			timestamp: "2025-06-08T03:49:08.500000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1381117821190279271",
+			channel_id: "1099031887500034088",
+			author: {
+				id: "771520384671416320",
+				username: "Bojack Horseman",
+				avatar: "d14f47194b6ebe4da2e18a56fc6dacfd",
+				discriminator: "9703",
+				public_flags: 0,
+				flags: 0,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				collectibles: null,
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false
 		}
 	},
 	message_update: {
