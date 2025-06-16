@@ -48,6 +48,8 @@ passthrough.select = orm.select
 let registration = require("../src/matrix/read-registration")
 let {reg, getTemplateRegistration, writeRegistration, readRegistration, checkRegistration, registrationFilePath} = registration
 
+const {setupEmojis} = require("../src/m2d/actions/setup-emojis")
+
 function die(message) {
 	console.error(message)
 	process.exit(1)
@@ -347,18 +349,7 @@ function defineEchoHandler() {
 	console.log("✅ Matrix appservice login works...")
 
 	// upload the L1 L2 emojis to user emojis
-	const emojis = await discord.snow.assets.getAppEmojis(client.id)
-	for (const name of ["L1", "L2"]) {
-		const existing = emojis.items.find(e => e.name === name)
-		if (existing) {
-			db.prepare("REPLACE INTO auto_emoji (name, emoji_id) VALUES (?, ?)").run(existing.name, existing.id)
-		} else {
-			const filename = join(__dirname, "../docs/img", `${name}.png`)
-			const data = fs.readFileSync(filename, null)
-			const uploaded = await discord.snow.assets.createAppEmoji(client.id, {name, image: "data:image/png;base64," + data.toString("base64")})
-			db.prepare("REPLACE INTO auto_emoji (name, emoji_id) VALUES (?, ?)").run(uploaded.name, uploaded.id)
-		}
-	}
+	await setupEmojis()
 	console.log("✅ Emojis are ready...")
 
 	// set profile data on discord...

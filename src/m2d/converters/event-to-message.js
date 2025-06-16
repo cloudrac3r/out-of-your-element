@@ -19,6 +19,8 @@ const dUtils = sync.require("../../discord/utils")
 const file = sync.require("../../matrix/file")
 /** @type {import("./emoji-sheet")} */
 const emojiSheet = sync.require("./emoji-sheet")
+/** @type {import("../actions/setup-emojis")} */
+const setupEmojis = sync.require("../actions/setup-emojis")
 
 /** @type {[RegExp, string][]} */
 const markdownEscapes = [
@@ -479,6 +481,23 @@ const attachmentEmojis = new Map([
 	["m.file", "📄"]
 ])
 
+async function getL1L2ReplyLine(called = false) {
+	// @ts-ignore
+	const autoEmoji = new Map(select("auto_emoji", ["name", "emoji_id"], {}, "WHERE name = 'L1' OR name = 'L2'").raw().all())
+	if (autoEmoji.size === 2) {
+		return `<:L1:${autoEmoji.get("L1")}><:L2:${autoEmoji.get("L2")}>`
+	}
+	/* c8 ignore start */
+	if (called) {
+		// Don't know how this could happen, but just making sure we don't enter an infinite loop.
+		console.warn("Warning: OOYE is missing data to format replies. To fix this: `npm run setup`")
+		return ""
+	}
+	await setupEmojis.setupEmojis()
+	return getL1L2ReplyLine(true)
+	/* c8 ignore stop */
+}
+
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
  * @param {import("discord-api-types/v10").APIGuild} guild
@@ -628,9 +647,7 @@ async function eventToMessage(event, guild, di) {
 				return
 			}
 
-			// @ts-ignore
-			const autoEmoji = new Map(select("auto_emoji", ["name", "emoji_id"], {}, "WHERE name = 'L1' OR name = 'L2'").raw().all())
-			replyLine = `<:L1:${autoEmoji.get("L1")}><:L2:${autoEmoji.get("L2")}>`
+			replyLine = await getL1L2ReplyLine()
 			const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
 			if (row) {
 				replyLine += `https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
