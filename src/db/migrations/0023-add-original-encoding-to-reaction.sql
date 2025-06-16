@@ -1,0 +1,5 @@
+BEGIN TRANSACTION;
+
+ALTER TABLE reaction ADD COLUMN original_encoding TEXT;
+
+COMMIT;

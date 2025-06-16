@@ -38,7 +38,7 @@ async function addReaction(event) {
 		throw e
 	}
 
-	db.prepare("REPLACE INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES (?, ?, ?)").run(utils.getEventIDHash(event.event_id), messageID, discordPreferredEncoding)
+	db.prepare("REPLACE INTO reaction (hashed_event_id, message_id, encoded_emoji, original_encoding) VALUES (?, ?, ?, ?)").run(utils.getEventIDHash(event.event_id), messageID, discordPreferredEncoding, key)
 }
 
 module.exports.addReaction = addReaction

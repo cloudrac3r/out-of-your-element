@@ -25,7 +25,7 @@ async function addReaction(data) {
 	if (!parentID) return // Nothing can be done if the parent message was never bridged.
 	assert.equal(typeof parentID, "string")
 
-	const key = await emojiToKey.emojiToKey(data.emoji)
+	const key = await emojiToKey.emojiToKey(data.emoji, data.message_id)
 	const shortcode = key.startsWith("mxc://") ? `:${data.emoji.name}:` : undefined
 
 	const roomID = await createRoom.ensureRoom(data.channel_id)

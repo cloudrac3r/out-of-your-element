@@ -401,7 +401,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			const id = match[3]
 			const name = match[2]
 			const animated = !!match[1]
-			return emojiToKey.emojiToKey({id, name, animated}) // Register the custom emoji if needed
+			return emojiToKey.emojiToKey({id, name, animated}, message.id) // Register the custom emoji if needed
 		}))
 
 		async function transformParsedVia(parsed) {

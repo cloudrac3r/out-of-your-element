@@ -43,7 +43,7 @@ async function removeSomeReactions(data) {
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} reactions
  */
 async function removeReaction(data, reactions) {
-	const key = await emojiToKey.emojiToKey(data.emoji)
+	const key = await emojiToKey.emojiToKey(data.emoji, data.message_id)
 	return converter.removeReaction(data, reactions, key)
 }
 
@@ -52,7 +52,7 @@ async function removeReaction(data, reactions) {
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>[]} reactions
  */
 async function removeEmojiReaction(data, reactions) {
-	const key = await emojiToKey.emojiToKey(data.emoji)
+	const key = await emojiToKey.emojiToKey(data.emoji, data.message_id)
 	const discordPreferredEncoding = await emoji.encodeEmoji(key, undefined)
 	db.prepare("DELETE FROM reaction WHERE message_id = ? AND encoded_emoji = ?").run(data.message_id, discordPreferredEncoding)
 

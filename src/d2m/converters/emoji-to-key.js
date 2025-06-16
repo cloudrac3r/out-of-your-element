@@ -8,9 +8,10 @@ const file = sync.require("../../matrix/file")
 
 /**
  * @param {import("discord-api-types/v10").APIEmoji} emoji
+ * @param {string} message_id
  * @returns {Promise<string>}
  */
-async function emojiToKey(emoji) {
+async function emojiToKey(emoji, message_id) {
 	let key
 	if (emoji.id) {
 		// Custom emoji
@@ -30,7 +31,10 @@ async function emojiToKey(emoji) {
 		// Default emoji
 		const name = emoji.name
 		assert(name)
-		key = name
+		// If the reaction was used on Matrix already, it might be using a different arrangement of Variation Selector 16 characters.
+		// We'll use the same arrangement that was originally used, otherwise a duplicate of the emoji will appear as a separate reaction.
+		const originalEncoding = select("reaction", "original_encoding", {message_id, encoded_emoji: encodeURIComponent(name)}).pluck().get()
+		key = originalEncoding || name
 	}
 	return key
 }

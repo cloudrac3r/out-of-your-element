@@ -110,6 +110,7 @@ export type Models = {
 		hashed_event_id: number
 		message_id: string
 		encoded_emoji: string
+		original_encoding: string | null
 	}
 
 	auto_emoji: {
