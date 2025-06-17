@@ -224,7 +224,7 @@ const commands = [{
 							.png()
 							.toBuffer({resolveWithObject: true})
 						console.log(`uploading emoji ${resizeOutput.data.length} bytes to :${e.name}:`)
-						const emoji = await discord.snow.guildAssets.createEmoji(guildID, {name: e.name, image: "data:image/png;base64," + resizeOutput.data.toString("base64")})
+						await discord.snow.assets.createGuildEmoji(guildID, {name: e.name, image: "data:image/png;base64," + resizeOutput.data.toString("base64")})
 					}
 					api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
