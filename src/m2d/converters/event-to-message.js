@@ -449,7 +449,7 @@ async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
 					allowedMentionsParse: ["everyone"]
 				}
 			}
-		} else {
+		} else if (writtenMentionMatch[1].length < 40) { // the API supports up to 100 characters, but really if you're searching more than 40, something messed up
 			const results = await di.snow.guild.searchGuildMembers(guild.id, {query: writtenMentionMatch[1]})
 			if (results[0]) {
 				assert(results[0].user)
