@@ -15,7 +15,7 @@ async function setupEmojis() {
 		if (existing) {
 			db.prepare("REPLACE INTO auto_emoji (name, emoji_id) VALUES (?, ?)").run(existing.name, existing.id)
 		} else {
-			const filename = join(__dirname, "../docs/img", `${name}.png`)
+			const filename = join(__dirname, "../../../docs/img", `${name}.png`)
 			const data = fs.readFileSync(filename, null)
 			const uploaded = await discord.snow.assets.createAppEmoji(id, {name, image: "data:image/png;base64," + data.toString("base64")})
 			db.prepare("REPLACE INTO auto_emoji (name, emoji_id) VALUES (?, ?)").run(uploaded.name, uploaded.id)
