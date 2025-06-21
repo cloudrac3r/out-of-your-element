@@ -11,7 +11,7 @@ You'll need:
 
 Follow these steps:
 
-1. [Get Node.js version 20 or later](https://nodejs.org/en/download/prebuilt-installer). If you're on Linux, you may prefer to install through system's package manager, though Debian and Ubuntu have hopelessly out of date packages.
+1. [Get Node.js version 22 or later](https://nodejs.org/en/download/prebuilt-installer). If you're on Linux, you may prefer to install through system's package manager, though Debian and Ubuntu have hopelessly out of date packages.
 
 1. Switch to a normal user account. (i.e. do not run any of the following commands as root or sudo.)
 
