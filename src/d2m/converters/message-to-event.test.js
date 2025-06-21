@@ -1293,3 +1293,46 @@ test("message2event: vc invite event renders embed with room link", async t => {
 		}
 	])
 })
+
+test("message2event: channel links are converted even inside lists (parser post-processer descends into list items)", async t => {
+	let called = 0
+	const events = await messageToEvent({
+		content: "1. Don't be a dick"
+		+ "\n2. Follow rule number 1"
+		+ "\n3. Follow Discord TOS"
+		+ "\n4. Do **not** post NSFW content, shock content, suggestive content"
+		+ "\n5. Please keep <#176333891320283136> professional and helpful, no random off-topic joking"
+		+ "\nThis list will probably change in the future"
+	}, data.guild.general, {}, {
+		api: {
+			getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")
+				return {
+					joined: {
+						"@quadradical:federated.nexus": {
+							membership: "join",
+							display_name: "quadradical"
+						}
+					}
+				}
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "1. Don't be a dick"
+			+ "\n2. Follow rule number 1"
+			+ "\n3. Follow Discord TOS"
+			+ "\n4. Do **not** post NSFW content, shock content, suggestive content"
+			+ "\n5. Please keep #wonderland professional and helpful, no random off-topic joking"
+			+ "\nThis list will probably change in the future",
+			format: "org.matrix.custom.html",
+			formatted_body: "<ol start=\"1\"><li>Don't be a dick</li><li>Follow rule number 1</li><li>Follow Discord TOS</li><li>Do <strong>not</strong> post NSFW content, shock content, suggestive content</li><li>Please keep <a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe?via=cadence.moe&via=federated.nexus\">#wonderland</a> professional and helpful, no random off-topic joking</li></ol>This list will probably change in the future",
+			"m.mentions": {},
+			msgtype: "m.text"
+		}
+	])
+	t.equal(called, 1)
+})

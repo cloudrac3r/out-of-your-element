@@ -412,8 +412,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 						node.via = await getViaServersMemo(node.row.room_id)
 					}
 				}
-				if (Array.isArray(node.content)) {
-					await transformParsedVia(node.content)
+				;for (const maybeChildNodesArray of [node, node.content, node.items]) {
+					if (Array.isArray(maybeChildNodesArray)) {
+						await transformParsedVia(maybeChildNodesArray)
+					}
 				}
 			}
 			return parsed
