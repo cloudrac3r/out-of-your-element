@@ -129,16 +129,10 @@ async function _syncSpace(guild, shouldActuallySync) {
 		// don't try to update rooms with custom avatars though
 		const roomsWithCustomAvatars = select("channel_room", "room_id", {}, "WHERE custom_avatar IS NOT NULL").pluck().all()
 
-		const state = await ks.kstateToState(spaceKState)
-		const childRooms = state.filter(({type, state_key, content}) => {
-			return type === "m.space.child" && "via" in content && !roomsWithCustomAvatars.includes(state_key)
-		}).map(({state_key}) => state_key)
-
-		for (const roomID of childRooms) {
-			const avatarEventContent = await api.getStateEvent(roomID, "m.room.avatar", "")
-			if (avatarEventContent.url !== newAvatarState.url) {
-				await api.sendState(roomID, "m.room.avatar", "", newAvatarState)
-			}
+		for await (const room of api.generateFullHierarchy(spaceID)) {
+			if (room.avatar_url === newAvatarState.url) continue
+			if (roomsWithCustomAvatars.includes(room.room_id)) continue
+			await api.sendState(room.room_id, "m.room.avatar", "", newAvatarState)
 		}
 	}
 

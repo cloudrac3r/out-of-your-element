@@ -233,13 +233,7 @@ test("web link space: successfully adds entry to database and loads page", async
 			mxid: "@cadence:cadence.moe"
 		},
 		api: {
-			async getStateEvent(roomID, type, key) {
-				return {}
-			},
-			async getMembers(roomID, membership) {
-				return {chunk: []}
-			},
-			async getFullHierarchy(roomID) {
+			async getFullHierarchy(spaceID) {
 				return []
 			}
 		}
@@ -344,7 +338,7 @@ test("web link room: checks the autocreate setting if the space doesn't exist ye
 	t.equal(called, 1)
 })
 
-test("web link room: check that room is part of space (event missing)", async t => {
+test("web link room: check that room is part of space (not in hierarchy)", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
@@ -356,37 +350,9 @@ test("web link room: check that room is part of space (event missing)", async t 
 			guild_id: "665289423482519565"
 		},
 		api: {
-			async getStateEvent(roomID, type, key) {
+			async *generateFullHierarchy(spaceID) {
 				called++
-				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
-				t.equal(type, "m.space.child")
-				t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-				throw new MatrixServerError({errcode: "M_NOT_FOUND", error: "what if I told you there was no such thing as a space"})
-			}
-		}
-	}))
-	t.equal(error.data, "Matrix room needs to be part of the bridged space")
-	t.equal(called, 1)
-})
-
-test("web link room: check that room is part of space (event empty)", async t => {
-	let called = 0
-	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
-		sessionData: {
-			managedGuilds: ["665289423482519565"]
-		},
-		body: {
-			discord: "665310973967597573",
-			matrix: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
-			guild_id: "665289423482519565"
-		},
-		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
-				t.equal(type, "m.space.child")
-				t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-				return {}
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 			}
 		}
 	}))
@@ -410,12 +376,16 @@ test("web link room: check that bridge can join room", async t => {
 				called++
 				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"})
 			},
-			async getStateEvent(roomID, type, key) {
+			async *generateFullHierarchy(spaceID) {
 				called++
-				t.equal(type, "m.space.child")
-				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
-				t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-				return {via: ["cadence.moe"]}
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: {},
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
 			}
 		}
 	}))
@@ -439,17 +409,23 @@ test("web link room: check that bridge has PL 100 in target room (event missing)
 				called++
 				return roomID
 			},
+			async *generateFullHierarchy(spaceID) {
+				called++
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: {},
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			},
 			async getStateEvent(roomID, type, key) {
 				called++
-				if (type === "m.space.child") {
-					t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
-					t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-					return {via: ["cadence.moe"]}
-				} else if (type === "m.room.power_levels") {
-					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-					t.equal(key, "")
-					throw new MatrixServerError({errcode: "M_NOT_FOUND", error: "what if I told you there's no such thing as power levels"})
-				}
+				t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				throw new MatrixServerError({errcode: "M_NOT_FOUND", error: "what if I told you there's no such thing as power levels"})
 			}
 		}
 	}))
@@ -473,17 +449,23 @@ test("web link room: check that bridge has PL 100 in target room (users default)
 				called++
 				return roomID
 			},
+			async *generateFullHierarchy(spaceID) {
+				called++
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: {},
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			},
 			async getStateEvent(roomID, type, key) {
 				called++
-				if (type === "m.space.child") {
-					t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
-					t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-					return {via: ["cadence.moe"]}
-				} else if (type === "m.room.power_levels") {
-					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-					t.equal(key, "")
-					return {users_default: 50}
-				}
+				t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {users_default: 50}
 			}
 		}
 	}))
@@ -507,17 +489,23 @@ test("web link room: successfully calls createRoom", async t => {
 				called++
 				return roomID
 			},
+			async *generateFullHierarchy(spaceID) {
+				called++
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: {},
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			},
 			async getStateEvent(roomID, type, key) {
 				if (type === "m.room.power_levels") {
 					called++
 					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
 					t.equal(key, "")
 					return {users: {"@_ooye_bot:cadence.moe": 100}}
-				} else if (type === "m.space.child") {
-					called++
-					t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
-					t.equal(key, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-					return {via: ["cadence.moe"]}
 				} else if (type === "m.room.name") {
 					called++
 					t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")

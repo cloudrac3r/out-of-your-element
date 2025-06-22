@@ -134,12 +134,14 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	if (row) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${row.channel_id} or room ID ${parsedBody.matrix} are already bridged and cannot be reused`})
 
 	// Check room is part of the guild's space
-	/** @type {Ty.Event.M_Space_Child?} */
-	let spaceChildEvent = null
-	try {
-		spaceChildEvent = await api.getStateEvent(spaceID, "m.space.child", parsedBody.matrix)
-	} catch (e) {}
-	if (!Array.isArray(spaceChildEvent?.via)) throw createError({status: 400, message: "Bad Request", data: "Matrix room needs to be part of the bridged space"})
+	let found = false
+	for await (const room of api.generateFullHierarchy(spaceID)) {
+		if (room.room_id === parsedBody.matrix && !room.room_type) {
+			found = true
+			break
+		}
+	}
+	if (!found) throw createError({status: 400, message: "Bad Request", data: "Matrix room needs to be part of the bridged space"})
 
 	// Check room exists and bridge is joined
 	try {

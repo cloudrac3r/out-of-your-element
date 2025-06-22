@@ -182,6 +182,23 @@ async function getFullHierarchy(roomID) {
 }
 
 /**
+ * Like `getFullHierarchy` but reveals a page at a time through an async iterator.
+ * @param {string} roomID
+ */
+async function* generateFullHierarchy(roomID) {
+	/** @type {string | undefined} */
+	let nextBatch = undefined
+	do {
+		/** @type {Ty.HierarchyPagination<Ty.R.Hierarchy>} */
+		const res = await getHierarchy(roomID, {from: nextBatch})
+		for (const room of res.rooms) {
+			yield room
+		}
+		nextBatch = res.next_batch
+	} while (nextBatch)
+}
+
+/**
  * @param {string} roomID
  * @param {string} eventID
  * @param {{from?: string, limit?: any}} pagination
@@ -442,6 +459,7 @@ module.exports.getJoinedMembers = getJoinedMembers
 module.exports.getMembers = getMembers
 module.exports.getHierarchy = getHierarchy
 module.exports.getFullHierarchy = getFullHierarchy
+module.exports.generateFullHierarchy = generateFullHierarchy
 module.exports.getRelations = getRelations
 module.exports.getFullRelations = getFullRelations
 module.exports.sendState = sendState
