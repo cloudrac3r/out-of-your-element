@@ -528,7 +528,10 @@ async function _syncSpaceMember(channel, spaceID, roomID, guild_id) {
 	let spaceEventContent = {}
 	if (
 		channel.type !== DiscordTypes.ChannelType.PrivateThread // private threads do not belong in the space (don't offer people something they can't join)
-		&& !channel["thread_metadata"]?.archived // archived threads do not belong in the space (don't offer people conversations that are no longer relevant)
+		&& (
+			!channel["thread_metadata"]?.archived // archived threads do not belong in the space (don't offer people conversations that are no longer relevant)
+			|| discord.channels.get(channel.parent_id || "")?.type === DiscordTypes.ChannelType.GuildForum
+		)
 	) {
 		spaceEventContent = {
 			via: [reg.ooye.server_name]
