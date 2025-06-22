@@ -54,6 +54,7 @@ function convertNameAndTopic(channel, guild, customName) {
 	let channelPrefix =
 		( parentChannel?.type === DiscordTypes.ChannelType.GuildForum ? ""
 		: channel.type === DiscordTypes.ChannelType.PublicThread ? "[⛓️] "
+		: channel.type === DiscordTypes.ChannelType.AnnouncementThread ? "[⛓️] "
 		: channel.type === DiscordTypes.ChannelType.PrivateThread ? "[🔒⛓️] "
 		: channel.type === DiscordTypes.ChannelType.GuildVoice ? "[🔊] "
 		: "")
@@ -176,7 +177,15 @@ async function channelToKState(channel, guild, di) {
 		}
 	}
 
+	// Don't overwrite room topic if the topic has been customised
 	if (hasCustomTopic) delete channelKState["m.room.topic/"]
+
+	// Don't add a space parent if it's self service
+	// (The person setting up self-service has already put it in their preferred space to be able to get this far.)
+	const autocreate = select("guild_active", "autocreate", {guild_id: guild.id}).pluck().get()
+	if (autocreate === 0 && ![DiscordTypes.ChannelType.PrivateThread, DiscordTypes.ChannelType.PublicThread, DiscordTypes.ChannelType.AnnouncementThread].includes(channel.type)) {
+		delete channelKState[`m.space.parent/${parentSpaceID}`]
+	}
 
 	return {spaceID: parentSpaceID, privacyLevel, channelKState}
 }
@@ -222,8 +231,8 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 		return roomID
 	})
 
-	// Put the newly created child into the space, no need to await this
-	_syncSpaceMember(channel, spaceID, roomID)
+	// Put the newly created child into the space
+	await _syncSpaceMember(channel, spaceID, roomID, guild.id)
 
 	return roomID
 }
@@ -392,7 +401,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	db.prepare("UPDATE channel_room SET name = ? WHERE room_id = ?").run(channel.name, roomID)
 
 	// sync room as space member
-	const spaceApply = _syncSpaceMember(channel, spaceID, roomID)
+	const spaceApply = _syncSpaceMember(channel, spaceID, roomID, guild.id)
 	await Promise.all([roomApply, spaceApply])
 
 	return roomID
@@ -504,9 +513,17 @@ async function unbridgeDeletedChannel(channel, guildID) {
  * @param {DiscordTypes.APIGuildTextChannel} channel
  * @param {string} spaceID
  * @param {string} roomID
+ * @param {string} guild_id
  * @returns {Promise<string[]>}
  */
-async function _syncSpaceMember(channel, spaceID, roomID) {
+async function _syncSpaceMember(channel, spaceID, roomID, guild_id) {
+	// If space is self-service then only permit changes to space parenting for threads
+	// (The person setting up self-service has already put it in their preferred space to be able to get this far.)
+	const autocreate = select("guild_active", "autocreate", {guild_id}).pluck().get()
+	if (autocreate === 0 && ![DiscordTypes.ChannelType.PrivateThread, DiscordTypes.ChannelType.PublicThread, DiscordTypes.ChannelType.AnnouncementThread].includes(channel.type)) {
+		return []
+	}
+
 	const spaceKState = await ks.roomToKState(spaceID)
 	let spaceEventContent = {}
 	if (
