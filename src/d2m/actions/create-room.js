@@ -40,6 +40,8 @@ const PRIVACY_ENUMS = {
 
 const DEFAULT_PRIVACY_LEVEL = 0
 
+const READ_ONLY_ROOM_EVENTS_DEFAULT_POWER = 50
+
 /** @type {Map<string, Promise<string>>} channel ID -> Promise<room ID> */
 const inflightRoomCreate = new Map()
 
@@ -146,7 +148,7 @@ async function channelToKState(channel, guild, di) {
 		"m.room.join_rules/": join_rules,
 		/** @type {Ty.Event.M_Power_Levels} */
 		"m.room.power_levels/": {
-			events_default: everyoneCanSend ? 0 : 50,
+			events_default: everyoneCanSend ? 0 : READ_ONLY_ROOM_EVENTS_DEFAULT_POWER,
 			events: {
 				"m.reaction": 0,
 				"m.room.redaction": 0 // only affects redactions of own events, required to be able to un-react
@@ -557,6 +559,7 @@ async function createAllForGuild(guildID) {
 }
 
 module.exports.DEFAULT_PRIVACY_LEVEL = DEFAULT_PRIVACY_LEVEL
+module.exports.READ_ONLY_ROOM_EVENTS_DEFAULT_POWER = READ_ONLY_ROOM_EVENTS_DEFAULT_POWER
 module.exports.PRIVACY_ENUMS = PRIVACY_ENUMS
 module.exports.createRoom = createRoom
 module.exports.ensureRoom = ensureRoom

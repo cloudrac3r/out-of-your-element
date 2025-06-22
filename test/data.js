@@ -37,18 +37,31 @@ module.exports = {
 			id: "1161864271370666075",
 			guild_id: "112760669178241024"
 		},
+		/** @type {DiscordTypes.APITextChannel} */
 		saving_the_world: {
 			type: 0,
 			topic: "Anything and everything archiving/preservation related",
 			rate_limit_per_user: 0,
 			position: 0,
-			permission_overwrites: [],
+			permission_overwrites: [
+				{
+					id: "665289423482519565",
+					type: DiscordTypes.OverwriteType.Role,
+					allow: "0",
+					deny: String(DiscordTypes.PermissionFlagsBits.SendMessages)
+				},
+				{
+					id: "684524730274807911",
+					type: DiscordTypes.OverwriteType.Role,
+					allow: String(DiscordTypes.PermissionFlagsBits.SendMessages),
+					deny: "0"
+				}
+			],
 			parent_id: null,
 			name: "saving-the-world",
 			last_pin_timestamp: "2021-04-14T18:39:41+00:00",
 			last_message_id: "1335828749479837750",
 			id: "665310973967597573",
-			flags: 0,
 			guild_id: "665289423482519565"
 		}
 	},
@@ -349,7 +362,7 @@ module.exports = {
 					unicode_emoji: null,
 					tags: {},
 					position: 0,
-					permissions: "2221982107557441",
+					permissions: "968619318849",
 					name: "@everyone",
 					mentionable: false,
 					managed: false,
@@ -369,6 +382,21 @@ module.exports = {
 					mentionable: true,
 					managed: false,
 					id: "665290147377578005",
+					icon: null,
+					hoist: false,
+					flags: 0,
+					color: 1752220
+				},
+				{
+					version: 1683791258594,
+					unicode_emoji: null,
+					tags: {},
+					position: 22,
+					permissions: "8194",
+					name: "Moderator",
+					mentionable: true,
+					managed: false,
+					id: "682789592390281245",
 					icon: null,
 					hoist: false,
 					flags: 0,

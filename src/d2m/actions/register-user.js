@@ -15,6 +15,8 @@ const file = sync.require("../../matrix/file")
 const utils = sync.require("../../discord/utils")
 /** @type {import("../converters/user-to-mxid")} */
 const userToMxid = sync.require("../converters/user-to-mxid")
+/** @type {import("./create-room")} */
+const createRoom = sync.require("./create-room")
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
 let hasher = null
 // @ts-ignore
@@ -139,6 +141,7 @@ function memberToPowerLevel(user, member, guild, channel) {
 	if (!member) return 0
 
 	const permissions = utils.getPermissions(member.roles, guild.roles, user.id, channel.permission_overwrites)
+	const everyonePermissions = utils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
 	/*
 	 * PL 100 = Administrator = People who can brick the room. RATIONALE:
 	 * 	- Administrator.
@@ -158,8 +161,14 @@ function memberToPowerLevel(user, member, guild, channel) {
 	 * 	- Moderate Members.
 	 */
 	if (utils.hasSomePermissions(permissions, ["ManageMessages", "ManageNicknames", "ManageThreads", "KickMembers", "BanMembers", "MuteMembers", "DeafenMembers", "ModerateMembers"])) return 50
+	/* PL 50 = if room is read-only but the user has been specially allowed to send messages */
+	const everyoneCanSend = utils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
+	const userCanSend = utils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.SendMessages)
+	if (!everyoneCanSend && userCanSend) return createRoom.READ_ONLY_ROOM_EVENTS_DEFAULT_POWER
 	/* PL 20 = Mention Everyone for technical reasons. */
-	if (utils.hasSomePermissions(permissions, ["MentionEveryone"])) return 20
+	const everyoneCanMentionEveryone = utils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
+	const userCanMentionEveryone = utils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
+	if (!everyoneCanMentionEveryone && userCanMentionEveryone) return 20
 	return 0
 }
 
@@ -250,3 +259,4 @@ module.exports.ensureSim = ensureSim
 module.exports.ensureSimJoined = ensureSimJoined
 module.exports.syncUser = syncUser
 module.exports.syncAllUsersInRoom = syncAllUsersInRoom
+module.exports._memberToPowerLevel = memberToPowerLevel

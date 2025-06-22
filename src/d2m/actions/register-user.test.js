@@ -1,10 +1,12 @@
-const {_memberToStateContent} = require("./register-user")
+const {_memberToStateContent, _memberToPowerLevel} = require("./register-user")
 const {test} = require("supertape")
-const testData = require("../../../test/data")
+const data = require("../../../test/data")
+const mixin = require("@cloudrac3r/mixin-deep")
+const DiscordTypes = require("discord-api-types/v10")
 
 test("member2state: without member nick or avatar", async t => {
 	t.deepEqual(
-		await _memberToStateContent(testData.member.kumaccino.user, testData.member.kumaccino, testData.guild.general.id),
+		await _memberToStateContent(data.member.kumaccino.user, data.member.kumaccino, data.guild.general.id),
 		{
 			avatar_url: "mxc://cadence.moe/UpAeIqeclhKfeiZNdIWNcXXL",
 			displayname: "kumaccino",
@@ -24,7 +26,7 @@ test("member2state: without member nick or avatar", async t => {
 
 test("member2state: with global name, without member nick or avatar", async t => {
 	t.deepEqual(
-		await _memberToStateContent(testData.member.papiophidian.user, testData.member.papiophidian, testData.guild.general.id),
+		await _memberToStateContent(data.member.papiophidian.user, data.member.papiophidian, data.guild.general.id),
 		{
 			avatar_url: "mxc://cadence.moe/JPzSmALLirnIprlSMKohSSoX",
 			displayname: "PapiOphidian",
@@ -44,7 +46,7 @@ test("member2state: with global name, without member nick or avatar", async t =>
 
 test("member2state: with member nick and avatar", async t => {
 	t.deepEqual(
-		await _memberToStateContent(testData.member.sheep.user, testData.member.sheep, testData.guild.general.id),
+		await _memberToStateContent(data.member.sheep.user, data.member.sheep, data.guild.general.id),
 		{
 			avatar_url: "mxc://cadence.moe/rfemHmAtcprjLEiPiEuzPhpl",
 			displayname: "The Expert's Submarine",
@@ -60,4 +62,58 @@ test("member2state: with member nick and avatar", async t => {
 			}
 		}
 	)
+})
+
+test("member2power: default to zero if member roles unknown", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, null, data.guild.data_horde, data.channel.saving_the_world)
+	t.equal(power, 0)
+})
+
+test("member2power: unremarkable = 0", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, {
+		roles: []
+	}, data.guild.data_horde, data.channel.general)
+	t.equal(power, 0)
+})
+
+test("member2power: can mention everyone = 20", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, {
+		roles: ["684524730274807911"]
+	}, data.guild.data_horde, data.channel.general)
+	t.equal(power, 20)
+})
+
+test("member2power: can send messages in protected channel due to role = 50", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, {
+		roles: ["684524730274807911"]
+	}, data.guild.data_horde, data.channel.saving_the_world)
+	t.equal(power, 50)
+})
+
+test("member2power: can send messages in protected channel due to user override = 50", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, {
+		roles: []
+	}, data.guild.data_horde, mixin({}, data.channel.saving_the_world, {
+		permission_overwrites: data.channel.saving_the_world.permission_overwrites.concat({
+			type: DiscordTypes.OverwriteType.member,
+			id: data.user.clyde_ai.id,
+			allow: String(DiscordTypes.PermissionFlagsBits.SendMessages),
+			deny: "0"
+		})
+	}))
+	t.equal(power, 50)
+})
+
+test("member2power: can kick users = 50", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, {
+		roles: ["682789592390281245"]
+	}, data.guild.data_horde, data.channel.general)
+	t.equal(power, 50)
+})
+
+test("member2power: can manage channels = 100", async t => {
+	const power = _memberToPowerLevel(data.user.clyde_ai, {
+		roles: ["665290147377578005"]
+	}, data.guild.data_horde, data.channel.saving_the_world)
+	t.equal(power, 100)
 })
