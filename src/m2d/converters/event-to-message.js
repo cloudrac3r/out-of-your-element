@@ -539,15 +539,15 @@ async function eventToMessage(event, guild, di) {
 	if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
 		content = ""
 		const filename = event.content.filename || event.content.body
-		if ("url" in event.content) {
-			// Unencrypted
-			attachments.push({id: "0", filename})
-			pendingFiles.push({name: filename, mxc: event.content.url})
-		} else {
+		if ("file" in event.content) {
 			// Encrypted
 			assert.equal(event.content.file.key.alg, "A256CTR")
 			attachments.push({id: "0", filename})
 			pendingFiles.push({name: filename, mxc: event.content.file.url, key: event.content.file.key.k, iv: event.content.file.iv})
+		} else {
+			// Unencrypted
+			attachments.push({id: "0", filename})
+			pendingFiles.push({name: filename, mxc: event.content.url})
 		}
 		// Check if we also need to process a text event for this image - if it has a caption that's different from its filename
 		if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {

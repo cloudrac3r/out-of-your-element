@@ -160,7 +160,8 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) V
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@Milan:tchncs.de', 'Milan', NULL, 0),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko', 0),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@aflower:syndicated.gay', 'Rose', 'mxc://syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP', 0),
-('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0);
+('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
+('!iSyXgNxQcEuXoXpsSn:pussthecat.org', '@austin:tchncs.de', 'Austin Huang', 'mxc://tchncs.de/090a2b5e07eed2f71e84edad5207221e6c8f8b8e', 0);
 
 INSERT INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES
 (5162930312280790092, '1141501302736695317', '%F0%9F%90%88');

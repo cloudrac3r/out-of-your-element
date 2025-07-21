@@ -3956,6 +3956,91 @@ test("event2message: encrypted image attachments work", async t => {
 	)
 })
 
+test("event2message: evil encrypted image attachment works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			sender: "@austin:tchncs.de",
+			type: "m.room.message",
+			content: {
+				body: "Screenshot 2025-06-29 at 13.36.46.png",
+				file: {
+					hashes: {
+						sha256: "Vh1apd8wSFu/BpUdQbIrKUzFB0Uu+l1octgZL+aVGTQ"
+					},
+					iv: "sd33K7pSZNMAAAAAAAAAAA",
+					key: {
+						alg: "A256CTR",
+						ext: true,
+						k: "-nyqk1eqI-g-ND59P9qHp310-Qyc2A5gSAYm1BxopSg",
+						key_ops: [
+							"encrypt",
+							"decrypt"
+						],
+						kty: "oct"
+					},
+					url: "mxc://tchncs.de/eac5f83fa97cd74062daf75dfa04d6e5356897281939377544214085632",
+					v: "v2"
+				},
+				info: {
+					h: 682,
+					mimetype: "image/png",
+					"org.matrix.msc4230.is_animated": false,
+					size: 1813154,
+					thumbnail_file: {
+						hashes: {
+							sha256: "o3xykQwfsTUf5Y8qP5fjT7qBv5lAT3rtkmPpise5eQw"
+						},
+						iv: "SNxIZsJkju4AAAAAAAAAAA",
+						key: {
+							alg: "A256CTR",
+							ext: true,
+							k: "CcibYjzzSDexOWBbcBh_kCDiLibg8vUZthz5CnxV0es",
+							key_ops: [
+								"encrypt",
+								"decrypt"
+							],
+							kty: "oct"
+						},
+						url: "mxc://tchncs.de/ecd811d913ed1b240ebfc81517a5de2c3a1e9d401939377537079574528",
+						v: "v2"
+					},
+					thumbnail_info: {
+						h: 600,
+						mimetype: "image/png",
+						size: 451773,
+						w: 507
+					},
+					thumbnail_url: null,
+					w: 577,
+					"xyz.amorgan.blurhash": "TqN1Ais=t1~qRjWFxURiWCM{ofof"
+				},
+				"m.mentions": {},
+				msgtype: "m.image",
+				url: null
+			},
+			event_id: "$UKMbzTlqlyLYN78utVEtiivABFvOe39nx5trHwqNmeQ",
+			room_id: "!iSyXgNxQcEuXoXpsSn:pussthecat.org"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Austin Huang",
+				content: "",
+				avatar_url: "https://bridge.example.org/download/matrix/tchncs.de/090a2b5e07eed2f71e84edad5207221e6c8f8b8e",
+				attachments: [{id: "0", filename: "Screenshot 2025-06-29 at 13.36.46.png"}],
+				pendingFiles: [{
+					name: "Screenshot 2025-06-29 at 13.36.46.png",
+					mxc: "mxc://tchncs.de/eac5f83fa97cd74062daf75dfa04d6e5356897281939377544214085632",
+					key: "-nyqk1eqI-g-ND59P9qHp310-Qyc2A5gSAYm1BxopSg",
+					iv: "sd33K7pSZNMAAAAAAAAAAA"
+				}]
+			}]
+		}
+	)
+})
+
 test("event2message: stickers work", async t => {
 	t.deepEqual(
 		await eventToMessage({
