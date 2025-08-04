@@ -318,12 +318,12 @@ async function setUserPower(roomID, mxid, newPower) {
 	power.users = power.users || {}
 
 	// Bridge bot can't demote equal power users, so need to decide which user will send the event
-	const oldPowerLevel = power.users?.[mxid] || power.events_default || 0
+	const oldPowerLevel = power.users?.[mxid] || power.users_default || 0
 	const botPowerLevel = power.users?.[`@${reg.sender_localpart}:${reg.ooye.server_name}`] || 100
 	const eventSender = oldPowerLevel >= botPowerLevel ? mxid : undefined
 
 	// Update the event content
-	if (newPower == null || newPower === (power.events_default || 0)) {
+	if (newPower == null || newPower === (power.users_default || 0)) {
 		delete power.users[mxid]
 	} else {
 		power.users[mxid] = newPower
