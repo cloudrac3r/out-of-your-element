@@ -177,7 +177,7 @@ async function onRetryReactionAdd(reactionEvent) {
 	}
 
 	// Redact the error to stop people from executing multiple retries
-	api.redactEvent(roomID, event.event_id)
+	await api.redactEvent(roomID, event.event_id)
 }
 
 sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",

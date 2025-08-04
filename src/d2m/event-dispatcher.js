@@ -55,7 +55,7 @@ module.exports = {
 
 		if (gatewayMessage.t === "TYPING_START") return
 
-		await matrixEventDispatcher.sendError(roomID, "Discord", gatewayMessage.t, e, gatewayMessage.d)
+		await matrixEventDispatcher.sendError(roomID, "Discord", gatewayMessage.t, e, gatewayMessage)
 	},
 
 	/**
