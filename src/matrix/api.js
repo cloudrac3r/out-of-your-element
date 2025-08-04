@@ -317,13 +317,17 @@ async function setUserPower(roomID, mxid, newPower) {
 	const power = await getStateEvent(roomID, "m.room.power_levels", "")
 	power.users = power.users || {}
 
+	// Check if it has really changed to avoid sending a useless state event
+	// (Can't diff kstate here because of (a) circular imports (b) kstate has special behaviour diffing power levels)
+	const oldPowerLevel = power.users?.[mxid] ?? power.users_default ?? 0
+	if (oldPowerLevel === newPower) return
+
 	// Bridge bot can't demote equal power users, so need to decide which user will send the event
-	const oldPowerLevel = power.users?.[mxid] || power.users_default || 0
-	const botPowerLevel = power.users?.[`@${reg.sender_localpart}:${reg.ooye.server_name}`] || 100
+	const botPowerLevel = power.users?.[`@${reg.sender_localpart}:${reg.ooye.server_name}`] ?? power.users_default ?? 0
 	const eventSender = oldPowerLevel >= botPowerLevel ? mxid : undefined
 
 	// Update the event content
-	if (newPower == null || newPower === (power.users_default || 0)) {
+	if (newPower == null || newPower === (power.users_default ?? 0)) {
 		delete power.users[mxid]
 	} else {
 		power.users[mxid] = newPower
