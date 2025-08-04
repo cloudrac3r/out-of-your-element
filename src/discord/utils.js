@@ -136,6 +136,24 @@ function getPublicUrlForCdn(url) {
 	return `${reg.ooye.bridge_origin}/download/discord${match[1]}/${match[2]}/${match[3]}/${match[4]}`
 }
 
+/**
+ * @param {string} oldTimestamp
+ * @param {string} newTimestamp
+ * @returns {string} "a x-day-old unbridged message"
+ */
+function howOldUnbridgedMessage(oldTimestamp, newTimestamp) {
+	const dateDifference = new Date(newTimestamp).getTime() - new Date(oldTimestamp).getTime()
+	const oneHour = 60 * 60 * 1000
+	if (dateDifference < oneHour) {
+		return "an unbridged message"
+	} else if (dateDifference < 25 * oneHour) {
+		var dateDisplay = `a ${Math.floor(dateDifference / oneHour)}-hour-old unbridged message`
+	} else {
+		var dateDisplay = `a ${Math.round(dateDifference / (24 * oneHour))}-day-old unbridged message`
+	}
+	return dateDisplay
+}
+
 module.exports.getPermissions = getPermissions
 module.exports.hasPermission = hasPermission
 module.exports.hasSomePermissions = hasSomePermissions
@@ -145,3 +163,4 @@ module.exports.isEphemeralMessage = isEphemeralMessage
 module.exports.snowflakeToTimestampExact = snowflakeToTimestampExact
 module.exports.timestampToSnowflakeInexact = timestampToSnowflakeInexact
 module.exports.getPublicUrlForCdn = getPublicUrlForCdn
+module.exports.howOldUnbridgedMessage = howOldUnbridgedMessage

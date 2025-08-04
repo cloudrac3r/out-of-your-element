@@ -491,19 +491,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 			} else { // repliedToUnknownEvent
 				// This reply can't point to the Matrix event because it isn't bridged, we need to indicate this.
 				assert(message.referenced_message)
-				const dateDifference = new Date(message.timestamp).getTime() - new Date(message.referenced_message.timestamp).getTime()
-				const oneHour = 60 * 60 * 1000
-				if (dateDifference < oneHour) {
-					var dateDisplay = "n"
-				} else if (dateDifference < 25 * oneHour) {
-					var dateDisplay = ` ${Math.floor(dateDifference / oneHour)}-hour-old`
-				} else {
-					var dateDisplay = ` ${Math.round(dateDifference / (24 * oneHour))}-day-old`
-				}
-				html = `<blockquote>In reply to a${dateDisplay} unbridged message from ${repliedToDisplayName}:`
+				const dateDisplay = dUtils.howOldUnbridgedMessage(message.referenced_message.timestamp, message.timestamp)
+				html = `<blockquote>In reply to ${dateDisplay} from ${repliedToDisplayName}:`
 					+ `<br>${repliedToHtml}</blockquote>`
 					+ html
-				body = (`In reply to a${dateDisplay} unbridged message:\n${repliedToDisplayName}: `
+				body = (`In reply to ${dateDisplay}:\n${repliedToDisplayName}: `
 					+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
 					+ "\n\n" + body
 			}
