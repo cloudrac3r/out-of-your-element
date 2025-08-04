@@ -532,6 +532,43 @@ test("message2event: simple reply to matrix user, reply fallbacks disabled", asy
 	}])
 })
 
+test("message2event: reply to matrix user with mention", async t => {
+	const events = await messageToEvent(data.message.reply_to_matrix_user_mention, data.guild.general, {}, {
+		api: {
+			getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk", {
+				type: "m.room.message",
+				content: {
+					msgtype: "m.text",
+					body: "@_ooye_extremity:cadence.moe you owe me $30",
+					format: "org.matrix.custom.html",
+					formatted_body: "<a href=\"https://matrix.to/#/@_ooye_extremity:cadence.moe\">@_ooye_extremity:cadence.moe</a> you owe me $30"
+				},
+				sender: "@cadence:cadence.moe"
+			})
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.relates_to": {
+			"m.in_reply_to": {
+				event_id: "$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk"
+			}
+		},
+		"m.mentions": {
+			user_ids: [
+				"@cadence:cadence.moe"
+			]
+		},
+		msgtype: "m.text",
+		body: "> okay 🤍 yay 🤍: @extremity: you owe me $30\n\nkys",
+		format: "org.matrix.custom.html",
+		formatted_body:
+			'<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">okay 🤍 yay 🤍</a>'
+			+ '<br><a href="https://matrix.to/#/@_ooye_extremity:cadence.moe">@extremity</a> you owe me $30</blockquote></mx-reply>'
+			+ 'kys'
+	}])
+})
+
 test("message2event: reply with a video", async t => {
 	const events = await messageToEvent(data.message.reply_with_video, data.guild.general, {
 		api: {
