@@ -210,7 +210,7 @@ async function syncUser(user, member, channel, guild, roomID) {
 	if (hashHasChanged && !wouldOverwritePreExisting) {
 		// Update room member state
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
-		// Update power levels (only if we can actually access the member roles)
+		// Update power levels
 		await api.setUserPower(roomID, mxid, powerLevel)
 		// Update cached hash
 		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)

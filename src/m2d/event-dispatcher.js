@@ -51,7 +51,7 @@ function stringifyErrorStack(err, depth = 0) {
 
 	const props = Object.getOwnPropertyNames(err).filter(p => !["message", "stack"].includes(p))
 
-	// only break into object notation if we have addtl props to dump
+	// only break into object notation if we have additional props to dump
 	if (props.length) {
 		const dedent = " ".repeat(depth);
 		const indent = " ".repeat(depth + 2);

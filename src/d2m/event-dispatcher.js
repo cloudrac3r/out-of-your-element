@@ -109,13 +109,24 @@ module.exports = {
 			})
 			// console.log(`[check missed messages] got ${messages.length} messages; last message that IS bridged is at position ${latestBridgedMessageIndex} in the channel`)
 			if (latestBridgedMessageIndex === -1) latestBridgedMessageIndex = 1 // rather than crawling the ENTIRE channel history, let's just bridge the most recent 1 message to make it up to date.
+
+			// We get member data so that we can accurately update any changes to nickname or permissions that have occurred in the meantime
+			// The rate limit is lax enough that the backlog will still be pretty quick (at time of writing, 5 per 1 second per guild)
+			/** @type {Map<string, DiscordTypes.APIGuildMember | undefined>} id -> member: cache members for the run because people talk to each other */
+			const members = new Map()
+
+			// Send in order
 			for (let i = Math.min(messages.length, latestBridgedMessageIndex)-1; i >= 0; i--) {
-				const simulatedGatewayDispatchData = {
+				const message = messages[i]
+
+				if (!members.has(message.author.id)) members.set(message.author.id, await client.snow.guild.getGuildMember(guild.id, message.author.id).catch(() => undefined))
+				await module.exports.MESSAGE_CREATE(client, {
 					guild_id: guild.id,
+					member: members.get(message.author.id),
+					// @ts-ignore
 					backfill: true,
-					...messages[i]
-				}
-				await module.exports.MESSAGE_CREATE(client, simulatedGatewayDispatchData)
+					...message
+				})
 			}
 		}
 	},
