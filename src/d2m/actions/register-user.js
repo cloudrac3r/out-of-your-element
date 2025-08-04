@@ -211,14 +211,7 @@ async function syncUser(user, member, channel, guild, roomID) {
 		// Update room member state
 		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
 		// Update power levels (only if we can actually access the member roles)
-		/** @type {Ty.Event.M_Power_Levels} */
-		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
-		const oldPowerLevel = powerLevelsStateContent.users?.[mxid] || powerLevelsStateContent.events_default || 0
-		mixin(powerLevelsStateContent, {users: {[mxid]: powerLevel}})
-		if (powerLevel === powerLevelsStateContent.events_default || 0) delete powerLevelsStateContent.users?.[mxid] // keep the event compact
-		const botPowerLevel = powerLevelsStateContent.users?.[`@${reg.sender_localpart}:${reg.ooye.server_name}`] || 100
-		const sendPowerLevelAs = oldPowerLevel === botPowerLevel ? mxid : undefined // bridge bot can't demote equal power users, so do this action as themselves
-		await api.sendState(roomID, "m.room.power_levels", "", powerLevelsStateContent, sendPowerLevelAs)
+		await api.setUserPower(roomID, mxid, powerLevel)
 		// Update cached hash
 		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}

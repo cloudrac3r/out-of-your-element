@@ -308,21 +308,29 @@ async function profileSetAvatarUrl(mxid, avatar_url) {
  * Set a user's power level within a room.
  * @param {string} roomID
  * @param {string} mxid
- * @param {number} power
+ * @param {number} newPower
  */
-async function setUserPower(roomID, mxid, power) {
+async function setUserPower(roomID, mxid, newPower) {
 	assert(roomID[0] === "!")
 	assert(mxid[0] === "@")
 	// Yes there's no shortcut https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
-	const powerLevels = await getStateEvent(roomID, "m.room.power_levels", "")
-	powerLevels.users = powerLevels.users || {}
-	if (power != null) {
-		powerLevels.users[mxid] = power
+	const power = await getStateEvent(roomID, "m.room.power_levels", "")
+	power.users = power.users || {}
+
+	// Bridge bot can't demote equal power users, so need to decide which user will send the event
+	const oldPowerLevel = power.users?.[mxid] || power.events_default || 0
+	const botPowerLevel = power.users?.[`@${reg.sender_localpart}:${reg.ooye.server_name}`] || 100
+	const eventSender = oldPowerLevel >= botPowerLevel ? mxid : undefined
+
+	// Update the event content
+	if (newPower == null || newPower === (power.events_default || 0)) {
+		delete power.users[mxid]
 	} else {
-		delete powerLevels.users[mxid]
+		power.users[mxid] = newPower
 	}
-	await sendState(roomID, "m.room.power_levels", "", powerLevels)
-	return powerLevels
+
+	await sendState(roomID, "m.room.power_levels", "", power, eventSender)
+	return power
 }
 
 /**

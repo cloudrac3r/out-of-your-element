@@ -117,3 +117,10 @@ test("member2power: can manage channels = 100", async t => {
 	}, data.guild.data_horde, data.channel.saving_the_world)
 	t.equal(power, 100)
 })
+
+test("member2power: pathfinder use case", async t => {
+	const power = _memberToPowerLevel(data.user.jerassicore, {
+		roles: ["1235396773510647810", "1359752622130593802", "1249165855632265267", "1380768596929806356", "1380756348190462015"]
+	}, data.guild.pathfinder, data.channel.character_art)
+	t.equal(power, 50)
+})
