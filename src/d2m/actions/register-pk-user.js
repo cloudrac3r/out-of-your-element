@@ -28,7 +28,7 @@ async function fetchMessage(messageID) {
 		// Network issue, raise a more readable message
 		throw new Error(`Failed to connect to PK API: ${networkError.toString()}`)
 	}
-	if (!res.ok) throw new Error(`PK API returned an error: ${JSON.stringify(await res.text())}`)
+	if (!res.ok) throw new Error(`PK API returned an error: ${await res.text()}`)
 	const root = await res.json()
 	if (!root.member) throw new Error(`PK API didn't return member data: ${JSON.stringify(root)}`)
 	return root
