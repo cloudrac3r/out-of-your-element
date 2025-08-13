@@ -35,8 +35,7 @@ const setPresence = sync.require("./actions/set-presence")
 /** @type {import("../m2d/event-dispatcher")} */
 const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
 
-/** @type {any} */ // @ts-ignore bad types from semaphore
-const Semaphore = require("@chriscdn/promise-semaphore")
+const {Semaphore} = require("@chriscdn/promise-semaphore")
 const checkMissedPinsSema = new Semaphore()
 
 // Grab Discord events we care about for the bridge, check them, and pass them on

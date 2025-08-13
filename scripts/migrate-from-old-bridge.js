@@ -2,8 +2,7 @@
 // @ts-check
 
 const assert = require("assert").strict
-/** @type {any} */ // @ts-ignore bad types from semaphore
-const Semaphore = require("@chriscdn/promise-semaphore")
+const {Semaphore} = require("@chriscdn/promise-semaphore")
 const sqlite = require("better-sqlite3")
 const HeatSync = require("heatsync")
 

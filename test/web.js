@@ -5,6 +5,10 @@ const {SnowTransfer} = require("snowtransfer")
 const assert = require("assert").strict
 const domino = require("domino")
 const {extend} = require("supertape")
+const {reg} = require("../src/matrix/read-registration")
+
+const {AppService} = require("@cloudrac3r/in-your-element")
+const defaultAs = new AppService(reg)
 
 /**
  * @param {string} html
@@ -39,7 +43,7 @@ class Router {
 		for (const method of ["get", "post", "put", "patch", "delete"]) {
 			this[method] = function(url, handler) {
 				const key = `${method} ${url}`
-				this.routes.set(`${key}`, handler)
+				this.routes.set(key, handler)
 			}
 		}
 	}
@@ -49,7 +53,7 @@ class Router {
 	 * @param {string} inputUrl
 	 * @param {{event?: any, params?: any, body?: any, sessionData?: any, api?: Partial<import("../src/matrix/api")>, snow?: {[k in keyof SnowTransfer]?: Partial<SnowTransfer[k]>}, createRoom?: Partial<import("../src/d2m/actions/create-room")>, createSpace?: Partial<import("../src/d2m/actions/create-space")>, headers?: any}} [options]
 	 */
-	test(method, inputUrl, options = {}) {
+	async test(method, inputUrl, options = {}) {
 		const url = new URL(inputUrl, "http://a")
 		const key = `${method} ${options.route || url.pathname}`
 		/* c8 ignore next */
@@ -67,36 +71,42 @@ class Router {
 			req.headers["content-type"] = "application/json"
 		}
 
-		return this.routes.get(key)(Object.assign(event, {
-			__is_event__: true,
-			method: method.toUpperCase(),
-			path: `${url.pathname}${url.search}`,
-			_requestBody: options.body,
-			node: {
-				req,
-				res: new http.ServerResponse(req)
-			},
-			context: {
-				api: options.api,
-				params: options.params,
-				snow: options.snow,
-				createRoom: options.createRoom,
-				createSpace: options.createSpace,
-				sessions: {
-					h3: {
-						id: "h3",
-						createdAt: 0,
-						data: options.sessionData || {}
+		try {
+			return await this.routes.get(key)(Object.assign(event, {
+				__is_event__: true,
+				method: method.toUpperCase(),
+				path: `${url.pathname}${url.search}`,
+				_requestBody: options.body,
+				node: {
+					req,
+					res: new http.ServerResponse(req)
+				},
+				context: {
+					api: options.api,
+					params: options.params,
+					snow: options.snow,
+					createRoom: options.createRoom,
+					createSpace: options.createSpace,
+					sessions: {
+						h3: {
+							id: "h3",
+							createdAt: 0,
+							data: options.sessionData || {}
+						}
 					}
 				}
-			}
-		}))
+			}))
+		} catch (error) {
+			// Post-process error data
+			defaultAs.app.options.onError(error)
+			throw error
+		}
 	}
 }
 
 const router = new Router()
 
-passthrough.as = {router, on() {}}
+passthrough.as = {router, on() {}, options: defaultAs.app.options}
 
 module.exports.router = router
 module.exports.test = test

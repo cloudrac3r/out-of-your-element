@@ -21,12 +21,7 @@ const DiscordClient = require("../src/d2m/discord-client")
 const discord = new DiscordClient(reg.ooye.discord_token, "half")
 passthrough.discord = discord
 
-const app = createApp()
-const router = createRouter()
-app.use(router)
-const server = createServer(toNodeListener(app))
-server.listen(reg.socket || new URL(reg.url).port)
-const as = Object.assign(new EventEmitter(), {app, router, server}) // @ts-ignore
+const {as} = require("../src/matrix/appservice")
 passthrough.as = as
 
 const orm = sync.require("../src/db/orm")

@@ -22,7 +22,7 @@ test("log in with matrix: checks if mxid format looks valid", async t => {
 			mxid: "x@cadence:cadence.moe"
 		}
 	}))
-	t.equal(error.data.issues[0].validation, "regex")
+	t.match(error.data.fieldErrors.mxid, /must match pattern/)
 })
 
 test("log in with matrix: checks if mxid domain format looks valid", async t => {
@@ -31,7 +31,7 @@ test("log in with matrix: checks if mxid domain format looks valid", async t => 
 			mxid: "@cadence:cadence."
 		}
 	}))
-	t.equal(error.data.issues[0].validation, "regex")
+	t.match(error.data.fieldErrors.mxid, /must match pattern/)
 })
 
 test("log in with matrix: sends message when there is no m.direct data", async t => {

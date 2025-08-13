@@ -27,7 +27,7 @@ const schema = {
 	token: z.object({
 		token_type: z.string(),
 		access_token: z.string(),
-		expires_in: z.number({coerce: true}),
+		expires_in: z.coerce.number(),
 		refresh_token: z.string(),
 		scope: z.string()
 	})
