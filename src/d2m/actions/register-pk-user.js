@@ -5,7 +5,7 @@ const {reg} = require("../../matrix/read-registration")
 const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
-const {sync, db, select} = passthrough
+const {sync, db, select, from} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
@@ -19,6 +19,20 @@ const registerUser = sync.require("./register-user")
  * @prop {string?} avatar
  * @prop {string} id
  */
+
+/** @returns {Promise<Ty.PkMessage>} */
+async function fetchMessage(messageID) {
+	try {
+		var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
+	} catch (networkError) {
+		// Network issue, raise a more readable message
+		throw new Error(`Failed to connect to PK API: ${networkError.toString()}`)
+	}
+	if (!res.ok) throw new Error(`PK API returned an error: ${JSON.stringify(await res.text())}`)
+	const root = await res.json()
+	if (!root.member) throw new Error(`PK API didn't return member data: ${JSON.stringify(root)}`)
+	return root
+}
 
 /**
  * A sim is an account that is being simulated by the bridge to copy events from the other side.
@@ -95,6 +109,7 @@ async function ensureSimJoined(pkMessage, roomID) {
 }
 
 /**
+ * Generate profile data based on webhook displayname and configured avatar.
  * @param {Ty.PkMessage} pkMessage
  * @param {WebhookAuthor} author
  */
@@ -115,54 +130,47 @@ async function memberToStateContent(pkMessage, author) {
 
 /**
  * Sync profile data for a sim user. This function follows the following process:
- * 1. Join the sim to the room if needed
- * 2. Make an object of what the new room member state content would be, including uploading the profile picture if it hasn't been done before
- * 3. Compare against the previously known state content, which is helpfully stored in the database
- * 4. If the state content has changed, send it to Matrix and update it in the database for next time
- * @param {WebhookAuthor} author
- * @param {Ty.PkMessage} pkMessage
- * @param {string} roomID
+ * 1. Look up data about proxy user from API
+ * 2. If this fails, try to use previously cached data (won't sync)
+ * 3. Create and join the sim to the room if needed
+ * 4. Make an object of what the new room member state content would be, including uploading the profile picture if it hasn't been done before
+ * 5. Compare against the previously known state content, which is helpfully stored in the database
+ * 6. If the state content has changed, send it to Matrix and update it in the database for next time
+ * @param {string} messageID to call API with
+ * @param {WebhookAuthor} author for profile data
+ * @param {string} roomID room to join member to
+ * @param {boolean} shouldActuallySync whether to actually sync updated user data or just ensure it's joined
  * @returns {Promise<string>} mxid of the updated sim
  */
-async function syncUser(author, pkMessage, roomID) {
-	const mxid = await ensureSimJoined(pkMessage, roomID)
-	// Update the sim_proxy table, so mentions can look up the original sender later
-	db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES (?, ?, ?)").run(pkMessage.member.uuid, pkMessage.sender, author.username)
-	// Sync the member state
-	const content = await memberToStateContent(pkMessage, author)
-	const currentHash = registerUser._hashProfileContent(content, 0)
-	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
-	// only do the actual sync if the hash has changed since we last looked
-	if (existingHash !== currentHash) {
-		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
-		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
+async function syncUser(messageID, author, roomID, shouldActuallySync) {
+	try {
+		// API lookup
+		var pkMessage = await fetchMessage(messageID)
+		db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES (?, ?, ?)").run(pkMessage.member.uuid, pkMessage.sender, author.username)
+	} catch (e) {
+		// Fall back to offline cache
+		const senderMxid = from("sim_proxy").join("sim", "user_id").join("sim_member", "mxid").where({displayname: author.username, room_id: roomID}).pluck("mxid").get()
+		if (!senderMxid) throw e
+		return senderMxid
 	}
+
+	// Create and join the sim to the room if needed
+	const mxid = await ensureSimJoined(pkMessage, roomID)
+
+	if (shouldActuallySync) {
+		// Build current profile data
+		const content = await memberToStateContent(pkMessage, author)
+		const currentHash = registerUser._hashProfileContent(content, 0)
+		const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
+
+		// Only do the actual sync if the hash has changed since we last looked
+		if (existingHash !== currentHash) {
+			await api.sendState(roomID, "m.room.member", mxid, content, mxid)
+			db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
+		}
+	}
+
 	return mxid
 }
 
-/** @returns {Promise<Ty.PkMessage>} */
-async function fetchMessage(messageID) {
-	// Their backend is weird. Sometimes it says "message not found" (code 20006) on the first try, so we make multiple attempts.
-	let attempts = 0
-	do {
-		try {
-			var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
-			if (res.ok) return res.json()
-			var errorGetter = () => res.json()
-		} catch (e) {
-			// Catch any network issues too.
-			errorGetter = () => e.toString()
-		}
-
-		// I think the backend needs some time to update.
-		await new Promise(resolve => setTimeout(resolve, 1500))
-	} while (++attempts < 3)
-
-	throw new Error(`PK API returned an error after ${attempts} tries: ${JSON.stringify(await errorGetter())}`)
-}
-
-module.exports._memberToStateContent = memberToStateContent
-module.exports.ensureSim = ensureSim
-module.exports.ensureSimJoined = ensureSimJoined
 module.exports.syncUser = syncUser
-module.exports.fetchMessage = fetchMessage

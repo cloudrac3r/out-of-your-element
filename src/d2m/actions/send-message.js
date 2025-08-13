@@ -37,8 +37,7 @@ async function sendMessage(message, channel, guild, row) {
 	} else if (row && row.speedbump_webhook_id === message.webhook_id) {
 		// Handle the PluralKit public instance
 		if (row.speedbump_id === "466378653216014359") {
-			const pkMessage = await registerPkUser.fetchMessage(message.id)
-			senderMxid = await registerPkUser.syncUser(message.author, pkMessage, roomID)
+			senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
 		}
 	}
 
