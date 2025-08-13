@@ -128,16 +128,18 @@ async function sendError(roomID, source, type, e, payload) {
 	}
 
 	// Send
-	await api.sendEvent(roomID, "m.room.message", {
-		...builder.get(),
-		"moe.cadence.ooye.error": {
-			source: source.toLowerCase(),
-			payload
-		},
-		"m.mentions": {
-			user_ids: ["@cadence:cadence.moe"]
-		}
-	})
+	try {
+		await api.sendEvent(roomID, "m.room.message", {
+			...builder.get(),
+			"moe.cadence.ooye.error": {
+				source: source.toLowerCase(),
+				payload
+			},
+			"m.mentions": {
+				user_ids: ["@cadence:cadence.moe"]
+			}
+		})
+	} catch (e) {}
 }
 
 function guard(type, fn) {
