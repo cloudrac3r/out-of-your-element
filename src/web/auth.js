@@ -26,7 +26,7 @@ async function getManagedGuilds(event) {
  * @returns {ReturnType<typeof h3.useSession<{userID?: string, mxid?: string, managedGuilds?: string[], state?: string, selfService?: boolean, password?: string}>>}
  */
 function useSession(event) {
-	return h3.useSession(event, {password: reg.as_token})
+	return h3.useSession(event, {password: reg.as_token, maxAge: 365 * 24 * 60 * 60})
 }
 
 module.exports.getManagedGuilds = getManagedGuilds
