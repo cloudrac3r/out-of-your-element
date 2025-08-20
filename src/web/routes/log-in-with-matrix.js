@@ -71,7 +71,6 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 	const api = getAPI(event)
 	const {mxid, next} = await readValidatedBody(event, schema.form.parse)
-	let roomID = null
 
 	// Don't extend a duplicate invite for the same user
 	for (const alreadyInvited of validToken.values()) {
@@ -80,31 +79,27 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 		}
 	}
 
-	// See if we can reuse an existing room from account data
+	// Get list of existing DMs from account data
 	let directData = {}
 	try {
 		directData = await api.getAccountData("m.direct")
 	} catch (e) {}
-	const rooms = directData[mxid] || []
-	for (const candidate of rooms) {
-		// Check that the person is/still in the room
-		let member
-		try {
-			member = await api.getStateEvent(candidate, "m.room.member", mxid)
-		} catch (e) {}
-		if (!member || member.membership === "leave") {
-			// We can reinvite them back to the same room!
-			await api.inviteToRoom(candidate, mxid)
-			roomID = candidate
-		} else {
-			// Member is in this room
-			roomID = candidate
-		}
-		if (roomID) break	// no need to check other candidates
-	}
+	let roomID = directData[mxid]?.at(-1)
 
-	// No candidates available, create a new room and invite
-	if (!roomID) {
+	// Reuse an existing DM, if able
+	if (typeof roomID === "string") {
+		// Check that the person is/still in the room
+		try {
+			var member = await api.getStateEvent(roomID, "m.room.member", mxid)
+		} catch (e) {}
+
+		// Invite them back to the room if needed
+		if (!member || member.membership === "leave") {
+			await api.inviteToRoom(roomID, mxid)
+		}
+	}
+	// No existing DMs, create a new room and invite
+	else {
 		roomID = await api.createRoom({
 			invite: [mxid],
 			is_direct: true,
@@ -116,7 +111,6 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 	}
 
 	const token = randomUUID()
-	validToken.set(token, mxid)
 
 	console.log(`web log in requested for ${mxid}`)
 	const paramsObject = {token}
@@ -128,6 +122,8 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 		msgtype: "m.text",
 		body
 	})
+
+	validToken.set(token, mxid)
 
 	return sendRedirect(event, "../ok?msg=Please check your inbox on Matrix!&spot=SpotMailXL", 302)
 }))
