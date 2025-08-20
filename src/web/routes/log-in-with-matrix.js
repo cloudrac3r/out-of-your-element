@@ -5,7 +5,7 @@ const {randomUUID} = require("crypto")
 const {defineEventHandler, getValidatedQuery, sendRedirect, readValidatedBody, createError, getRequestHeader, H3Event} = require("h3")
 const {LRUCache} = require("lru-cache")
 
-const {as} = require("../../passthrough")
+const {as, db, select} = require("../../passthrough")
 const {reg} = require("../../matrix/read-registration")
 
 const {sync} = require("../../passthrough")
@@ -79,15 +79,9 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 		}
 	}
 
-	// Get list of existing DMs from account data
-	let directData = {}
-	try {
-		directData = await api.getAccountData("m.direct")
-	} catch (e) {}
-	let roomID = directData[mxid]?.at(-1)
-
-	// Reuse an existing DM, if able
-	if (typeof roomID === "string") {
+	// Check if we have an existing DM
+	let roomID = select("direct", "room_id", {mxid}).pluck().get()
+	if (roomID) {
 		// Check that the person is/still in the room
 		try {
 			var member = await api.getStateEvent(roomID, "m.room.member", mxid)
@@ -98,7 +92,8 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 			await api.inviteToRoom(roomID, mxid)
 		}
 	}
-	// No existing DMs, create a new room and invite
+
+	// No existing DM, create a new room and invite
 	else {
 		roomID = await api.createRoom({
 			invite: [mxid],
@@ -106,8 +101,7 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 			preset: "trusted_private_chat"
 		})
 		// Store the newly created room in account data (Matrix doesn't do this for us automatically, sigh...)
-		;(directData[mxid] ??= []).push(roomID)
-		await api.setAccountData("m.direct", directData)
+		db.prepare("REPLACE INTO direct (mxid, room_id) VALUES (?, ?)").run(mxid, roomID)
 	}
 
 	const token = randomUUID()

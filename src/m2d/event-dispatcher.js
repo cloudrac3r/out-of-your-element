@@ -339,7 +339,13 @@ async event => {
 
 	if (event.content.membership === "leave" || event.content.membership === "ban") {
 		// Member is gone
-		return db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
+		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
+
+		// Unregister room's use as a direct chat if the bot itself left
+		const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+		if (event.state_key === bot) {
+			db.prepare("DELETE FROM direct WHERE room_id = ?").run(event.room_id)
+		}
 	}
 
 	const exists = select("channel_room", "room_id", {room_id: event.room_id}) ?? select("guild_space", "space_id", {space_id: event.room_id})

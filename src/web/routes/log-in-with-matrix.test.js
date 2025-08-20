@@ -34,7 +34,7 @@ test("log in with matrix: checks if mxid domain format looks valid", async t => 
 	t.match(error.data.fieldErrors.mxid, /must match pattern/)
 })
 
-test("log in with matrix: sends message when there is no m.direct data", async t => {
+test("log in with matrix: sends message when there is no existing dm room", async t => {
 	const event = {}
 	let called = 0
 	await router.test("post", "/api/log-in-with-matrix", {
@@ -42,19 +42,9 @@ test("log in with matrix: sends message when there is no m.direct data", async t
 			mxid: "@cadence:cadence.moe"
 		},
 		api: {
-			async getAccountData(type) {
-				called++
-				t.equal(type, "m.direct")
-				throw new MatrixServerError({errcode: "M_NOT_FOUND"})
-			},
 			async createRoom() {
 				called++
 				return "!created:cadence.moe"
-			},
-			async setAccountData(type, content) {
-				called++
-				t.equal(type, "m.direct")
-				t.deepEqual(content, {"@cadence:cadence.moe": ["!created:cadence.moe"]})
 			},
 			async sendEvent(roomID, type, content) {
 				called++
@@ -68,7 +58,7 @@ test("log in with matrix: sends message when there is no m.direct data", async t
 		event
 	})
 	t.match(event.node.res.getHeader("location"), /Please check your inbox on Matrix/)
-	t.equal(called, 4)
+	t.equal(called, 2)
 })
 
 test("log in with matrix: does not send another message when a log in is in progress", async t => {
@@ -82,7 +72,7 @@ test("log in with matrix: does not send another message when a log in is in prog
 	t.match(event.node.res.getHeader("location"), /We already sent you a link on Matrix/)
 })
 
-test("log in with matrix: reuses room from m.direct", async t => {
+test("log in with matrix: reuses room from direct", async t => {
 	const event = {}
 	let called = 0
 	await router.test("post", "/api/log-in-with-matrix", {
@@ -90,11 +80,6 @@ test("log in with matrix: reuses room from m.direct", async t => {
 			mxid: "@user1:example.org"
 		},
 		api: {
-			async getAccountData(type) {
-				called++
-				t.equal(type, "m.direct")
-				return {"@user1:example.org": ["!existing:cadence.moe"]}
-			},
 			async getStateEvent(roomID, type, key) {
 				called++
 				t.equal(roomID, "!existing:cadence.moe")
@@ -111,10 +96,10 @@ test("log in with matrix: reuses room from m.direct", async t => {
 		event
 	})
 	t.match(event.node.res.getHeader("location"), /Please check your inbox on Matrix/)
-	t.equal(called, 3)
+	t.equal(called, 2)
 })
 
-test("log in with matrix: reuses room from m.direct, reinviting if user has left", async t => {
+test("log in with matrix: reuses room from direct, reinviting if user has left", async t => {
 	const event = {}
 	let called = 0
 	await router.test("post", "/api/log-in-with-matrix", {
@@ -122,11 +107,6 @@ test("log in with matrix: reuses room from m.direct, reinviting if user has left
 			mxid: "@user2:example.org"
 		},
 		api: {
-			async getAccountData(type) {
-				called++
-				t.equal(type, "m.direct")
-				return {"@user2:example.org": ["!existing:cadence.moe"]}
-			},
 			async getStateEvent(roomID, type, key) {
 				called++
 				t.equal(roomID, "!existing:cadence.moe")
@@ -148,7 +128,7 @@ test("log in with matrix: reuses room from m.direct, reinviting if user has left
 		event
 	})
 	t.match(event.node.res.getHeader("location"), /Please check your inbox on Matrix/)
-	t.equal(called, 4)
+	t.equal(called, 3)
 })
 
 // ***** third request *****

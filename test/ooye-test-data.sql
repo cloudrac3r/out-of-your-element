@@ -188,4 +188,8 @@ INSERT INTO invite (mxid, room_id, type, name, avatar, topic) VALUES
 ('@cadence:cadence.moe', '!room:cadence.moe', NULL, 'some room', NULL, NULL),
 ('@rnl:cadence.moe', '!space:cadence.moe', NULL, 'somebody else''s space', NULL, NULL);
 
+INSERT INTO direct (mxid, room_id) VALUES
+('@user1:example.org', '!existing:cadence.moe'),
+('@user2:example.org', '!existing:cadence.moe');
+
 COMMIT;

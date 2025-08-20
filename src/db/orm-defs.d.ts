@@ -1,4 +1,9 @@
 export type Models = {
+	auto_emoji: {
+		name: string
+		emoji_id: string
+	}
+
 	channel_room: {
 		channel_id: string
 		room_id: string
@@ -12,6 +17,18 @@ export type Models = {
 		speedbump_checked: number | null
 		guild_id: string | null
 		custom_topic: number
+	}
+
+	direct: {
+		mxid: string
+		room_id: string
+	}
+
+	emoji: {
+		emoji_id: string
+		name: string
+		animated: number
+		mxc_url: string
 	}
 
 	event_message: {
@@ -53,6 +70,10 @@ export type Models = {
 	lottie: {
 		sticker_id: string
 		mxc_url: string
+	}
+
+	media_proxy: {
+		permitted_hash: number
 	}
 
 	member_cache: {
@@ -99,28 +120,11 @@ export type Models = {
 		webhook_token: string
 	}
 
-	emoji: {
-		emoji_id: string
-		name: string
-		animated: number
-		mxc_url: string
-	}
-
 	reaction: {
 		hashed_event_id: number
 		message_id: string
 		encoded_emoji: string
 		original_encoding: string | null
-	}
-
-	auto_emoji: {
-		name: string
-		emoji_id: string
-		guild_id: string
-	}
-
-	media_proxy: {
-		permitted_hash: number
 	}
 }
 
