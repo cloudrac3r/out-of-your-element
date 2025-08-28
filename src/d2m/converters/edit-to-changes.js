@@ -22,6 +22,10 @@ function eventCanBeEdited(ev) {
 	return true
 }
 
+function eventIsText(ev) {
+	return ev.old.event_type === "m.room.message" && (ev.old.event_subtype === "m.text" || ev.old.event_subtype === "m.notice")
+}
+
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
  * @param {import("discord-api-types/v10").APIGuild} guild
@@ -121,6 +125,20 @@ async function editToChanges(message, guild, api) {
 	unchangedEvents.push(...eventsToReplace.filter(ev => !eventCanBeEdited(ev))) // Move them from eventsToRedact to unchangedEvents.
 	eventsToReplace = eventsToReplace.filter(eventCanBeEdited)
 
+	// Now, everything in eventsToReplace has the potential to have changed, but did it actually?
+	// (Example: if a URL preview was generated or updated, the message text won't have changed.)
+	// Only way to detect this is by text content. So we'll remove text events from eventsToReplace that have the same new text as text currently in the event.
+	for (let i = eventsToReplace.length; i--;) { // move backwards through array
+		const event = eventsToReplace[i]
+		if (!eventIsText(event)) continue // not text, can't analyse
+		const oldEvent = await api.getEvent(roomID, eventsToReplace[i].old.event_id)
+		const oldEventBodyWithoutQuotedReply = oldEvent.content.body?.replace(/^(>.*\n)*\n*/sm, "")
+		if (oldEventBodyWithoutQuotedReply !== event.newInnerContent.body) continue // event changed, must replace it
+		// Move it from eventsToRedact to unchangedEvents.
+		unchangedEvents.push(...eventsToReplace.filter(ev => ev.old.event_id === event.old.event_id))
+		eventsToReplace = eventsToReplace.filter(ev => ev.old.event_id !== event.old.event_id)
+	}
+
 	// We want to maintain exactly one part = 0 and one reaction_part = 0 database row at all times.
 	// This would be disrupted if existing events that are (reaction_)part = 0 will be redacted.
 	// If that is the case, pick a different existing or newly sent event to be (reaction_)part = 0.
@@ -193,4 +211,3 @@ function makeReplacementEventContent(oldID, newFallbackContent, newInnerContent)
 }
 
 module.exports.editToChanges = editToChanges
-module.exports.makeReplacementEventContent = makeReplacementEventContent

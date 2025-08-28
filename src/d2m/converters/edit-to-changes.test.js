@@ -4,7 +4,14 @@ const data = require("../../../test/data")
 const Ty = require("../../types")
 
 test("edit2changes: edit by webhook", async t => {
-	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.edit_by_webhook, data.guild.general, {})
+	let called = 0
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.edit_by_webhook, data.guild.general, {
+		getEvent(roomID, eventID) {
+			called++
+			t.equal(eventID, "$zXSlyI78DQqQwwfPUSzZ1b-nXzbUrCDljJgnGDdoI10")
+			return {content: {body: "dummy"}}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [{
@@ -28,10 +35,15 @@ test("edit2changes: edit by webhook", async t => {
 	}])
 	t.equal(senderMxid, null)
 	t.deepEqual(promotions, [])
+	t.equal(called, 1)
 })
 
 test("edit2changes: bot response", async t => {
 	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.bot_response, data.guild.general, {
+		getEvent(roomID, eventID) {
+			t.equal(eventID, "$fdD9OZ55xg3EAsfvLZza5tMhtjUO91Wg3Otuo96TplY")
+			return {content: {body: "dummy"}}
+		},
 		async getJoinedMembers(roomID) {
 			t.equal(roomID, "!hYnGGlPHlbujVVfktC:cadence.moe")
 			return new Promise(resolve => {
@@ -123,7 +135,14 @@ test("edit2changes: add caption back to that image (due to it having a reaction,
 })
 
 test("edit2changes: stickers and attachments are not changed, only the content can be edited", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments, data.guild.general, {})
+	let called = 0
+	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments, data.guild.general, {
+		getEvent(roomID, eventID) {
+			called++
+			t.equal(eventID, "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qdFv4")
+			return {content: {body: "dummy"}}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [{
@@ -145,10 +164,16 @@ test("edit2changes: stickers and attachments are not changed, only the content c
 			}
 		}
 	}])
+	t.equal(called, 1)
 })
 
 test("edit2changes: edit of reply to skull webp attachment with content", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_of_reply_to_skull_webp_attachment_with_content, data.guild.general, {})
+	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edit_of_reply_to_skull_webp_attachment_with_content, data.guild.general, {
+		getEvent(roomID, eventID) {
+			t.equal(eventID, "$vgTKOR5ZTYNMKaS7XvgEIDaOWZtVCEyzLLi5Pc5Gz4M")
+			return {content: {body: "dummy"}}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [{
@@ -177,7 +202,12 @@ test("edit2changes: edit of reply to skull webp attachment with content", async 
 })
 
 test("edit2changes: edits the text event when multiple rows have part = 0 (should never happen in real life, but make sure the safety net works)", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments_but_all_parts_equal_0, data.guild.general, {})
+	const {eventsToRedact, eventsToReplace, eventsToSend} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments_but_all_parts_equal_0, data.guild.general, {
+		getEvent(roomID, eventID) {
+			t.equal(eventID, "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd999")
+			return {content: {body: "dummy"}}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [{
@@ -202,7 +232,12 @@ test("edit2changes: edits the text event when multiple rows have part = 0 (shoul
 })
 
 test("edit2changes: promotes the text event when multiple rows have part = 1 (should never happen in real life, but make sure the safety net works)", async t => {
-	const {eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments_but_all_parts_equal_1, data.guild.general, {})
+	const {eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.edited_content_with_sticker_and_attachments_but_all_parts_equal_1, data.guild.general, {
+		getEvent(roomID, eventID) {
+			t.equal(eventID, "$lnAF9IosAECTnlv9p2e18FG8rHn-JgYKHEHIh5qd111")
+			return {content: {body: "dummy"}}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
 	t.deepEqual(eventsToSend, [])
 	t.deepEqual(eventsToReplace, [{
@@ -279,32 +314,31 @@ test("edit2changes: generated embed", async t => {
 })
 
 test("edit2changes: generated embed on a reply", async t => {
-	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_on_reply, data.guild.general, {})
+	let called = 0
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_on_reply, data.guild.general, {
+		getEvent(roomID, eventID) {
+			called++
+			t.equal(eventID, "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF")
+			return {
+				type: "m.room.message",
+				content: {
+					// Unfortunately the edited message doesn't include the message_reference field. Fine. Whatever. It looks normal if you're using a good client.
+					body: "> a Discord user: [Replied-to message content wasn't provided by Discord]"
+						+ "\n\nhttps://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
+					format: "org.matrix.custom.html",
+					formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">In reply to</a> a Discord user<br>[Replied-to message content wasn't provided by Discord]</blockquote></mx-reply><a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM</a>",
+					"m.mentions": {},
+					"m.relates_to": {
+						event_id: "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF",
+						rel_type: "m.replace",
+					},
+					msgtype: "m.text",
+				}
+			}
+		}
+	})
 	t.deepEqual(eventsToRedact, [])
-	t.deepEqual(eventsToReplace, [{
-		oldID: "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF",
-		newContent: {
-			$type: "m.room.message",
-			// Unfortunately the edited message doesn't include the message_reference field. Fine. Whatever. It looks normal if you're using a good client.
-			body: "> a Discord user: [Replied-to message content wasn't provided by Discord]"
-				+ "\n\n* https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
-			format: "org.matrix.custom.html",
-			formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">In reply to</a> a Discord user<br>[Replied-to message content wasn't provided by Discord]</blockquote></mx-reply>* <a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM</a>",
-			"m.mentions": {},
-			"m.new_content": {
-				body: "https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM",
-				format: "org.matrix.custom.html",
-				formatted_body: "<a href=\"https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM\">https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$aLVZyiC3HlOu-prCSIaXlQl68I8leUdnPFiCwkgn6qM</a>",
-				"m.mentions": {},
-				msgtype: "m.text",
-			},
-			"m.relates_to": {
-				event_id: "$UTqiL3Zj3FC4qldxRLggN1fhygpKl8sZ7XGY5f9MNbF",
-				rel_type: "m.replace",
-			},
-			msgtype: "m.text",
-		},
-	}])
+	t.deepEqual(eventsToReplace, [])
 	t.deepEqual(eventsToSend, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
@@ -324,4 +358,5 @@ test("edit2changes: generated embed on a reply", async t => {
 		"nextEvent": true,
 	}])
 	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
+	t.equal(called, 1)
 })
