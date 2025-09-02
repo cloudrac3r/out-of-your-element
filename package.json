@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@chriscdn/promise-semaphore": "^3.0.1",
-    "@cloudrac3r/discord-markdown": "^2.6.5",
+    "@cloudrac3r/discord-markdown": "^2.6.6",
     "@cloudrac3r/giframe": "^0.4.3",
     "@cloudrac3r/html-template-tag": "^5.0.1",
     "@cloudrac3r/in-your-element": "^1.1.1",
@@ -44,7 +44,7 @@
     "lru-cache": "^11.0.2",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.33.4",
-    "snowtransfer": "^0.14.2",
+    "snowtransfer": "^0.15.0",
     "stream-mime-type": "^1.0.2",
     "try-to-catch": "^3.0.1",
     "uqr": "^0.1.2",
