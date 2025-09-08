@@ -33,9 +33,10 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		user: node => {
 			const mxid = select("sim", "mxid", {user_id: node.id}).pluck().get()
 			const interaction = message.interaction_metadata || message.interaction
-			const username = message.mentions.find(ment => ment.id === node.id)?.username
-				|| message.referenced_message?.mentions.find(ment => ment.id === node.id)?.username
+			const username = message.mentions?.find(ment => ment.id === node.id)?.username
+				|| message.referenced_message?.mentions?.find(ment => ment.id === node.id)?.username
 				|| (interaction?.user.id === node.id ? interaction.user.username : null)
+				|| (message.author.id === node.id ? message.author.username : null)
 				|| node.id
 			if (mxid && useHTML) {
 				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
