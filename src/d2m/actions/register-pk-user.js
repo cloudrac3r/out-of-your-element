@@ -146,7 +146,7 @@ async function syncUser(messageID, author, roomID, shouldActuallySync) {
 	try {
 		// API lookup
 		var pkMessage = await fetchMessage(messageID)
-		db.prepare("INSERT OR IGNORE INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES (?, ?, ?)").run(pkMessage.member.uuid, pkMessage.sender, author.username)
+		db.prepare("REPLACE INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES (?, ?, ?)").run(pkMessage.member.uuid, pkMessage.sender, author.username)
 	} catch (e) {
 		// Fall back to offline cache
 		const senderMxid = from("sim_proxy").join("sim", "user_id").join("sim_member", "mxid").where({displayname: author.username, room_id: roomID}).pluck("mxid").get()
