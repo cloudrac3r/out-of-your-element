@@ -120,16 +120,28 @@ function defineEchoHandler() {
 		/** @type {string} */ // @ts-ignore
 		const serverOrigin = await serverOriginPrompt.run()
 
+		console.log("OOYE has its own web server. It needs to be accessible on the public internet.")
+		console.log("What port would you like OOYE to use? You can connect your reverse proxy to this port later.")
+		/** @type {{socket: string | number}} */
+		const portResponse = await prompt({
+			type: "input",
+			name: "socket",
+			message: "Web server port",
+			initial: "6693"
+		})
+		portResponse.socket = +portResponse.socket || portResponse.socket // convert to number if numeric
+		
 		const app = createApp()
 		app.use(defineEchoHandler())
 		const server = createServer(toNodeListener(app))
-		await server.listen(6693)
+		await server.listen(portResponse.socket)
 
-		console.log("OOYE has its own web server. It needs to be accessible on the public internet.")
-		console.log("You need to enter a public URL where you will be able to host this web server.")
-		console.log("OOYE listens on localhost:6693, so you will probably have to set up a reverse proxy.")
+		console.log("Now you need to enter a public URL that OOYE's web server will live on.")
+		console.log("Set up your reverse proxy so that this URL accesses OOYE.")
 		console.log("Examples: https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md#appendix")
-		console.log("Now listening on port 6693. Feel free to send some test requests.")
+		if (typeof portResponse.socket === "number") {
+			console.log(`Now listening on http://localhost:${portResponse.socket}. Feel free to send some test requests.`)
+		}
 		/** @type {{bridge_origin: string}} */
 		const bridgeOriginResponse = await prompt({
 			type: "input",
@@ -255,6 +267,7 @@ function defineEchoHandler() {
 		reg = {
 			...template,
 			url: bridgeOriginResponse.bridge_origin,
+			...portResponse,
 			ooye: {
 				...template.ooye,
 				...bridgeOriginResponse,

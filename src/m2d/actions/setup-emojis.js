@@ -5,9 +5,8 @@ const {join} = require("path")
 
 const passthrough = require("../../passthrough")
 
-const {id} = require("../../../addbot")
-
 async function setupEmojis() {
+	const {id} = require("../../../addbot")
 	const {discord, db} = passthrough
 	const emojis = await discord.snow.assets.getAppEmojis(id)
 	for (const name of ["L1", "L2"]) {
