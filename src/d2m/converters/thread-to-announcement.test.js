@@ -55,8 +55,6 @@ test("thread2announcement: no known creator, no branched from event", async t =>
 	t.deepEqual(content, {
 		msgtype: "m.text",
 		body: "Thread started: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
-		format: "org.matrix.custom.html",
-		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {}
 	})
 })
@@ -69,8 +67,6 @@ test("thread2announcement: known creator, no branched from event", async t => {
 	t.deepEqual(content, {
 		msgtype: "m.emote",
 		body: "started a thread: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
-		format: "org.matrix.custom.html",
-		formatted_body: `started a thread: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {}
 	})
 })
@@ -95,8 +91,6 @@ test("thread2announcement: no known creator, branched from discord event", async
 	t.deepEqual(content, {
 		msgtype: "m.text",
 		body: "Thread started: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
-		format: "org.matrix.custom.html",
-		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {},
 		"m.relates_to": {
 			"m.in_reply_to": {
@@ -126,8 +120,6 @@ test("thread2announcement: known creator, branched from discord event", async t 
 	t.deepEqual(content, {
 		msgtype: "m.emote",
 		body: "started a thread: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
-		format: "org.matrix.custom.html",
-		formatted_body: `started a thread: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {},
 		"m.relates_to": {
 			"m.in_reply_to": {
@@ -157,8 +149,6 @@ test("thread2announcement: no known creator, branched from matrix event", async 
 	t.deepEqual(content, {
 		msgtype: "m.text",
 		body: "Thread started: test thread https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org",
-		format: "org.matrix.custom.html",
-		formatted_body: `Thread started: <a href="https://matrix.to/#/!thread?via=cadence.moe&via=matrix.org">test thread</a>`,
 		"m.mentions": {
 			user_ids: ["@cadence:cadence.moe"]
 		},

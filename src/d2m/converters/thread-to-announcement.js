@@ -32,13 +32,10 @@ async function threadToAnnouncement(parentRoomID, threadRoomID, creatorMxid, thr
 	const template = creatorMxid ? "started a thread:" : "Thread started:"
 	const via = await mxUtils.getViaServersQuery(threadRoomID, di.api)
 	let body = `${template} ${thread.name} https://matrix.to/#/${threadRoomID}?${via.toString()}`
-	let html = `${template} <a href="https://matrix.to/#/${threadRoomID}?${via.toString()}">${thread.name}</a>`
 
 	return {
 		msgtype,
 		body,
-		format: "org.matrix.custom.html",
-		formatted_body: html,
 		"m.mentions": {},
 		...context
 	}
