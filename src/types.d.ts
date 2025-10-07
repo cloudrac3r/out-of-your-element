@@ -31,6 +31,7 @@ export type AppServiceRegistrationConfig = {
 		discord_origin?: string
 		discord_cdn_origin?: string,
 		web_password: string
+		time_zone?: string
 	}
 	old_bridge?: {
 		as_token: string

@@ -611,7 +611,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			const event = invite.guild_scheduled_event
 			if (!event) continue // the event ID provided was not valid
 
-			const formatter = new Intl.DateTimeFormat("en-NZ", {month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "shortGeneric"}) // 9 June at 3:00 pm NZT
+			const formatter = new Intl.DateTimeFormat("en-NZ", {month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "shortGeneric", timeZone: reg.ooye.time_zone}) // 9 June at 3:00 pm NZT
 			const rep = new mxUtils.MatrixStringBuilder()
 
 			// Add time

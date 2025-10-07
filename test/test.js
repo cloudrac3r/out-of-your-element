@@ -25,6 +25,7 @@ reg.namespaces = {
 	aliases: [{regex: "#_ooye_.*:cadence.moe", exclusive: true}]
 }
 reg.ooye.bridge_origin = "https://bridge.example.org"
+reg.ooye.time_zone = "Pacific/Auckland"
 
 const sync = new HeatSync({watchFS: false})
 
