@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@chriscdn/promise-semaphore": "^3.0.1",
-    "@cloudrac3r/discord-markdown": "^2.6.6",
+    "@cloudrac3r/discord-markdown": "^2.6.7",
     "@cloudrac3r/giframe": "^0.4.3",
     "@cloudrac3r/html-template-tag": "^5.0.1",
     "@cloudrac3r/in-your-element": "^1.1.1",

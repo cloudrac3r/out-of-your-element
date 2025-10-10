@@ -408,13 +408,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		async function transformParsedVia(parsed) {
 			for (const node of parsed) {
-				if (node.type === "discordChannel") {
+				if (node.type === "discordChannel" || node.type === "discordChannelLink") {
 					node.row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
 					if (node.row?.room_id) {
 						node.via = await getViaServersMemo(node.row.room_id)
 					}
 				}
-				;for (const maybeChildNodesArray of [node, node.content, node.items]) {
+				for (const maybeChildNodesArray of [node, node.content, node.items]) {
 					if (Array.isArray(maybeChildNodesArray)) {
 						await transformParsedVia(maybeChildNodesArray)
 					}
