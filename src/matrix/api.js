@@ -384,7 +384,9 @@ async function getMedia(mxc, init = {}) {
 		},
 		...init
 	})
-	assert(res.body)
+	if (init.method !== "HEAD") {
+		assert(res.body)
+	}
 	// @ts-ignore
 	return res
 }
