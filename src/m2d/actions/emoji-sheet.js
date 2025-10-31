@@ -7,6 +7,8 @@ const {sync} = require("../../passthrough")
 const emojiSheetConverter = sync.require("../converters/emoji-sheet")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/mreq")} */
+const mreq = sync.require("../../matrix/mreq")
 
 /**
  * Downloads the emoji from the web and converts to uncompressed PNG data.
@@ -19,6 +21,10 @@ async function getAndConvertEmoji(mxc) {
 	// If we were using connection pooling, we would be forced to download the entire GIF.
 	// So we set no agent to ensure we are not connection pooling.
 	const res = await api.getMedia(mxc, {signal: abortController.signal})
+	if (res.status !== 200) {
+		const root = await res.json()
+		throw new mreq.MatrixServerError(root, {mxc})
+	}
 	const readable = stream.Readable.fromWeb(res.body)
 	return emojiSheetConverter.convertImageStream(readable, () => {
 		abortController.abort()

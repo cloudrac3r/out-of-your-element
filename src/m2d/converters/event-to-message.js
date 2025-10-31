@@ -11,6 +11,7 @@ const entities = require("entities")
 
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
+const {reg} = require("../../matrix/read-registration")
 /** @type {import("../converters/utils")} */
 const mxUtils = sync.require("../converters/utils")
 /** @type {import("../../discord/utils")} */
@@ -238,7 +239,8 @@ function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink
 		if (!found) row = null
 	}
 	// Or, if we don't have an emoji right now, we search for the name instead.
-	if (!row && nameForGuess) {
+	const isLocalMxc = mxcUrl?.match(/^mxc:\/\/([^/]+)/)?.[1] === reg.ooye.server_name
+	if (!row && nameForGuess && isLocalMxc) {
 		const nameForGuessLower = nameForGuess.toLowerCase()
 		for (const guild of discord.guilds.values()) {
 			/** @type {{name: string, id: string, animated: number}[]} */
