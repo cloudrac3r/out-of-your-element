@@ -207,6 +207,7 @@ async function attachmentToEvent(mentions, attachment) {
  * - alwaysReturnFormattedBody: false - formatted_body will be skipped if it is the same as body because the message is plaintext. if you want the formatted_body to be returned anyway, for example to merge it with another message, then set this to true.
  * - scanTextForMentions: true - needs to be set to false when converting forwarded messages etc which may be from a different channel that can't be scanned.
  * @param {{api: import("../../matrix/api"), snow?: import("snowtransfer").SnowTransfer}} di simple-as-nails dependency injection for the matrix API
+ * @returns {Promise<{$type: string, $sender?: string, [x: string]: any}[]>}
  */
 async function messageToEvent(message, guild, options = {}, di) {
 	const events = []

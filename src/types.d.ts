@@ -149,6 +149,14 @@ export namespace Event {
 		prev_content?: any
 	}
 
+	export type StrippedChildStateEvent = {
+		type: string
+		state_key: string
+		sender: string
+		origin_server_ts: number
+		content: any
+	}
+
 	export type M_Room_Message = {
 		msgtype: "m.text" | "m.emote"
 		body: string
@@ -345,7 +353,7 @@ export namespace R {
 	export type Hierarchy = {
 		avatar_url?: string
 		canonical_alias?: string
-		children_state: {}
+		children_state: Event.StrippedChildStateEvent[]
 		guest_can_join: boolean
 		join_rule?: string
 		name?: string

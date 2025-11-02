@@ -24,3 +24,7 @@ test("api path: real world mxid", t => {
 test("api path: extras number works", t => {
 	t.equal(path(`/client/v3/rooms/!example/timestamp_to_event`, null, {ts: 1687324651120}), "/client/v3/rooms/!example/timestamp_to_event?ts=1687324651120")
 })
+
+test("api path: multiple via params", t => {
+	t.equal(path(`/client/v3/rooms/!example/join`, null, {via: ["cadence.moe", "matrix.org"], ts: 1687324651120}), "/client/v3/rooms/!example/join?via=cadence.moe&via=matrix.org&ts=1687324651120")
+})

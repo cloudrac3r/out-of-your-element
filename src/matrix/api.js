@@ -22,7 +22,11 @@ function path(p, mxid, otherParams = {}) {
 	const u = new URL(p, "http://localhost")
 	if (mxid) u.searchParams.set("user_id", mxid)
 	for (const entry of Object.entries(otherParams)) {
-		if (entry[1] != undefined) {
+		if (Array.isArray(entry[1])) {
+			for (const element of entry[1]) {
+				u.searchParams.append(entry[0], element)
+			}
+		} else if (entry[1] != undefined) {
 			u.searchParams.set(entry[0], entry[1])
 		}
 	}
@@ -62,11 +66,14 @@ async function createRoom(content) {
 }
 
 /**
+ * @param {string} roomIDOrAlias
+ * @param {string?} [mxid]
+ * @param {string[]?} [via]
  * @returns {Promise<string>} room ID
  */
-async function joinRoom(roomIDOrAlias, mxid) {
+async function joinRoom(roomIDOrAlias, mxid, via) {
 	/** @type {Ty.R.RoomJoined} */
-	const root = await mreq.mreq("POST", path(`/client/v3/join/${roomIDOrAlias}`, mxid), {})
+	const root = await mreq.mreq("POST", path(`/client/v3/join/${roomIDOrAlias}`, mxid, {via}), {})
 	return root.room_id
 }
 

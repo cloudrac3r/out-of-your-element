@@ -77,7 +77,7 @@ test("web link space: check that OOYE is joined", async t => {
 			}
 		}
 	}))
-	t.equal(error.data, "M_FORBIDDEN - not allowed to join I guess")
+	t.equal(error.data, "Unable to join the requested Matrix space. Please invite the bridge to the space and try again. (Server said: M_FORBIDDEN - not allowed to join I guess)")
 	t.equal(called, 1)
 })
 
@@ -360,7 +360,7 @@ test("web link room: check that room is part of space (not in hierarchy)", async
 	t.equal(called, 1)
 })
 
-test("web link room: check that bridge can join room", async t => {
+test("web link room: check that bridge can join room (notices lack of via and asks for invite instead)", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
 		sessionData: {
@@ -381,7 +381,55 @@ test("web link room: check that bridge can join room", async t => {
 				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 				yield {
 					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
-					children_state: {},
+					children_state: [],
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			}
+		}
+	}))
+	t.equal(error.data, "Unable to join the requested Matrix room. Please invite the bridge to the room and try again. (Server said: M_FORBIDDEN - not allowed to join I guess)")
+	t.equal(called, 2)
+})
+
+test("web link room: check that bridge can join room (uses via for join attempt)", async t => {
+	let called = 0
+	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
+		sessionData: {
+			managedGuilds: ["665289423482519565"]
+		},
+		body: {
+			discord: "665310973967597573",
+			matrix: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+			guild_id: "665289423482519565"
+		},
+		api: {
+			async joinRoom(roomID, _, via) {
+				called++
+				t.deepEqual(via, ["cadence.moe", "hashi.re"])
+				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"})
+			},
+			async *generateFullHierarchy(spaceID) {
+				called++
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: [],
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				yield {
+					room_id: "!zTMspHVUBhFLLSdmnS:cadence.moe",
+					children_state: [{
+						type: "m.space.child",
+						state_key: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+						sender: "@elliu:hashi.re",
+						content: {
+							via: ["cadence.moe", "hashi.re"]
+						},
+						origin_server_ts: 0
+					}],
 					guest_can_join: false,
 					num_joined_members: 2
 				}
@@ -414,7 +462,7 @@ test("web link room: check that bridge has PL 100 in target room (event missing)
 				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 				yield {
 					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
-					children_state: {},
+					children_state: [],
 					guest_can_join: false,
 					num_joined_members: 2
 				}
@@ -454,7 +502,7 @@ test("web link room: check that bridge has PL 100 in target room (users default)
 				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 				yield {
 					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
-					children_state: {},
+					children_state: [],
 					guest_can_join: false,
 					num_joined_members: 2
 				}
@@ -494,7 +542,7 @@ test("web link room: successfully calls createRoom", async t => {
 				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 				yield {
 					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
-					children_state: {},
+					children_state: [],
 					guest_can_join: false,
 					num_joined_members: 2
 				}
