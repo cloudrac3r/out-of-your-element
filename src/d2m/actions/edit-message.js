@@ -10,6 +10,8 @@ const editToChanges = sync.require("../converters/edit-to-changes")
 const registerPkUser = sync.require("./register-pk-user")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/mreq")} */
+const mreq = sync.require("../../matrix/mreq")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
@@ -70,8 +72,17 @@ async function editMessage(message, guild, row) {
 
 		const part = sendNewEventParts.has("part") && eventsToSend[0] === content ? 0 : 1
 		const reactionPart = sendNewEventParts.has("reaction_part") && eventsToSend[eventsToSend.length - 1] === content ? 0 : 1
-		const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, content.msgtype || null, message.id, part, reactionPart) // source 1 = discord
+
+		try {
+			const eventID = await api.sendEvent(roomID, eventType, contentWithoutType, senderMxid)
+			db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, content.msgtype || null, message.id, part, reactionPart) // source 1 = discord
+		} catch (e) {
+			if (e instanceof mreq.MatrixServerError && e.errcode === "M_FORBIDDEN") {
+				// sending user doesn't have permission to update message, e.g. because Discord generated an embed in a read-only room
+			} else {
+				throw e
+			}
+		}
 	}
 }
 
