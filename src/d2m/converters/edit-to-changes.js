@@ -32,17 +32,21 @@ function eventIsText(ev) {
  * @param {import("../../matrix/api")} api simple-as-nails dependency injection for the matrix API
  */
 async function editToChanges(message, guild, api) {
-	// If it is a user edit, allow deleting old messages (e.g. they might have removed text from an image).
-	// If it is the system adding a generated embed to a message, don't delete old messages since the system only sends partial data.
-	// Since an update in August 2024, the system always provides the full data of message updates. I'll leave in the old code since it won't cause problems.
-
-	const isGeneratedEmbed = !("content" in message)
-
 	// Figure out what events we will be replacing
 
 	const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 	assert(roomID)
-	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part", "reaction_part"], {message_id: message.id}).all()
+	const oldEventRows = select("event_message", ["event_id", "event_type", "event_subtype", "part", "reaction_part", "source"], {message_id: message.id}).all()
+
+	// If it is a user edit, allow deleting old messages (e.g. they might have removed text from an image).
+	// If it is the system adding a generated embed to a message, don't delete old messages since the system only sends partial data.
+	// Since an update in August 2024, the system always provides the full data of message updates.
+	// Now, this code path is only used by generated embeds for messages that were originally sent from Matrix.
+
+	const originallyFromMatrix = oldEventRows.find(r => r.part === 0)?.source === 0
+	const isGeneratedEmbed = !("content" in message) || originallyFromMatrix
+
+	// Figure out who to send as
 
 	/** @type {string?} Null if we don't have a sender in the room, which will happen if it's a webhook's message. The bridge bot will do the edit instead. */
 	let senderMxid = null
@@ -117,6 +121,8 @@ async function editToChanges(message, guild, api) {
 	if (isGeneratedEmbed) {
 		unchangedEvents.push(...eventsToRedact.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToRedact to unchangedEvents.
 		eventsToRedact = eventsToRedact.filter(e => e.old.event_subtype === "m.notice")
+		unchangedEvents.push(...eventsToReplace.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToReplace to unchangedEvents.
+		eventsToReplace = eventsToReplace.filter(e => e.old.event_subtype === "m.notice")
 	}
 
 	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!

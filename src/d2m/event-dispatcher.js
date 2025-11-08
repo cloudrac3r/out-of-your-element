@@ -272,11 +272,6 @@ module.exports = {
 		// Otherwise, if there are embeds, then the system generated URL preview embeds.
 		if (!(typeof data.content === "string" || "embeds" in data)) return
 
-		if (data.webhook_id) {
-			const row = select("webhook", "webhook_id", {webhook_id: data.webhook_id}).pluck().get()
-			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-		}
-
 		if (dUtils.isEphemeralMessage(data)) return // Ephemeral messages are for the eyes of the receiver only!
 
 		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
