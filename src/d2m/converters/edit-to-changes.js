@@ -123,6 +123,11 @@ async function editToChanges(message, guild, api) {
 		eventsToRedact = eventsToRedact.filter(e => e.old.event_subtype === "m.notice")
 		unchangedEvents.push(...eventsToReplace.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToReplace to unchangedEvents.
 		eventsToReplace = eventsToReplace.filter(e => e.old.event_subtype === "m.notice")
+
+		// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
+		if (message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 120 * 1000) { // older than 2 minutes ago
+			eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice")
+		}
 	}
 
 	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!

@@ -360,3 +360,12 @@ test("edit2changes: generated embed on a reply", async t => {
 	t.equal(senderMxid, "@_ooye_cadence:cadence.moe")
 	t.equal(called, 1)
 })
+
+test("edit2changes: don't generate embed if it's been too long since the message", async t => {
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_social_media_image_for_matrix_user, data.guild.general)
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToReplace, [])
+	t.deepEqual(eventsToSend, [])
+	t.deepEqual(promotions, [])
+	t.equal(senderMxid, null)
+})

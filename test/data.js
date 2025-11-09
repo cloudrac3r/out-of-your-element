@@ -5296,6 +5296,36 @@ module.exports = {
 			guild_id: "112760669178241024",
 			id: "1210387798297682020"
 		},
+		embed_generated_social_media_image_for_matrix_user: {
+			channel_id: "112760669178241024",
+			embeds: [
+				{
+					color: 8594767,
+					description: "1v1 physical card game. Each player gets one standard deck of cards with a different backing to differentiate. Every turn proceeds as follows:\n\n * Both players draw eight cards\n * Both players may choose up to eight cards to discard, then draw that number of cards to put back in their hand\n * Both players present their best five-or-less-card pok...",
+					provider: {
+						name: "hthrflwrs on cohost"
+					},
+					thumbnail: {
+						height: 1587,
+						placeholder: "GpoKP5BJZphshnhwmmmYlmh3l7+m+mwJ",
+						placeholder_version: 1,
+						proxy_url: "https://images-ext-2.discordapp.net/external/9vTXIzlXU4wyUZvWfmlmQkck8nGLUL-A090W4lWsZ48/https/staging.cohostcdn.org/avatar/292-6b64b03c-4ada-42f6-8452-109275bfe68d-profile.png",
+						url: "https://staging.cohostcdn.org/avatar/292-6b64b03c-4ada-42f6-8452-109275bfe68d-profile.png",
+						width: 1644
+					},
+					title: "This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO",
+					type: "link",
+					url: "https://cohost.org/jkap/post/4794219-empty"
+				}
+			],
+			author: {
+				name: "Matrix Bridge",
+				id: "684280192553844747"
+			},
+			guild_id: "112760669178241024",
+			id: "1128118177155526666",
+			timestamp: "2025-01-01T00:00:00Z"
+		},
 		embed_generated_on_reply: {
 			attachments: [],
 			author: {
