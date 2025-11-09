@@ -4729,7 +4729,7 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 	t.deepEqual(testResult, {
 		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://bridge.example.org/download/matrix/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAeXRFWHRSYXcACklQVEMgcHJvZmlsZQogICAgICA0Ngoz"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAT/klEQVR4nOVcC3CVRZbuS2KAIMpDQt5PQkIScm/uvYRX"
 	})
 })
 
@@ -4754,6 +4754,6 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 	t.deepEqual(testResult, {
 		content: "testing",
 		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAYAAAABgCAYAAAAU9KWJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48"
+		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAYAAAABgCAYAAAAU9KWJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAgAElEQVR4nOx9B3hUVdr/KIpKL2nT0pPpLRNQkdXddV1c"
 	})
 })
