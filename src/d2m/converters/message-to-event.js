@@ -531,6 +531,16 @@ async function messageToEvent(message, guild, options = {}, di) {
 		message.content = "changed the channel name to **" + message.content + "**"
 	}
 
+	// Handle message type 63, new emoji announcement
+	// @ts-expect-error - should be changed to a DiscordTypes reference once it has been documented
+	if (message.type === 63) {
+		const match = message.content.match(/^<(a?):([^:>]{1,64}):([0-9]+)>$/)
+		assert(match, `message type 63, which announces a new emoji, did not include an emoji. the actual content was: "${message.content}"`)
+		const name = match[2]
+		msgtype = "m.emote"
+		message.content = `added a new emoji, ${message.content} :${name}:`
+	}
+
 	// Forwarded content appears first
 	if (message.message_reference?.type === DiscordTypes.MessageReferenceType.Forward && message.message_snapshots?.length) {
 		// Forwarded notice

@@ -177,7 +177,7 @@ const commands = [{
 				.addLine(`Ⓜ️ *If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}`, `Ⓜ️ <em>If you were a Discord user, you wouldn't have permission to create emojis. ${matrixOnlyConclusion}</em>`, matrixOnlyReason === "CAPACITY")
 				.addLine("[Preview not available in plain text.]", "Preview:")
 			for (const e of toUpload) {
-				b.add("", `<img data-mx-emoticon height="48" src="${e.url}" title=":${e.name}:" alt=":${e.name}:">`)
+				b.add("", `:${e.name}: <img data-mx-emoticon height="48" src="${e.url}" title=":${e.name}:" alt=":${e.name}:">`)
 			}
 			b.addLine("Hit ✅ to add it.")
 			const sent = await api.sendEvent(event.room_id, "m.room.message", {
