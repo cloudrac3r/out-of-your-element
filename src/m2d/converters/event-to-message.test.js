@@ -4041,6 +4041,166 @@ test("event2message: evil encrypted image attachment works", async t => {
 	)
 })
 
+test("event2message: large attachments are uploaded if the server boost level is sufficient", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "cool cat.png",
+				filename: "cool cat.png",
+				info: {
+					size: 90_000_000,
+					mimetype: "image/png",
+					w: 480,
+					h: 480,
+					"xyz.amorgan.blurhash": "URTHsVaTpdj2eKZgkkkXp{pHl7feo@lSl9Z$"
+				},
+				msgtype: "m.image",
+				url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"
+			},
+			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+		}, {
+			features: ["MAX_FILE_SIZE_100_MB"]
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				attachments: [{id: "0", filename: "cool cat.png"}],
+				pendingFiles: [{name: "cool cat.png", mxc: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"}]
+			}]
+		}
+	)
+})
+
+test("event2message: files too large for Discord are linked as as URL", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "cool cat.png",
+				filename: "cool cat.png",
+				info: {
+					size: 40_000_000,
+					mimetype: "image/png",
+					w: 480,
+					h: 480,
+					"xyz.amorgan.blurhash": "URTHsVaTpdj2eKZgkkkXp{pHl7feo@lSl9Z$"
+				},
+				msgtype: "m.image",
+				url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"
+			},
+			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "🖼️ _Uploaded file: [cool cat.png](https://bridge.example.org/download/matrix/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn) (40 MB)_",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: files too large for Discord can have a plaintext caption", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "Cat emoji surrounded by pink hearts",
+				filename: "cool cat.png",
+				info: {
+					size: 40_000_000,
+					mimetype: "image/png",
+					w: 480,
+					h: 480,
+					"xyz.amorgan.blurhash": "URTHsVaTpdj2eKZgkkkXp{pHl7feo@lSl9Z$"
+				},
+				msgtype: "m.image",
+				url: "mxc://cadence.moe/IvxVJFLEuksCNnbojdSIeEvn"
+			},
+			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "🖼️ _Uploaded file: [cool cat.png](https://bridge.example.org/download/matrix/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn) (40 MB)_\nCat emoji surrounded by pink hearts",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: files too large for Discord can have a formatted caption", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "this event has `formatting`",
+				filename: "5740.jpg",
+				format: "org.matrix.custom.html",
+				formatted_body: "this event has <code>formatting</code>",
+				info: {
+					h: 1340,
+					mimetype: "image/jpeg",
+					size: 40_000_000,
+					thumbnail_info: {
+						h: 670,
+						mimetype: "image/jpeg",
+						size: 80157,
+						w: 540
+					},
+					thumbnail_url: "mxc://thomcat.rocks/XhLsOCDBYyearsLQgUUrbAvw",
+					w: 1080,
+					"xyz.amorgan.blurhash": "KHJQG*55ic-.}?0M58J.9v"
+				},
+				msgtype: "m.image",
+				url: "mxc://thomcat.rocks/RTHsXmcMPXmuHqVNsnbKtRbh"
+			},
+			origin_server_ts: 1740607766895,
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			event_id: "$NqNqVgukiQm1nynm9vIr9FIq31hZpQ3udOd7cBIW46U",
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "🖼️ _Uploaded file: [5740.jpg](https://bridge.example.org/download/matrix/thomcat.rocks/RTHsXmcMPXmuHqVNsnbKtRbh) (40 MB)_\nthis event has `formatting`",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+
 test("event2message: stickers work", async t => {
 	t.deepEqual(
 		await eventToMessage({

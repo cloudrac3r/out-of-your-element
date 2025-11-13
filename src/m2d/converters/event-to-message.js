@@ -8,6 +8,8 @@ const TurndownService = require("@cloudrac3r/turndown")
 const domino = require("domino")
 const assert = require("assert").strict
 const entities = require("entities")
+const pb = require("prettier-bytes")
+const {tag} = require("@cloudrac3r/html-template-tag")
 
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
@@ -483,6 +485,17 @@ const attachmentEmojis = new Map([
 	["m.file", "📄"]
 ])
 
+/** @param {DiscordTypes.APIGuild} guild */
+function getFileSizeForGuild(guild) {
+	// guild.features may include strings such as MAX_FILE_SIZE_50_MB and MAX_FILE_SIZE_100_MB, which are the current server boost amounts
+	const fileSizeFeature = guild?.features.map(f => Number(f.match(/^MAX_FILE_SIZE_([0-9]+)_MB$/)?.[1])).filter(f => f).sort()[0]
+	if (fileSizeFeature) {
+		return fileSizeFeature * 1024 * 1024 // discord uses big megabytes
+	} else {
+		return 10 * 1024 * 1024 // default file size is 10 MB
+	}
+}
+
 async function getL1L2ReplyLine(called = false) {
 	// @ts-ignore
 	const autoEmoji = new Map(select("auto_emoji", ["name", "emoji_id"], {}, "WHERE name = 'L1' OR name = 'L2'").raw().all())
@@ -539,21 +552,39 @@ async function eventToMessage(event, guild, di) {
 	// Handle images first - might need to handle their `body`/`formatted_body` as well, which will fall through to the text processor
 	let shouldProcessTextEvent = event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")
 	if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
-		content = ""
-		const filename = event.content.filename || event.content.body
-		if ("file" in event.content) {
-			// Encrypted
-			assert.equal(event.content.file.key.alg, "A256CTR")
-			attachments.push({id: "0", filename})
-			pendingFiles.push({name: filename, mxc: event.content.file.url, key: event.content.file.key.k, iv: event.content.file.iv})
-		} else {
-			// Unencrypted
-			attachments.push({id: "0", filename})
-			pendingFiles.push({name: filename, mxc: event.content.url})
-		}
-		// Check if we also need to process a text event for this image - if it has a caption that's different from its filename
-		if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {
+		if (!("file" in event.content) && event.content.info?.size > getFileSizeForGuild(guild)) {
+			// Upload (unencrypted) file as link, because it's too large for Discord
+			// Do this by constructing a sample Matrix message with the link and then use the text processor to convert that + the original caption.
+			const url = mxUtils.getPublicUrlForMxc(event.content.url)
+			assert(url)
+			const filename = event.content.filename || event.content.body
+			const newText = new mxUtils.MatrixStringBuilder()
+			const emoji = attachmentEmojis.has(event.content.msgtype) ? attachmentEmojis.get(event.content.msgtype) + " " : ""
+			newText.addLine(`${emoji}Uploaded file: ${url} (${pb(event.content.info.size)})`, tag`${emoji}<em>Uploaded file: <a href="${url}">${filename}</a> (${pb(event.content.info.size)})</em>`)
+			// Check if the event has a caption that we need to add as well
+			if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {
+				newText.addLine(event.content.body || "", event.content.formatted_body || tag`${event.content.body || ""}`)
+			}
+			Object.assign(event.content, newText.get())
 			shouldProcessTextEvent = true
+		} else {
+			// Upload file as file
+			content = ""
+			const filename = event.content.filename || event.content.body
+			if ("file" in event.content) {
+				// Encrypted
+				assert.equal(event.content.file.key.alg, "A256CTR")
+				attachments.push({id: "0", filename})
+				pendingFiles.push({name: filename, mxc: event.content.file.url, key: event.content.file.key.k, iv: event.content.file.iv})
+			} else {
+				// Unencrypted
+				attachments.push({id: "0", filename})
+				pendingFiles.push({name: filename, mxc: event.content.url})
+			}
+			// Check if we also need to process a text event for this image - if it has a caption that's different from its filename
+			if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {
+				shouldProcessTextEvent = true
+			}
 		}
 	}
 	if (event.type === "m.sticker") {
