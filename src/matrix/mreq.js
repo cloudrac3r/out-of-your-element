@@ -19,6 +19,21 @@ class MatrixServerError extends Error {
 }
 
 /**
+ * @param {Response} res
+ * @param {object} opts
+ */
+async function makeMatrixServerError(res, opts = {}) {
+	delete opts.headers?.["Authorization"]
+	if (res.headers.get("content-type") === "application/json") {
+		return new MatrixServerError(await res.json(), opts)
+	} else if (res.headers.get("content-type")?.startsWith("text/")) {
+		return new MatrixServerError({errcode: "CX_SERVER_ERROR", error: `Server returned HTTP status ${res.status}`, message: await res.text()})
+	} else {
+		return new MatrixServerError({errcode: "CX_SERVER_ERROR", error: `Server returned HTTP status ${res.status}`, content_type: res.headers.get("content-type")})
+	}
+}
+
+/**
  * @param {undefined | string | object | streamWeb.ReadableStream | stream.Readable} body
  * @returns {Promise<string | streamWeb.ReadableStream | stream.Readable | Buffer>}
  */
@@ -85,6 +100,7 @@ async function withAccessToken(token, callback) {
 }
 
 module.exports.MatrixServerError = MatrixServerError
+module.exports.makeMatrixServerError = makeMatrixServerError
 module.exports.baseUrl = baseUrl
 module.exports.mreq = mreq
 module.exports.withAccessToken = withAccessToken

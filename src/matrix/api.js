@@ -378,19 +378,26 @@ async function ping() {
 }
 
 /**
+ * Given an mxc:// URL, and an optional height for thumbnailing, get the file from the content repository. Returns res.
  * @param {string} mxc
- * @param {RequestInit} [init]
+ * @param {RequestInit & {height?: number | string}} [init]
  * @return {Promise<Response & {body: streamWeb.ReadableStream<Uint8Array>}>}
  */
 async function getMedia(mxc, init = {}) {
 	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
 	assert(mediaParts)
-	const res = await fetch(`${mreq.baseUrl}/client/v1/media/download/${mediaParts[1]}/${mediaParts[2]}`, {
+	const downloadOrThumbnail = init.height ? "thumbnail" : "download"
+	let url = `${mreq.baseUrl}/client/v1/media/${downloadOrThumbnail}/${mediaParts[1]}/${mediaParts[2]}`
+	if (init.height) url += "?" + new URLSearchParams({height: String(init.height), width: String(init.height)})
+	const res = await fetch(url, {
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
 		},
 		...init
 	})
+	if (res.status !== 200) {
+		throw mreq.makeMatrixServerError(res, init)
+	}
 	if (init.method !== "HEAD") {
 		assert(res.body)
 	}
