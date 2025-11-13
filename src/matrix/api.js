@@ -396,7 +396,7 @@ async function getMedia(mxc, init = {}) {
 		...init
 	})
 	if (res.status !== 200) {
-		throw mreq.makeMatrixServerError(res, init)
+		throw await mreq.makeMatrixServerError(res, init)
 	}
 	if (init.method !== "HEAD") {
 		assert(res.body)
