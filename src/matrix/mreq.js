@@ -27,9 +27,9 @@ async function makeMatrixServerError(res, opts = {}) {
 	if (res.headers.get("content-type") === "application/json") {
 		return new MatrixServerError(await res.json(), opts)
 	} else if (res.headers.get("content-type")?.startsWith("text/")) {
-		return new MatrixServerError({errcode: "CX_SERVER_ERROR", error: `Server returned HTTP status ${res.status}`, message: await res.text()})
+		return new MatrixServerError({errcode: "CX_SERVER_ERROR", error: `Server returned HTTP status ${res.status}`, message: await res.text()}, opts)
 	} else {
-		return new MatrixServerError({errcode: "CX_SERVER_ERROR", error: `Server returned HTTP status ${res.status}`, content_type: res.headers.get("content-type")})
+		return new MatrixServerError({errcode: "CX_SERVER_ERROR", error: `Server returned HTTP status ${res.status}`, content_type: res.headers.get("content-type")}, opts)
 	}
 }
 
