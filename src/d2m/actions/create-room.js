@@ -358,7 +358,7 @@ function assertExistsOrAutocreatable(channel, guildID) {
  * @returns {Promise<string>} room ID
  */
 async function _syncRoom(channelID, shouldActuallySync) {
-	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
+	/** @ts-ignore @type {DiscordTypes.APIGuildTextChannel} */
 	const channel = discord.channels.get(channelID)
 	assert.ok(channel)
 	const guild = channelToGuild(channel)
