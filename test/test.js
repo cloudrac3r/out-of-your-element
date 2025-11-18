@@ -28,6 +28,7 @@ reg.namespaces = {
 }
 reg.ooye.bridge_origin = "https://bridge.example.org"
 reg.ooye.time_zone = "Pacific/Auckland"
+reg.ooye.max_file_size = 5000000
 
 const sync = new HeatSync({watchFS: false})
 

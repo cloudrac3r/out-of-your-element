@@ -2657,6 +2657,47 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		large_file_from_matrix: {
+			type: 0,
+			content: "",
+			attachments: [
+				{
+					id: "1439351589474140290",
+					filename: "image.png",
+					size: 5112701,
+					url: "https://cdn.discordapp.com/attachments/1438284564815548418/1439351589474140290/image.png?ex=691cd720&is=691b85a0&hm=671d32324ce17acb9708057f9a532a3184d02343747b32b2ad8d330a277d8f65&",
+					proxy_url: "https://media.discordapp.net/attachments/1438284564815548418/1439351589474140290/image.png?ex=691cd720&is=691b85a0&hm=671d32324ce17acb9708057f9a532a3184d02343747b32b2ad8d330a277d8f65&",
+					width: 1930,
+					height: 2522,
+					content_type: "image/png",
+					flags: 16,
+					content_scan_version: 2,
+					placeholder: "ZhgKDQJ6pIp2B5hmhndoZ0lgiwTJ",
+					placeholder_version: 1,
+					spoiler: false
+				}
+			],
+			embeds: [],
+			timestamp: new Date().toISOString(),
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1439351590262800565",
+			channel_id: "1438284564815548418",
+			author: {
+				id: "1438286167706701958",
+				username: "cibo",
+				discriminator: "0000",
+				avatar: "9c9e1d63ce093e76b9cdb99328c91201",
+				bot: true
+			},
+			pinned: false,
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			tts: false,
+			webhook_id: "1438286167706701958"
+		},
 		simple_reply_to_reply_in_thread: {
 			type: 19,
 			tts: false,

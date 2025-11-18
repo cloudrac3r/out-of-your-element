@@ -20,7 +20,8 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('176333891320283136', '!qzDBLKlildpzrrOnFZ:cadence.moe', '🌈丨davids-horse_she-took-the-kids', 'wonderland', NULL, 'mxc://cadence.moe/EVvrSkKIRONHjtRJsMLmHWLS'),
 ('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL),
 ('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL),
-('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL);
+('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL),
+('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL);
 
 INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('0',                  'Matrix Bridge', 'bot', '@_ooye_bot:cadence.moe'),
@@ -73,7 +74,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1144874214311067708', '687028734322147344'),
 ('1339000288144658482', '176333891320283136'),
 ('1381212840957972480', '112760669178241024'),
-('1401760355339862066', '112760669178241024');
+('1401760355339862066', '112760669178241024'),
+('1439351590262800565', '1438284564815548418');
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),
@@ -117,7 +119,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$51gH61p_eJc2RylOdE2lAr4-ogP7dS0WJI62lCFzBvk', 'm.room.message', 'm.text', '1339000288144658482', 0, 0, 0),
 ('$AfrB8hzXkDMvuoWjSZkDdFYomjInWH7jMBPkwQMN8AI', 'm.room.message', 'm.text', '1381212840957972480', 0, 1, 1),
 ('$43baKEhJfD-RlsFQi0LB16Zxd8yMqp0HSVL00TDQOqM', 'm.room.message', 'm.image', '1381212840957972480', 1, 0, 1),
-('$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk', 'm.room.message', 'm.text', '1401760355339862066', 0, 0, 0);
+('$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk', 'm.room.message', 'm.text', '1401760355339862066', 0, 0, 0),
+('$ielAnR6geu0P1Tl5UXfrbxlIf-SV9jrNprxrGXP3v7M', 'm.room.message', 'm.image', '1439351590262800565', 0, 0, 0);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),

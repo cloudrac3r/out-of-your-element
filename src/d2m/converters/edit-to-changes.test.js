@@ -369,3 +369,12 @@ test("edit2changes: don't generate embed if it's been too long since the message
 	t.deepEqual(promotions, [])
 	t.equal(senderMxid, null)
 })
+
+test("edit2changes: don't generate new data in situations where m->d(->m) subtypes don't match, like large files", async t => {
+	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message.large_file_from_matrix)
+	t.deepEqual(eventsToRedact, [])
+	t.deepEqual(eventsToReplace, [])
+	t.deepEqual(eventsToSend, [])
+	t.deepEqual(promotions, [])
+	t.equal(senderMxid, null)
+})

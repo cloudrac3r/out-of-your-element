@@ -118,14 +118,20 @@ async function editToChanges(message, guild, api) {
 	eventsToRedact = oldEventRows.map(e => ({old: e}))
 
 	// If this is a generated embed update, only allow the embeds to be updated, since the system only sends data about events. Ignore changes to other things.
+	// This also prevents Matrix events that were re-subtyped during conversion (e.g. large image -> text link) from being mistakenly included.
 	if (isGeneratedEmbed) {
 		unchangedEvents.push(...eventsToRedact.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToRedact to unchangedEvents.
 		eventsToRedact = eventsToRedact.filter(e => e.old.event_subtype === "m.notice")
 		unchangedEvents.push(...eventsToReplace.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToReplace to unchangedEvents.
 		eventsToReplace = eventsToReplace.filter(e => e.old.event_subtype === "m.notice")
+		unchangedEvents.push(...eventsToSend.filter(e => e.msgtype !== "m.notice")) // Move them from eventsToSend to unchangedEvents.
+		eventsToSend = eventsToSend.filter(e => e.msgtype === "m.notice")
 
 		// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
-		if (message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 120 * 1000) { // older than 2 minutes ago
+		const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 120 * 1000 // older than 2 minutes ago
+		// Don't post new generated embeds for messages if the setting was disabled.
+		const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
+		if (messageTooOld || !embedsEnabled) {
 			eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice")
 		}
 	}
