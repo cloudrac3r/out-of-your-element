@@ -31,7 +31,7 @@ async function sendMessage(message, channel, guild, row) {
 
 	let senderMxid = null
 	if (dUtils.isWebhookMessage(message)) {
-		const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guild.id}) ?? 0
+		const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guild.id}).pluck().get() ?? 0
 		if (row && row.speedbump_webhook_id === message.webhook_id) {
 			// Handle the PluralKit public instance
 			if (row.speedbump_id === "466378653216014359") {
