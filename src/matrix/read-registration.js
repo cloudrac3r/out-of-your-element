@@ -57,7 +57,8 @@ function getTemplateRegistration(serverName) {
 			max_file_size: 5000000,
 			content_length_workaround: false,
 			include_user_id_in_mxid: false,
-			invite: []
+			invite: [],
+			receive_presences: true
 		}
 	}
 }

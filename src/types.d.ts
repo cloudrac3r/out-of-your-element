@@ -32,6 +32,7 @@ export type AppServiceRegistrationConfig = {
 		discord_cdn_origin?: string,
 		web_password: string
 		time_zone?: string
+		receive_presences: boolean
 	}
 	old_bridge?: {
 		as_token: string
@@ -64,6 +65,7 @@ export type InitialAppServiceRegistrationConfig = {
 		content_length_workaround: boolean
 		invite: string[]
 		include_user_id_in_mxid: boolean
+		receive_presences: boolean
 	}
 }
 

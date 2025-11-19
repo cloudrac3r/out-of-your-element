@@ -20,17 +20,20 @@ class DiscordClient {
 	 * @param {string} listen "full", "half", "no" - whether to set up the event listeners for OOYE to operate
 	 */
 	constructor(discordToken, listen = "full") {
+		/** @type {import("cloudstorm").IClientOptions["intents"]} */
+		const intents = [
+			"DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS", "DIRECT_MESSAGE_TYPING",
+			"GUILDS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_WEBHOOKS",
+			"MESSAGE_CONTENT"
+		]
+		if (reg.ooye.receive_presences !== false) intents.push("GUILD_PRESENCES")
 		this.discordToken = discordToken
 		this.snow = new SnowTransfer(discordToken)
 		this.cloud = new CloudStorm(discordToken, {
 			shards: [0],
 			reconnect: true,
 			snowtransferInstance: this.snow,
-			intents: [
-				"DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS", "DIRECT_MESSAGE_TYPING",
-				"GUILDS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_WEBHOOKS",
-				"MESSAGE_CONTENT", "GUILD_PRESENCES"
-			],
+			intents,
 			ws: {
 				compress: false,
 				encoding: "json"
