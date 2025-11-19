@@ -72,6 +72,13 @@ export type WebhookCreds = {
 	token: string
 }
 
+/** Discord API message->author. A webhook as an author. */
+export type WebhookAuthor = {
+	username: string
+	avatar: string | null
+	id: string
+}
+
 export type PkSystem = {
 	id: string
 	uuid: string

@@ -124,6 +124,15 @@ block body
           | Show online statuses on Matrix
           p.s-description This might cause lag on really big Discord servers.
 
+      form.d-flex.ai-center.g16
+        #webhook-profile-loading.p8
+        - value = !!select("guild_space", "webhook_profile", {guild_id}).pluck().get()
+        input(type="hidden" name="guild_id" value=guild_id)
+        input.s-toggle-switch#webhook-profile(name="webhook_profile" type="checkbox" hx-post=rel("/api/webhook-profile") hx-indicator="#webhook-profile-loading" hx-disabled-elt="this" checked=value autocomplete="off")
+        label.s-label(for="webhook-profile")
+          | Create persistent Matrix sims for webhooks
+          p.s-description Useful when using other Discord bridges. Otherwise, not ideal, as sims will clutter the Matrix user list and will never be cleaned up.
+
   if space_id
     h2.mt48.fs-headline1 Channel setup
 

@@ -74,6 +74,8 @@ as.router.post("/api/autocreate", defineToggle("autocreate", {
 
 as.router.post("/api/url-preview", defineToggle("url_preview"))
 
+as.router.post("/api/webhook-profile", defineToggle("webhook_profile"))
+
 as.router.post("/api/presence", defineToggle("presence", {
 	after() {
 		setPresence.guildPresenceSetting.update()

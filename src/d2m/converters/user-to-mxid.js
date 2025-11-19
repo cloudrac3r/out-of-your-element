@@ -2,6 +2,7 @@
 
 const assert = require("assert")
 const {reg} = require("../../matrix/read-registration")
+const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
 const {select} = passthrough
@@ -13,7 +14,7 @@ const SPECIAL_USER_MAPPINGS = new Map([
 /**
  * Downcased and stripped username. Can only include a basic set of characters.
  * https://spec.matrix.org/v1.6/appendices/#user-identifiers
- * @param {import("discord-api-types/v10").APIUser} user
+ * @param {import("discord-api-types/v10").APIUser | Ty.WebhookAuthor} user
  * @returns {string} localpart
  */
 function downcaseUsername(user) {
@@ -85,4 +86,49 @@ function userToSimName(user) {
 	throw new Error(`Ran out of suggestions when generating sim name. downcased: "${downcased}"`)
 }
 
+/**
+ * Webhooks have an ID specific to that webhook, but a single webhook can send messages with any user name.
+ * The point of this feature (gated by guild_space webhook_profile) is to create persistent Matrix accounts for individual webhook "users".
+ * This is convenient when using a bridge to a platform that does not assign persistent user IDs (e.g. IRC, Minecraft).
+ * In this case, webhook "users" are disambiguated by their username (downcased).
+ * @param {Ty.WebhookAuthor} author
+ * @returns {string}
+ */
+function webhookAuthorToFakeUserID(author) {
+	const downcased = downcaseUsername(author)
+	return `webhook_${downcased}`
+}
+
+/**
+ * @param {Ty.WebhookAuthor} author
+ * @returns {string}
+ */
+function webhookAuthorToSimName(author) {
+	if (SPECIAL_USER_MAPPINGS.has(author.id)) {
+		const error = new Error("Special users should have followed the other code path.")
+		// @ts-ignore
+		error.author = author
+		throw error
+	}
+
+	// 1. Is sim user already registered?
+	const fakeUserID = webhookAuthorToFakeUserID(author)
+	const existing = select("sim", "user_id", {user_id: fakeUserID}).pluck().get()
+	assert.equal(existing, null, "Shouldn't try to create a new name for an existing sim")
+
+	// 2. Register based on username (could be new or old format)
+	const downcased = "webhook_" + downcaseUsername(author)
+
+	// Check for conflicts with already registered sims
+	const matches = select("sim", "sim_name", {}, "WHERE sim_name LIKE ? ESCAPE '@'").pluck().all(downcased + "%")
+	// Keep generating until we get a suggestion that doesn't conflict
+	for (const suggestion of generateLocalpartAlternatives([downcased])) {
+		if (!matches.includes(suggestion)) return suggestion
+	}
+	/* c8 ignore next */
+	throw new Error(`Ran out of suggestions when generating sim name. downcased: "${downcased}"`)
+}
+
 module.exports.userToSimName = userToSimName
+module.exports.webhookAuthorToFakeUserID = webhookAuthorToFakeUserID
+module.exports.webhookAuthorToSimName = webhookAuthorToSimName

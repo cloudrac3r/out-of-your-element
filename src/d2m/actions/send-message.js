@@ -4,7 +4,7 @@ const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db } = passthrough
+const { discord, sync, db, select } = passthrough
 /** @type {import("../converters/message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
 /** @type {import("../../matrix/api")} */
@@ -13,6 +13,8 @@ const api = sync.require("../../matrix/api")
 const registerUser = sync.require("./register-user")
 /** @type {import("./register-pk-user")} */
 const registerPkUser = sync.require("./register-pk-user")
+/** @type {import("./register-webhook-user")} */
+const registerWebhookUser = sync.require("./register-webhook-user")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
 /** @type {import("../../discord/utils")} */
@@ -28,16 +30,22 @@ async function sendMessage(message, channel, guild, row) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 
 	let senderMxid = null
-	if (!dUtils.isWebhookMessage(message)) {
+	if (dUtils.isWebhookMessage(message)) {
+		const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guild.id}) ?? 0
+		if (row && row.speedbump_webhook_id === message.webhook_id) {
+			// Handle the PluralKit public instance
+			if (row.speedbump_id === "466378653216014359") {
+				senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
+			}
+		} else if (useWebhookProfile) {
+			senderMxid = await registerWebhookUser.syncUser(message.author, roomID, true)
+		}
+	} else {
+		// not a webhook
 		if (message.author.id === discord.application.id) {
 			// no need to sync the bot's own user
 		} else {
 			senderMxid = await registerUser.syncUser(message.author, message.member, channel, guild, roomID)
-		}
-	} else if (row && row.speedbump_webhook_id === message.webhook_id) {
-		// Handle the PluralKit public instance
-		if (row.speedbump_id === "466378653216014359") {
-			senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
 		}
 	}
 

@@ -52,6 +52,7 @@ export type Models = {
 		privacy_level: number
 		presence: 0 | 1
 		url_preview: 0 | 1
+		webhook_profile: 0 | 1
 	}
 
 	guild_active: {
