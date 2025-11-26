@@ -3,7 +3,7 @@
 const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
-const {sync, db, select} = passthrough
+const {sync, db, select, from} = passthrough
 /** @type {import("../converters/edit-to-changes")} */
 const editToChanges = sync.require("../converters/edit-to-changes")
 /** @type {import("./register-pk-user")} */
@@ -19,6 +19,12 @@ const mreq = sync.require("../../matrix/mreq")
  * @param {{speedbump_id: string, speedbump_webhook_id: string} | null} row data about the webhook which is proxying messages in this channel
  */
 async function editMessage(message, guild, row) {
+	const historicalRoomOfMessage = from("message_room").join("historical_channel_room", "historical_room_index").where({message_id: message.id}).select("room_id").get()
+	const currentRoom = from("channel_room").join("historical_channel_room", "room_id").where({channel_id: message.channel_id}).select("room_id", "historical_room_index").get()
+	assert(currentRoom)
+
+	if (historicalRoomOfMessage && historicalRoomOfMessage.room_id !== currentRoom.room_id) return // tombstoned rooms should not have new events (including edits) sent to them
+
 	let {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promotions} = await editToChanges.editToChanges(message, guild, api)
 
 	if (row && row.speedbump_webhook_id === message.webhook_id) {
@@ -61,7 +67,7 @@ async function editMessage(message, guild, row) {
 
 	// 4. Send all the things.
 	if (eventsToSend.length) {
-		db.prepare("INSERT OR IGNORE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+		db.prepare("INSERT OR IGNORE INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(message.id, currentRoom.historical_room_index)
 	}
 	for (const content of eventsToSend) {
 		const eventType = content.$type

@@ -57,14 +57,16 @@ test("web info: returns data for a matrix message and profile", async t => {
 		},
 		events: [{
 			metadata: {
-			  event_id: "$51gH61p_eJc2RylOdE2lAr4-ogP7dS0WJI62lCFzBvk",
-			  event_subtype: "m.text",
-			  event_type: "m.room.message",
-			  part: 0,
-			  reaction_part: 0,
-			  room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
-			  sender: "@cadence:cadence.moe",
-			  source: 0
+				event_id: "$51gH61p_eJc2RylOdE2lAr4-ogP7dS0WJI62lCFzBvk",
+				event_subtype: "m.text",
+				event_type: "m.room.message",
+				part: 0,
+				reaction_part: 0,
+				room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
+				channel_id: "176333891320283136",
+				current_room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
+				sender: "@cadence:cadence.moe",
+				source: 0
 			},
 			raw
 		}]
@@ -113,14 +115,16 @@ test("web info: returns data for a matrix message without profile", async t => {
 		},
 		events: [{
 			metadata: {
-			  event_id: "$51gH61p_eJc2RylOdE2lAr4-ogP7dS0WJI62lCFzBvk",
-			  event_subtype: "m.text",
-			  event_type: "m.room.message",
-			  part: 0,
-			  reaction_part: 0,
-			  room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
-			  sender: "@cadence:cadence.moe",
-			  source: 0
+				event_id: "$51gH61p_eJc2RylOdE2lAr4-ogP7dS0WJI62lCFzBvk",
+				event_subtype: "m.text",
+				event_type: "m.room.message",
+				part: 0,
+				reaction_part: 0,
+				room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
+				channel_id: "176333891320283136",
+				current_room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
+				sender: "@cadence:cadence.moe",
+				source: 0
 			},
 			raw
 		}]
@@ -191,14 +195,16 @@ test("web info: returns data for a discord message", async t => {
 		matrix_author: undefined,
 		events: [{
 			metadata: {
-			  event_id: "$AfrB8hzXkDMvuoWjSZkDdFYomjInWH7jMBPkwQMN8AI",
-			  event_subtype: "m.text",
-			  event_type: "m.room.message",
-			  part: 0,
-			  reaction_part: 1,
-			  room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
-			  sender: "@_ooye_accavish:cadence.moe",
-			  source: 1
+				event_id: "$AfrB8hzXkDMvuoWjSZkDdFYomjInWH7jMBPkwQMN8AI",
+				event_subtype: "m.text",
+				event_type: "m.room.message",
+				part: 0,
+				reaction_part: 1,
+				room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+				channel_id: "112760669178241024",
+				current_room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+				sender: "@_ooye_accavish:cadence.moe",
+				source: 1
 			},
 			raw: raw1
 		}, {
@@ -209,6 +215,8 @@ test("web info: returns data for a discord message", async t => {
 				part: 1,
 				reaction_part: 0,
 				room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+				channel_id: "112760669178241024",
+				current_room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
 				sender: "@_ooye_accavish:cadence.moe",
 				source: 1
 			},

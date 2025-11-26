@@ -1152,7 +1152,7 @@ test("message2event: constructed forwarded message", async t => {
 			body: "[🔀 Forwarded from #wonderland]"
 				+ "\n» What's cooking, good looking? :hipposcope:",
 			format: "org.matrix.custom.html",
-			formatted_body: `🔀 <em>Forwarded from <a href="https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$tBIT8mO7XTTCgIINyiAIy6M2MSoPAdJenRl_RLyYuaE?via=cadence.moe&amp;via=matrix.org">wonderland</a></em>`
+			formatted_body: `🔀 <em>Forwarded from wonderland <a href="https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$tBIT8mO7XTTCgIINyiAIy6M2MSoPAdJenRl_RLyYuaE?via=cadence.moe&amp;via=matrix.org">[jump to event]</a></em>`
 				+ `<br><blockquote>What's cooking, good looking? <img data-mx-emoticon height="32" src="mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc" title=":hipposcope:" alt=":hipposcope:"></blockquote>`,
 			"m.mentions": {},
 			msgtype: "m.notice",
@@ -1210,7 +1210,7 @@ test("message2event: constructed forwarded text", async t => {
 			body: "[🔀 Forwarded from #amanda-spam]"
 				+ "\n» What's cooking, good looking?",
 			format: "org.matrix.custom.html",
-			formatted_body: `🔀 <em>Forwarded from <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe?via=cadence.moe&amp;via=matrix.org">amanda-spam</a></em>`
+			formatted_body: `🔀 <em>Forwarded from amanda-spam <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe?via=cadence.moe&amp;via=matrix.org">[jump to room]</a></em>`
 				+ `<br><blockquote>What's cooking, good looking?</blockquote>`,
 			"m.mentions": {},
 			msgtype: "m.notice",

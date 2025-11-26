@@ -4,10 +4,9 @@ const assert = require("assert").strict
 const {reg} = require("../../matrix/read-registration")
 const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
-const mixin = require("@cloudrac3r/mixin-deep")
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {discord, sync, db, from, select} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
@@ -222,7 +221,8 @@ async function syncUser(user, member, channel, guild, roomID) {
  * @param {string} roomID
  */
 async function syncAllUsersInRoom(roomID) {
-	const mxids = select("sim_member", "mxid", {room_id: roomID}).pluck().all()
+	const users = from("sim_member").join("sim", "mxid")
+		.where({room_id: roomID}).and("and user_id not like '%-%' and user_id not like '%\\_%' escape '\\'").pluck("user_id").all()
 
 	const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
 	assert.ok(typeof channelID === "string")
@@ -234,10 +234,7 @@ async function syncAllUsersInRoom(roomID) {
 	/** @ts-ignore @type {DiscordTypes.APIGuild} */
 	const guild = discord.guilds.get(guildID)
 
-	for (const mxid of mxids) {
-		const userID = select("sim", "user_id", {mxid}).pluck().get()
-		assert.ok(typeof userID === "string")
-
+	for (const userID of users) {
 		/** @ts-ignore @type {Required<DiscordTypes.APIGuildMember>} */
 		const member = await discord.snow.guild.getGuildMember(guildID, userID)
 		/** @ts-ignore @type {Required<DiscordTypes.APIUser>} user */

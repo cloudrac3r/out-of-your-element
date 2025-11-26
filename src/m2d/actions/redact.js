@@ -12,13 +12,14 @@ const utils = sync.require("../converters/utils")
  * @param {Ty.Event.Outer_M_Room_Redaction} event
  */
 async function deleteMessage(event) {
-	const rows = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: event.redacts}).all()
+	const rows = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("reference_channel_id", "message_id").where({event_id: event.redacts}).all()
 	if (!rows.length) return
 	for (const row of rows) {
-		await discord.snow.channel.deleteMessage(row.channel_id, row.message_id, event.content.reason)
+		await discord.snow.channel.deleteMessage(row.reference_channel_id, row.message_id, event.content.reason)
 		db.prepare("DELETE FROM event_message WHERE message_id = ?").run(row.message_id)
 	}
-	db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(rows[0].message_id)
+	db.prepare("DELETE FROM message_room WHERE message_id = ?").run(rows[0].message_id)
 }
 
 /**
@@ -26,9 +27,10 @@ async function deleteMessage(event) {
  */
 async function removeReaction(event) {
 	const hash = utils.getEventIDHash(event.redacts)
-	const row = from("reaction").join("message_channel", "message_id").select("channel_id", "message_id", "encoded_emoji").where({hashed_event_id: hash}).get()
+	const row = from("reaction").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("reference_channel_id", "message_id", "encoded_emoji").where({hashed_event_id: hash}).get()
 	if (!row) return
-	await discord.snow.channel.deleteReactionSelf(row.channel_id, row.message_id, row.encoded_emoji)
+	await discord.snow.channel.deleteReactionSelf(row.reference_channel_id, row.message_id, row.encoded_emoji)
 	db.prepare("DELETE FROM reaction WHERE hashed_event_id = ?").run(hash)
 }
 

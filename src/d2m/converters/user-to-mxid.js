@@ -99,6 +99,10 @@ function webhookAuthorToFakeUserID(author) {
 	return `webhook_${downcased}`
 }
 
+function isWebhookUserID(userID) {
+	return userID.match(/^webhook_[a-z90-9._=/-]+$/)
+}
+
 /**
  * @param {Ty.WebhookAuthor} author
  * @returns {string}
@@ -132,3 +136,4 @@ function webhookAuthorToSimName(author) {
 module.exports.userToSimName = userToSimName
 module.exports.webhookAuthorToFakeUserID = webhookAuthorToFakeUserID
 module.exports.webhookAuthorToSimName = webhookAuthorToSimName
+module.exports.isWebhookUserID = isWebhookUserID

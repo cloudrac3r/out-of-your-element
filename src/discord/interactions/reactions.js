@@ -16,7 +16,7 @@ const utils = sync.require("../../m2d/converters/utils")
  * @returns {AsyncGenerator<{[k in keyof InteractionMethods]?: Parameters<InteractionMethods[k]>[2]}>}
  */
 async function* _interact({data}, {api}) {
-	const row = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id")
+	const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
 		.select("event_id", "room_id").where({message_id: data.target_id}).get()
 	if (!row) {
 		return yield {createInteractionResponse: {

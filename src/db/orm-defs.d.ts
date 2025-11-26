@@ -60,6 +60,12 @@ export type Models = {
 		autocreate: 0 | 1
 	}
 
+	historical_channel_room: {
+		historical_room_index: number
+		reference_channel_id: string
+		room_id: string
+	}
+
 	invite: {
 		mxid: string
 		room_id: string
@@ -91,15 +97,15 @@ export type Models = {
 		power_level: number
 	}
 
-	message_channel: {
+	message_room: {
 		message_id: string
-		channel_id: string
+		historical_room_index: number
 	}
 
 	sim: {
 		user_id: string
+		username: string
 		sim_name: string
-		localpart: string
 		mxid: string
 	}
 

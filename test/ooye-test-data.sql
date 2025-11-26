@@ -23,6 +23,8 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL),
 ('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL);
 
+INSERT INTO historical_channel_room (reference_channel_id, room_id) SELECT channel_id, room_id FROM channel_room;
+
 INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('0',                  'Matrix Bridge', 'bot', '@_ooye_bot:cadence.moe'),
 ('820865262526005258', 'Crunch God', 'crunch_god', '@_ooye_crunch_god:cadence.moe'),
@@ -42,7 +44,8 @@ INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 INSERT INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES
 ('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '196188877885538304', 'Azalea &flwr; 🌺');
 
-INSERT INTO message_channel (message_id, channel_id) VALUES
+INSERT INTO message_room (message_id, historical_room_index)
+WITH a (message_id, channel_id) AS (VALUES
 ('1106366167788044450', '122155380120748034'),
 ('1106366167788044451', '122155380120748034'),
 ('1106366167788044452', '122155380120748034'),
@@ -75,7 +78,8 @@ INSERT INTO message_channel (message_id, channel_id) VALUES
 ('1339000288144658482', '176333891320283136'),
 ('1381212840957972480', '112760669178241024'),
 ('1401760355339862066', '112760669178241024'),
-('1439351590262800565', '1438284564815548418');
+('1439351590262800565', '1438284564815548418'))
+SELECT message_id, max(historical_room_index) as historical_room_index FROM a INNER JOIN historical_channel_room ON historical_channel_room.reference_channel_id = a.channel_id GROUP BY message_id;
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
 ('$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg', 'm.room.message', 'm.text', '1126786462646550579', 0, 0, 1),

@@ -21,8 +21,8 @@ test("orm: select: get pluck works", t => {
 })
 
 test("orm: select: get, where and pluck works", t => {
-	const channelID = select("message_channel", "channel_id", {message_id: "1128118177155526666"}).pluck().get()
-	t.equal(channelID, "112760669178241024")
+	const emojiName = select("emoji", "name", {emoji_id: "230201364309868544"}).pluck().get()
+	t.equal(emojiName, "hippo")
 })
 
 test("orm: select: all, where and pluck works on multiple columns", t => {

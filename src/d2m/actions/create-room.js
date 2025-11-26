@@ -228,7 +228,10 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 			...spaceCreationContent
 		})
 
-		db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
+		db.transaction(() => {
+			db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
+			db.prepare("INSERT INTO historical_channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, roomID)
+		})()
 
 		return roomID
 	})
@@ -400,7 +403,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	}
 	const roomDiff = ks.diffKState(roomKState, channelKState)
 	const roomApply = ks.applyKStateDiffToRoom(roomID, roomDiff)
-	db.prepare("UPDATE channel_room SET name = ? WHERE room_id = ?").run(channel.name, roomID)
+	db.prepare("UPDATE channel_room SET name = ? WHERE channel_id = ?").run(channel.name, channel.id)
 
 	// sync room as space member
 	const spaceApply = _syncSpaceMember(channel, spaceID, roomID, guild.id)
@@ -464,7 +467,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
 
 	// delete room from database
 	db.prepare("DELETE FROM member_cache WHERE room_id = ?").run(roomID)
-	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id) // cascades to most other tables, like messages
+	db.prepare("DELETE FROM channel_room WHERE room_id = ? AND channel_id = ?").run(roomID, channel.id) // cascades to most other tables, like messages and historical rooms
 
 	if (!botInRoom) return
 

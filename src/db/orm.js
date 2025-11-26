@@ -105,6 +105,21 @@ class From {
 	}
 
 	/**
+	 * @template {Col} Select
+	 * @param {string} what
+	 * @param {Select} col
+	 */
+	pluckAs(what, col) {
+		/** @type {Pluck<Table, Select>} */
+		// @ts-ignore
+		const r = this
+		r.cols = [`${what} AS ${col}`]
+		this.makeColsSafe = false
+		r.isPluck = true
+		return r
+	}
+
+	/**
 	 * @param {string} sql
 	 */
 	and(sql) {

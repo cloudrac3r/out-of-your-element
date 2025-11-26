@@ -1,7 +1,8 @@
 // @ts-check
 
 const DiscordTypes = require("discord-api-types/v10")
-const {discord, sync, from} = require("../../passthrough")
+const {discord, sync, select, from} = require("../../passthrough")
+const assert = require("assert").strict
 
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
@@ -11,9 +12,9 @@ const api = sync.require("../../matrix/api")
  * @param {{api: typeof api}} di
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
-async function _interact({guild_id, data}, {api}) {
-	const message = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id")
-		.select("name", "nick", "source", "channel_id", "room_id", "event_id").where({message_id: data.target_id, part: 0}).get()
+async function _interact({guild_id, channel, data}, {api}) {
+	const message = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("source", "reference_channel_id", "room_id", "event_id").where({message_id: data.target_id, part: 0}).get()
 
 	if (!message) {
 		return {
@@ -25,15 +26,19 @@ async function _interact({guild_id, data}, {api}) {
 		}
 	}
 
+	const channel_id = message.reference_channel_id
+	const room = select("channel_room", ["name", "nick"], {channel_id}).get()
+	assert(room)
+
 	const idInfo = `\n-# Room ID: \`${message.room_id}\`\n-# Event ID: \`${message.event_id}\``
-	const roomName = message.nick || message.name
+	const roomName = room.nick || room.name
 
 	if (message.source === 1) { // from Discord
 		const userID = data.resolved.messages[data.target_id].author.id
 		return {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
-				content: `Bridged <@${userID}> https://discord.com/channels/${guild_id}/${message.channel_id}/${data.target_id} on Discord to [${roomName}](<https://matrix.to/#/${message.room_id}/${message.event_id}>) on Matrix.`
+				content: `Bridged <@${userID}> https://discord.com/channels/${guild_id}/${channel_id}/${data.target_id} on Discord to [${roomName}](<https://matrix.to/#/${message.room_id}/${message.event_id}>) on Matrix.`
 					+ idInfo,
 				flags: DiscordTypes.MessageFlags.Ephemeral
 			}
@@ -45,7 +50,7 @@ async function _interact({guild_id, data}, {api}) {
 	return {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 		data: {
-			content: `Bridged [${event.sender}](<https://matrix.to/#/${event.sender}>)'s message in [${roomName}](<https://matrix.to/#/${message.room_id}/${message.event_id}>) on Matrix to https://discord.com/channels/${guild_id}/${message.channel_id}/${data.target_id} on Discord.`
+			content: `Bridged [${event.sender}](<https://matrix.to/#/${event.sender}>)'s message in [${roomName}](<https://matrix.to/#/${message.room_id}/${message.event_id}>) on Matrix to https://discord.com/channels/${guild_id}/${channel_id}/${data.target_id} on Discord.`
 				+ idInfo,
 			flags: DiscordTypes.MessageFlags.Ephemeral
 		}

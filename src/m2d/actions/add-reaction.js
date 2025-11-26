@@ -14,7 +14,7 @@ const emoji = sync.require("../converters/emoji")
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event
  */
 async function addReaction(event) {
-	const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
+	const channelID = select("historical_channel_room", "reference_channel_id", {room_id: event.room_id}).pluck().get()
 	if (!channelID) return // We just assume the bridge has already been created
 	const messageID = select("event_message", "message_id", {event_id: event.content["m.relates_to"].event_id}, "ORDER BY reaction_part").pluck().get()
 	if (!messageID) return // Nothing can be done if the parent message was never bridged.

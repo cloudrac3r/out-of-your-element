@@ -28,6 +28,8 @@ const dUtils = sync.require("../../discord/utils")
  */
 async function sendMessage(message, channel, guild, row) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
+	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: roomID}).pluck().get()
+	assert(historicalRoomIndex)
 
 	let senderMxid = null
 	if (dUtils.isWebhookMessage(message)) {
@@ -52,7 +54,7 @@ async function sendMessage(message, channel, guild, row) {
 	const events = await messageToEvent.messageToEvent(message, guild, {}, {api, snow: discord.snow})
 	const eventIDs = []
 	if (events.length) {
-		db.prepare("INSERT OR IGNORE INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(message.id, message.channel_id)
+		db.prepare("INSERT OR IGNORE INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(message.id, historicalRoomIndex)
 		if (senderMxid) api.sendTyping(roomID, false, senderMxid).catch(() => {})
 	}
 	for (const event of events) {

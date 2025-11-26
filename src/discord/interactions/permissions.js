@@ -18,8 +18,8 @@ const api = sync.require("../../matrix/api")
 async function* _interact({data, guild_id}, {api}) {
 	// Get message info
 	const row = from("event_message")
-		.join("message_channel", "message_id")
-		.select("event_id", "source", "channel_id")
+		.join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("event_id", "source", "room_id", "reference_channel_id")
 		.where({message_id: data.target_id})
 		.get()
 
@@ -35,10 +35,9 @@ async function* _interact({data, guild_id}, {api}) {
 	}
 
 	// Get the message sender, the person that will be inspected/edited
-	const eventID = row.event_id
-	const roomID = select("channel_room", "room_id", {channel_id: row.channel_id}).pluck().get()
+	const roomID = select("channel_room", "room_id", {channel_id: row.reference_channel_id}).pluck().get()
 	assert(roomID)
-	const event = await api.getEvent(roomID, eventID)
+	const event = await api.getEvent(row.room_id, row.event_id)
 	const sender = event.sender
 
 	// Get the space, where the power levels will be inspected/edited

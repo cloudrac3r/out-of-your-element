@@ -4,7 +4,7 @@ const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {discord, sync, db, from, select} = passthrough
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../converters/emoji-to-key")} */
@@ -18,12 +18,15 @@ const converter = sync.require("../converters/remove-reaction")
  * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData | DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData | DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
  */
 async function removeSomeReactions(data) {
-	const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
-	if (!roomID) return
-	const eventIDForMessage = select("event_message", "event_id", {message_id: data.message_id, reaction_part: 0}).pluck().get()
-	if (!eventIDForMessage) return
+	const row = select("channel_room", "room_id", {channel_id: data.channel_id}).get()
+	if (!row) return
 
-	const reactions = await api.getFullRelations(roomID, eventIDForMessage, "m.annotation")
+	const eventReactedTo = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.where({message_id: data.message_id, reaction_part: 0}).select("event_id", "room_id").get()
+	if (!eventReactedTo) return
+
+	// Due to server restrictions, all relations (i.e. reactions) have to be in the same room as the original event.
+	const reactions = await api.getFullRelations(eventReactedTo.room_id, eventReactedTo.event_id, "m.annotation")
 
 	// Run the proper strategy and any strategy-specific database changes
 	const removals = await
@@ -33,7 +36,7 @@ async function removeSomeReactions(data) {
 
 	// Redact the events and delete individual stored events in the database
 	for (const removal of removals) {
-		await api.redactEvent(roomID, removal.eventID, removal.mxid)
+		await api.redactEvent(eventReactedTo.room_id, removal.eventID, removal.mxid)
 		if (removal.hash) db.prepare("DELETE FROM reaction WHERE hashed_event_id = ?").run(removal.hash)
 	}
 }

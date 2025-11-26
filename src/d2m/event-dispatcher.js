@@ -67,7 +67,7 @@ module.exports = {
 	async checkMissedMessages(client, guild) {
 		if (guild.unavailable) return
 		const bridgedChannels = select("channel_room", "channel_id").pluck().all()
-		const preparedExists = db.prepare("SELECT channel_id FROM message_channel WHERE channel_id = ? LIMIT 1")
+		const preparedExists = from("message_room").join("historical_channel_room", "historical_room_index").pluck("message_id").and("WHERE reference_channel_id = ? LIMIT 1").prepare()
 		const preparedGet = select("event_message", "event_id", {}, "WHERE message_id = ?").pluck()
 		/** @type {(DiscordTypes.APIChannel & {type: DiscordTypes.GuildChannelType})[]} */
 		let channels = []

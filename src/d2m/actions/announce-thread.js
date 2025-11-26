@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough

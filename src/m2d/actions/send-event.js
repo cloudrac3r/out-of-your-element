@@ -6,7 +6,7 @@ const stream = require("stream")
 const assert = require("assert").strict
 const crypto = require("crypto")
 const passthrough = require("../../passthrough")
-const {sync, discord, db, select} = passthrough
+const {sync, discord, db, from, select} = passthrough
 
 /** @type {import("./channel-webhook")} */
 const channelWebhook = sync.require("./channel-webhook")
@@ -61,7 +61,7 @@ async function resolvePendingFiles(message) {
 
 /** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker} event */
 async function sendEvent(event) {
-	const row = select("channel_room", ["channel_id", "thread_parent"], {room_id: event.room_id}).get()
+	const row = from("channel_room").where({room_id: event.room_id}).select("channel_id", "thread_parent").get()
 	if (!row) return [] // allow the bot to exist in unbridged rooms, just don't do anything with it
 	let channelID = row.channel_id
 	let threadID = undefined
@@ -73,6 +73,8 @@ async function sendEvent(event) {
 	const guildID = discord.channels.get(channelID).guild_id
 	const guild = discord.guilds.get(guildID)
 	assert(guild)
+	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: event.room_id}).pluck().get()
+	assert(historicalRoomIndex)
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
@@ -98,15 +100,17 @@ async function sendEvent(event) {
 	}
 
 	for (const id of messagesToDelete) {
-		db.prepare("DELETE FROM message_channel WHERE message_id = ?").run(id)
+		db.prepare("DELETE FROM message_room WHERE message_id = ?").run(id)
 		await channelWebhook.deleteMessageWithWebhook(channelID, id, threadID)
 	}
 
 	for (const message of messagesToSend) {
 		const reactionPart = messagesToEdit.length === 0 && message === messagesToSend[messagesToSend.length - 1] ? 0 : 1
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
-		db.prepare("INSERT INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, threadID || channelID)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content["msgtype"] || null, messageResponse.id, eventPart, reactionPart) // source 0 = matrix
+		db.transaction(() => {
+			db.prepare("INSERT INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(messageResponse.id, historicalRoomIndex)
+			db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(event.event_id, event.type, event.content["msgtype"] || null, messageResponse.id, eventPart, reactionPart) // source 0 = matrix
+		})()
 
 		eventPart = 1
 		messageResponses.push(messageResponse)

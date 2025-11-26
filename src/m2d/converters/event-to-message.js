@@ -24,6 +24,8 @@ const file = sync.require("../../matrix/file")
 const emojiSheet = sync.require("./emoji-sheet")
 /** @type {import("../actions/setup-emojis")} */
 const setupEmojis = sync.require("../actions/setup-emojis")
+/** @type {import("../../d2m/converters/user-to-mxid")} */
+const userToMxid = sync.require("../../d2m/converters/user-to-mxid")
 
 /** @type {[RegExp, string][]} */
 const markdownEscapes = [
@@ -332,10 +334,11 @@ function splitDisplayName(displayName) {
  * Convert a Matrix user ID into a Discord user ID for mentioning, where if the user is a PK proxy, it will mention the proxy owner.
  * @param {string} mxid
  */
-function getUserOrProxyOwnerID(mxid) {
-	const row = from("sim").join("sim_proxy", "user_id", "left").select("user_id", "proxy_owner_id").where({mxid}).get()
+function getUserOrProxyOwnerMention(mxid) {
+	const row = from("sim").join("sim_proxy", "user_id", "left").select("user_id", "username", "proxy_owner_id").where({mxid}).get()
 	if (!row) return null
-	return row.proxy_owner_id || row.user_id
+	if (userToMxid.isWebhookUserID(row.user_id)) return `**@${row.username}**`
+	return `<@${row.proxy_owner_id || row.user_id}>`
 }
 
 /**
@@ -398,7 +401,7 @@ async function handleRoomOrMessageLinks(input, di) {
 			}
 		}
 
-		const channelID = select("channel_room", "channel_id", {room_id: roomID}).pluck().get()
+		const channelID = select("historical_channel_room", "reference_channel_id", {room_id: roomID}).pluck().get()
 		if (!channelID) continue
 		if (!eventID) {
 			// 1: It's a room link, so <#link> to the channel
@@ -681,9 +684,10 @@ async function eventToMessage(event, guild, di) {
 			}
 
 			replyLine = await getL1L2ReplyLine()
-			const row = from("event_message").join("message_channel", "message_id").select("channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
+			const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+				.select("reference_channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
 			if (row) {
-				replyLine += `https://discord.com/channels/${guild.id}/${row.channel_id}/${row.message_id} `
+				replyLine += `https://discord.com/channels/${guild.id}/${row.reference_channel_id}/${row.message_id} `
 			}
 			// If the event has been edited, the homeserver will include the relation in `unsigned`.
 			if (repliedToEvent.unsigned?.["m.relations"]?.["m.replace"]?.content?.["m.new_content"]) {
@@ -727,9 +731,9 @@ async function eventToMessage(event, guild, di) {
 				}
 			}
 			const sender = repliedToEvent.sender
-			const authorID = getUserOrProxyOwnerID(sender)
-			if (authorID) {
-				replyLine += `<@${authorID}>`
+			const authorMention = getUserOrProxyOwnerMention(sender)
+			if (authorMention) {
+				replyLine += authorMention
 			} else {
 				let senderName = select("member_cache", "displayname", {mxid: sender}).pluck().get()
 				if (!senderName) senderName = sender.match(/@([^:]*)/)?.[1]

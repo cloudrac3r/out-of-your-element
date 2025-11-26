@@ -26,16 +26,28 @@ as.router.get("/api/message", defineEventHandler(async event => {
 	const api = getAPI(event)
 
 	const {message_id} = await getValidatedQuery(event, schema.message.parse)
-	const metadatas = from("event_message").join("message_channel", "message_id").join("channel_room", "channel_id").where({message_id})
-		.select("event_id", "event_type", "event_subtype", "part", "reaction_part", "room_id", "source").and("ORDER BY part ASC, reaction_part DESC").all()
+	const metadatas = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").where({message_id})
+		.select("event_id", "event_type", "event_subtype", "part", "reaction_part", "reference_channel_id", "room_id", "source").and("ORDER BY part ASC, reaction_part DESC").all()
 
 	if (metadatas.length === 0) {
 		return new Response("Message not found", {status: 404, statusText: "Not Found"})
 	}
 
+	const current_room_id = select("channel_room", "room_id", {channel_id: metadatas[0].reference_channel_id}).pluck().get()
 	const events = await Promise.all(metadatas.map(metadata =>
 		api.getEvent(metadata.room_id, metadata.event_id).then(raw => ({
-			metadata: Object.assign({sender: raw.sender}, metadata),
+			metadata: {
+				event_id: metadata.event_id,
+				event_type: metadata.event_type,
+				event_subtype: metadata.event_subtype,
+				part: metadata.part,
+				reaction_part: metadata.reaction_part,
+				channel_id: metadata.reference_channel_id,
+				room_id: metadata.room_id,
+				source: metadata.source,
+				sender: raw.sender,
+				current_room_id: current_room_id
+			},
 			raw
 		}))
 	))
