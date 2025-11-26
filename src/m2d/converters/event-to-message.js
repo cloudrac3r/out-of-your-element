@@ -608,7 +608,7 @@ async function eventToMessage(event, guild, di) {
 		}
 		attachments.push({id: "0", filename})
 		pendingFiles.push({name: filename, mxc: event.content.url})
-	} else if (shouldProcessTextEvent) {
+	} else {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
 		// this event ---is an edit of--> original event ---is a reply to--> past event
 		await (async () => {
@@ -742,157 +742,159 @@ async function eventToMessage(event, guild, di) {
 			replyLine = `-# > ${replyLine}${contentPreview}\n`
 		})()
 
-		if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
-			let input = event.content.formatted_body
-			if (event.content.msgtype === "m.emote") {
-				input = `* ${displayName} ${input}`
-			}
-
-			// Handling mentions of Discord users
-			input = input.replace(/("https:\/\/matrix.to\/#\/((?:@|%40)[^"]+)")>/g, (whole, attributeValue, mxid) => {
-				mxid = decodeURIComponent(mxid)
-				if (mxUtils.eventSenderIsFromDiscord(mxid)) {
-					// Handle mention of an OOYE sim user by their mxid
-					const id = select("sim", "user_id", {mxid}).pluck().get()
-					if (!id) return whole
-					return `${attributeValue} data-user-id="${id}">`
-				} else {
-					// Handle mention of a Matrix user by their mxid
-					// Check if this Matrix user is actually the sim user from another old bridge in the room?
-					const match = mxid.match(/[^:]*discord[^:]*_([0-9]{6,}):/) // try to match @_discord_123456, @_discordpuppet_123456, etc.
-					if (match) return `${attributeValue} data-user-id="${match[1]}">`
-					// Nope, just a real Matrix user.
-					return whole
+		if (shouldProcessTextEvent) {
+			if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
+				let input = event.content.formatted_body
+				if (event.content.msgtype === "m.emote") {
+					input = `* ${displayName} ${input}`
 				}
-			})
 
-			// Handling mentions of rooms and room-messages
-			input = await handleRoomOrMessageLinks(input, di)
-
-			// Stripping colons after mentions
-			input = input.replace(/( data-user-id.*?<\/a>):?/g, "$1")
-			input = input.replace(/("https:\/\/matrix.to.*?<\/a>):?/g, "$1")
-
-			// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
-			input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
-
-			// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
-			// But I should not count it if it's between block elements.
-			input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
-				// console.error(beforeContext, beforeTag, afterContext, afterTag)
-				if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
-					return "<br>"
-				}
-				beforeContext = beforeContext || ""
-				beforeTag = beforeTag || ""
-				afterContext = afterContext || ""
-				afterTag = afterTag || ""
-				if (!mxUtils.BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !mxUtils.BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
-					return beforeContext + "<br>" + afterContext
-				} else {
-					return whole
-				}
-			})
-
-			// Note: Element's renderers on Web and Android currently collapse whitespace, like the browser does. Turndown also collapses whitespace which is good for me.
-			// If later I'm using a client that doesn't collapse whitespace and I want turndown to follow suit, uncomment the following line of code, and it Just Works:
-			// input = input.replace(/ /g, "&nbsp;")
-			// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
-
-			// Handling written @mentions: we need to look for candidate Discord members to join to the room
-			// This shouldn't apply to code blocks, links, or inside attributes. So editing the HTML tree instead of regular expressions is a sensible choice here.
-			// We're using the domino parser because Turndown uses the same and can reuse this tree.
-			const doc = domino.createDocument(
-				// DOM parsers arrange elements in the <head> and <body>. Wrapping in a custom element ensures elements are reliably arranged in a single element.
-				'<x-turndown id="turndown-root">' + input + '</x-turndown>'
-			);
-			const root = doc.getElementById("turndown-root");
-			async function forEachNode(node) {
-				for (; node; node = node.nextSibling) {
-					// Check written mentions
-					if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
-						const result = await checkWrittenMentions(node.nodeValue, event.sender, event.room_id, guild, di)
-						if (result) {
-							node.nodeValue = result.content
-							ensureJoined.push(...result.ensureJoined)
-							allowedMentionsParse.push(...result.allowedMentionsParse)
-						}
+				// Handling mentions of Discord users
+				input = input.replace(/("https:\/\/matrix.to\/#\/((?:@|%40)[^"]+)")>/g, (whole, attributeValue, mxid) => {
+					mxid = decodeURIComponent(mxid)
+					if (mxUtils.eventSenderIsFromDiscord(mxid)) {
+						// Handle mention of an OOYE sim user by their mxid
+						const id = select("sim", "user_id", {mxid}).pluck().get()
+						if (!id) return whole
+						return `${attributeValue} data-user-id="${id}">`
+					} else {
+						// Handle mention of a Matrix user by their mxid
+						// Check if this Matrix user is actually the sim user from another old bridge in the room?
+						const match = mxid.match(/[^:]*discord[^:]*_([0-9]{6,}):/) // try to match @_discord_123456, @_discordpuppet_123456, etc.
+						if (match) return `${attributeValue} data-user-id="${match[1]}">`
+						// Nope, just a real Matrix user.
+						return whole
 					}
-					// Check for incompatible backticks in code blocks
-					let preNode
-					if (node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))) {
-						if (preNode.firstChild?.nodeName === "CODE") {
-							const ext = preNode.firstChild.className.match(/language-(\S+)/)?.[1] || "txt"
-							const filename = `inline_code.${ext}`
-							// Build the replacement <code> node
-							const replacementCode = doc.createElement("code")
-							replacementCode.textContent = `[${filename}]`
-							// Build its containing <span> node
-							const replacement = doc.createElement("span")
-							replacement.appendChild(doc.createTextNode(" "))
-							replacement.appendChild(replacementCode)
-							replacement.appendChild(doc.createTextNode(" "))
-							// Replace the code block with the <span>
-							preNode.replaceWith(replacement)
-							// Upload the code as an attachment
-							const content = getCodeContent(preNode.firstChild)
-							attachments.push({id: String(attachments.length), filename})
-							pendingFiles.push({name: filename, buffer: Buffer.from(content, "utf8")})
-						}
+				})
+
+				// Handling mentions of rooms and room-messages
+				input = await handleRoomOrMessageLinks(input, di)
+
+				// Stripping colons after mentions
+				input = input.replace(/( data-user-id.*?<\/a>):?/g, "$1")
+				input = input.replace(/("https:\/\/matrix.to.*?<\/a>):?/g, "$1")
+
+				// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
+				input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
+
+				// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
+				// But I should not count it if it's between block elements.
+				input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
+					// console.error(beforeContext, beforeTag, afterContext, afterTag)
+					if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
+						return "<br>"
 					}
-					await forEachNode(node.firstChild)
+					beforeContext = beforeContext || ""
+					beforeTag = beforeTag || ""
+					afterContext = afterContext || ""
+					afterTag = afterTag || ""
+					if (!mxUtils.BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !mxUtils.BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
+						return beforeContext + "<br>" + afterContext
+					} else {
+						return whole
+					}
+				})
+
+				// Note: Element's renderers on Web and Android currently collapse whitespace, like the browser does. Turndown also collapses whitespace which is good for me.
+				// If later I'm using a client that doesn't collapse whitespace and I want turndown to follow suit, uncomment the following line of code, and it Just Works:
+				// input = input.replace(/ /g, "&nbsp;")
+				// There is also a corresponding test to uncomment, named "event2message: whitespace is retained"
+
+				// Handling written @mentions: we need to look for candidate Discord members to join to the room
+				// This shouldn't apply to code blocks, links, or inside attributes. So editing the HTML tree instead of regular expressions is a sensible choice here.
+				// We're using the domino parser because Turndown uses the same and can reuse this tree.
+				const doc = domino.createDocument(
+					// DOM parsers arrange elements in the <head> and <body>. Wrapping in a custom element ensures elements are reliably arranged in a single element.
+					'<x-turndown id="turndown-root">' + input + '</x-turndown>'
+				);
+				const root = doc.getElementById("turndown-root");
+				async function forEachNode(node) {
+					for (; node; node = node.nextSibling) {
+						// Check written mentions
+						if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
+							const result = await checkWrittenMentions(node.nodeValue, event.sender, event.room_id, guild, di)
+							if (result) {
+								node.nodeValue = result.content
+								ensureJoined.push(...result.ensureJoined)
+								allowedMentionsParse.push(...result.allowedMentionsParse)
+							}
+						}
+						// Check for incompatible backticks in code blocks
+						let preNode
+						if (node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))) {
+							if (preNode.firstChild?.nodeName === "CODE") {
+								const ext = preNode.firstChild.className.match(/language-(\S+)/)?.[1] || "txt"
+								const filename = `inline_code.${ext}`
+								// Build the replacement <code> node
+								const replacementCode = doc.createElement("code")
+								replacementCode.textContent = `[${filename}]`
+								// Build its containing <span> node
+								const replacement = doc.createElement("span")
+								replacement.appendChild(doc.createTextNode(" "))
+								replacement.appendChild(replacementCode)
+								replacement.appendChild(doc.createTextNode(" "))
+								// Replace the code block with the <span>
+								preNode.replaceWith(replacement)
+								// Upload the code as an attachment
+								const content = getCodeContent(preNode.firstChild)
+								attachments.push({id: String(attachments.length), filename})
+								pendingFiles.push({name: filename, buffer: Buffer.from(content, "utf8")})
+							}
+						}
+						await forEachNode(node.firstChild)
+					}
 				}
+				await forEachNode(root)
+
+				// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
+				// First we need to determine which emojis are at the end.
+				endOfMessageEmojis = []
+				let match
+				let last = input.length
+				while ((match = input.slice(0, last).match(/<img [^>]*>\s*$/))) {
+					if (!match[0].includes("data-mx-emoticon")) break
+					const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
+					if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])
+					assert(typeof match.index === "number", "Your JavaScript implementation does not comply with TC39: https://tc39.es/ecma262/multipage/text-processing.html#sec-regexpbuiltinexec")
+					last = match.index
+				}
+
+				// @ts-ignore bad type from turndown
+				content = turndownService.turndown(root)
+
+				// Put < > around any surviving matrix.to links to hide the URL previews
+				content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/g, "<$&>")
+
+				// It's designed for commonmark, we need to replace the space-space-newline with just newline
+				content = content.replace(/  \n/g, "\n")
+
+				// If there's a blockquote at the start of the message body and this message is a reply, they should be visually separated
+				if (replyLine && content.startsWith("> ")) content = "\n" + content
+
+				// SPRITE SHEET EMOJIS FEATURE:
+				content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, di?.mxcDownloader)
+			} else {
+				// Looks like we're using the plaintext body!
+				content = event.content.body
+
+				if (event.content.msgtype === "m.emote") {
+					content = `* ${displayName} ${content}`
+				}
+
+				content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
+				content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
+
+				const result = await checkWrittenMentions(content, event.sender, event.room_id, guild, di)
+				if (result) {
+					content = result.content
+					ensureJoined.push(...result.ensureJoined)
+					allowedMentionsParse.push(...result.allowedMentionsParse)
+				}
+
+				// Markdown needs to be escaped, though take care not to escape the middle of links
+				// @ts-ignore bad type from turndown
+				content = turndownService.escape(content)
 			}
-			await forEachNode(root)
-
-			// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
-			// First we need to determine which emojis are at the end.
-			endOfMessageEmojis = []
-			let match
-			let last = input.length
-			while ((match = input.slice(0, last).match(/<img [^>]*>\s*$/))) {
-				if (!match[0].includes("data-mx-emoticon")) break
-				const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
-				if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])
-				assert(typeof match.index === "number", "Your JavaScript implementation does not comply with TC39: https://tc39.es/ecma262/multipage/text-processing.html#sec-regexpbuiltinexec")
-				last = match.index
-			}
-
-			// @ts-ignore bad type from turndown
-			content = turndownService.turndown(root)
-
-			// Put < > around any surviving matrix.to links to hide the URL previews
-			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/g, "<$&>")
-
-			// It's designed for commonmark, we need to replace the space-space-newline with just newline
-			content = content.replace(/  \n/g, "\n")
-
-			// If there's a blockquote at the start of the message body and this message is a reply, they should be visually separated
-			if (replyLine && content.startsWith("> ")) content = "\n" + content
-
-			// SPRITE SHEET EMOJIS FEATURE:
-			content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, di?.mxcDownloader)
-		} else {
-			// Looks like we're using the plaintext body!
-			content = event.content.body
-
-			if (event.content.msgtype === "m.emote") {
-				content = `* ${displayName} ${content}`
-			}
-
-			content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
-			content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
-
-			const result = await checkWrittenMentions(content, event.sender, event.room_id, guild, di)
-			if (result) {
-				content = result.content
-				ensureJoined.push(...result.ensureJoined)
-				allowedMentionsParse.push(...result.allowedMentionsParse)
-			}
-
-			// Markdown needs to be escaped, though take care not to escape the middle of links
-			// @ts-ignore bad type from turndown
-			content = turndownService.escape(content)
 		}
 	}
 

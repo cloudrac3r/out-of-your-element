@@ -2671,6 +2671,99 @@ test("event2message: rich reply to a state event with no body", async t => {
 	)
 })
 
+test("event2message: rich reply with an image", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "image.png",
+				info: {
+					size: 470379,
+					mimetype: "image/png",
+					thumbnail_info: {
+						w: 800,
+						h: 450,
+						mimetype: "image/png",
+						size: 183014
+					},
+					w: 1920,
+					h: 1080,
+					"xyz.amorgan.blurhash": "L24_wtVt00xuxvR%NFX74Toz?waL",
+					thumbnail_url: "mxc://cadence.moe/lPtnjlleowWCXGOHKVDyoXGn"
+				},
+				msgtype: "m.image",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4"
+					}
+				},
+				url: "mxc://cadence.moe/yxMobQMbSqNHpajxgSHtaooG"
+			},
+			origin_server_ts: 1764127662631,
+			unsigned: {
+				membership: "join",
+				age: 97,
+				transaction_id: "m1764127662540.2"
+			},
+			event_id: "$QOxkw7u8vjTrrdKxEUO13JWSixV7UXAZU1freT1SkHc",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, data.guild.general, {
+			api: {
+				getEvent(roomID, eventID) {
+					called++
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(eventID, "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4")
+					return {
+						type: "m.room.message",
+						sender: "@cadence:cadence.moe",
+						content: {
+							msgtype: "m.text",
+							body: "you have to check every diff above insane on this set https://osu.ppy.sh/beatmapsets/2263303#osu/4826296"
+						},
+						origin_server_ts: 1763639396419,
+						unsigned: {
+							membership: "join",
+							age: 486586696,
+							transaction_id: "m1763639396324.578"
+						},
+						event_id: "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4",
+						room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+					}
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [
+				{
+					content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/112760669178241024/1128118177155526666 **Ⓜcadence [they]**: you have to check every diff above insane on this...",
+					allowed_mentions: {
+						parse: ["users", "roles"]
+					},
+					attachments: [
+						{
+							filename: "image.png",
+							id: "0",
+						},
+					],
+					avatar_url: undefined,
+					pendingFiles: [
+						{
+							mxc: "mxc://cadence.moe/yxMobQMbSqNHpajxgSHtaooG",
+							name: "image.png",
+						},
+					],
+					username: "cadence [they]",
+           },
+			]
+		}
+	)
+})
+
 test("event2message: raw mentioning discord users in plaintext body works", async t => {
 	t.deepEqual(
 		await eventToMessage({
