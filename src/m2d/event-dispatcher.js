@@ -322,14 +322,25 @@ sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
  */
 async event => {
 	if (event.state_key[0] !== "@") return
+	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
-	if (event.content.membership === "invite" && event.state_key === `@${reg.sender_localpart}:${reg.ooye.server_name}`) {
+	if (event.content.membership === "invite" && event.state_key === bot) {
 		// We were invited to a room. We should join, and register the invite details for future reference in web.
+		let attemptedApiMessage = "According to unsigned invite data."
+		let inviteRoomState = event.unsigned?.invite_room_state
+		if (!Array.isArray(inviteRoomState) || inviteRoomState.length === 0) {
+			try {
+				inviteRoomState = await api.getInviteState(event.room_id)
+				attemptedApiMessage = "According to SSS API."
+			} catch (e) {
+				attemptedApiMessage = "According to unsigned invite data. SSS API unavailable: " + e.toString()
+			}
+		}
 		const name = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.name", "name")
 		const topic = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.topic", "topic")
 		const avatar = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.avatar", "url")
 		const creationType = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.create", "type")
-		if (!name) return await api.leaveRoomWithReason(event.room_id, "Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite!")
+		if (!name) return await api.leaveRoomWithReason(event.room_id, `Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite! (${attemptedApiMessage})`)
 		await api.joinRoom(event.room_id)
 		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, creationType, name, topic, avatar)
 		if (avatar) utils.getPublicUrlForMxc(avatar) // make sure it's available in the media_proxy allowed URLs
@@ -342,7 +353,6 @@ async event => {
 		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
 
 		// Unregister room's use as a direct chat if the bot itself left
-		const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 		if (event.state_key === bot) {
 			db.prepare("DELETE FROM direct WHERE room_id = ?").run(event.room_id)
 		}

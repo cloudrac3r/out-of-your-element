@@ -568,6 +568,7 @@ module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
 module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
+module.exports._syncSpaceMember = _syncSpaceMember
 module.exports.unbridgeChannel = unbridgeChannel
 module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
 module.exports.existsOrAutocreatable = existsOrAutocreatable
