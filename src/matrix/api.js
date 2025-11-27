@@ -138,6 +138,24 @@ function getStateEvent(roomID, type, key) {
 }
 
 /**
+ * @param {string} roomID
+ * @returns {Promise<Ty.Event.InviteStrippedState[]>}
+ */
+async function getInviteState(roomID) {
+	/** @type {Ty.R.SSS} */
+	const root = await mreq.mreq("POST", "/client/unstable/org.matrix.simplified_msc3575/sync", {
+		room_subscriptions: {
+			[roomID]: {
+				timeline_limit: 0,
+				required_state: []
+			}
+		}
+	})
+	const roomResponse = root.rooms[roomID]
+	return "stripped_state" in roomResponse ? roomResponse.stripped_state : roomResponse.invite_state
+}
+
+/**
  * "Any of the AS's users must be in the room. This API is primarily for Application Services and should be faster to respond than /members as it can be implemented more efficiently on the server."
  * @param {string} roomID
  * @returns {Promise<{joined: {[mxid: string]: {avatar_url: string?, display_name: string?}}}>}
@@ -483,6 +501,7 @@ module.exports.getEvent = getEvent
 module.exports.getEventForTimestamp = getEventForTimestamp
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
+module.exports.getInviteState = getInviteState
 module.exports.getJoinedMembers = getJoinedMembers
 module.exports.getMembers = getMembers
 module.exports.getHierarchy = getHierarchy

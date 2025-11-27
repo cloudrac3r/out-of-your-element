@@ -166,6 +166,37 @@ export namespace Event {
 		content: any
 	}
 
+	export type InviteStrippedState = {
+		type: string
+		state_key: string
+		sender: string
+		content: Event.M_Room_Create | Event.M_Room_Name | Event.M_Room_Avatar | Event.M_Room_Topic | Event.M_Room_JoinRules | Event.M_Room_CanonicalAlias
+	}
+
+	export type M_Room_Create = {
+		additional_creators: string[]
+		"m.federate"?: boolean
+		room_version: string
+		type?: string
+		predecessor?: {
+			room_id: string
+			event_id?: string
+		}
+	}
+
+	export type M_Room_JoinRules = {
+		join_rule: "public" | "knock" | "invite" | "private" | "restricted" | "knock_restricted"
+		allow?: {
+			type: string
+			room_id: string
+		}[]
+	}
+
+	export type M_Room_CanonicalAlias = {
+		alias?: string
+		alt_aliases?: string[]
+	}
+
 	export type M_Room_Message = {
 		msgtype: "m.text" | "m.emote"
 		body: string
@@ -375,7 +406,57 @@ export namespace R {
 		room_id: string
 		servers: string[]
 	}
+
+	export type SSS = {
+		pos: string
+		lists: {
+			[list_key: string]: {
+				count: number
+			}
+		}
+		rooms: {
+			[room_id: string]: {
+				bump_stamp: number
+				/** Omitted if user not in room (peeking) */
+				membership?: Membership
+				/** Names of lists that match this room */
+				lists: string[]
+			}
+			// If user has been in the room - at least, that's what the spec says. Synapse returns some of these, such as `name` and `avatar`, for invites as well. Go nuts.
+			& {
+				name?: string
+				avatar?: string
+				heroes?: any[]
+				/** According to account data */
+				is_dm?: boolean
+				/** If false, omitted fields are unchanged from their previous value. If true, omitted fields means the fields are not set. */
+				initial?: boolean
+				expanded_timeline?: boolean
+				required_state?: Event.StateOuter<any>[]
+				timeline_events?: Event.Outer<any>[]
+				prev_batch?: string
+				limited?: boolean
+				num_live?: number
+				joined_count?: number
+				invited_count?: number
+				notification_count?: number
+				highlight_count?: number
+			}
+			// If user is invited or knocked
+			& ({
+				/** @deprecated */
+				invite_state: Event.InviteStrippedState[]
+			} | {
+				stripped_state: Event.InviteStrippedState[]
+			})
+		}
+		extensions: {
+			[extension_key: string]: any
+		}
+	}
 }
+
+export type Membership = "invite" | "knock" | "join" | "leave" | "ban"
 
 export type Pagination<T> = {
 	chunk: T[]

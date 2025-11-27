@@ -230,7 +230,7 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 
 		db.transaction(() => {
 			db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
-			db.prepare("INSERT INTO historical_channel_room (channel_id, room_id) VALUES (?, ?)").run(channel.id, roomID)
+			db.prepare("INSERT INTO historical_channel_room (reference_channel_id, room_id) VALUES (?, ?)").run(channel.id, roomID)
 		})()
 
 		return roomID
@@ -571,6 +571,7 @@ module.exports.createAllForGuild = createAllForGuild
 module.exports.channelToKState = channelToKState
 module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
+module.exports._syncSpaceMember = _syncSpaceMember
 module.exports.unbridgeChannel = unbridgeChannel
 module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
 module.exports.existsOrAutocreatable = existsOrAutocreatable
