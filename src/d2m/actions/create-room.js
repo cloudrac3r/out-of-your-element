@@ -434,7 +434,7 @@ async function unbridgeChannel(channelID) {
 async function unbridgeDeletedChannel(channel, guildID) {
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	assert.ok(roomID)
-	const row = from("guild_space").join("guild_active", "guild_id").select("space_id", "autocreate").get()
+	const row = from("guild_space").join("guild_active", "guild_id").select("space_id", "autocreate").where({guild_id: guildID}).get()
 	assert.ok(row)
 
 	let botInRoom = true
@@ -458,7 +458,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	// delete webhook on discord
 	const webhook = select("webhook", ["webhook_id", "webhook_token"], {channel_id: channel.id}).get()
 	if (webhook) {
-		await discord.snow.webhook.deleteWebhook(webhook.webhook_id, webhook.webhook_token)
+		await discord.snow.webhook.deleteWebhook(webhook.webhook_id, webhook.webhook_token).catch(() => {})
 		db.prepare("DELETE FROM webhook WHERE channel_id = ?").run(channel.id)
 	}
 

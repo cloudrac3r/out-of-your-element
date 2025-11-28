@@ -7,6 +7,7 @@
 const util = require("util")
 const Ty = require("../types")
 const {discord, db, sync, as, select} = require("../passthrough")
+const {tag} = require("@cloudrac3r/html-template-tag")
 
 /** @type {import("./actions/send-event")} */
 const sendEvent = sync.require("./actions/send-event")
@@ -121,10 +122,10 @@ async function sendError(roomID, source, type, e, payload) {
 
 		// Where
 		const stack = stringifyErrorStack(e)
-		builder.addLine(`Error trace:\n${stack}`, `<details><summary>Error trace</summary><pre>${stack}</pre></details>`)
+		builder.addLine(`Error trace:\n${stack}`, tag`<details><summary>Error trace</summary><pre>${stack}</pre></details>`)
 
 		// How
-		builder.addLine("", `<details><summary>Original payload</summary><pre>${util.inspect(payload, false, 4, false)}</pre></details>`)
+		builder.addLine("", tag`<details><summary>Original payload</summary><pre>${util.inspect(payload, false, 4, false)}</pre></details>`)
 	}
 
 	// Send
