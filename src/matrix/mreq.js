@@ -72,6 +72,7 @@ async function mreq(method, url, bodyIn, extra = {}) {
 	}, extra)
 
 	const res = await fetch(baseUrl + url, opts)
+	/** @type {any} */
 	const root = await res.json()
 
 	if (!res.ok || root.errcode) {

@@ -50,11 +50,6 @@ let {reg, getTemplateRegistration, writeRegistration, readRegistration, checkReg
 
 const {setupEmojis} = require("../src/m2d/actions/setup-emojis")
 
-function die(message) {
-	console.error(message)
-	process.exit(1)
-}
-
 async function suggestWellKnown(serverUrlPrompt, url, otherwise) {
 	try {
 		var json = await fetch(`${url}/.well-known/matrix/client`).then(res => res.json())
@@ -80,6 +75,7 @@ async function validateHomeserverOrigin(serverUrlPrompt, url) {
 		return e.message
 	}
 	try {
+		/** @type {any} */
 		var json = await res.json()
 		if (!Array.isArray(json?.versions) || !json.versions.includes("v1.11")) {
 			return `OOYE needs Matrix version v1.11, but ${url} doesn't support this`
@@ -130,7 +126,7 @@ function defineEchoHandler() {
 			initial: "6693"
 		})
 		portResponse.socket = +portResponse.socket || portResponse.socket // convert to number if numeric
-		
+
 		const app = createApp()
 		app.use(defineEchoHandler())
 		const server = createServer(toNodeListener(app))
