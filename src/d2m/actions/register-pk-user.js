@@ -151,16 +151,9 @@ async function syncUser(messageID, author, roomID, shouldActuallySync) {
 	const mxid = await ensureSimJoined(pkMessage, roomID)
 
 	if (shouldActuallySync) {
-		// Build current profile data
+		// Build current profile data and sync if the hash has changed
 		const content = await memberToStateContent(pkMessage, author)
-		const currentHash = registerUser._hashProfileContent(content, 0)
-		const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
-
-		// Only do the actual sync if the hash has changed since we last looked
-		if (existingHash !== currentHash) {
-			await api.sendState(roomID, "m.room.member", mxid, content, mxid)
-			db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
-		}
+		await registerUser._sendSyncUser(roomID, mxid, content, null)
 	}
 
 	return mxid

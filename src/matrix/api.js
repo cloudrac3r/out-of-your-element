@@ -317,16 +317,34 @@ async function sendTyping(roomID, isTyping, mxid, duration) {
 	})
 }
 
-async function profileSetDisplayname(mxid, displayname) {
-	await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/displayname`, mxid), {
+/**
+ * @param {string} mxid
+ * @param {string} displayname
+ * @param {boolean} [inhibitPropagate]
+ */
+async function profileSetDisplayname(mxid, displayname, inhibitPropagate) {
+	const params = {}
+	if (inhibitPropagate) params["org.matrix.msc4069.propagate"] = false
+	await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/displayname`, mxid, params), {
 		displayname
 	})
 }
 
-async function profileSetAvatarUrl(mxid, avatar_url) {
-	await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/avatar_url`, mxid), {
-		avatar_url
-	})
+/**
+ * @param {string} mxid
+ * @param {string} avatar_url
+ * @param {boolean} [inhibitPropagate]
+ */
+async function profileSetAvatarUrl(mxid, avatar_url, inhibitPropagate) {
+	const params = {}
+	if (inhibitPropagate) params["org.matrix.msc4069.propagate"] = false
+	if (avatar_url) {
+		await mreq.mreq("PUT", path(`/client/v3/profile/${mxid}/avatar_url`, mxid, params), {
+			avatar_url
+		})
+	} else {
+		await mreq.mreq("DELETE", path(`/client/v3/profile/${mxid}/avatar_url`, mxid, params))
+	}
 }
 
 /**
@@ -490,6 +508,10 @@ function getProfile(mxid) {
 	return mreq.mreq("GET", `/client/v3/profile/${mxid}`)
 }
 
+function versions() {
+	return mreq.mreq("GET", "/client/versions")
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -526,3 +548,4 @@ module.exports.getAccountData = getAccountData
 module.exports.setAccountData = setAccountData
 module.exports.setPresence = setPresence
 module.exports.getProfile = getProfile
+module.exports.versions = versions

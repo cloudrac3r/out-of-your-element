@@ -23,6 +23,8 @@ let hasher = null
 // @ts-ignore
 require("xxhash-wasm")().then(h => hasher = h)
 
+const supportsMsc4069 = api.versions().then(v => !!v?.unstable_features?.["org.matrix.msc4069"]).catch(() => false)
+
 /**
  * A sim is an account that is being simulated by the bridge to copy events from the other side.
  * @param {DiscordTypes.APIUser} user
@@ -96,6 +98,23 @@ async function ensureSimJoined(user, roomID) {
 		db.prepare("INSERT OR IGNORE INTO sim_member (room_id, mxid) VALUES (?, ?)").run(roomID, mxid)
 	}
 	return mxid
+}
+
+/**
+ * @param {DiscordTypes.APIUser} user
+ */
+async function userToGlobalProfile(user) {
+	const globalProfile = {}
+
+	globalProfile.displayname = user.username
+	if (user.global_name) globalProfile.displayname = user.global_name
+
+	if (user.avatar) {
+		const avatarPath = file.userAvatar(user) // the user avatar only
+		globalProfile.avatar_url = await file.uploadDiscordFileToMxc(avatarPath)
+	}
+
+	return globalProfile
 }
 
 /**
@@ -201,21 +220,45 @@ async function syncUser(user, member, channel, guild, roomID) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guild.id)
 	const powerLevel = memberToPowerLevel(user, member, guild, channel)
-	const currentHash = _hashProfileContent(content, powerLevel)
+	await _sendSyncUser(roomID, mxid, content, powerLevel, {
+		// do not overwrite pre-existing data if we already have data and `member` is not accessible, because this would replace good data with bad data
+		allowOverwrite: !!member,
+		globalProfile: await userToGlobalProfile(user)
+	})
+	return mxid
+}
+
+/**
+ * @param {string} roomID
+ * @param {string} mxid
+ * @param {{displayname: string, avatar_url?: string}} content
+ * @param {number | null} powerLevel
+ * @param {{allowOverwrite?: boolean, globalProfile?: {displayname: string, avatar_url?: string}}} [options]
+ */
+async function _sendSyncUser(roomID, mxid, content, powerLevel, options) {
+	const currentHash = _hashProfileContent(content, powerLevel ?? 0)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
 	// only do the actual sync if the hash has changed since we last looked
 	const hashHasChanged = existingHash !== currentHash
-	// however, do not overwrite pre-existing data if we already have data and `member` is not accessible, because this would replace good data with bad data
-	const wouldOverwritePreExisting = existingHash && !member
-	if (hashHasChanged && !wouldOverwritePreExisting) {
+	// always okay to add new data. for overwriting, restrict based on options.allowOverwrite, if present
+	const overwriteOkay = !existingHash || (options?.allowOverwrite ?? true)
+	if (hashHasChanged && overwriteOkay) {
+		const actions = []
 		// Update room member state
-		await api.sendState(roomID, "m.room.member", mxid, content, mxid)
+		actions.push(api.sendState(roomID, "m.room.member", mxid, content, mxid))
 		// Update power levels
-		await api.setUserPower(roomID, mxid, powerLevel)
+		if (powerLevel != null) {
+			actions.push(api.setUserPower(roomID, mxid, powerLevel))
+		}
+		// Update global profile (if supported by server)
+		if (await supportsMsc4069) {
+			actions.push(api.profileSetDisplayname(mxid, options?.globalProfile?.displayname || content.displayname, true))
+			actions.push(api.profileSetAvatarUrl(mxid, options?.globalProfile?.avatar_url || content.avatar_url, true))
+		}
+		await Promise.all(actions)
 		// Update cached hash
 		db.prepare("UPDATE sim_member SET hashed_profile_content = ? WHERE room_id = ? AND mxid = ?").run(currentHash, roomID, mxid)
 	}
-	return mxid
 }
 
 /**
@@ -254,5 +297,7 @@ module.exports._hashProfileContent = _hashProfileContent
 module.exports.ensureSim = ensureSim
 module.exports.ensureSimJoined = ensureSimJoined
 module.exports.syncUser = syncUser
+module.exports._sendSyncUser = _sendSyncUser
 module.exports.syncAllUsersInRoom = syncAllUsersInRoom
 module.exports._memberToPowerLevel = memberToPowerLevel
+module.exports.supportsMsc4069 = supportsMsc4069
