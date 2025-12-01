@@ -64,6 +64,7 @@ export type Models = {
 		historical_room_index: number
 		reference_channel_id: string
 		room_id: string
+		upgraded_timestamp: number
 	}
 
 	invite: {

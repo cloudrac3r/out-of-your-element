@@ -7,11 +7,12 @@ CREATE TABLE "historical_channel_room" (
 	"historical_room_index"	INTEGER NOT NULL,
 	"reference_channel_id"	TEXT NOT NULL,
 	"room_id"	TEXT NOT NULL UNIQUE,
+	"upgraded_timestamp"	INTEGER NOT NULL,
 	PRIMARY KEY("historical_room_index" AUTOINCREMENT),
 	FOREIGN KEY("reference_channel_id") REFERENCES "channel_room"("channel_id") ON DELETE CASCADE
 );
 
-INSERT INTO historical_channel_room (reference_channel_id, room_id) SELECT channel_id, room_id FROM channel_room;
+INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) SELECT channel_id, room_id, 0 FROM channel_room;
 
 -- *** message_channel -> message_room ***
 

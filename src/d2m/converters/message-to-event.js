@@ -351,27 +351,31 @@ async function messageToEvent(message, guild, options = {}, di) {
 		for (const match of [...content.matchAll(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/[0-9]+\/([0-9]+)\/([0-9]+)/g)]) {
 			assert(typeof match.index === "number")
 			const [_, channelID, messageID] = match
-			let result
+			const result = await (async () => {
+				const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+					.select("event_id", "room_id").where({message_id: messageID}).get()
+				// const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
+				if (row) {
+					const via = await getViaServersMemo(row.room_id)
+					return `https://matrix.to/#/${row.room_id}/${row.event_id}?${via}`
+				}
 
-			const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
-			if (roomID) {
-				const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
-				const via = await getViaServersMemo(roomID)
-				if (eventID && roomID) {
-					result = `https://matrix.to/#/${roomID}/${eventID}?${via}`
-				} else {
-					const ts = dUtils.snowflakeToTimestampExact(messageID)
+				const ts = dUtils.snowflakeToTimestampExact(messageID)
+				const oldestRow = from("historical_channel_room").selectUnsafe("max(upgraded_timestamp)", "room_id")
+					.where({reference_channel_id: channelID}).and("and upgraded_timestamp < ?").get(ts)
+				if (oldestRow?.room_id) {
+					const via = await getViaServersMemo(oldestRow.room_id)
 					try {
-						const {event_id} = await di.api.getEventForTimestamp(roomID, ts)
-						result = `https://matrix.to/#/${roomID}/${event_id}?${via}`
+						const {event_id} = await di.api.getEventForTimestamp(oldestRow.room_id, ts)
+						return `https://matrix.to/#/${oldestRow.room_id}/${event_id}?${via}`
 					} catch (e) {
 						// M_NOT_FOUND: Unable to find event from <ts> in direction Direction.FORWARDS
-						result = `[unknown event, timestamp resolution failed, in room: https://matrix.to/#/${roomID}?${via}]`
+						return `[unknown event, timestamp resolution failed, in room: https://matrix.to/#/${oldestRow.room_id}?${via}]`
 					}
 				}
-			} else {
-				result = `${match[0]} [event is from another server]`
-			}
+
+				return `${match[0]} [event is from another server]`
+			})()
 
 			content = content.slice(0, match.index + offset) + result + content.slice(match.index + match[0].length + offset)
 			offset += result.length - match[0].length

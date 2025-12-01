@@ -23,7 +23,7 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL),
 ('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL);
 
-INSERT INTO historical_channel_room (reference_channel_id, room_id) SELECT channel_id, room_id FROM channel_room;
+INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) SELECT channel_id, room_id, 0 FROM channel_room;
 
 INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('0',                  'Matrix Bridge', 'bot', '@_ooye_bot:cadence.moe'),
