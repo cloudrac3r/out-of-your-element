@@ -8,6 +8,7 @@ const util = require("util")
 const Ty = require("../types")
 const {discord, db, sync, as, select} = require("../passthrough")
 const {tag} = require("@cloudrac3r/html-template-tag")
+const {Semaphore} = require("@chriscdn/promise-semaphore")
 
 /** @type {import("./actions/send-event")} */
 const sendEvent = sync.require("./actions/send-event")
@@ -153,34 +154,38 @@ function guard(type, fn) {
 	}
 }
 
+const errorRetrySema = new Semaphore()
+
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} reactionEvent
  */
 async function onRetryReactionAdd(reactionEvent) {
 	const roomID = reactionEvent.room_id
-	const event = await api.getEvent(roomID, reactionEvent.content["m.relates_to"]?.event_id)
+	errorRetrySema.request(async () => {
+		const event = await api.getEvent(roomID, reactionEvent.content["m.relates_to"]?.event_id)
 
-	// Check that it's a real error from OOYE
-	const error = event.content["moe.cadence.ooye.error"]
-	if (event.sender !== `@${reg.sender_localpart}:${reg.ooye.server_name}` || !error) return
+		// Check that it's a real error from OOYE
+		const error = event.content["moe.cadence.ooye.error"]
+		if (event.sender !== `@${reg.sender_localpart}:${reg.ooye.server_name}` || !error) return
 
-	// To stop people injecting misleading messages, the reaction needs to come from either the original sender or a room moderator
-	if (reactionEvent.sender !== event.sender) {
-		// Check if it's a room moderator
-		const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
-		const powerLevel = powerLevelsStateContent.users?.[reactionEvent.sender] || 0
-		if (powerLevel < 50) return
-	}
+		// To stop people injecting misleading messages, the reaction needs to come from either the original sender or a room moderator
+		if (reactionEvent.sender !== event.sender) {
+			// Check if it's a room moderator
+			const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
+			const powerLevel = powerLevelsStateContent.users?.[reactionEvent.sender] || 0
+			if (powerLevel < 50) return
+		}
 
-	// Retry
-	if (error.source === "matrix") {
-		as.emit(`type:${error.payload.type}`, error.payload)
-	} else if (error.source === "discord") {
-		discord.cloud.emit("event", error.payload)
-	}
+		// Retry
+		if (error.source === "matrix") {
+			as.emit(`type:${error.payload.type}`, error.payload)
+		} else if (error.source === "discord") {
+			discord.cloud.emit("event", error.payload)
+		}
 
-	// Redact the error to stop people from executing multiple retries
-	await api.redactEvent(roomID, event.event_id)
+		// Redact the error to stop people from executing multiple retries
+		await api.redactEvent(roomID, event.event_id)
+	}, roomID)
 }
 
 sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
