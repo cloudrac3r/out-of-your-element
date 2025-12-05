@@ -161,7 +161,7 @@ const errorRetrySema = new Semaphore()
  */
 async function onRetryReactionAdd(reactionEvent) {
 	const roomID = reactionEvent.room_id
-	errorRetrySema.request(async () => {
+	await errorRetrySema.request(async () => {
 		const event = await api.getEvent(roomID, reactionEvent.content["m.relates_to"]?.event_id)
 
 		// Check that it's a real error from OOYE

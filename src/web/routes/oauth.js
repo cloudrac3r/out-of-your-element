@@ -8,7 +8,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const getRelativePath = require("get-relative-path")
 
 const {discord, as, db, sync} = require("../../passthrough")
-const {id} = require("../../../addbot")
+const {id, permissions} = require("../../../addbot")
 /** @type {import("../auth")} */
 const auth = sync.require("../auth")
 const {reg} = require("../../matrix/read-registration")
@@ -51,7 +51,7 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	async function tryAgain() {
 		const newState = randomUUID()
 		await session.update({state: newState})
-		return sendRedirect(event, `https://discord.com/oauth2/authorize?client_id=${id}&scope=${scope}&permissions=1610883072&response_type=code&redirect_uri=${redirect_uri}&state=${newState}`)
+		return sendRedirect(event, `https://discord.com/oauth2/authorize?client_id=${id}&scope=${scope}&permissions=${permissions}&response_type=code&redirect_uri=${redirect_uri}&state=${newState}`)
 	}
 
 	const parsedQuery = await getValidatedQuery(event, schema.code.safeParse)
