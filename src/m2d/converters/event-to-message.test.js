@@ -404,6 +404,135 @@ test("event2message: spoiler reasons work", async t => {
 	)
 })
 
+test("event2message: media spoilers work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "pitstop.png",
+				filename: "pitstop.png",
+				info: {
+					h: 870,
+					mimetype: "image/png",
+					size: 729990,
+					w: 674,
+					"xyz.amorgan.blurhash": "UqOMmRM{_Mx[xZaxR*tQ.8ayxtWBRkRkWUWB"
+				},
+				msgtype: "m.image",
+				"page.codeberg.everypizza.msc4193.spoiler": true,
+				url: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT"
+			},
+			origin_server_ts: 1764885561299,
+			room_id: "!zq94fae5bVKUubZLp7:agiadn.org",
+			sender: "@underscore_x:agiadn.org",
+			type: "m.room.message",
+			event_id: "$6P7u-lpu2u73ZrHUru2UG1rPfsh8PfYLPK21o3SNIN4",
+			user_id: "@underscore_x:agiadn.org"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "underscore_x",
+				content: "",
+				avatar_url: undefined,
+				attachments: [{id: "0", filename: "SPOILER_pitstop.png"}],
+				pendingFiles: [{
+					mxc: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT",
+					name: "SPOILER_pitstop.png",
+				}]
+			}]
+		}
+	)
+})
+
+test("event2message: media spoilers with reason work", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "pitstop.png",
+				filename: "pitstop.png",
+				info: {
+					h: 870,
+					mimetype: "image/png",
+					size: 729990,
+					w: 674,
+					"xyz.amorgan.blurhash": "UqOMmRM{_Mx[xZaxR*tQ.8ayxtWBRkRkWUWB"
+				},
+				msgtype: "m.image",
+				"page.codeberg.everypizza.msc4193.spoiler": true,
+				"page.codeberg.everypizza.msc4193.spoiler.reason": "golden witch solutions",
+				url: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT"
+			},
+			origin_server_ts: 1764885561299,
+			room_id: "!zq94fae5bVKUubZLp7:agiadn.org",
+			sender: "@underscore_x:agiadn.org",
+			type: "m.room.message",
+			event_id: "$6P7u-lpu2u73ZrHUru2UG1rPfsh8PfYLPK21o3SNIN4",
+			user_id: "@underscore_x:agiadn.org"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "underscore_x",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				},
+				content: "(Spoiler: golden witch solutions)",
+				avatar_url: undefined,
+				attachments: [{id: "0", filename: "SPOILER_pitstop.png"}],
+				pendingFiles: [{
+					mxc: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT",
+					name: "SPOILER_pitstop.png",
+				}]
+			}]
+		}
+	)
+})
+
+test("event2message: spoiler files too large for Discord are linked and retain reason", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "pitstop.png",
+				filename: "pitstop.png",
+				info: {
+					h: 870,
+					mimetype: "image/png",
+					size: 40000000,
+					w: 674,
+					"xyz.amorgan.blurhash": "UqOMmRM{_Mx[xZaxR*tQ.8ayxtWBRkRkWUWB"
+				},
+				msgtype: "m.image",
+				"page.codeberg.everypizza.msc4193.spoiler": true,
+				"page.codeberg.everypizza.msc4193.spoiler.reason": "golden witch secrets",
+				url: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT"
+			},
+			origin_server_ts: 1764885561299,
+			room_id: "!zq94fae5bVKUubZLp7:agiadn.org",
+			sender: "@underscore_x:agiadn.org",
+			type: "m.room.message",
+			event_id: "$6P7u-lpu2u73ZrHUru2UG1rPfsh8PfYLPK21o3SNIN4",
+			user_id: "@underscore_x:agiadn.org"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "underscore_x",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				},
+				content: "(Spoiler: golden witch secrets)\n🖼️ _Uploaded **SPOILER** file: ||[pitstop.png](https://bridge.example.org/download/matrix/agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT )|| (40 MB)_",
+				avatar_url: undefined
+			}]
+		}
+	)
+})
+
 test("event2message: markdown syntax is escaped", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -4236,7 +4365,7 @@ test("event2message: files too large for Discord can have a plaintext caption", 
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "🖼️ _Uploaded file: [cool cat.png](https://bridge.example.org/download/matrix/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn) (40 MB)_\nCat emoji surrounded by pink hearts",
+				content: "Cat emoji surrounded by pink hearts\n🖼️ _Uploaded file: [cool cat.png](https://bridge.example.org/download/matrix/cadence.moe/IvxVJFLEuksCNnbojdSIeEvn) (40 MB)_",
 				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 					parse: ["users", "roles"]
@@ -4283,7 +4412,7 @@ test("event2message: files too large for Discord can have a formatted caption", 
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "🖼️ _Uploaded file: [5740.jpg](https://bridge.example.org/download/matrix/thomcat.rocks/RTHsXmcMPXmuHqVNsnbKtRbh) (40 MB)_\nthis event has `formatting`",
+				content: "this event has `formatting`\n🖼️ _Uploaded file: [5740.jpg](https://bridge.example.org/download/matrix/thomcat.rocks/RTHsXmcMPXmuHqVNsnbKtRbh) (40 MB)_",
 				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 					parse: ["users", "roles"]

@@ -555,25 +555,40 @@ async function eventToMessage(event, guild, di) {
 	// Handle images first - might need to handle their `body`/`formatted_body` as well, which will fall through to the text processor
 	let shouldProcessTextEvent = event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")
 	if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
+		// Build message content in addition to the uploaded file
+		const fileIsSpoiler = event.content["page.codeberg.everypizza.msc4193.spoiler"]
+		const fileSpoilerReason = event.content["page.codeberg.everypizza.msc4193.spoiler.reason"]
+		content = ""
+		const captionContent = new mxUtils.MatrixStringBuilder()
+
+		// Caption from Matrix message
+		const fileHasCaption = (event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body
+		if (fileHasCaption) {
+			captionContent.addLine(event.content.body || "", event.content.formatted_body || tag`${event.content.body || ""}`)
+		}
+
+		// Spoiler message
+		if (fileIsSpoiler && typeof fileSpoilerReason === "string") {
+			captionContent.addLine(`(Spoiler: ${fileSpoilerReason})`)
+		}
+
+		// File link as alternative to uploading
 		if (!("file" in event.content) && event.content.info?.size > getFileSizeForGuild(guild)) {
 			// Upload (unencrypted) file as link, because it's too large for Discord
 			// Do this by constructing a sample Matrix message with the link and then use the text processor to convert that + the original caption.
 			const url = mxUtils.getPublicUrlForMxc(event.content.url)
 			assert(url)
 			const filename = event.content.filename || event.content.body
-			const newText = new mxUtils.MatrixStringBuilder()
 			const emoji = attachmentEmojis.has(event.content.msgtype) ? attachmentEmojis.get(event.content.msgtype) + " " : ""
-			newText.addLine(`${emoji}Uploaded file: ${url} (${pb(event.content.info.size)})`, tag`${emoji}<em>Uploaded file: <a href="${url}">${filename}</a> (${pb(event.content.info.size)})</em>`)
-			// Check if the event has a caption that we need to add as well
-			if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {
-				newText.addLine(event.content.body || "", event.content.formatted_body || tag`${event.content.body || ""}`)
+			if (fileIsSpoiler) {
+				captionContent.addLine(`${emoji}Uploaded SPOILER file: <${url}> (${pb(event.content.info.size)})`, tag`${emoji}<em>Uploaded <strong>SPOILER</strong> file: <span data-mx-spoiler><a href="${url} ">${filename}</a></span> (${pb(event.content.info.size)})</em>`) // the space is necessary to work around a bug in Discord's URL previewer. the preview still gets blurred in the client.
+			} else {
+				captionContent.addLine(`${emoji}Uploaded file: ${url} (${pb(event.content.info.size)})`, tag`${emoji}<em>Uploaded file: <a href="${url}">${filename}</a> (${pb(event.content.info.size)})</em>`)
 			}
-			Object.assign(event.content, newText.get())
-			shouldProcessTextEvent = true
 		} else {
 			// Upload file as file
-			content = ""
-			const filename = event.content.filename || event.content.body
+			let filename = event.content.filename || event.content.body
+			if (fileIsSpoiler) filename = "SPOILER_" + filename
 			if ("file" in event.content) {
 				// Encrypted
 				assert.equal(event.content.file.key.alg, "A256CTR")
@@ -584,12 +599,16 @@ async function eventToMessage(event, guild, di) {
 				attachments.push({id: "0", filename})
 				pendingFiles.push({name: filename, mxc: event.content.url})
 			}
-			// Check if we also need to process a text event for this image - if it has a caption that's different from its filename
-			if ((event.content.body && event.content.filename && event.content.body !== event.content.filename) || event.content.formatted_body) {
-				shouldProcessTextEvent = true
-			}
+		}
+
+		// Add result to content
+		const result = captionContent.get()
+		if (result.body) {
+			Object.assign(event.content, {body: result.body, format: result.format, formatted_body: result.formatted_body})
+			shouldProcessTextEvent = true
 		}
 	}
+
 	if (event.type === "m.sticker") {
 		content = ""
 		let filename = event.content.body
