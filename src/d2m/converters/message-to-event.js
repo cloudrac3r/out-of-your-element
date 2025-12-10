@@ -370,6 +370,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 						return `https://matrix.to/#/${oldestRow.room_id}/${event_id}?${via}`
 					} catch (e) {
 						// M_NOT_FOUND: Unable to find event from <ts> in direction Direction.FORWARDS
+						// not supported in Conduit and descendants
 						return `[unknown event, timestamp resolution failed, in room: https://matrix.to/#/${oldestRow.room_id}?${via}]`
 					}
 				}

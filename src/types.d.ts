@@ -221,6 +221,7 @@ export namespace Event {
 		filename?: string
 		url: string
 		info?: any
+		"page.codeberg.everypizza.msc4193.spoiler"?: boolean
 		"m.relates_to"?: {
 			"m.in_reply_to": {
 				event_id: string
@@ -238,6 +239,7 @@ export namespace Event {
 		format?: "org.matrix.custom.html"
 		formatted_body?: string
 		filename?: string
+		"page.codeberg.everypizza.msc4193.spoiler"?: boolean
 		file: {
 			url: string
 			iv: string

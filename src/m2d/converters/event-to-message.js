@@ -739,11 +739,11 @@ async function eventToMessage(event, guild, di) {
 					return convertEmoji(mxcUrlMatch?.[1], titleTextMatch?.[1], false, false)
 				})
 				repliedToContent = repliedToContent.replace(/<[^:>][^>]*>/g, "") // Completely strip all HTML tags and formatting.
-				repliedToContent = repliedToContent.replace(/\bhttps?:\/\/[^ )]*/g, "<$&>")
 				repliedToContent = entities.decodeHTML5Strict(repliedToContent) // Remove entities like &amp; &quot;
 				const contentPreviewChunks = chunk(repliedToContent, 50)
 				if (contentPreviewChunks.length) {
 					contentPreview = ": " + contentPreviewChunks[0]
+					contentPreview = contentPreview.replace(/\bhttps?:\/\/[^ )]*/g, "<$&>")
 					if (contentPreviewChunks.length > 1) contentPreview = contentPreview.replace(/[,.']$/, "") + "..."
 				} else {
 					contentPreview = ""
