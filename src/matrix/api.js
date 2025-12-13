@@ -44,6 +44,7 @@ async function register(username) {
 	try {
 		await mreq.mreq("POST", "/client/v3/register", {
 			type: "m.login.application_service",
+			inhibit_login: true, // https://github.com/element-hq/matrix-bot-sdk/pull/70/changes https://github.com/matrix-org/matrix-spec-proposals/blob/quenting/as-device-management/proposals/4190-as-device-management.md
 			username
 		})
 	} catch (e) {
