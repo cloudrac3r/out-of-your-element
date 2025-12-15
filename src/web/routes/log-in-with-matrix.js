@@ -79,30 +79,7 @@ as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 		}
 	}
 
-	// Check if we have an existing DM
-	let roomID = select("direct", "room_id", {mxid}).pluck().get()
-	if (roomID) {
-		// Check that the person is/still in the room
-		try {
-			var member = await api.getStateEvent(roomID, "m.room.member", mxid)
-		} catch (e) {}
-
-		// Invite them back to the room if needed
-		if (!member || member.membership === "leave") {
-			await api.inviteToRoom(roomID, mxid)
-		}
-	}
-
-	// No existing DM, create a new room and invite
-	else {
-		roomID = await api.createRoom({
-			invite: [mxid],
-			is_direct: true,
-			preset: "trusted_private_chat"
-		})
-		// Store the newly created room in account data (Matrix doesn't do this for us automatically, sigh...)
-		db.prepare("REPLACE INTO direct (mxid, room_id) VALUES (?, ?)").run(mxid, roomID)
-	}
+	const roomID = await api.usePrivateChat(mxid)
 
 	const token = randomUUID()
 

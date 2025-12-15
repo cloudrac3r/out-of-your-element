@@ -34,7 +34,7 @@ test("log in with matrix: checks if mxid domain format looks valid", async t => 
 	t.match(error.data.fieldErrors.mxid, /must match pattern/)
 })
 
-test("log in with matrix: sends message when there is no existing dm room", async t => {
+test("log in with matrix: sends message to log in", async t => {
 	const event = {}
 	let called = 0
 	await router.test("post", "/api/log-in-with-matrix", {
@@ -42,8 +42,9 @@ test("log in with matrix: sends message when there is no existing dm room", asyn
 			mxid: "@cadence:cadence.moe"
 		},
 		api: {
-			async createRoom() {
+			async usePrivateChat(mxid) {
 				called++
+				t.equal(mxid, "@cadence:cadence.moe")
 				return "!created:cadence.moe"
 			},
 			async sendEvent(roomID, type, content) {
@@ -70,65 +71,6 @@ test("log in with matrix: does not send another message when a log in is in prog
 		event
 	})
 	t.match(event.node.res.getHeader("location"), /We already sent you a link on Matrix/)
-})
-
-test("log in with matrix: reuses room from direct", async t => {
-	const event = {}
-	let called = 0
-	await router.test("post", "/api/log-in-with-matrix", {
-		body: {
-			mxid: "@user1:example.org"
-		},
-		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!existing:cadence.moe")
-				t.equal(type, "m.room.member")
-				t.equal(key, "@user1:example.org")
-				return {membership: "join"}
-			},
-			async sendEvent(roomID) {
-				called++
-				t.equal(roomID, "!existing:cadence.moe")
-				return ""
-			}
-		},
-		event
-	})
-	t.match(event.node.res.getHeader("location"), /Please check your inbox on Matrix/)
-	t.equal(called, 2)
-})
-
-test("log in with matrix: reuses room from direct, reinviting if user has left", async t => {
-	const event = {}
-	let called = 0
-	await router.test("post", "/api/log-in-with-matrix", {
-		body: {
-			mxid: "@user2:example.org"
-		},
-		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!existing:cadence.moe")
-				t.equal(type, "m.room.member")
-				t.equal(key, "@user2:example.org")
-				throw new MatrixServerError({errcode: "M_NOT_FOUND"})
-			},
-			async inviteToRoom(roomID, mxid) {
-				called++
-				t.equal(roomID, "!existing:cadence.moe")
-				t.equal(mxid, "@user2:example.org")
-			},
-			async sendEvent(roomID) {
-				called++
-				t.equal(roomID, "!existing:cadence.moe")
-				return ""
-			}
-		},
-		event
-	})
-	t.match(event.node.res.getHeader("location"), /Please check your inbox on Matrix/)
-	t.equal(called, 3)
 })
 
 // ***** third request *****

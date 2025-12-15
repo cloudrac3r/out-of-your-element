@@ -5,7 +5,7 @@ const assert = require("assert").strict
 const streamWeb = require("stream/web")
 
 const passthrough = require("../passthrough")
-const {sync} = passthrough
+const {sync, db, select} = passthrough
 /** @type {import("./mreq")} */
 const mreq = sync.require("./mreq")
 /** @type {import("./txnid")} */
@@ -513,6 +513,36 @@ function versions() {
 	return mreq.mreq("GET", "/client/versions")
 }
 
+/**
+ * @param {string} mxid
+ */
+async function usePrivateChat(mxid) {
+	// Check if we have an existing DM
+	let roomID = select("direct", "room_id", {mxid}).pluck().get()
+	if (roomID) {
+		// Check that the person is/still in the room
+		try {
+			var member = await getStateEvent(roomID, "m.room.member", mxid)
+		} catch (e) {}
+
+		// Invite them back to the room if needed
+		if (!member || member.membership === "leave") {
+			await inviteToRoom(roomID, mxid)
+		}
+		return roomID
+	}
+
+	// No existing DM, create a new room and invite
+	roomID = await createRoom({
+		invite: [mxid],
+		is_direct: true,
+		preset: "trusted_private_chat"
+	})
+	// Store the newly created room in the database (not using account data due to awkward bugs with misaligned state)
+	db.prepare("REPLACE INTO direct (mxid, room_id) VALUES (?, ?)").run(mxid, roomID)
+	return roomID
+}
+
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom
@@ -550,3 +580,4 @@ module.exports.setAccountData = setAccountData
 module.exports.setPresence = setPresence
 module.exports.getProfile = getProfile
 module.exports.versions = versions
+module.exports.usePrivateChat = usePrivateChat
