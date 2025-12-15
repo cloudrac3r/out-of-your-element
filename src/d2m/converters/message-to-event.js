@@ -267,6 +267,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	const mentions = {}
 	/** @type {{event_id: string, room_id: string, source: number, channel_id: string}?} */
 	let repliedToEventRow = null
+	let repliedToEventInDifferentRoom = false
 	let repliedToUnknownEvent = false
 	let repliedToEventSenderMxid = null
 
@@ -491,6 +492,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			if (repliedToEventRow) {
 				// Generate a reply pointing to the Matrix event we found
 				const latestRoomID = select("channel_room", "room_id", {channel_id: repliedToEventRow.channel_id}).pluck().get()  // native replies don't work across room upgrades, so make sure the old and new message are in the same room
+				if (latestRoomID !== repliedToEventRow.room_id) repliedToEventInDifferentRoom = true
 				html =
 					(latestRoomID === repliedToEventRow.room_id ? "<mx-reply>" : "")
 					+ `<blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
@@ -789,7 +791,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Rich replies
-	if (repliedToEventRow) {
+	if (repliedToEventRow && !repliedToEventInDifferentRoom) {
 		Object.assign(events[0], {
 			"m.relates_to": {
 				"m.in_reply_to": {
