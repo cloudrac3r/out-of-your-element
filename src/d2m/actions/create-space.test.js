@@ -13,6 +13,10 @@ test("guild2space: can generate kstate for a guild, passing privacy level 0", as
 	t.deepEqual(
 		await kstateUploadMxc(kstateStripConditionals(await guildToKState(testData.guild.general, 0))),
 		{
+			"m.room.create/": {
+				additional_creators: ["@test_auto_invite:example.org"],
+				type: "m.space"
+			},
 			"m.room.avatar/": {
 				url: "mxc://cadence.moe/zKXGZhmImMHuGQZWJEFKJbsF"
 			},
@@ -30,7 +34,7 @@ test("guild2space: can generate kstate for a guild, passing privacy level 0", as
 			},
 			"m.room.power_levels/": {
 				users: {
-					"@test_auto_invite:example.org": 100
+					"@test_auto_invite:example.org": 150
 				},
 			},
 		}

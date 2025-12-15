@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
-
+const Ty = require("../../types")
 const passthrough = require("../../passthrough")
 const {db} = passthrough
 
@@ -232,6 +232,49 @@ function getPublicUrlForMxc(mxc) {
 	return `${reg.ooye.bridge_origin}/download/matrix/${serverAndMediaID}`
 }
 
+/**
+ * @param {string} roomVersionString
+ * @param {number} desiredVersion
+ */
+function roomHasAtLeastVersion(roomVersionString, desiredVersion) {
+	/*
+		I hate this.
+		The spec instructs me to compare room versions ordinally, for example, "In room versions 12 and higher..."
+		So if the real room version is 13, this should pass the check.
+		However, the spec also says "room versions are not intended to be parsed and should be treated as opaque identifiers", "due to versions not being ordered or hierarchical".
+		So versions are unordered and opaque and you can't parse them, but you're still expected to parse them to a number and compare them to another number to measure if it's "12 or higher"?
+		Theoretically MSC3244 would clean this up, but that isn't happening since Element removed support for MSC3244: https://github.com/element-hq/element-web/commit/644b8415912afb9c5eed54859a444a2ee7224117
+		Element replaced it with the following function:
+	*/
+
+	// Assumption: all unstable room versions don't support the feature. Calling code can check for unstable
+	// room versions explicitly if it wants to. The spec reserves [0-9] and `.` for its room versions.
+	if (!roomVersionString.match(/^[\d.]+$/)) {
+		return false;
+	}
+
+	// Element dev note: While the spec says room versions are not linear, we can make reasonable assumptions
+	// until the room versions prove themselves to be non-linear in the spec. We should see this coming
+	// from a mile away and can course-correct this function if needed.
+	return Number(roomVersionString) >= Number(desiredVersion);
+}
+
+/**
+ * Starting in room version 12, creators may not be specified in power levels users.
+ * Modifies the input power levels.
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Create>} roomCreateOuter
+ * @param {Ty.Event.M_Power_Levels} powerLevels
+ */
+function removeCreatorsFromPowerLevels(roomCreateOuter, powerLevels) {
+	assert(roomCreateOuter.sender)
+	if (roomHasAtLeastVersion(roomCreateOuter.content.room_version, 12)) {
+		for (const creator of (roomCreateOuter.content.additional_creators ?? []).concat(roomCreateOuter.sender)) {
+			delete powerLevels.users[creator]
+		}
+	}
+	return powerLevels
+}
+
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
@@ -239,3 +282,5 @@ module.exports.getEventIDHash = getEventIDHash
 module.exports.MatrixStringBuilder = MatrixStringBuilder
 module.exports.getViaServers = getViaServers
 module.exports.getViaServersQuery = getViaServersQuery
+module.exports.roomHasAtLeastVersion = roomHasAtLeastVersion
+module.exports.removeCreatorsFromPowerLevels = removeCreatorsFromPowerLevels

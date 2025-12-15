@@ -126,15 +126,21 @@ async function channelToKState(channel, guild, di) {
 	const everyoneCanSend = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
 	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
-	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
-	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
-
 	/** @type {Ty.Event.M_Power_Levels} */
 	const spacePowerEvent = await di.api.getStateEvent(guildSpaceID, "m.room.power_levels", "")
 	const spacePower = spacePowerEvent.users
 
+	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
+	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
+	const additionalCreators = select("member_power", "mxid", {room_id: "*"}, "AND power_level > 100").pluck().all()
+
+	const creationContent = {}
+	creationContent.additional_creators = additionalCreators
+	if (channel.type === DiscordTypes.ChannelType.GuildForum) creationContent.type = "m.space"
+
 	/** @type {any} */
 	const channelKState = {
+		"m.room.create/": creationContent,
 		"m.room.name/": {name: convertedName},
 		"m.room.topic/": {topic: convertedTopic},
 		"m.room.avatar/": avatarEventContent,
@@ -193,7 +199,7 @@ async function channelToKState(channel, guild, di) {
 /**
  * Create a bridge room, store the relationship in the database, and add it to the guild's space.
  * @param {DiscordTypes.APIGuildTextChannel} channel
- * @param guild
+ * @param {DiscordTypes.APIGuild} guild
  * @param {string} spaceID
  * @param {any} kstate
  * @param {number} privacyLevel
@@ -202,9 +208,6 @@ async function channelToKState(channel, guild, di) {
 async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 	let threadParent = null
 	if (channel.type === DiscordTypes.ChannelType.PublicThread) threadParent = channel.parent_id
-
-	let spaceCreationContent = {}
-	if (channel.type === DiscordTypes.ChannelType.GuildForum) spaceCreationContent = {creation_content: {type: "m.space"}}
 
 	// Name and topic can be done earlier in room creation rather than in initial_state
 	// https://spec.matrix.org/latest/client-server-api/#creation
@@ -215,7 +218,7 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 	delete kstate["m.room.topic/"]
 	assert(topic)
 
-	const roomID = await postApplyPowerLevels(kstate, async kstate => {
+	const roomCreate = await postApplyPowerLevels(kstate, async kstate => {
 		const roomID = await api.createRoom({
 			name,
 			topic,
@@ -223,16 +226,20 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 			visibility: PRIVACY_ENUMS.VISIBILITY[privacyLevel],
 			invite: [],
 			initial_state: await ks.kstateToState(kstate),
-			...spaceCreationContent
+			creation_content: ks.kstateToCreationContent(kstate)
 		})
 
+		/** @type {Ty.Event.StateOuter<Ty.Event.M_Room_Create>} */
+		const roomCreate = await api.getStateEventOuter(roomID, "m.room.create", "")
+
 		db.transaction(() => {
-			db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent) VALUES (?, ?, ?, NULL, ?)").run(channel.id, roomID, channel.name, threadParent)
+			db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, guild_id) VALUES (?, ?, ?, NULL, ?, ?)").run(channel.id, roomID, channel.name, threadParent, guild.id)
 			db.prepare("INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) VALUES (?, ?, 0)").run(channel.id, roomID)
 		})()
 
-		return roomID
+		return roomCreate
 	})
+	const roomID = roomCreate.room_id
 
 	// Put the newly created child into the space
 	await _syncSpaceMember(channel, spaceID, roomID, guild.id)
@@ -247,25 +254,30 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
  * https://github.com/matrix-org/synapse/blob/develop/synapse/handlers/room.py#L1170-L1210
  * https://github.com/matrix-org/matrix-spec/issues/492
  * @param {any} kstate
- * @param {(_: any) => Promise<string>} callback must return room ID
- * @returns {Promise<string>} room ID
+ * @param {(_: any) => Promise<Ty.Event.StateOuter<Ty.Event.M_Room_Create>>} callback must return room ID and room version
+ * @returns {Promise<Ty.Event.StateOuter<Ty.Event.M_Room_Create>>} room ID
  */
 async function postApplyPowerLevels(kstate, callback) {
 	const powerLevelContent = kstate["m.room.power_levels/"]
 	const kstateWithoutPowerLevels = {...kstate}
 	delete kstateWithoutPowerLevels["m.room.power_levels/"]
 
-	/** @type {string} */
-	const roomID = await callback(kstateWithoutPowerLevels)
+	const roomCreate = await callback(kstateWithoutPowerLevels)
+	const roomID = roomCreate.room_id
 
 	// Now *really* apply the power level overrides on top of what Synapse *really* set
 	if (powerLevelContent) {
-		const newRoomKState = await ks.roomToKState(roomID)
-		const newRoomPowerLevelsDiff = ks.diffKState(newRoomKState, {"m.room.power_levels/": powerLevelContent})
-		await ks.applyKStateDiffToRoom(roomID, newRoomPowerLevelsDiff)
+		mUtils.removeCreatorsFromPowerLevels(roomCreate, powerLevelContent)
+
+		const originalPowerLevels = await api.getStateEvent(roomID, "m.room.power_levels", "")
+		const powerLevelsDiff = ks.diffKState(
+			{"m.room.power_levels/": originalPowerLevels},
+			{"m.room.power_levels/": powerLevelContent}
+		)
+		await ks.applyKStateDiffToRoom(roomID, powerLevelsDiff)
 	}
 
-	return roomID
+	return roomCreate
 }
 
 /**
@@ -392,8 +404,8 @@ async function _syncRoom(channelID, shouldActuallySync) {
 
 	// sync channel state to room
 	const roomKState = await ks.roomToKState(roomID)
-	if (+roomKState["m.room.create/"].room_version <= 8) {
-		// join_rule `restricted` is not available in room version < 8 and not working properly in version == 8
+	if (!mUtils.roomHasAtLeastVersion(roomKState["m.room.create/"].room_version, 9)) {
+		// join_rule `restricted` is not available in room version < 8 and not working properly in version == 8, so require version 9
 		// read more: https://spec.matrix.org/v1.8/rooms/v9/
 		// we have to use `public` instead, otherwise the room will be unjoinable.
 		channelKState["m.room.join_rules/"] = {join_rule: "public"}

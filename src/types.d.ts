@@ -174,7 +174,7 @@ export namespace Event {
 	}
 
 	export type M_Room_Create = {
-		additional_creators: string[]
+		additional_creators?: string[]
 		"m.federate"?: boolean
 		room_version: string
 		type?: string
@@ -355,6 +355,11 @@ export namespace Event {
 		reason?: string
 	}> & {
 		redacts: string
+	}
+
+	export type M_Room_Tombstone = {
+		body: string
+		replacement_room: string
 	}
 }
 

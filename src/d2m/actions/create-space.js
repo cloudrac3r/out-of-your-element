@@ -35,8 +35,8 @@ async function createSpace(guild, kstate) {
 	const enablePresenceByDefault = +(memberCount < 50) // scary! all active users in a presence-enabled guild will be pinging the server every <30 seconds to stay online
 	const globalAdmins = select("member_power", "mxid", {room_id: "*"}).pluck().all()
 
-	const roomID = await createRoom.postApplyPowerLevels(kstate, async kstate => {
-		return api.createRoom({
+	const roomCreate = await createRoom.postApplyPowerLevels(kstate, async kstate => {
+		const roomID = await api.createRoom({
 			name,
 			preset: createRoom.PRIVACY_ENUMS.PRESET[createRoom.DEFAULT_PRIVACY_LEVEL], // New spaces will have to use the default privacy level; we obviously can't look up the existing entry
 			visibility: createRoom.PRIVACY_ENUMS.VISIBILITY[createRoom.DEFAULT_PRIVACY_LEVEL],
@@ -46,12 +46,14 @@ async function createSpace(guild, kstate) {
 			},
 			invite: globalAdmins,
 			topic,
-			creation_content: {
-				type: "m.space"
-			},
-			initial_state: await ks.kstateToState(kstate)
+			initial_state: await ks.kstateToState(kstate),
+			creation_content: ks.kstateToCreationContent(kstate)
 		})
+		const roomCreate = await api.getStateEventOuter(roomID, "m.room.create", "")
+		return roomCreate
 	})
+	const roomID = roomCreate.room_id
+
 	db.prepare("INSERT INTO guild_space (guild_id, space_id, presence) VALUES (?, ?, ?)").run(guild.id, roomID, enablePresenceByDefault)
 	return roomID
 }
@@ -63,7 +65,13 @@ async function createSpace(guild, kstate) {
 async function guildToKState(guild, privacyLevel) {
 	assert.equal(typeof privacyLevel, "number")
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
+	const additionalCreators = select("member_power", "mxid", {room_id: "*"}, "AND power_level > 100").pluck().all()
+
 	const guildKState = {
+		"m.room.create/": {
+			type: "m.space",
+			additional_creators: additionalCreators
+		},
 		"m.room.name/": {name: guild.name},
 		"m.room.avatar/": {
 			$if: guild.icon,

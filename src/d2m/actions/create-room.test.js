@@ -124,7 +124,9 @@ test("channel2room: read-only discord channel", async t => {
 		return {}
 	}
 	const expected = {
-		"chat.schildi.hide_ui/read_receipts": {},
+		"m.room.create/": {
+			additional_creators: ["@test_auto_invite:example.org"],
+		},
 		"m.room.avatar/": {
 			url: {
 				$url: "/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024",
@@ -161,7 +163,7 @@ test("channel2room: read-only discord channel", async t => {
 				room: 20,
 			},
 			users: {
-				"@test_auto_invite:example.org": 100,
+				"@test_auto_invite:example.org": 150,
 			},
 		},
 		"m.space.parent/!jjmvBegULiLucuWEHU:cadence.moe": {

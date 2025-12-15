@@ -101,6 +101,7 @@ module.exports = {
 	},
 	room: {
 		general: {
+			"m.room.create/": {additional_creators: ["@test_auto_invite:example.org"]},
 			"m.room.name/": {name: "main"},
 			"m.room.topic/": {topic: "#collective-unconscious | https://docs.google.com/document/d/blah/edit | I spread, pipe, and whip because it is my will. :headstone:\n\nChannel ID: 112760669178241024\nGuild ID: 112760669178241024"},
 			"m.room.guest_access/": {guest_access: "can_join"},
@@ -126,7 +127,7 @@ module.exports = {
 					"m.room.redaction": 0
 				},
 				users: {
-					"@test_auto_invite:example.org": 100
+					"@test_auto_invite:example.org": 150
 				},
 				notifications: {
 					room: 0

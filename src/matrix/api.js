@@ -140,6 +140,16 @@ function getStateEvent(roomID, type, key) {
 
 /**
  * @param {string} roomID
+ * @param {string} type
+ * @param {string} key
+ * @returns {Promise<Ty.Event.BaseStateEvent>} the entire state event
+ */
+function getStateEventOuter(roomID, type, key) {
+	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state/${type}/${key}?format=event`)
+}
+
+/**
+ * @param {string} roomID
  * @returns {Promise<Ty.Event.InviteStrippedState[]>}
  */
 async function getInviteState(roomID) {
@@ -554,6 +564,7 @@ module.exports.getEvent = getEvent
 module.exports.getEventForTimestamp = getEventForTimestamp
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
+module.exports.getStateEventOuter = getStateEventOuter
 module.exports.getInviteState = getInviteState
 module.exports.getJoinedMembers = getJoinedMembers
 module.exports.getMembers = getMembers

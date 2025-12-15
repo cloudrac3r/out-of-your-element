@@ -66,5 +66,5 @@ test("orm: select unsafe works (to select complex column names that can't be typ
 		.and("where member_power.room_id = '*' and member_cache.power_level != member_power.power_level")
 		.selectUnsafe("mxid", "member_cache.room_id", "member_power.power_level")
 		.all()
-	t.equal(results[0].power_level, 100)
+	t.equal(results[0].power_level, 150)
 })
