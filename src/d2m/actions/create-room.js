@@ -401,6 +401,7 @@ async function _syncRoom(channelID, shouldActuallySync) {
 	console.log(`[room sync] to matrix: ${channel.name}`)
 
 	const {spaceID, channelKState} = await channelToKState(channel, guild, {api}) // calling this in both branches because we don't want to calculate this if not syncing
+	await ks.kstateUploadMxc(channelKState) // pre-upload icons before diffing
 
 	// sync channel state to room
 	const roomKState = await ks.roomToKState(roomID)

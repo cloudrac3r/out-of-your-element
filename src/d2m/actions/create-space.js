@@ -124,6 +124,8 @@ async function _syncSpace(guild, shouldActuallySync) {
 	console.log(`[space sync] to matrix: ${guild.name}`)
 
 	const guildKState = await guildToKState(guild, privacy_level) // calling this in both branches because we don't want to calculate this if not syncing
+	ks.kstateStripConditionals(guildKState) // pre-upload icons before diffing
+	await ks.kstateUploadMxc(guildKState)
 
 	// sync guild state to space
 	const spaceKState = await ks.roomToKState(spaceID)
@@ -185,6 +187,8 @@ async function syncSpaceFully(guildID) {
 	console.log(`[space sync] to matrix: ${guild.name}`)
 
 	const guildKState = await guildToKState(guild, privacy_level)
+	ks.kstateStripConditionals(guildKState) // pre-upload icons before diffing
+	await ks.kstateUploadMxc(guildKState)
 
 	// sync guild state to space
 	const spaceKState = await ks.roomToKState(spaceID)
