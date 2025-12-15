@@ -158,8 +158,6 @@ async function channelToKState(channel, guild, di) {
 			},
 			users: {...spacePower, ...globalAdminPower}
 		},
-		"chat.schildi.hide_ui/read_receipts": {
-		},
 		[`uk.half-shot.bridge/moe.cadence.ooye://discord/${guild.id}/${channel.id}`]: {
 			bridgebot: `@${reg.sender_localpart}:${reg.ooye.server_name}`,
 			protocol: {
@@ -256,7 +254,6 @@ async function postApplyPowerLevels(kstate, callback) {
 	const powerLevelContent = kstate["m.room.power_levels/"]
 	const kstateWithoutPowerLevels = {...kstate}
 	delete kstateWithoutPowerLevels["m.room.power_levels/"]
-	delete kstateWithoutPowerLevels["chat.schildi.hide_ui/read_receipts"]
 
 	/** @type {string} */
 	const roomID = await callback(kstateWithoutPowerLevels)
