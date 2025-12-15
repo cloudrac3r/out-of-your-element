@@ -109,6 +109,14 @@ function diffKState(actual, target) {
 		} else if (key === "m.room.create/") {
 			// can't be modified - only for kstateToCreationContent
 
+		} else if (key === "m.room.topic/") {
+			// synapse generates different m.room.topic events on original creation
+			// https://github.com/element-hq/synapse/blob/0f2b29511fd88d1dc2278f41fd6e4e2f2989fcb7/synapse/handlers/room.py#L1729
+			// diff the `topic` to determine change
+			if (!(key in actual) || actual[key].topic !== target[key].topic) {
+				diff[key] = target[key]
+			}
+
 		} else if (key in actual) {
 			// diff
 			if (!isDeepStrictEqual(actual[key], target[key])) {

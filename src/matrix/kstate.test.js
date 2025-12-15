@@ -235,30 +235,38 @@ test("diffKState: kstate keys must contain a slash separator", t => {
 	t.pass()
 })
 
-test("diffKState: don't add hide_ui when not present", t => {
-	test("diffKState: detects new properties", t => {
-		t.deepEqual(
-			diffKState({
-			}, {
-				"chat.schildi.hide_ui/read_receipts/": {}
-			}),
-			{
+test("diffKState: topic does not change if the topic key has not changed", t => {
+	t.deepEqual(diffKState({
+		"m.room.topic/": {
+			topic: "hello",
+			"m.topic": {
+				"m.text": "hello"
 			}
-		)
-	})
+		}
+	}, {
+		"m.room.topic/": {
+			topic: "hello"
+		}
+	}),
+	{})
 })
 
-test("diffKState: overwriten hide_ui when present", t => {
-	test("diffKState: detects new properties", t => {
-		t.deepEqual(
-			diffKState({
-				"chat.schildi.hide_ui/read_receipts/": {hidden: true}
-			}, {
-				"chat.schildi.hide_ui/read_receipts/": {}
-			}),
-			{
-				"chat.schildi.hide_ui/read_receipts/": {}
+test("diffKState: topic changes if the topic key has changed", t => {
+	t.deepEqual(diffKState({
+		"m.room.topic/": {
+			topic: "hello",
+			"m.topic": {
+				"m.text": "hello"
 			}
-		)
+		}
+	}, {
+		"m.room.topic/": {
+			topic: "hello you"
+		}
+	}),
+	{
+		"m.room.topic/": {
+			topic: "hello you"
+		}
 	})
 })
