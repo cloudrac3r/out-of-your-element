@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert").strict
+const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
@@ -25,6 +25,19 @@ async function deleteMessage(event) {
 /**
  * @param {Ty.Event.Outer_M_Room_Redaction} event
  */
+async function suppressEmbeds(event) {
+	const rows = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("reference_channel_id", "message_id").where({event_id: event.redacts}).all()
+	if (!rows.length) return
+	db.prepare("DELETE FROM event_message WHERE event_id = ?").run(event.redacts)
+	for (const row of rows) {
+		await discord.snow.channel.editMessage(row.reference_channel_id, row.message_id, {flags: DiscordTypes.MessageFlags.SuppressEmbeds})
+	}
+}
+
+/**
+ * @param {Ty.Event.Outer_M_Room_Redaction} event
+ */
 async function removeReaction(event) {
 	const hash = utils.getEventIDHash(event.redacts)
 	const row = from("reaction").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
@@ -39,7 +52,12 @@ async function removeReaction(event) {
  * @param {Ty.Event.Outer_M_Room_Redaction} event
  */
 async function handle(event) {
-	await deleteMessage(event)
+	const row = select("event_message", ["event_type", "event_subtype", "part"], {event_id: event.redacts}).get()
+	if (row && row.event_type === "m.room.message" && row.event_subtype === "m.notice" && row.part === 1) {
+		await suppressEmbeds(event)
+	} else {
+		await deleteMessage(event)
+	}
 	await removeReaction(event)
 }
 
