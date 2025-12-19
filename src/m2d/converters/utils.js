@@ -13,6 +13,8 @@ let hasher = null
 // @ts-ignore
 require("xxhash-wasm")().then(h => hasher = h)
 
+const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+
 const BLOCK_ELEMENTS = [
 	"ADDRESS", "ARTICLE", "ASIDE", "AUDIO", "BLOCKQUOTE", "BODY", "CANVAS",
 	"CENTER", "DD", "DETAILS", "DIR", "DIV", "DL", "DT", "FIELDSET", "FIGCAPTION", "FIGURE",
@@ -127,7 +129,7 @@ class MatrixStringBuilder {
  * https://spec.matrix.org/v1.9/appendices/#routing
  * https://gitdab.com/cadence/out-of-your-element/issues/11
  * @param {string} roomID
- * @param {{[K in "getStateEvent" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
  */
 async function getViaServers(roomID, api) {
 	const candidates = []
@@ -136,25 +138,17 @@ async function getViaServers(roomID, api) {
 	candidates.push(reg.ooye.server_name)
 	// Candidate 1: Highest joined non-sim non-bot power level user in the room
 	// https://github.com/matrix-org/matrix-react-sdk/blob/552c65db98b59406fb49562e537a2721c8505517/src/utils/permalinks/Permalinks.ts#L172
-	try {
-		/** @type {{users?: {[mxid: string]: number}}} */
-		const powerLevels = await api.getStateEvent(roomID, "m.room.power_levels", "")
-		if (powerLevels.users) {
-			const sorted = Object.entries(powerLevels.users).sort((a, b) => b[1] - a[1]) // Highest...
-			for (const power of sorted) {
-				const mxid = power[0]
-				if (!(mxid in joined)) continue // joined...
-				if (userRegex.some(r => mxid.match(r))) continue // non-sim non-bot...
-				const match = mxid.match(/:(.*)/)
-				assert(match)
-				if (!candidates.includes(match[1])) {
-					candidates.push(match[1])
-					break
-				}
-			}
-		}
-	} catch (e) {
-		// power levels event not found
+	const {allCreators, powerLevels} = await getEffectivePower(roomID, [bot], api)
+	const sorted = allCreators.concat(Object.entries(powerLevels.users ?? {}).sort((a, b) => b[1] - a[1]).map(([mxid]) => mxid)) // Highest...
+	for (const power of sorted) {
+		const mxid = power[0]
+		if (!(mxid in joined)) continue // joined...
+		if (userRegex.some(r => mxid.match(r))) continue // non-sim non-bot...
+		const match = mxid.match(/:(.*)/)
+		assert(match)
+		if (candidates.includes(match[1])) continue // from a different server
+		candidates.push(match[1])
+		break
 	}
 	// Candidates 2-3: Most popular servers in the room
 	/** @type {Map<string, number>} */
@@ -194,7 +188,7 @@ async function getViaServers(roomID, api) {
  * https://spec.matrix.org/v1.9/appendices/#routing
  * https://gitdab.com/cadence/out-of-your-element/issues/11
  * @param {string} roomID
- * @param {{[K in "getStateEvent" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
  * @returns {Promise<URLSearchParams>}
  */
 async function getViaServersQuery(roomID, api) {
@@ -275,6 +269,38 @@ function removeCreatorsFromPowerLevels(roomCreateOuter, powerLevels) {
 	return powerLevels
 }
 
+/**
+ * @template {string} T
+ * @param {string} roomID
+ * @param {T[]} mxids
+ * @param {{[K in "getStateEvent" | "getStateEventOuter"]: import("../../matrix/api")[K]}} api
+ * @returns {Promise<{powers: Record<T, number>, allCreators: string[], tombstone: number, roomCreate: Ty.Event.StateOuter<Ty.Event.M_Room_Create>, powerLevels: Ty.Event.M_Power_Levels}>}
+ */
+async function getEffectivePower(roomID, mxids, api) {
+	/** @type {[Ty.Event.StateOuter<Ty.Event.M_Room_Create>, Ty.Event.M_Power_Levels]} */
+	const [roomCreate, powerLevels] = await Promise.all([
+		api.getStateEventOuter(roomID, "m.room.create", ""),
+		api.getStateEvent(roomID, "m.room.power_levels", "")
+	])
+	const allCreators =
+		( roomHasAtLeastVersion(roomCreate.content.room_version, 12) ? (roomCreate.content.additional_creators ?? []).concat(roomCreate.sender)
+		: [])
+	const tombstone =
+		( roomHasAtLeastVersion(roomCreate.content.room_version, 12) ? powerLevels.events?.["m.room.tombstone"] ?? 150
+		: powerLevels.events?.["m.room.tombstone"] ?? powerLevels.state_default ?? 50)
+	/** @type {Record<T, number>} */ // @ts-ignore
+	const powers = {}
+	for (const mxid of mxids) {
+		powers[mxid] =
+			( roomHasAtLeastVersion(roomCreate.content.room_version, 12) && allCreators.includes(mxid) ? Infinity
+			: powerLevels.users?.[mxid]
+			?? powerLevels.users_default
+			?? 0)
+	}
+	return {powers, allCreators, tombstone, roomCreate, powerLevels}
+}
+
+module.exports.bot = bot
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
@@ -284,3 +310,4 @@ module.exports.getViaServers = getViaServers
 module.exports.getViaServersQuery = getViaServersQuery
 module.exports.roomHasAtLeastVersion = roomHasAtLeastVersion
 module.exports.removeCreatorsFromPowerLevels = removeCreatorsFromPowerLevels
+module.exports.getEffectivePower = getEffectivePower
