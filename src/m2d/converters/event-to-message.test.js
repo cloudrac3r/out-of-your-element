@@ -1,6 +1,7 @@
 const assert = require("assert").strict
 const fs = require("fs")
 const {test} = require("supertape")
+const DiscordTypes = require("discord-api-types/v10")
 const {eventToMessage} = require("./event-to-message")
 const {convertImageStream} = require("./emoji-sheet")
 const data = require("../../../test/data")
@@ -293,6 +294,140 @@ test("event2message: markdown in link text does not attempt to be escaped becaus
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "hey [@mario sports mix [she/her]](<https://matrix.to/#/%40cadence%3Acadence.moe>), is it possible to listen on a unix socket?",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: links are escaped if the guild does not have embed links permission (formatted body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "posting one of my favourite songs recently (starts at timestamp) https://youtu.be/RhV2X7WQMPA?t=364",
+				format: "org.matrix.custom.html",
+				formatted_body: `posting one of my favourite songs recently (starts at timestamp) <a href="https://youtu.be/RhV2X7WQMPA?t=364">https://youtu.be/RhV2X7WQMPA?t=364</a>`,
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+		}, {
+			id: "123",
+			roles: [{
+				id: "123",
+				name: "@everyone",
+				permissions: DiscordTypes.PermissionFlagsBits.SendMessages
+			}]
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: links are escaped if the guild does not have embed links permission (plaintext body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "posting one of my favourite songs recently (starts at timestamp) https://youtu.be/RhV2X7WQMPA?t=364",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+		}, {
+			id: "123",
+			roles: [{
+				id: "123",
+				name: "@everyone",
+				permissions: DiscordTypes.PermissionFlagsBits.SendMessages
+			}]
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: links retain angle brackets (formatted body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				format: "org.matrix.custom.html",
+				formatted_body: `posting one of my favourite songs recently (starts at timestamp) <a href="https://youtu.be/RhV2X7WQMPA?t=364">https://youtu.be/RhV2X7WQMPA?t=364</a>`,
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: links retain angle brackets (plaintext body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
 				avatar_url: undefined,
 				allowed_mentions: {
 					parse: ["users", "roles"]

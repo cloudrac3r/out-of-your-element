@@ -136,10 +136,11 @@ turndownService.addRule("inlineLink", {
 		if (node.getAttribute("data-message-id")) return `https://discord.com/channels/${node.getAttribute("data-guild-id")}/${node.getAttribute("data-channel-id")}/${node.getAttribute("data-message-id")}`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
+		const suppressedHref = node.hasAttribute("data-suppress") ? "<" + href + ">" : href
 		content = content.replace(/ @.*/, "")
-		if (href === content) return href
+		if (href === content) return suppressedHref
 		if (decodeURIComponent(href).startsWith("https://matrix.to/#/@") && content[0] !== "@") content = "@" + content
-		return "[" + content + "](" + href + ")"
+		return "[" + content + "](" + suppressedHref + ")"
 	}
 })
 
@@ -860,6 +861,21 @@ async function eventToMessage(event, guild, di) {
 								pendingFiles.push({name: filename, buffer: Buffer.from(content, "utf8")})
 							}
 						}
+						// Suppress link embeds
+						if (node.nodeType === 1 && node.tagName === "A") {
+							// Suppress if sender tried to add angle brackets
+							const inBody = event.content.body.indexOf(node.getAttribute("href"))
+							let shouldSuppress = inBody !== -1 && event.content.body[inBody-1] === "<"
+							if (!shouldSuppress && guild?.roles) {
+								// Suppress if regular users don't have permission
+								const permissions = dUtils.getPermissions([], guild.roles)
+								const canEmbedLinks = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.EmbedLinks)
+								shouldSuppress = !canEmbedLinks
+							}
+							if (shouldSuppress) {
+								node.setAttribute("data-suppress", "")
+							}
+						}
 						await forEachNode(node.firstChild)
 					}
 				}
@@ -901,7 +917,29 @@ async function eventToMessage(event, guild, di) {
 				}
 
 				content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
-				content = content.replace(/\bhttps?:\/\/matrix\.to\/[^<>\n )]*/, "<$&>") // Put < > around any surviving matrix.to links to hide the URL previews
+
+				let offset = 0
+				for (const match of [...content.matchAll(/\bhttps?:\/\/[^ )>]*/g)]) {
+					assert(typeof match.index === "number")
+
+					// Respect sender's angle brackets
+					const alreadySuppressed = content[match.index-1+offset] === "<" && content[match.index+match.length+offset] === ">"
+					console.error(content, match.index-1+offset, content[match.index-1+offset])
+					if (alreadySuppressed) continue
+					// Put < > around any surviving matrix.to links
+					let shouldSuppress = !!match[0].match(/^https?:\/\/matrix\.to\//)
+					if (!shouldSuppress && guild?.roles) {
+						// Suppress if regular users don't have permission
+						const permissions = dUtils.getPermissions([], guild.roles)
+						const canEmbedLinks = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.EmbedLinks)
+						shouldSuppress = !canEmbedLinks
+					}
+
+					if (shouldSuppress) {
+						content = content.slice(0, match.index + offset) + "<" + match[0] + ">" + content.slice(match.index + match[0].length + offset)
+						offset += 2
+					}
+				}
 
 				const result = await checkWrittenMentions(content, event.sender, event.room_id, guild, di)
 				if (result) {
