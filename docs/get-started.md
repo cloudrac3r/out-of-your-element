@@ -106,3 +106,9 @@ bridge.cadence.moe {
 	reverse_proxy 127.0.0.1:6693
 }
 ```
+
+## Example reverse proxy for traefik
+
+Note: Out Of Your Element has no official Docker support. This guide is for using traefik when OOYE is ***not*** in a container.
+
+See [third-party/reverse-proxy-traefik.md](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/third-party/reverse-proxy-traefik.md)
