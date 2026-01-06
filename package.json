@@ -33,7 +33,7 @@
     "better-sqlite3": "^12.2.0",
     "chunk-text": "^2.0.1",
     "cloudstorm": "^0.14.0",
-    "discord-api-types": "^0.38.31",
+    "discord-api-types": "^0.38.36",
     "domino": "^2.1.6",
     "enquirer": "^2.4.1",
     "entities": "^5.0.0",

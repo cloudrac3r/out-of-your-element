@@ -10,6 +10,8 @@ const {discord, db, as, sync, select, from} = require("../../passthrough")
 const auth = sync.require("../auth")
 /** @type {import("../../matrix/mreq")} */
 const mreq = sync.require("../../matrix/mreq")
+/** @type {import("../../m2d/converters/utils")}*/
+const utils = sync.require("../../m2d/converters/utils")
 const {reg} = require("../../matrix/read-registration")
 
 /**
@@ -87,18 +89,11 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	}
 
 	// Check bridge has PL 100
-	const me = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-	/** @type {Ty.Event.M_Power_Levels?} */
-	let powerLevelsStateContent = null
-	try {
-		powerLevelsStateContent = await api.getStateEvent(spaceID, "m.room.power_levels", "")
-	} catch (e) {}
-	const selfPowerLevel = powerLevelsStateContent?.users?.[me] ?? powerLevelsStateContent?.users_default ?? 0
-	if (selfPowerLevel < (powerLevelsStateContent?.state_default ?? 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix space"})
+	const {powerLevels, powers: {[utils.bot]: selfPowerLevel, [session.data.mxid]: invitingPowerLevel}} = await utils.getEffectivePower(spaceID, [utils.bot, session.data.mxid], api)
+	if (selfPowerLevel < (powerLevels?.state_default ?? 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix space"})
 
 	// Check inviting user is a moderator in the space
-	const invitingPowerLevel = powerLevelsStateContent?.users?.[session.data.mxid] ?? powerLevelsStateContent?.users_default ?? 0
-	if (invitingPowerLevel < (powerLevelsStateContent?.state_default ?? 50)) throw createError({status: 403, message: "Forbidden", data: `You need to be at least power level 50 (moderator) in the target Matrix space to set up OOYE, but you are currently power level ${invitingPowerLevel}.`})
+	if (invitingPowerLevel < (powerLevels?.state_default ?? 50)) throw createError({status: 403, message: "Forbidden", data: `You need to be at least power level 50 (moderator) in the target Matrix space to set up OOYE, but you are currently power level ${invitingPowerLevel}.`})
 
 	// Insert database entry
 	db.transaction(() => {
@@ -169,14 +164,8 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	}
 
 	// Check bridge has PL 100
-	const me = `@${reg.sender_localpart}:${reg.ooye.server_name}`
-	/** @type {Ty.Event.M_Power_Levels?} */
-	let powerLevelsStateContent = null
-	try {
-		powerLevelsStateContent = await api.getStateEvent(parsedBody.matrix, "m.room.power_levels", "")
-	} catch (e) {}
-	const selfPowerLevel = powerLevelsStateContent?.users?.[me] ?? powerLevelsStateContent?.users_default ?? 0
-	if (selfPowerLevel < (powerLevelsStateContent?.state_default ?? 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
+	const {powerLevels, powers: {[utils.bot]: selfPowerLevel}} = await utils.getEffectivePower(parsedBody.matrix, [utils.bot], api)
+	if (selfPowerLevel < (powerLevels?.state_default ?? 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
 
 	// Insert database entry, but keep the room's existing properties if they are set
 	const nick = await api.getStateEvent(parsedBody.matrix, "m.room.name", "").then(content => content.name || null).catch(() => null)

@@ -26,6 +26,8 @@ const utils = sync.require("./converters/utils")
 const api = sync.require("../matrix/api")
 /** @type {import("../d2m/actions/create-room")} */
 const createRoom = sync.require("../d2m/actions/create-room")
+/** @type {import("../matrix/room-upgrade")} */
+const roomUpgrade = require("../matrix/room-upgrade")
 const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
@@ -171,9 +173,8 @@ async function onRetryReactionAdd(reactionEvent) {
 		// To stop people injecting misleading messages, the reaction needs to come from either the original sender or a room moderator
 		if (reactionEvent.sender !== event.sender) {
 			// Check if it's a room moderator
-			const powerLevelsStateContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
-			const powerLevel = powerLevelsStateContent.users?.[reactionEvent.sender] || 0
-			if (powerLevel < 50) return
+			const {powers: {[reactionEvent.sender]: senderPower}, powerLevels} = await utils.getEffectivePower(roomID, [reactionEvent.sender], api)
+			if (senderPower < (powerLevels.state_default ?? 50)) return
 		}
 
 		// Retry
@@ -330,6 +331,11 @@ async event => {
 	if (event.state_key[0] !== "@") return
 	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
+	if (event.state_key === bot) {
+		const upgraded = await roomUpgrade.onBotMembership(event)
+		if (upgraded) return
+	}
+
 	if (event.content.membership === "invite" && event.state_key === bot) {
 		// We were invited to a room. We should join, and register the invite details for future reference in web.
 		let attemptedApiMessage = "According to unsigned invite data."
@@ -342,10 +348,10 @@ async event => {
 				attemptedApiMessage = "According to unsigned invite data. SSS API unavailable: " + e.toString()
 			}
 		}
-		const name = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.name", "name")
-		const topic = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.topic", "topic")
-		const avatar = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.avatar", "url")
-		const creationType = getFromInviteRoomState(event.unsigned?.invite_room_state, "m.room.create", "type")
+		const name = getFromInviteRoomState(inviteRoomState, "m.room.name", "name")
+		const topic = getFromInviteRoomState(inviteRoomState, "m.room.topic", "topic")
+		const avatar = getFromInviteRoomState(inviteRoomState, "m.room.avatar", "url")
+		const creationType = getFromInviteRoomState(inviteRoomState, "m.room.create", "type")
 		if (!name) return await api.leaveRoomWithReason(event.room_id, `Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite! (${attemptedApiMessage})`)
 		await api.joinRoom(event.room_id)
 		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, creationType, name, topic, avatar)
@@ -368,18 +374,14 @@ async event => {
 	if (!exists) return // don't cache members in unbridged rooms
 
 	// Member is here
-	let powerLevel = 0
-	try {
-		/** @type {Ty.Event.M_Power_Levels} */
-		const powerLevelsEvent = await api.getStateEvent(event.room_id, "m.room.power_levels", "")
-		powerLevel = powerLevelsEvent.users?.[event.state_key] ?? powerLevelsEvent.users_default ?? 0
-	} catch (e) {}
+	let {powers: {[event.state_key]: memberPower}, tombstone} = await utils.getEffectivePower(event.room_id, [event.state_key], api)
+	if (memberPower === Infinity) memberPower = tombstone // database storage compatibility
 	const displayname = event.content.displayname || null
 	const avatar_url = event.content.avatar_url
 	db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?, power_level = ?").run(
 		event.room_id, event.state_key,
-		displayname, avatar_url, powerLevel,
-		displayname, avatar_url, powerLevel
+		displayname, avatar_url, memberPower,
+		displayname, avatar_url, memberPower
 	)
 }))
 
@@ -390,10 +392,21 @@ sync.addTemporaryListener(as, "type:m.room.power_levels", guard("m.room.power_le
 async event => {
 	if (event.state_key !== "") return
 	const existingPower = select("member_cache", "mxid", {room_id: event.room_id}).pluck().all()
+	const {allCreators} = await utils.getEffectivePower(event.room_id, [], api)
 	const newPower = event.content.users || {}
 	for (const mxid of existingPower) {
-		db.prepare("UPDATE member_cache SET power_level = ? WHERE room_id = ? AND mxid = ?").run(newPower[mxid] || 0, event.room_id, mxid)
+		if (!allCreators.includes(mxid)) {
+			db.prepare("UPDATE member_cache SET power_level = ? WHERE room_id = ? AND mxid = ?").run(newPower[mxid] || 0, event.room_id, mxid)
+		}
 	}
+}))
+
+sync.addTemporaryListener(as, "type:m.room.tombstone", guard("m.room.tombstone",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Tombstone>} event
+ */
+async event => {
+	await roomUpgrade.onTombstone(event)
 }))
 
 module.exports.stringifyErrorStack = stringifyErrorStack

@@ -3,7 +3,7 @@
 const e = new Error("Custom error")
 
 const {test} = require("supertape")
-const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers} = require("./utils")
+const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers, roomHasAtLeastVersion} = require("./utils")
 const util = require("util")
 
 /** @param {string[]} mxids */
@@ -88,9 +88,42 @@ test("MatrixStringBuilder: complete code coverage", t => {
 	})
 })
 
+/**
+ * @param {string[]} [creators]
+ * @param {{[x: string]: number}} [users]
+ * @param {string} [roomVersion]
+ */
+function mockGetEffectivePower(creators = ["@_ooye_bot:cadence.moe"], users = {}, roomVersion = "12") {
+	return async function getEffectivePower(roomID, mxids) {
+		return {
+			allCreators: creators,
+			powerLevels: {users},
+			powers: mxids.reduce((a, mxid) => {
+				if (creators.includes(mxid) && roomHasAtLeastVersion(roomVersion, 12)) a[mxid] = Infinity
+				else if (mxid in users) a[mxid] = users[mxid]
+				else a[mxid] = 0
+				return a
+			}, {}),
+			roomCreate: {
+				type: "m.room.create",
+				state_key: "",
+				sender: creators[0],
+				content: {
+					additional_creators: creators.slice(1),
+					room_version: roomVersion
+				},
+				room_id: roomID,
+				origin_server_ts: 0,
+				event_id: "$create"
+			},
+			tombstone: roomVersion === "12" ? 150 : 100,
+		}
+	}
+}
+
 test("getViaServers: returns the server name if the room only has sim users", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({}),
+		getEffectivePower: mockGetEffectivePower(),
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe"])
 	})
 	t.deepEqual(result, ["cadence.moe"])
@@ -98,7 +131,7 @@ test("getViaServers: returns the server name if the room only has sim users", as
 
 test("getViaServers: also returns the most popular servers in order", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({}),
+		getEffectivePower: mockGetEffectivePower(),
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid"])
 	})
 	t.deepEqual(result, ["cadence.moe", "thecollective.invalid", "selfhosted.invalid"])
@@ -106,20 +139,27 @@ test("getViaServers: also returns the most popular servers in order", async t =>
 
 test("getViaServers: does not return IP address servers", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({}),
+		getEffectivePower: mockGetEffectivePower(),
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:45.77.232.172:8443", "@cadence:[::1]:8443", "@cadence:123example.456example.invalid"])
 	})
 	t.deepEqual(result, ["cadence.moe", "123example.456example.invalid"])
 })
 
+test("getViaServers: also returns the highest power level user (v12 creator)", async t => {
+	const result = await getViaServers("!baby", {
+		getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe", "@singleuser:selfhosted.invalid"], {
+			"@moderator:tractor.invalid": 50
+		}),
+		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@moderator:tractor.invalid"])
+	})
+	t.deepEqual(result, ["cadence.moe", "selfhosted.invalid", "thecollective.invalid", "tractor.invalid"])
+})
+
 test("getViaServers: also returns the highest power level user (100)", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({
-			users: {
-				"@moderator:tractor.invalid": 50,
-				"@singleuser:selfhosted.invalid": 100,
-				"@_ooye_bot:cadence.moe": 100
-			}
+		getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe"], {
+			"@moderator:tractor.invalid": 50,
+			"@singleuser:selfhosted.invalid": 100
 		}),
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@moderator:tractor.invalid"])
 	})
@@ -128,11 +168,8 @@ test("getViaServers: also returns the highest power level user (100)", async t =
 
 test("getViaServers: also returns the highest power level user (50)", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({
-			users: {
-				"@moderator:tractor.invalid": 50,
-				"@_ooye_bot:cadence.moe": 100
-			}
+		getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe"], {
+			"@moderator:tractor.invalid": 50
 		}),
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@singleuser:selfhosted.invalid"])
 	})
@@ -141,23 +178,10 @@ test("getViaServers: also returns the highest power level user (50)", async t =>
 
 test("getViaServers: returns at most 4 results", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({
-			users: {
-				"@moderator:tractor.invalid": 50,
-				"@singleuser:selfhosted.invalid": 100,
-				"@_ooye_bot:cadence.moe": 100
-			}
+		getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe"], {
+			"@moderator:tractor.invalid": 50,
+			"@singleuser:selfhosted.invalid": 100
 		}),
-		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@cadence:123example.456example.invalid"])
-	})
-	t.deepEqual(result.length, 4)
-})
-
-test("getViaServers: returns results even when power levels can't be fetched", async t => {
-	const result = await getViaServers("!baby", {
-		getStateEvent: async () => {
-			throw new Error("event not found or something")
-		},
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@singleuser:selfhosted.invalid", "@hazel:thecollective.invalid", "@cadence:123example.456example.invalid"])
 	})
 	t.deepEqual(result.length, 4)
@@ -165,14 +189,12 @@ test("getViaServers: returns results even when power levels can't be fetched", a
 
 test("getViaServers: only considers power levels of currently joined members", async t => {
 	const result = await getViaServers("!baby", {
-		getStateEvent: async () => ({
-			users: {
-				"@moderator:tractor.invalid": 50,
-				"@former_moderator:missing.invalid": 100,
-				"@_ooye_bot:cadence.moe": 100
-			}
+		getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe", "@former_moderator:missing.invalid"], {
+			"@moderator:tractor.invalid": 50
 		}),
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@singleuser:selfhosted.invalid"])
 	})
 	t.deepEqual(result, ["cadence.moe", "tractor.invalid", "thecollective.invalid", "selfhosted.invalid"])
 })
+
+module.exports.mockGetEffectivePower = mockGetEffectivePower

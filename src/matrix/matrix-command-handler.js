@@ -123,12 +123,9 @@ const commands = [{
 			}
 			if (matrixOnlyReason) {
 				// If uploading to Matrix, check if we have permission
-				const state = await api.getAllState(event.room_id)
-				const kstate = ks.stateToKState(state)
-				const powerLevels = kstate["m.room.power_levels/"]
-				const required = powerLevels.events["im.ponies.room_emotes"] ?? powerLevels.state_default ?? 50
-				const have = powerLevels.users[`@${reg.sender_localpart}:${reg.ooye.server_name}`] ?? powerLevels.users_default ?? 0
-				if (have < required) {
+				const {powerLevels, powers: {[mxUtils.bot]: botPower}} = await mxUtils.getEffectivePower(event.room_id, [mxUtils.bot], api)
+				const requiredPower = powerLevels.events["im.ponies.room_emotes"] ?? powerLevels.state_default ?? 50
+				if (botPower < requiredPower) {
 					return api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
 						msgtype: "m.text",

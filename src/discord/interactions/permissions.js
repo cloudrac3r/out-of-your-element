@@ -9,13 +9,15 @@ const {InteractionMethods} = require("snowtransfer")
 
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../m2d/converters/utils")} */
+const utils = sync.require("../../m2d/converters/utils")
 
 /**
  * @param {DiscordTypes.APIContextMenuGuildInteraction} interaction
- * @param {{api: typeof api}} di
+ * @param {{api: typeof api, utils: typeof utils}} di
  * @returns {AsyncGenerator<{[k in keyof InteractionMethods]?: Parameters<InteractionMethods[k]>[2]}>}
  */
-async function* _interact({data, guild_id}, {api}) {
+async function* _interact({data, guild_id}, {api, utils}) {
 	// Get message info
 	const row = from("event_message")
 		.join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
@@ -45,12 +47,10 @@ async function* _interact({data, guild_id}, {api}) {
 	assert(spaceID)
 
 	// Get the power level
-	/** @type {Ty.Event.M_Power_Levels} */
-	const powerLevelsContent = await api.getStateEvent(spaceID, "m.room.power_levels", "")
-	const userPower = powerLevelsContent.users?.[event.sender] || 0
+	const {powers: {[event.sender]: userPower, [utils.bot]: botPower}} = await utils.getEffectivePower(spaceID, [event.sender, utils.bot], api)
 
-	// Administrators equal to the bot cannot be demoted
-	if (userPower >= 100) {
+	// Administrators/founders equal to the bot cannot be demoted
+	if (userPower >= botPower) {
 		return yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
@@ -59,6 +59,8 @@ async function* _interact({data, guild_id}, {api}) {
 			}
 		}}
 	}
+
+	const adminLabel = botPower === 100 ? "Admin (you cannot undo this!)" : "Admin"
 
 	yield {createInteractionResponse: {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
@@ -82,9 +84,9 @@ async function* _interact({data, guild_id}, {api}) {
 									value: "moderator",
 									default: userPower >= 50 && userPower < 100
 								}, {
-									label: "Admin (you cannot undo this!)",
+									label: adminLabel,
 									value: "admin",
-									default: userPower === 100
+									default: userPower >= 100
 								}
 							]
 						}
@@ -138,7 +140,7 @@ async function* _interactEdit({data, guild_id, message}, {api}) {
 
 /** @param {DiscordTypes.APIContextMenuGuildInteraction} interaction */
 async function interact(interaction) {
-	for await (const response of _interact(interaction, {api})) {
+	for await (const response of _interact(interaction, {api, utils})) {
 		if (response.createInteractionResponse) {
 			// TODO: Test if it is reasonable to remove `await` from these calls. Or zip these calls with the next interaction iteration and use Promise.all.
 			await discord.snow.interaction.createInteractionResponse(interaction.id, interaction.token, response.createInteractionResponse)

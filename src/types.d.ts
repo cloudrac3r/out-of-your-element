@@ -143,21 +143,6 @@ export namespace Event {
 		}
 	}
 
-	export type BaseStateEvent = {
-		type: string
-		room_id: string
-		sender: string
-		content: any
-		state_key: string
-		origin_server_ts: number
-		unsigned?: any
-		event_id: string
-		user_id: string
-		age: number
-		replaces_state: string
-		prev_content?: any
-	}
-
 	export type StrippedChildStateEvent = {
 		type: string
 		state_key: string

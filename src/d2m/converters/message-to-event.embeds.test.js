@@ -1,6 +1,7 @@
 const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
 const data = require("../../../test/data")
+const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
 const {db} = require("../../passthrough")
 
 test("message2event embeds: nothing but a field", async t => {
@@ -86,17 +87,7 @@ test("message2event embeds: blockquote in embed", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message_with_embeds.blockquote_in_embed, data.guild.general, {}, {
 		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) {
 				called++
 				t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")
@@ -124,7 +115,7 @@ test("message2event embeds: blockquote in embed", async t => {
 		formatted_body: "<blockquote><p><strong><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&amp;via=example.invalid\">⏺️ minimus</a></strong></p><p>reply draft<br><blockquote>The following is a message composed via consensus of the Stinker Council.<br><br>For those who are not currently aware of our existence, we represent the organization known as Wonderland. Our previous mission centered around the assortment and study of puzzling objects, entities and other assorted phenomena. This mission was the focus of our organization for more than 28 years.<br><br>Due to circumstances outside of our control, this directive has now changed. Our new mission will be the extermination of the stinker race.<br><br>There will be no further communication.</blockquote></p><p><a href=\"https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$dVCLyj6kxb3DaAWDtjcv2kdSny8JMMHdDhCMz8mDxVo?via=cadence.moe&amp;via=example.invalid\">Go to Message</a></p></blockquote>",
 		"m.mentions": {}
 	}])
-	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
+	t.equal(called, 1, "should call getJoinedMembers once")
 })
 
 test("message2event embeds: crazy html is all escaped", async t => {
@@ -343,16 +334,7 @@ test("message2event embeds: tenor gif should show a video link without a provide
 test("message2event embeds: if discord creates an embed preview for a discord channel link, don't copy that embed", async t => {
 	const events = await messageToEvent(data.message_with_embeds.discord_server_included_punctuation_bad_discord, data.guild.general, {}, {
 		api: {
-			async getStateEvent(roomID, type, key) {
-				t.equal(roomID, "!TqlyQmifxGUggEmdBN:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) {
 				t.equal(roomID, "!TqlyQmifxGUggEmdBN:cadence.moe")
 				return {

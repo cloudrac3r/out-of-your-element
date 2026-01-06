@@ -103,6 +103,11 @@ export type Models = {
 		historical_room_index: number
 	}
 
+	room_upgrade_pending: {
+		new_room_id: string
+		old_room_id: string
+	}
+
 	sim: {
 		user_id: string
 		username: string

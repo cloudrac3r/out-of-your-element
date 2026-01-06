@@ -2,6 +2,7 @@ const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
 const {MatrixServerError} = require("../../matrix/mreq")
 const data = require("../../../test/data")
+const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
 const Ty = require("../../types")
 
 /**
@@ -66,17 +67,7 @@ test("message2event: simple room mention", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.simple_room_mention, data.guild.general, {}, {
 		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!BnKuBPCvyfOkhcUjEu:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) {
 				called++
 				t.equal(roomID, "!BnKuBPCvyfOkhcUjEu:cadence.moe")
@@ -97,24 +88,14 @@ test("message2event: simple room mention", async t => {
 		format: "org.matrix.custom.html",
 		formatted_body: '<a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe?via=cadence.moe&via=matrix.org">#worm-farm</a>'
 	}])
-	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
+	t.equal(called, 1, "should call getJoinedMembers")
 })
 
 test("message2event: simple room link", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.simple_room_link, data.guild.general, {}, {
 		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!BnKuBPCvyfOkhcUjEu:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) {
 				called++
 				t.equal(roomID, "!BnKuBPCvyfOkhcUjEu:cadence.moe")
@@ -135,24 +116,14 @@ test("message2event: simple room link", async t => {
 		format: "org.matrix.custom.html",
 		formatted_body: '<a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe?via=cadence.moe&via=matrix.org">#worm-farm</a>'
 	}])
-	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
+	t.equal(called, 1, "should call getJoinedMembers once")
 })
 
 test("message2event: nicked room mention", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.nicked_room_mention, data.guild.general, {}, {
 		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) {
 				called++
 				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
@@ -173,7 +144,7 @@ test("message2event: nicked room mention", async t => {
 		format: "org.matrix.custom.html",
 		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&via=matrix.org">#main</a>'
 	}])
-	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
+	t.equal(called, 1, "should call getJoinedMembers once")
 })
 
 test("message2event: unknown room mention", async t => {
@@ -224,17 +195,7 @@ test("message2event: simple message link", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {}, {
 		api: {
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) {
 				called++
 				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
@@ -255,30 +216,20 @@ test("message2event: simple message link", async t => {
 		format: "org.matrix.custom.html",
 		formatted_body: '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg?via=cadence.moe&amp;via=super.invalid">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$X16nfVks1wsrhq4E9SSLiqrf2N8KD0erD0scZG7U5xg?via=cadence.moe&amp;via=super.invalid</a>'
 	}])
-	t.equal(called, 2, "should call getStateEvent and getJoinedMembers once each")
+	t.equal(called, 1, "should call getJoinedMembers once")
 })
 
 test("message2event: message link that OOYE doesn't know about", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.message_link_to_before_ooye, data.guild.general, {}, {
 		api: {
+			getEffectivePower: mockGetEffectivePower(),
 			async getEventForTimestamp(roomID, ts) {
 				called++
 				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
 				return {
 					event_id: "$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U",
 					origin_server_ts: 1613287812754
-				}
-			},
-			async getStateEvent(roomID, type, key) { // for ?via calculation
-				called++
-				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
 				}
 			},
 			async getJoinedMembers(roomID) { // for ?via calculation
@@ -303,7 +254,7 @@ test("message2event: message link that OOYE doesn't know about", async t => {
 		formatted_body: "Me: I'll scroll up to find a certain message I'll send<br><em>scrolls up and clicks message links for god knows how long</em><br><em>completely forgets what they were looking for and simply begins scrolling up to find some fun moments</em><br><em>stumbles upon:</em> "
 			+ '<a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$E8IQDGFqYzOU7BwY5Z74Bg-cwaU9OthXSroaWtgYc7U?via=cadence.moe&amp;via=matrix.org</a>'
 	}])
-	t.equal(called, 3, "getEventForTimestamp, getStateEvent, and getJoinedMembers should be called once each")
+	t.equal(called, 2, "getEventForTimestamp and getJoinedMembers should be called once each")
 })
 
 test("message2event: message timestamp failed to fetch", async t => {
@@ -318,17 +269,7 @@ test("message2event: message timestamp failed to fetch", async t => {
 					error: "Unable to find event from 1726762095974 in direction Direction.FORWARDS"
 				}, {})
 			},
-			async getStateEvent(roomID, type, key) { // for ?via calculation
-				called++
-				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@_ooye_bot:cadence.moe": 100
-					}
-				}
-			},
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers(roomID) { // for ?via calculation
 				called++
 				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
@@ -351,7 +292,7 @@ test("message2event: message timestamp failed to fetch", async t => {
 		formatted_body: "Me: I'll scroll up to find a certain message I'll send<br><em>scrolls up and clicks message links for god knows how long</em><br><em>completely forgets what they were looking for and simply begins scrolling up to find some fun moments</em><br><em>stumbles upon:</em> "
 			+ '[unknown event, timestamp resolution failed, in room: <a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&amp;via=matrix.org</a>]'
 	}])
-	t.equal(called, 3, "getEventForTimestamp, getStateEvent, and getJoinedMembers should be called once each")
+	t.equal(called, 2, "getEventForTimestamp and getJoinedMembers should be called once each")
 })
 
 test("message2event: message link from another server", async t => {
@@ -1136,6 +1077,7 @@ test("message2event: forwarded image", async t => {
 test("message2event: constructed forwarded message", async t => {
 	const events = await messageToEvent(data.message.constructed_forwarded_message, {}, {}, {
 		api: {
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers() {
 				return {
 					joined: {
@@ -1194,6 +1136,7 @@ test("message2event: constructed forwarded message", async t => {
 test("message2event: constructed forwarded text", async t => {
 	const events = await messageToEvent(data.message.constructed_forwarded_text, {}, {}, {
 		api: {
+			getEffectivePower: mockGetEffectivePower(),
 			async getJoinedMembers() {
 				return {
 					joined: {
@@ -1331,6 +1274,7 @@ test("message2event: vc invite event renders embed", async t => {
 test("message2event: vc invite event renders embed with room link", async t => {
 	const events = await messageToEvent({content: "https://discord.gg/placeholder?event=1381174024801095751"}, {}, {}, {
 		api: {
+			getEffectivePower: mockGetEffectivePower(),
 			getJoinedMembers: async () => ({
 				joined: {
 					"@_ooye_bot:cadence.moe": {display_name: null, avatar_url: null},
@@ -1380,6 +1324,7 @@ test("message2event: channel links are converted even inside lists (parser post-
 		+ "\nThis list will probably change in the future"
 	}, data.guild.general, {}, {
 		api: {
+			getEffectivePower: mockGetEffectivePower(),
 			getJoinedMembers(roomID) {
 				called++
 				t.equal(roomID, "!qzDBLKlildpzrrOnFZ:cadence.moe")

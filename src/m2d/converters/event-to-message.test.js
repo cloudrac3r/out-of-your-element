@@ -4985,7 +4985,7 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
 		}, data.guild.general, {
 			api: {
-				getStateEvent(roomID, type, key) {
+				async getStateEvent(roomID, type, key) {
 					called++
 					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
 					t.equal(type, "m.room.power_levels")
@@ -4994,6 +4994,19 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 						users: {},
 						notifications: {
 							room: 0
+						}
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.create")
+					t.equal(key, "")
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						content: {
+							room_version: "11"
 						}
 					}
 				}
@@ -5016,7 +5029,6 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 })
 
 test("event2message: @room converts to @everyone but is not allowed when the room restricts who can use it", async t => {
-	let called = 0
 	t.deepEqual(
 		await eventToMessage({
 			type: "m.room.message",
@@ -5031,8 +5043,7 @@ test("event2message: @room converts to @everyone but is not allowed when the roo
 			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
 		}, data.guild.general, {
 			api: {
-				getStateEvent(roomID, type, key) {
-					called++
+				async getStateEvent(roomID, type, key) {
 					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
 					t.equal(type, "m.room.power_levels")
 					t.equal(key, "")
@@ -5040,6 +5051,19 @@ test("event2message: @room converts to @everyone but is not allowed when the roo
 						users: {},
 						notifications: {
 							room: 20
+						}
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.create")
+					t.equal(key, "")
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						content: {
+							room_version: "11"
 						}
 					}
 				}
@@ -5062,7 +5086,6 @@ test("event2message: @room converts to @everyone but is not allowed when the roo
 })
 
 test("event2message: @room converts to @everyone and is allowed if the user has sufficient power to use it", async t => {
-	let called = 0
 	t.deepEqual(
 		await eventToMessage({
 			type: "m.room.message",
@@ -5077,8 +5100,7 @@ test("event2message: @room converts to @everyone and is allowed if the user has 
 			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
 		}, data.guild.general, {
 			api: {
-				getStateEvent(roomID, type, key) {
-					called++
+				async getStateEvent(roomID, type, key) {
 					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
 					t.equal(type, "m.room.power_levels")
 					t.equal(key, "")
@@ -5088,6 +5110,19 @@ test("event2message: @room converts to @everyone and is allowed if the user has 
 						},
 						notifications: {
 							room: 20
+						}
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.create")
+					t.equal(key, "")
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						content: {
+							room_version: "11"
 						}
 					}
 				}

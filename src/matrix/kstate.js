@@ -69,7 +69,7 @@ function kstateToCreationContent(kstate) {
 }
 
 /**
- * @param {import("../types").Event.BaseStateEvent[]} events
+ * @param {import("../types").Event.StateOuter<any>[]} events
  * @returns {any}
  */
 function stateToKState(events) {

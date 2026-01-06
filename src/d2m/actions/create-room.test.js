@@ -9,19 +9,44 @@ const testData = require("../../../test/data")
 const passthrough = require("../../passthrough")
 const {db} = passthrough
 
+function mockAPI(t) {
+	let called = 0
+	return {
+		getCalled() {
+			return called
+		},
+		async getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
+			called++
+			t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
+			t.equal(type, "m.room.power_levels")
+			t.equal(key, "")
+			return {users: {"@example:matrix.org": 50}, events: {"m.room.tombstone": 100}}
+		},
+		async getStateEventOuter(roomID, type, key) {
+			called++
+			t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
+			t.equal(type, "m.room.create")
+			t.equal(key, "")
+			return {
+				type: "m.room.create",
+				state_key: "",
+				content: {
+					room_version: "11"
+				},
+				event_id: "$create",
+				origin_server_ts: 0,
+				room_id: "!jjmvBegULiLucuWEHU:cadence.moe",
+				sender: "@_ooye_bot:cadence.moe"
+			}
+		}
+	}
+}
 
 test("channel2room: discoverable privacy room", async t => {
-	let called = 0
-	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
-		called++
-		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-		t.equal(type, "m.room.power_levels")
-		t.equal(key, "")
-		return {users: {"@example:matrix.org": 50}}
-	}
+	const api = mockAPI(t)
 	db.prepare("UPDATE guild_space SET privacy_level = 2").run()
 	t.deepEqual(
-		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api}).then(x => x.channelKState)),
 		Object.assign({}, testData.room.general, {
 			"m.room.guest_access/": {guest_access: "forbidden"},
 			"m.room.join_rules/": {join_rule: "public"},
@@ -29,58 +54,37 @@ test("channel2room: discoverable privacy room", async t => {
 			"m.room.power_levels/": mixin({users: {"@example:matrix.org": 50}}, testData.room.general["m.room.power_levels/"])
 		})
 	)
-	t.equal(called, 1)
+	t.equal(api.getCalled(), 2)
 })
 
 test("channel2room: linkable privacy room", async t => {
-	let called = 0
-	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
-		called++
-		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-		t.equal(type, "m.room.power_levels")
-		t.equal(key, "")
-		return {users: {"@example:matrix.org": 50}}
-	}
+	const api = mockAPI(t)
 	db.prepare("UPDATE guild_space SET privacy_level = 1").run()
 	t.deepEqual(
-		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api}).then(x => x.channelKState)),
 		Object.assign({}, testData.room.general, {
 			"m.room.guest_access/": {guest_access: "forbidden"},
 			"m.room.join_rules/": {join_rule: "public"},
 			"m.room.power_levels/": mixin({users: {"@example:matrix.org": 50}}, testData.room.general["m.room.power_levels/"])
 		})
 	)
-	t.equal(called, 1)
+	t.equal(api.getCalled(), 2)
 })
 
 test("channel2room: invite-only privacy room", async t => {
-	let called = 0
-	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
-		called++
-		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-		t.equal(type, "m.room.power_levels")
-		t.equal(key, "")
-		return {users: {"@example:matrix.org": 50}}
-	}
+	const api = mockAPI(t)
 	db.prepare("UPDATE guild_space SET privacy_level = 0").run()
 	t.deepEqual(
-		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api}).then(x => x.channelKState)),
 		Object.assign({}, testData.room.general, {
 			"m.room.power_levels/": mixin({users: {"@example:matrix.org": 50}}, testData.room.general["m.room.power_levels/"])
 		})
 	)
-	t.equal(called, 1)
+	t.equal(api.getCalled(), 2)
 })
 
 test("channel2room: room where limited people can mention everyone", async t => {
-	let called = 0
-	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
-		called++
-		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-		t.equal(type, "m.room.power_levels")
-		t.equal(key, "")
-		return {users: {"@example:matrix.org": 50}}
-	}
+	const api = mockAPI(t)
 	const limitedGuild = mixin({}, testData.guild.general)
 	limitedGuild.roles[0].permissions = (BigInt(limitedGuild.roles[0].permissions) - 131072n).toString()
 	const limitedRoom = mixin({}, testData.room.general, {"m.room.power_levels/": {
@@ -88,41 +92,27 @@ test("channel2room: room where limited people can mention everyone", async t => 
 		users: {"@example:matrix.org": 50}
 	}})
 	t.deepEqual(
-		kstateStripConditionals(await channelToKState(testData.channel.general, limitedGuild, {api: {getStateEvent}}).then(x => x.channelKState)),
+		kstateStripConditionals(await channelToKState(testData.channel.general, limitedGuild, {api}).then(x => x.channelKState)),
 		limitedRoom
 	)
-	t.equal(called, 1)
+	t.equal(api.getCalled(), 2)
 })
 
 test("channel2room: matrix room that already has a custom topic set", async t => {
-	let called = 0
-	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
-		called++
-		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-		t.equal(type, "m.room.power_levels")
-		t.equal(key, "")
-		return {}
-	}
+	const api = mockAPI(t)
 	db.prepare("UPDATE channel_room SET custom_topic = 1 WHERE channel_id = ?").run(testData.channel.general.id)
-	const expected = mixin({}, testData.room.general, {"m.room.power_levels/": {notifications: {room: 20}}})
+	const expected = mixin({}, testData.room.general, {"m.room.power_levels/": {notifications: {room: 20}, users: {"@example:matrix.org": 50}}})
 	// @ts-ignore
 	delete expected["m.room.topic/"]
 	t.deepEqual(
-		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		kstateStripConditionals(await channelToKState(testData.channel.general, testData.guild.general, {api}).then(x => x.channelKState)),
 		expected
 	)
-	t.equal(called, 1)
+	t.equal(api.getCalled(), 2)
 })
 
 test("channel2room: read-only discord channel", async t => {
-	let called = 0
-	async function getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
-		called++
-		t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-		t.equal(type, "m.room.power_levels")
-		t.equal(key, "")
-		return {}
-	}
+	const api = mockAPI(t)
 	const expected = {
 		"m.room.create/": {
 			additional_creators: ["@test_auto_invite:example.org"],
@@ -164,6 +154,7 @@ test("channel2room: read-only discord channel", async t => {
 			},
 			users: {
 				"@test_auto_invite:example.org": 150,
+				"@example:matrix.org": 50
 			},
 		},
 		"m.space.parent/!jjmvBegULiLucuWEHU:cadence.moe": {
@@ -193,10 +184,10 @@ test("channel2room: read-only discord channel", async t => {
 		}
 	}
 	t.deepEqual(
-		kstateStripConditionals(await channelToKState(testData.channel.updates, testData.guild.general, {api: {getStateEvent}}).then(x => x.channelKState)),
+		kstateStripConditionals(await channelToKState(testData.channel.updates, testData.guild.general, {api}).then(x => x.channelKState)),
 		expected
 	)
-	t.equal(called, 1)
+	t.equal(api.getCalled(), 2)
 })
 
 test("convertNameAndTopic: custom name and topic", t => {

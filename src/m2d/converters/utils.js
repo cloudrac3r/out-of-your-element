@@ -129,7 +129,7 @@ class MatrixStringBuilder {
  * https://spec.matrix.org/v1.9/appendices/#routing
  * https://gitdab.com/cadence/out-of-your-element/issues/11
  * @param {string} roomID
- * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("../../matrix/api")[K]} | {getEffectivePower: (roomID: string, mxids: string[], api: any) => Promise<{powers: Record<string, number>, allCreators: string[], tombstone: number, roomCreate: Ty.Event.StateOuter<Ty.Event.M_Room_Create>, powerLevels: Ty.Event.M_Power_Levels}>, getJoinedMembers: import("../../matrix/api")["getJoinedMembers"]}} api
  */
 async function getViaServers(roomID, api) {
 	const candidates = []
@@ -138,10 +138,10 @@ async function getViaServers(roomID, api) {
 	candidates.push(reg.ooye.server_name)
 	// Candidate 1: Highest joined non-sim non-bot power level user in the room
 	// https://github.com/matrix-org/matrix-react-sdk/blob/552c65db98b59406fb49562e537a2721c8505517/src/utils/permalinks/Permalinks.ts#L172
-	const {allCreators, powerLevels} = await getEffectivePower(roomID, [bot], api)
+	const call = "getEffectivePower" in api ? api.getEffectivePower(roomID, [bot], api) : getEffectivePower(roomID, [bot], api)
+	const {allCreators, powerLevels} = await call
 	const sorted = allCreators.concat(Object.entries(powerLevels.users ?? {}).sort((a, b) => b[1] - a[1]).map(([mxid]) => mxid)) // Highest...
-	for (const power of sorted) {
-		const mxid = power[0]
+	for (const mxid of sorted) {
 		if (!(mxid in joined)) continue // joined...
 		if (userRegex.some(r => mxid.match(r))) continue // non-sim non-bot...
 		const match = mxid.match(/:(.*)/)

@@ -77,7 +77,7 @@ function convertNameAndTopic(channel, guild, customName) {
  * Async because it may create the guild and/or upload the guild icon to mxc.
  * @param {DiscordTypes.APIGuildTextChannel | DiscordTypes.APIThreadChannel} channel
  * @param {DiscordTypes.APIGuild} guild
- * @param {{api: {getStateEvent: typeof api.getStateEvent}}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: {getStateEvent: typeof api.getStateEvent, getStateEventOuter: typeof api.getStateEventOuter}}} di simple-as-nails dependency injection for the matrix API
  */
 async function channelToKState(channel, guild, di) {
 	// @ts-ignore
@@ -126,16 +126,17 @@ async function channelToKState(channel, guild, di) {
 	const everyoneCanSend = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
 	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
-	/** @type {Ty.Event.M_Power_Levels} */
-	const spacePowerEvent = await di.api.getStateEvent(guildSpaceID, "m.room.power_levels", "")
-	const spacePower = spacePowerEvent.users
+	const spacePowerDetails = await mUtils.getEffectivePower(guildSpaceID, [], di.api)
+	const spaceCreatorsAndFounders = spacePowerDetails.allCreators
+		.concat(Object.entries(spacePowerDetails.powerLevels.users ?? {}).filter(([, power]) => power >= spacePowerDetails.tombstone).map(([mxid]) => mxid))
 
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
 	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
-	const additionalCreators = select("member_power", "mxid", {room_id: "*"}, "AND power_level > 100").pluck().all()
 
+	const additionalCreators = select("member_power", "mxid", {room_id: "*"}, "AND power_level > 100").pluck().all().concat(spaceCreatorsAndFounders)
 	const creationContent = {}
 	creationContent.additional_creators = additionalCreators
+
 	if (channel.type === DiscordTypes.ChannelType.GuildForum) creationContent.type = "m.space"
 
 	/** @type {any} */
@@ -162,10 +163,10 @@ async function channelToKState(channel, guild, di) {
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20
 			},
-			users: {...spacePower, ...globalAdminPower}
+			users: {...spacePowerDetails.powerLevels.users, ...globalAdminPower}
 		},
 		[`uk.half-shot.bridge/moe.cadence.ooye://discord/${guild.id}/${channel.id}`]: {
-			bridgebot: `@${reg.sender_localpart}:${reg.ooye.server_name}`,
+			bridgebot: mUtils.bot,
 			protocol: {
 				id: "discord",
 				displayname: "Discord"

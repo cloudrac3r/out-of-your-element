@@ -72,8 +72,13 @@ async function mreq(method, url, bodyIn, extra = {}) {
 	}, extra)
 
 	const res = await fetch(baseUrl + url, opts)
-	/** @type {any} */
-	const root = await res.json()
+	const text = await res.text()
+	try {
+		/** @type {any} */
+		var root = JSON.parse(text)
+	} catch (e) {
+		throw new MatrixServerError(text, {baseUrl, url, ...opts})
+	}
 
 	if (!res.ok || root.errcode) {
 		delete opts.headers?.["Authorization"]

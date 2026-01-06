@@ -8,20 +8,20 @@ INSERT INTO guild_active (guild_id, autocreate) VALUES
 INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
 ('112760669178241024', '!jjmvBegULiLucuWEHU:cadence.moe', 0);
 
-INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar) VALUES
-('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL),
-('687028734322147344', '!fGgIymcYWOqjbSRUdV:cadence.moe', 'slow-news-day', NULL, NULL, NULL),
-('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL),
-('160197704226439168', '!hYnGGlPHlbujVVfktC:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL),
-('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL),
-('1162005314908999790', '!FuDZhlOAtqswlyxzeR:cadence.moe', 'Hey.', NULL, '1100319550446252084', NULL),
-('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL),
-('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL),
-('176333891320283136', '!qzDBLKlildpzrrOnFZ:cadence.moe', '🌈丨davids-horse_she-took-the-kids', 'wonderland', NULL, 'mxc://cadence.moe/EVvrSkKIRONHjtRJsMLmHWLS'),
-('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL),
-('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL),
-('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL),
-('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL);
+INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar, guild_id) VALUES
+('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL, '112760669178241024'),
+('687028734322147344', '!fGgIymcYWOqjbSRUdV:cadence.moe', 'slow-news-day', NULL, NULL, NULL, '112760669178241024'),
+('497161350934560778', '!CzvdIdUQXgUjDVKxeU:cadence.moe', 'amanda-spam', NULL, NULL, NULL, '66192955777486848'),
+('160197704226439168', '!hYnGGlPHlbujVVfktC:cadence.moe', 'the-stanley-parable-channel', 'bots', NULL, NULL, '112760669178241024'),
+('1100319550446252084', '!BnKuBPCvyfOkhcUjEu:cadence.moe', 'worm-farm', NULL, NULL, NULL, '66192955777486848'),
+('1162005314908999790', '!FuDZhlOAtqswlyxzeR:cadence.moe', 'Hey.', NULL, '1100319550446252084', NULL, '112760669178241024'),
+('297272183716052993', '!rEOspnYqdOalaIFniV:cadence.moe', 'general', NULL, NULL, NULL, '66192955777486848'),
+('122155380120748034', '!cqeGDbPiMFAhLsqqqq:cadence.moe', 'cadences-mind', 'coding', NULL, NULL, '112760669178241024'),
+('176333891320283136', '!qzDBLKlildpzrrOnFZ:cadence.moe', '🌈丨davids-horse_she-took-the-kids', 'wonderland', NULL, 'mxc://cadence.moe/EVvrSkKIRONHjtRJsMLmHWLS', '112760669178241024'),
+('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL, '66192955777486848'),
+('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL, '66192955777486848'),
+('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL, '665289423482519565'),
+('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL, '665289423482519565');
 
 INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) SELECT channel_id, room_id, 0 FROM channel_room;
 
@@ -177,7 +177,7 @@ INSERT INTO reaction (hashed_event_id, message_id, encoded_emoji) VALUES
 (5162930312280790092, '1141501302736695317', '%F0%9F%90%88');
 
 INSERT INTO member_power (mxid, room_id, power_level) VALUES
-('@test_auto_invite:example.org', '*', 100);
+('@test_auto_invite:example.org', '*', 150);
 
 INSERT INTO lottie (sticker_id, mxc_url) VALUES
 ('860171525772279849', 'mxc://cadence.moe/ZtvvVbwMIdUZeovWVyGVFCeR');

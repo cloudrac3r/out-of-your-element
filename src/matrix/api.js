@@ -122,7 +122,7 @@ async function getEventForTimestamp(roomID, ts) {
 
 /**
  * @param {string} roomID
- * @returns {Promise<Ty.Event.BaseStateEvent[]>}
+ * @returns {Promise<Ty.Event.StateOuter<any>[]>}
  */
 function getAllState(roomID) {
 	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state`)
@@ -142,7 +142,7 @@ function getStateEvent(roomID, type, key) {
  * @param {string} roomID
  * @param {string} type
  * @param {string} key
- * @returns {Promise<Ty.Event.BaseStateEvent>} the entire state event
+ * @returns {Promise<Ty.Event.StateOuter<any>>} the entire state event
  */
 function getStateEventOuter(roomID, type, key) {
 	return mreq.mreq("GET", `/client/v3/rooms/${roomID}/state/${type}/${key}?format=event`)

@@ -2,6 +2,7 @@ const {test} = require("supertape")
 const DiscordTypes = require("discord-api-types/v10")
 const {select, db} = require("../../passthrough")
 const {_interact, _interactEdit} = require("./permissions")
+const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
 
 /**
  * @template T
@@ -46,6 +47,10 @@ test("permissions: reports permissions of selected matrix user (implicit default
 		},
 		guild_id: "112760669178241024"
 	}, {
+		utils: {
+			bot: "@_ooye_bot:cadence.moe",
+			getEffectivePower: mockGetEffectivePower()
+		},
 		api: {
 			async getEvent(roomID, eventID) {
 				called++
@@ -54,22 +59,13 @@ test("permissions: reports permissions of selected matrix user (implicit default
 				return {
 					sender: "@cadence:cadence.moe"
 				}
-			},
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {}
-				}
 			}
 		}
 	}))
 	t.equal(msgs.length, 1)
 	t.equal(msgs[0].createInteractionResponse.data.content, "Showing permissions for `@cadence:cadence.moe`. Click to edit.")
 	t.deepEqual(msgs[0].createInteractionResponse.data.components[0].components[0].options[0], {label: "Default", value: "default", default: true})
-	t.equal(called, 2)
+	t.equal(called, 1)
 })
 
 test("permissions: reports permissions of selected matrix user (moderator)", async t => {
@@ -80,6 +76,10 @@ test("permissions: reports permissions of selected matrix user (moderator)", asy
 		},
 		guild_id: "112760669178241024"
 	}, {
+		utils: {
+			bot: "@_ooye_bot:cadence.moe",
+			getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe"], {"@cadence:cadence.moe": 50})
+		},
 		api: {
 			async getEvent(roomID, eventID) {
 				called++
@@ -87,17 +87,6 @@ test("permissions: reports permissions of selected matrix user (moderator)", asy
 				t.equal(eventID, "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4")
 				return {
 					sender: "@cadence:cadence.moe"
-				}
-			},
-			async getStateEvent(roomID, type, key) {
-				called++
-				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {
-					users: {
-						"@cadence:cadence.moe": 50
-					}
 				}
 			}
 		}
@@ -105,10 +94,10 @@ test("permissions: reports permissions of selected matrix user (moderator)", asy
 	t.equal(msgs.length, 1)
 	t.equal(msgs[0].createInteractionResponse.data.content, "Showing permissions for `@cadence:cadence.moe`. Click to edit.")
 	t.deepEqual(msgs[0].createInteractionResponse.data.components[0].components[0].options[1], {label: "Moderator", value: "moderator", default: true})
-	t.equal(called, 2)
+	t.equal(called, 1)
 })
 
-test("permissions: reports permissions of selected matrix user (admin)", async t => {
+test("permissions: reports permissions of selected matrix user (admin v12 can be demoted)", async t => {
 	let called = 0
 	const msgs = await fromAsync(_interact({
 		data: {
@@ -116,6 +105,10 @@ test("permissions: reports permissions of selected matrix user (admin)", async t
 		},
 		guild_id: "112760669178241024"
 	}, {
+		utils: {
+			bot: "@_ooye_bot:cadence.moe",
+			getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe"], {"@cadence:cadence.moe": 100})
+		},
 		api: {
 			async getEvent(roomID, eventID) {
 				called++
@@ -124,16 +117,34 @@ test("permissions: reports permissions of selected matrix user (admin)", async t
 				return {
 					sender: "@cadence:cadence.moe"
 				}
-			},
-			async getStateEvent(roomID, type, key) {
+			}
+		}
+	}))
+	t.equal(msgs.length, 1)
+	t.equal(msgs[0].createInteractionResponse.data.content, "Showing permissions for `@cadence:cadence.moe`. Click to edit.")
+	t.deepEqual(msgs[0].createInteractionResponse.data.components[0].components[0].options[2], {label: "Admin", value: "admin", default: true})
+	t.equal(called, 1)
+})
+
+test("permissions: reports permissions of selected matrix user (admin v11 cannot be demoted)", async t => {
+	let called = 0
+	const msgs = await fromAsync(_interact({
+		data: {
+			target_id: "1128118177155526666"
+		},
+		guild_id: "112760669178241024"
+	}, {
+		utils: {
+			bot: "@_ooye_bot:cadence.moe",
+			getEffectivePower: mockGetEffectivePower(["@_ooye_bot:cadence.moe"], {"@cadence:cadence.moe": 100, "@_ooye_bot:cadence.moe": 100}, "11")
+		},
+		api: {
+			async getEvent(roomID, eventID) {
 				called++
-				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe") // room ID
+				t.equal(eventID, "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4")
 				return {
-					users: {
-						"@cadence:cadence.moe": 100
-					}
+					sender: "@cadence:cadence.moe"
 				}
 			}
 		}
@@ -141,7 +152,7 @@ test("permissions: reports permissions of selected matrix user (admin)", async t
 	t.equal(msgs.length, 1)
 	t.equal(msgs[0].createInteractionResponse.data.content, "`@cadence:cadence.moe` has administrator permissions. This cannot be edited.")
 	t.notOk(msgs[0].createInteractionResponse.data.components)
-	t.equal(called, 2)
+	t.equal(called, 1)
 })
 
 test("permissions: can update user to moderator", async t => {
