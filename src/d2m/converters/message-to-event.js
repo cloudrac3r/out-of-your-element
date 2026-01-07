@@ -14,8 +14,8 @@ const file = sync.require("../../matrix/file")
 const emojiToKey = sync.require("./emoji-to-key")
 /** @type {import("../actions/lottie")} */
 const lottie = sync.require("../actions/lottie")
-/** @type {import("../../m2d/converters/utils")} */
-const mxUtils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
 const {reg} = require("../../matrix/read-registration")

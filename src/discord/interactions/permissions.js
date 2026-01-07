@@ -9,8 +9,8 @@ const {InteractionMethods} = require("snowtransfer")
 
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
-/** @type {import("../../m2d/converters/utils")} */
-const utils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 
 /**
  * @param {DiscordTypes.APIContextMenuGuildInteraction} interaction
@@ -126,7 +126,7 @@ async function* _interactEdit({data, guild_id, message}, {api}) {
 	assert(spaceID)
 
 	// Do it
-	await api.setUserPowerCascade(spaceID, mxid, power)
+	await utils.setUserPowerCascade(spaceID, mxid, power, api)
 
 	// ACK
 	yield {editOriginalInteractionResponse: {

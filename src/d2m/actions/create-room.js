@@ -17,8 +17,8 @@ const mreq = sync.require("../../matrix/mreq")
 const ks = sync.require("../../matrix/kstate")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
-/** @type {import("../../m2d/converters/utils")} */
-const mUtils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const mUtils = sync.require("../../matrix/utils")
 /** @type {import("./create-space")} */
 const createSpace = sync.require("./create-space")
 

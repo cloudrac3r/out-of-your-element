@@ -5,8 +5,8 @@ const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select, from} = passthrough
-/** @type {import("../converters/utils")} */
-const utils = sync.require("../converters/utils")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 
 /**
  * @param {Ty.Event.Outer_M_Room_Redaction} event

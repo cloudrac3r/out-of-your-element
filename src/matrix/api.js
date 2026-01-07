@@ -358,55 +358,6 @@ async function profileSetAvatarUrl(mxid, avatar_url, inhibitPropagate) {
 	}
 }
 
-/**
- * Set a user's power level within a room.
- * @param {string} roomID
- * @param {string} mxid
- * @param {number} newPower
- */
-async function setUserPower(roomID, mxid, newPower) {
-	assert(roomID[0] === "!")
-	assert(mxid[0] === "@")
-	// Yes there's no shortcut https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
-	const power = await getStateEvent(roomID, "m.room.power_levels", "")
-	power.users = power.users || {}
-
-	// Check if it has really changed to avoid sending a useless state event
-	// (Can't diff kstate here because of (a) circular imports (b) kstate has special behaviour diffing power levels)
-	const oldPowerLevel = power.users?.[mxid] ?? power.users_default ?? 0
-	if (oldPowerLevel === newPower) return
-
-	// Bridge bot can't demote equal power users, so need to decide which user will send the event
-	const botPowerLevel = power.users?.[`@${reg.sender_localpart}:${reg.ooye.server_name}`] ?? power.users_default ?? 0
-	const eventSender = oldPowerLevel >= botPowerLevel ? mxid : undefined
-
-	// Update the event content
-	if (newPower == null || newPower === (power.users_default ?? 0)) {
-		delete power.users[mxid]
-	} else {
-		power.users[mxid] = newPower
-	}
-
-	await sendState(roomID, "m.room.power_levels", "", power, eventSender)
-	return power
-}
-
-/**
- * Set a user's power level for a whole room hierarchy.
- * @param {string} spaceID
- * @param {string} mxid
- * @param {number} power
- */
-async function setUserPowerCascade(spaceID, mxid, power) {
-	assert(spaceID[0] === "!")
-	assert(mxid[0] === "@")
-	const rooms = await getFullHierarchy(spaceID)
-	await setUserPower(spaceID, mxid, power)
-	for (const room of rooms) {
-		await setUserPower(room.room_id, mxid, power)
-	}
-}
-
 async function ping() {
 	// not using mreq so that we can read the status code
 	const res = await fetch(`${mreq.baseUrl}/client/v1/appservice/${reg.id}/ping`, {
@@ -579,8 +530,6 @@ module.exports.redactEvent = redactEvent
 module.exports.sendTyping = sendTyping
 module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl
-module.exports.setUserPower = setUserPower
-module.exports.setUserPowerCascade = setUserPowerCascade
 module.exports.ping = ping
 module.exports.getMedia = getMedia
 module.exports.sendReadReceipt = sendReadReceipt

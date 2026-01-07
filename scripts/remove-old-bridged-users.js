@@ -10,6 +10,7 @@ const passthrough = require("../src/passthrough")
 Object.assign(passthrough, {db, sync})
 
 const api = require("../src/matrix/api")
+const utils = require("../src/matrix/utils")
 const mreq = require("../src/matrix/mreq")
 
 const rooms = db.prepare("select room_id from channel_room").pluck().all()
@@ -25,7 +26,7 @@ const rooms = db.prepare("select room_id from channel_room").pluck().all()
 						await api.leaveRoom(roomID, mxid)
 					}
 				}
-				await api.setUserPower(roomID, "@_discord_bot:cadence.moe", 0)
+				await utils.setUserPower(roomID, "@_discord_bot:cadence.moe", 0, api)
 				await api.leaveRoom(roomID)
 			} catch (e) {
 				if (e.message.includes("Appservice not in room")) {

@@ -5,8 +5,8 @@ const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, select} = passthrough
-/** @type {import("../../m2d/converters/utils")} */
-const utils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 
 /**
  * @typedef ReactionRemoveRequest

@@ -12,7 +12,9 @@ const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
 const file = sync.require("../../matrix/file")
 /** @type {import("../../discord/utils")} */
-const utils = sync.require("../../discord/utils")
+const dUtils = sync.require("../../discord/utils")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 /** @type {import("../converters/user-to-mxid")} */
 const userToMxid = sync.require("../converters/user-to-mxid")
 /** @type {import("./create-room")} */
@@ -159,8 +161,8 @@ async function memberToStateContent(user, member, guildID) {
 function memberToPowerLevel(user, member, guild, channel) {
 	if (!member) return 0
 
-	const permissions = utils.getPermissions(member.roles, guild.roles, user.id, channel.permission_overwrites)
-	const everyonePermissions = utils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
+	const permissions = dUtils.getPermissions(member.roles, guild.roles, user.id, channel.permission_overwrites)
+	const everyonePermissions = dUtils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
 	/*
 	 * PL 100 = Administrator = People who can brick the room. RATIONALE:
 	 * 	- Administrator.
@@ -169,7 +171,7 @@ function memberToPowerLevel(user, member, guild, channel) {
 	 * 	- Manage Channels: People who can manage the channel can delete it.
 	 * (Setting sim users to PL 100 is safe because even though we can't demote the sims we can use code to make the sims demote themselves.)
 	 */
-	if (guild.owner_id === user.id || utils.hasSomePermissions(permissions, ["Administrator", "ManageWebhooks", "ManageGuild", "ManageChannels"])) return 100
+	if (guild.owner_id === user.id || dUtils.hasSomePermissions(permissions, ["Administrator", "ManageWebhooks", "ManageGuild", "ManageChannels"])) return 100
 	/*
 	 * PL 50 = Moderator = People who can manage people and messages in many ways. RATIONALE:
 	 * 	- Manage Messages: Can moderate by pinning or deleting the conversation.
@@ -179,14 +181,14 @@ function memberToPowerLevel(user, member, guild, channel) {
 	 * 	- Mute Members & Deafen Members: Can moderate by silencing disruptive people in ways they can't undo.
 	 * 	- Moderate Members.
 	 */
-	if (utils.hasSomePermissions(permissions, ["ManageMessages", "ManageNicknames", "ManageThreads", "KickMembers", "BanMembers", "MuteMembers", "DeafenMembers", "ModerateMembers"])) return 50
+	if (dUtils.hasSomePermissions(permissions, ["ManageMessages", "ManageNicknames", "ManageThreads", "KickMembers", "BanMembers", "MuteMembers", "DeafenMembers", "ModerateMembers"])) return 50
 	/* PL 50 = if room is read-only but the user has been specially allowed to send messages */
-	const everyoneCanSend = utils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
-	const userCanSend = utils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.SendMessages)
+	const everyoneCanSend = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
+	const userCanSend = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.SendMessages)
 	if (!everyoneCanSend && userCanSend) return createRoom.READ_ONLY_ROOM_EVENTS_DEFAULT_POWER
 	/* PL 20 = Mention Everyone for technical reasons. */
-	const everyoneCanMentionEveryone = utils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
-	const userCanMentionEveryone = utils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
+	const everyoneCanMentionEveryone = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
+	const userCanMentionEveryone = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
 	if (!everyoneCanMentionEveryone && userCanMentionEveryone) return 20
 	return 0
 }
@@ -247,7 +249,7 @@ async function _sendSyncUser(roomID, mxid, content, powerLevel, options) {
 		actions.push(api.sendState(roomID, "m.room.member", mxid, content, mxid))
 		// Update power levels
 		if (powerLevel != null) {
-			actions.push(api.setUserPower(roomID, mxid, powerLevel))
+			actions.push(mxUtils.setUserPower(roomID, mxid, powerLevel, api))
 		}
 		// Update global profile (if supported by server)
 		if (await supportsMsc4069) {

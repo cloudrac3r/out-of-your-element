@@ -2,7 +2,7 @@ const {test} = require("supertape")
 const {threadToAnnouncement} = require("./thread-to-announcement")
 const data = require("../../../test/data")
 const Ty = require("../../types")
-const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
+const {mockGetEffectivePower} = require("../../matrix/utils.test")
 
 /**
  * @param {string} roomID

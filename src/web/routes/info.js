@@ -4,8 +4,8 @@ const {z} = require("zod")
 const {defineEventHandler, getValidatedQuery, H3Event} = require("h3")
 const {as, from, sync, select} = require("../../passthrough")
 
-/** @type {import("../../m2d/converters/utils")} */
-const mUtils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const mUtils = sync.require("../../matrix/utils")
 
 /**
  * @param {H3Event} event

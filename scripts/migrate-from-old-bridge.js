@@ -37,7 +37,9 @@ const createRoom = sync.require("../d2m/actions/create-room")
 /** @type {import("../src/matrix/mreq")} */
 const mreq = sync.require("../matrix/mreq")
 /** @type {import("../src/matrix/api")} */
-const api = sync.require("../matrix/api")
+const api = sync.require("../src/matrix/api")
+/** @type {import("../src/matrix/utils")} */
+const utils = sync.require("../src/matrix/utils")
 
 const sema = new Semaphore()
 
@@ -89,7 +91,7 @@ async function migrateGuild(guild) {
 					throw e
 				}
 			}
-			await api.setUserPower(roomID, newBridgeMxid, 100)
+			await utils.setUserPower(roomID, newBridgeMxid, 100, api)
 		})
 		await api.joinRoom(roomID)
 

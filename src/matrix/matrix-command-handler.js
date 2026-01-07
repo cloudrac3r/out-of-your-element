@@ -8,8 +8,8 @@ const sharp = require("sharp")
 const {discord, sync, db, select} = require("../passthrough")
 /** @type {import("./api")}) */
 const api = sync.require("./api")
-/** @type {import("../m2d/converters/utils")} */
-const mxUtils = sync.require("../m2d/converters/utils")
+/** @type {import("./utils")} */
+const mxUtils = sync.require("./utils")
 /** @type {import("../discord/utils")} */
 const dUtils = sync.require("../discord/utils")
 /** @type {import("./kstate")} */

@@ -1,7 +1,7 @@
 const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
 const data = require("../../../test/data")
-const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
+const {mockGetEffectivePower} = require("../../matrix/utils.test")
 const {db} = require("../../passthrough")
 
 test("message2event embeds: nothing but a field", async t => {

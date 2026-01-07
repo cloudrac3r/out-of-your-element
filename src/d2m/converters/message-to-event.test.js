@@ -2,7 +2,7 @@ const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
 const {MatrixServerError} = require("../../matrix/mreq")
 const data = require("../../../test/data")
-const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
+const {mockGetEffectivePower} = require("../../matrix/utils.test")
 const Ty = require("../../types")
 
 /**

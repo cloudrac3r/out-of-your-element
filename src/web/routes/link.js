@@ -10,8 +10,8 @@ const {discord, db, as, sync, select, from} = require("../../passthrough")
 const auth = sync.require("../auth")
 /** @type {import("../../matrix/mreq")} */
 const mreq = sync.require("../../matrix/mreq")
-/** @type {import("../../m2d/converters/utils")}*/
-const utils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")}*/
+const utils = sync.require("../../matrix/utils")
 const {reg} = require("../../matrix/read-registration")
 
 /**

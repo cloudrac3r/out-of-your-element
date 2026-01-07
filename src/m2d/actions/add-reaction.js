@@ -5,8 +5,8 @@ const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
-/** @type {import("../converters/utils")} */
-const utils = sync.require("../converters/utils")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 /** @type {import("../converters/emoji")} */
 const emoji = sync.require("../converters/emoji")
 

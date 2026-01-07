@@ -10,8 +10,8 @@ const {sync} = passthrough
 const file = sync.require("./file")
 /** @type {import("./api")} */
 const api = sync.require("./api")
-/** @type {import("../m2d/converters/utils")} */
-const utils = sync.require("../m2d/converters/utils")
+/** @type {import("./utils")} */
+const utils = sync.require("./utils")
 
 /** Mutates the input. Not recursive - can only include or exclude entire state events. */
 function kstateStripConditionals(kstate) {

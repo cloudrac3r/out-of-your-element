@@ -2,7 +2,7 @@ const {test} = require("supertape")
 const DiscordTypes = require("discord-api-types/v10")
 const {select, db} = require("../../passthrough")
 const {_interact, _interactEdit} = require("./permissions")
-const {mockGetEffectivePower} = require("../../m2d/converters/utils.test")
+const {mockGetEffectivePower} = require("../../matrix/utils.test")
 
 /**
  * @template T
@@ -156,7 +156,7 @@ test("permissions: reports permissions of selected matrix user (admin v11 cannot
 })
 
 test("permissions: can update user to moderator", async t => {
-	let called = 0
+	let called = []
 	const msgs = await fromAsync(_interactEdit({
 		data: {
 			target_id: "1128118177155526666",
@@ -168,22 +168,48 @@ test("permissions: can update user to moderator", async t => {
 		guild_id: "112760669178241024"
 	}, {
 		api: {
-			async setUserPowerCascade(roomID, mxid, power) {
-				called++
-				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
-				t.equal(mxid, "@cadence:cadence.moe")
-				t.equal(power, 50)
+			async getStateEvent(roomID, type, key) {
+				called.push("get power levels")
+				t.equal(type, "m.room.power_levels")
+				return {}
+			},
+			async getStateEventOuter(roomID, type, key) {
+				called.push("get room create")
+				return {
+					type: "m.room.create",
+					state_key: "",
+					sender: "@_ooye_bot:cadence.moe",
+					event_id: "$create",
+					origin_server_ts: 0,
+					room_id: roomID,
+					content: {
+						room_version: "11"
+					}
+				}
+			},
+			async *generateFullHierarchy(spaceID) {
+				called.push("generate full hierarchy")
+			},
+			async sendState(roomID, type, key, content) {
+				called.push("set power levels")
+				t.ok(["!hierarchy", "!jjmvBegULiLucuWEHU:cadence.moe"].includes(roomID), `expected room ID to be in hierarchy, but was ${roomID}`)
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				t.deepEqual(content, {
+					users: {"@cadence:cadence.moe": 50}
+				})
+				return "$updated"
 			}
 		}
 	}))
 	t.equal(msgs.length, 2)
 	t.equal(msgs[0].createInteractionResponse.data.content, "Updating `@cadence:cadence.moe` to **moderator**, please wait...")
 	t.equal(msgs[1].editOriginalInteractionResponse.content, "Updated `@cadence:cadence.moe` to **moderator**.")
-	t.equal(called, 1)
+	t.deepEqual(called, ["generate full hierarchy", "get room create", "get power levels", "set power levels"])
 })
 
 test("permissions: can update user to default", async t => {
-	let called = 0
+	let called = []
 	const msgs = await fromAsync(_interactEdit({
 		data: {
 			target_id: "1128118177155526666",
@@ -195,16 +221,44 @@ test("permissions: can update user to default", async t => {
 		guild_id: "112760669178241024"
 	}, {
 		api: {
-			async setUserPowerCascade(roomID, mxid, power) {
-				called++
-				t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe") // space ID
-				t.equal(mxid, "@cadence:cadence.moe")
-				t.equal(power, 0)
+			async getStateEvent(roomID, type, key) {
+				called.push("get power levels")
+				t.equal(type, "m.room.power_levels")
+				return {
+					users: {"@cadence:cadence.moe": 50}
+				}
+			},
+			async getStateEventOuter(roomID, type, key) {
+				called.push("get room create")
+				return {
+					type: "m.room.create",
+					state_key: "",
+					sender: "@_ooye_bot:cadence.moe",
+					event_id: "$create",
+					origin_server_ts: 0,
+					room_id: roomID,
+					content: {
+						room_version: "11"
+					}
+				}
+			},
+			async *generateFullHierarchy(spaceID) {
+				called.push("generate full hierarchy")
+			},
+			async sendState(roomID, type, key, content) {
+				called.push("set power levels")
+				t.ok(["!hierarchy", "!jjmvBegULiLucuWEHU:cadence.moe"].includes(roomID), `expected room ID to be in hierarchy, but was ${roomID}`)
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				t.deepEqual(content, {
+					users: {}
+				})
+				return "$updated"
 			}
 		}
 	}))
 	t.equal(msgs.length, 2)
 	t.equal(msgs[0].createInteractionResponse.data.content, "Updating `@cadence:cadence.moe` to **default**, please wait...")
 	t.equal(msgs[1].editOriginalInteractionResponse.content, "Updated `@cadence:cadence.moe` to **default**.")
-	t.equal(called, 1)
+	t.deepEqual(called, ["generate full hierarchy", "get room create", "get power levels", "set power levels"])
 })

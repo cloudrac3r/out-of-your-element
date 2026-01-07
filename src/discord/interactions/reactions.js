@@ -7,8 +7,8 @@ const {InteractionMethods} = require("snowtransfer")
 
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
-/** @type {import("../../m2d/converters/utils")} */
-const utils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 
 /**
  * @param {DiscordTypes.APIMessageApplicationCommandGuildInteraction} interaction

@@ -1,11 +1,11 @@
 // @ts-check
 
 const assert = require("assert").strict
-const Ty = require("../../types")
-const passthrough = require("../../passthrough")
+const Ty = require("../types")
+const passthrough = require("../passthrough")
 const {db} = passthrough
 
-const {reg} = require("../../matrix/read-registration")
+const {reg} = require("./read-registration")
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
@@ -129,7 +129,7 @@ class MatrixStringBuilder {
  * https://spec.matrix.org/v1.9/appendices/#routing
  * https://gitdab.com/cadence/out-of-your-element/issues/11
  * @param {string} roomID
- * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("../../matrix/api")[K]} | {getEffectivePower: (roomID: string, mxids: string[], api: any) => Promise<{powers: Record<string, number>, allCreators: string[], tombstone: number, roomCreate: Ty.Event.StateOuter<Ty.Event.M_Room_Create>, powerLevels: Ty.Event.M_Power_Levels}>, getJoinedMembers: import("../../matrix/api")["getJoinedMembers"]}} api
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("./api")[K]} | {getEffectivePower: (roomID: string, mxids: string[], api: any) => Promise<{powers: Record<string, number>, allCreators: string[], tombstone: number, roomCreate: Ty.Event.StateOuter<Ty.Event.M_Room_Create>, powerLevels: Ty.Event.M_Power_Levels}>, getJoinedMembers: import("./api")["getJoinedMembers"]}} api
  */
 async function getViaServers(roomID, api) {
 	const candidates = []
@@ -188,7 +188,7 @@ async function getViaServers(roomID, api) {
  * https://spec.matrix.org/v1.9/appendices/#routing
  * https://gitdab.com/cadence/out-of-your-element/issues/11
  * @param {string} roomID
- * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("../../matrix/api")[K]}} api
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "getJoinedMembers"]: import("./api")[K]}} api
  * @returns {Promise<URLSearchParams>}
  */
 async function getViaServersQuery(roomID, api) {
@@ -273,7 +273,7 @@ function removeCreatorsFromPowerLevels(roomCreateOuter, powerLevels) {
  * @template {string} T
  * @param {string} roomID
  * @param {T[]} mxids
- * @param {{[K in "getStateEvent" | "getStateEventOuter"]: import("../../matrix/api")[K]}} api
+ * @param {{[K in "getStateEvent" | "getStateEventOuter"]: import("./api")[K]}} api
  * @returns {Promise<{powers: Record<T, number>, allCreators: string[], tombstone: number, roomCreate: Ty.Event.StateOuter<Ty.Event.M_Room_Create>, powerLevels: Ty.Event.M_Power_Levels}>}
  */
 async function getEffectivePower(roomID, mxids, api) {
@@ -300,6 +300,56 @@ async function getEffectivePower(roomID, mxids, api) {
 	return {powers, allCreators, tombstone, roomCreate, powerLevels}
 }
 
+/**
+ * Set a user's power level within a room.
+ * @param {string} roomID
+ * @param {string} mxid
+ * @param {number} newPower
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "sendState"]: import("./api")[K]}} api
+ */
+async function setUserPower(roomID, mxid, newPower, api) {
+	assert(roomID[0] === "!")
+	assert(mxid[0] === "@")
+	// Yes there's no shortcut https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
+	const {powerLevels, powers: {[mxid]: oldPowerLevel, [bot]: botPowerLevel}} = await getEffectivePower(roomID, [mxid, bot], api)
+
+	// Check if it has really changed to avoid sending a useless state event
+	if (oldPowerLevel === newPower) return
+
+	// Bridge bot can't demote equal power users, so need to decide which user will send the event
+	const eventSender = oldPowerLevel >= botPowerLevel ? mxid : undefined
+
+	// Update the event content
+	powerLevels.users ??= {}
+	if (newPower == null || newPower === (powerLevels.users_default ?? 0)) {
+		delete powerLevels.users[mxid]
+	} else {
+		powerLevels.users[mxid] = newPower
+	}
+
+	await api.sendState(roomID, "m.room.power_levels", "", powerLevels, eventSender)
+}
+
+/**
+ * Set a user's power level for a whole room hierarchy.
+ * @param {string} spaceID
+ * @param {string} mxid
+ * @param {number} power
+ * @param {{[K in "getStateEvent" | "getStateEventOuter" | "sendState" | "generateFullHierarchy"]: import("./api")[K]}} api
+ */
+async function setUserPowerCascade(spaceID, mxid, power, api) {
+	assert(spaceID[0] === "!")
+	assert(mxid[0] === "@")
+	let seenSpace = false
+	for await (const room of api.generateFullHierarchy(spaceID)) {
+		if (room.room_id === spaceID) seenSpace = true
+		await setUserPower(room.room_id, mxid, power, api)
+	}
+	if (!seenSpace) {
+		await setUserPower(spaceID, mxid, power, api)
+	}
+}
+
 module.exports.bot = bot
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
@@ -311,3 +361,5 @@ module.exports.getViaServersQuery = getViaServersQuery
 module.exports.roomHasAtLeastVersion = roomHasAtLeastVersion
 module.exports.removeCreatorsFromPowerLevels = removeCreatorsFromPowerLevels
 module.exports.getEffectivePower = getEffectivePower
+module.exports.setUserPower = setUserPower
+module.exports.setUserPowerCascade = setUserPowerCascade

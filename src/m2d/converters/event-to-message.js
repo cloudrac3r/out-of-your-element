@@ -14,8 +14,8 @@ const {tag} = require("@cloudrac3r/html-template-tag")
 const passthrough = require("../../passthrough")
 const {sync, db, discord, select, from} = passthrough
 const {reg} = require("../../matrix/read-registration")
-/** @type {import("../converters/utils")} */
-const mxUtils = sync.require("../converters/utils")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
 /** @type {import("../../matrix/file")} */

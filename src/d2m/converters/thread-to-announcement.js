@@ -4,8 +4,8 @@ const assert = require("assert").strict
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
-/** @type {import("../../m2d/converters/utils")} */
-const mxUtils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 const {reg} = require("../../matrix/read-registration.js")
 
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))

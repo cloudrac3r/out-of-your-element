@@ -1,7 +1,5 @@
 // @ts-check
 
-const e = new Error("Custom error")
-
 const {test} = require("supertape")
 const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers, roomHasAtLeastVersion} = require("./utils")
 const util = require("util")
@@ -41,8 +39,14 @@ test("event hash: hash is different for different inputs", t => {
 })
 
 test("MatrixStringBuilder: add, addLine, add same text", t => {
+	const e = {
+		stack: "Error: Custom error\n    at ./example.test.js:3:11)",
+		toString() {
+			return "Error: Custom error"
+		}
+	}
 	const gatewayMessage = {t: "MY_MESSAGE", d: {display: "Custom message data"}}
-	let stackLines = e.stack?.split("\n")
+	let stackLines = e.stack.split("\n")
 
 	const builder = new MatrixStringBuilder()
 	builder.addLine("\u26a0 Bridged event from Discord not delivered", "\u26a0 <strong>Bridged event from Discord not delivered</strong>")
@@ -63,12 +67,12 @@ test("MatrixStringBuilder: add, addLine, add same text", t => {
 			+ "\nError: Custom error"
 			+ "\nError trace:"
 			+ "\nError: Custom error"
-			+ "\n    at ./m2d/converters/utils.test.js:3:11)\n",
+			+ "\n    at ./example.test.js:3:11)\n",
 		format: "org.matrix.custom.html",
 		formatted_body: "\u26a0 <strong>Bridged event from Discord not delivered</strong>"
 			+ "<br>Gateway event: MY_MESSAGE"
 			+ "<br>Error: Custom error"
-			+ "<br><details><summary>Error trace</summary><pre>Error: Custom error\n    at ./m2d/converters/utils.test.js:3:11)</pre></details>"
+			+ "<br><details><summary>Error trace</summary><pre>Error: Custom error\n    at ./example.test.js:3:11)</pre></details>"
 			+ `<details><summary>Original payload</summary><pre>{ display: 'Custom message data' }</pre></details>`
 	})
 })

@@ -10,8 +10,8 @@ const {discord, db, sync, as, select, from} = require("../passthrough")
 const api = sync.require("./api")
 /** @type {import("../d2m/actions/create-room")}) */
 const createRoom = sync.require("../d2m/actions/create-room")
-/** @type {import("../m2d/converters/utils")}) */
-const utils = sync.require("../m2d/converters/utils")
+/** @type {import("./utils")}) */
+const utils = sync.require("./utils")
 
 const roomUpgradeSema = new Semaphore()
 

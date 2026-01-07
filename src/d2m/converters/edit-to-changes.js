@@ -6,8 +6,8 @@ const passthrough = require("../../passthrough")
 const {sync, select, from} = passthrough
 /** @type {import("./message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
-/** @type {import("../../m2d/converters/utils")} */
-const utils = sync.require("../../m2d/converters/utils")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 
 function eventCanBeEdited(ev) {
 	// Discord does not allow files, images, attachments, or videos to be edited.

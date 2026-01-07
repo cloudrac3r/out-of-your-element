@@ -18,7 +18,9 @@ const createSpace = sync.require("../../d2m/actions/create-space")
 /** @type {import("../auth")} */
 const auth = require("../auth")
 /** @type {import("../../discord/utils")} */
-const utils = sync.require("../../discord/utils")
+const dUtils = sync.require("../../discord/utils")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 const {reg} = require("../../matrix/read-registration")
 
 const schema = {
@@ -102,8 +104,8 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c))
 	let removedWrongTypeChannels = filterTo(unlinkedChannels, c => c && [0, 5].includes(c.type))
 	let removedPrivateChannels = filterTo(unlinkedChannels, c => {
-		const permissions = utils.getPermissions(roles, guild.roles, botID, c["permission_overwrites"])
-		return utils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
+		const permissions = dUtils.getPermissions(roles, guild.roles, botID, c["permission_overwrites"])
+		return dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
 	})
 	unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
 
@@ -228,7 +230,7 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 		( parsedBody.permissions === "admin" ? 100
 		: parsedBody.permissions === "moderator" ? 50
 		: 0)
-	if (powerLevel) await api.setUserPowerCascade(spaceID, parsedBody.mxid, powerLevel)
+	if (powerLevel) await mxUtils.setUserPowerCascade(spaceID, parsedBody.mxid, powerLevel, api)
 
 	if (parsedBody.guild_id) {
 		setResponseHeader(event, "HX-Refresh", true)

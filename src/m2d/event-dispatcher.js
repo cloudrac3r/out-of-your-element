@@ -20,8 +20,8 @@ const redact = sync.require("./actions/redact")
 const updatePins = sync.require("./actions/update-pins")
 /** @type {import("../matrix/matrix-command-handler")} */
 const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
-/** @type {import("./converters/utils")} */
-const utils = sync.require("./converters/utils")
+/** @type {import("../matrix/utils")} */
+const utils = sync.require("../matrix/utils")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 /** @type {import("../d2m/actions/create-room")} */

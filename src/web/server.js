@@ -13,8 +13,8 @@ const reg = require("../matrix/read-registration")
 const {sync, discord, as, select} = require("../passthrough")
 /** @type {import("./pug-sync")} */
 const pugSync = sync.require("./pug-sync")
-/** @type {import("../m2d/converters/utils")} */
-const mUtils = sync.require("../m2d/converters/utils")
+/** @type {import("../matrix/utils")} */
+const mUtils = sync.require("../matrix/utils")
 const {id} = require("../../addbot")
 
 // Pug
