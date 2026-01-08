@@ -115,7 +115,7 @@ test("event2message: any markdown in body is escaped, except strikethrough", asy
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			snow: {
 				guild: {
 					searchGuildMembers: () => []
@@ -303,7 +303,7 @@ test("event2message: markdown in link text does not attempt to be escaped becaus
 	)
 })
 
-test("event2message: links are escaped if the guild does not have embed links permission (formatted body)", async t => {
+test("event2message: embeds are suppressed if the guild does not have embed links permission (formatted body)", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			content: {
@@ -341,7 +341,7 @@ test("event2message: links are escaped if the guild does not have embed links pe
 	)
 })
 
-test("event2message: links are escaped if the guild does not have embed links permission (plaintext body)", async t => {
+test("event2message: embeds are suppressed if the guild does not have embed links permission (plaintext body)", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			content: {
@@ -359,6 +359,49 @@ test("event2message: links are escaped if the guild does not have embed links pe
 				id: "123",
 				name: "@everyone",
 				permissions: DiscordTypes.PermissionFlagsBits.SendMessages
+			}]
+		}, {}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: embeds are suppressed if the channel does not have embed links permission (plaintext body)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "posting one of my favourite songs recently (starts at timestamp) https://youtu.be/RhV2X7WQMPA?t=364",
+				msgtype: "m.text"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+		}, {
+			id: "123",
+			roles: [{
+				id: "123",
+				name: "@everyone",
+				permissions: DiscordTypes.PermissionFlagsBits.SendMessages | DiscordTypes.PermissionFlagsBits.EmbedLinks
+			}]
+		}, {
+			permission_overwrites: [{
+				id: "123",
+				type: 0,
+				deny: String(DiscordTypes.PermissionFlagsBits.EmbedLinks),
+				allow: "0"
 			}]
 		}),
 		{
@@ -428,6 +471,47 @@ test("event2message: links retain angle brackets (plaintext body)", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: links don't have angle brackets added by accident", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"content": {
+				"body": "Wanted to automate WG→AWG config enrichment and ended up basically coding a batch INI processor.\nhttps://github.com/Erquint/wgcbp",
+				"m.mentions": {},
+				"msgtype": "m.text"
+			},
+			"origin_server_ts": 1767848218369,
+			"sender": "@erquint:agiadn.org",
+			"type": "m.room.message",
+			"unsigned": {
+				"membership": "join"
+			},
+			"event_id": "$DxPjyI88VYsJGKuGmhFivFeKn-i5MEBEnAhabmsBaXQ",
+			"room_id": "!zq94fae5bVKUubZLp7:agiadn.org"
+		}, {}, {}, {
+			api: {
+				async getStateEvent(roomID, type, key) {
+					return {
+						displayname: "Erquint"
+					}
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Erquint",
+				content: "Wanted to automate WG→AWG config enrichment and ended up basically coding a batch INI processor.\nhttps://github.com/Erquint/wgcbp",
 				avatar_url: undefined,
 				allowed_mentions: {
 					parse: ["users", "roles"]
@@ -1316,7 +1400,7 @@ test("event2message: rich reply to a sim user", async t => {
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
 					type: "m.room.message",
@@ -1366,7 +1450,7 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 			unsigned: {},
 			event_id: "$Q5kNrPxGs31LfWOhUul5I03jNjlxKOwRmWVuivaqCHY",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!kLRqKKUQXcibIMtOpl:cadence.moe", "$A0Rj559NKOh2VndCZSTJXcvgi42gZWVfVQt73wA2Hn0", {
 					"type": "m.room.message",
@@ -1441,7 +1525,7 @@ test("event2message: rich reply to an already-edited message will quote the new 
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$DSQvWxOBB2DYaei6b83-fb33dQGYt5LJd_s8Nl2a43Q", {
 					type: "m.room.message",
@@ -1524,7 +1608,7 @@ test("event2message: rich reply to a missing event will quote from formatted_bod
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				async getEvent(roomID, eventID) {
 					called++
@@ -1574,7 +1658,7 @@ test("event2message: rich reply to a missing event without formatted_body will u
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				async getEvent(roomID, eventID) {
 					called++
@@ -1625,7 +1709,7 @@ test("event2message: rich reply to a missing event and no reply fallback will no
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				async getEvent(roomID, eventID) {
 					called++
@@ -1670,7 +1754,7 @@ test("event2message: should avoid using blockquote contents as reply preview in 
 			},
 			event_id: "$BpGx8_vqHyN6UQDARPDU51ftrlRBhleutRSgpAJJ--g",
 			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
 					"type": "m.room.message",
@@ -1721,7 +1805,7 @@ test("event2message: should suppress embeds for links in reply preview", async t
 			},
 			event_id: "$0Bs3rbsXaeZmSztGMx1NIsqvOrkXOpIWebN-dqr09i4",
 			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU", {
 					"type": "m.room.message",
@@ -1770,7 +1854,7 @@ test("event2message: should include a reply preview when message ends with a blo
 			},
 			event_id: "$n6sg1X9rLeMzCYufJTRvaLzFeLQ-oEXjCWkHtRxcem4",
 			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$uXM2I6w-XMtim14-OSZ_8Z2uQ6MDAZLT37eYIiEU6KQ", {
 					type: 'm.room.message',
@@ -1859,7 +1943,7 @@ test("event2message: should include a reply preview when replying to a descripti
 			},
 			event_id: "$qCOlszCawu5hlnF2a2PGyXeGGvtoNJdXyRAEaTF0waA",
 			room_id: "!CzvdIdUQXgUjDVKxeU:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!CzvdIdUQXgUjDVKxeU:cadence.moe", "$zJFjTvNn1w_YqpR4o4ISKUFisNRgZcu1KSMI_LADPVQ", {
 					type: "m.room.message",
@@ -1944,7 +2028,7 @@ test("event2message: entities are not escaped in main message or reply preview",
 			},
 			event_id: "$2I7odT9okTdpwDcqOjkJb_A3utdO4V8Cp3LK6-Rvwcs",
 			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$yIWjZPi6Xk56fBxJwqV4ANs_hYLjnWI2cNKbZ2zwk60", {
 					type: "m.room.message",
@@ -1996,7 +2080,7 @@ test("event2message: reply preview converts emoji formatting when replying to a 
 			},
 			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
 					type: "m.room.message",
@@ -2046,7 +2130,7 @@ test("event2message: reply preview can guess custom emoji based on the name if i
 			},
 			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
 					type: "m.room.message",
@@ -2096,7 +2180,7 @@ test("event2message: reply preview uses emoji title text when replying to an unk
 			},
 			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
 					type: "m.room.message",
@@ -2146,7 +2230,7 @@ test("event2message: reply preview ignores garbage image", async t => {
 			},
 			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
 					type: "m.room.message",
@@ -2196,7 +2280,7 @@ test("event2message: reply to empty message doesn't show an extra line or anythi
 			},
 			event_id: "$bCMLaLiMfoRajaGTgzaxAci-g8hJfkspVJIKwYktnvc",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs", {
 					type: "m.room.message",
@@ -2256,7 +2340,7 @@ test("event2message: editing a rich reply to a sim user", async t => {
 			},
 			"event_id": "$XEgssz13q-a7NLO7UZO2Oepq7tSiDBD7YRfr7Xu_QiA",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: (roomID, eventID) => {
 					assert.ok(eventID === "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04" || eventID === "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8")
@@ -2337,7 +2421,7 @@ test("event2message: editing a plaintext body message", async t => {
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
 			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
@@ -2392,7 +2476,7 @@ test("event2message: editing a plaintext message to be longer", async t => {
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
 			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
@@ -2454,7 +2538,7 @@ test("event2message: editing a plaintext message to be shorter", async t => {
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
 			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSt", {
 					type: "m.room.message",
@@ -2513,7 +2597,7 @@ test("event2message: editing a formatted body message", async t => {
 			},
 			"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
 			"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
 					type: "m.room.message",
@@ -2569,7 +2653,7 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		 }, data.guild.general, {
+		 }, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
 					"type": "m.room.message",
@@ -2624,7 +2708,7 @@ test("event2message: rich reply to an image", async t => {
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		 }, data.guild.general, {
+		 }, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
 					type: "m.room.message",
@@ -2686,7 +2770,7 @@ test("event2message: rich reply to a spoiler should ensure the spoiler is hidden
 			},
 			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		 }, data.guild.general, {
+		 }, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
 					type: "m.room.message",
@@ -2737,7 +2821,7 @@ test("event2message: with layered rich replies, the preview should only be the r
 			},
 			event_id: "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
-		 }, data.guild.general, {
+		 }, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
 					"type": "m.room.message",
@@ -2798,7 +2882,7 @@ test("event2message: if event is a reply and starts with a quote, they should be
 			},
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe",
 			event_id: "$nCvtZeBFedYuEavt4OftloCHc0kaFW2ktHCfIOklhjU",
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$tTYQcke93fwocsc1K6itwUq85EG0RZ0ksCuIglKioks", {
 					sender: "@aflower:syndicated.gay",
@@ -2849,7 +2933,7 @@ test("event2message: rich reply to a deleted event", async t => {
 			},
 			event_id: "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		 }, data.guild.general, {
+		 }, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU", {
 					type: "m.room.message",
@@ -2907,7 +2991,7 @@ test("event2message: rich reply to a state event with no body", async t => {
 			},
 			event_id: "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
 			room_id: "!TqlyQmifxGUggEmdBN:cadence.moe"
-		 }, data.guild.general, {
+		 }, data.guild.general, data.channel.general, {
 			api: {
 				getEvent: mockGetEvent(t, "!TqlyQmifxGUggEmdBN:cadence.moe", "$f-noT-d-Eo_Xgpc05Ww89ErUXku4NwKWYGHLzWKo1kU", {
 					type: "m.room.topic",
@@ -2973,7 +3057,7 @@ test("event2message: rich reply with an image", async t => {
 			},
 			event_id: "$QOxkw7u8vjTrrdKxEUO13JWSixV7UXAZU1freT1SkHc",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				getEvent(roomID, eventID) {
 					called++
@@ -3378,7 +3462,7 @@ test("event2message: mentioning bridged rooms by alias works", async t => {
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getAlias(alias) {
 					called++
@@ -3420,7 +3504,7 @@ test("event2message: mentioning bridged rooms by alias works (plaintext body)", 
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getAlias(alias) {
 					called++
@@ -3462,7 +3546,7 @@ test("event2message: mentioning bridged rooms by alias skips the link when alias
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getAlias(alias) {
 					called++
@@ -3639,7 +3723,7 @@ test("event2message: mentioning unknown bridged events can approximate with time
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getEvent(roomID, eventID) {
 					called++
@@ -3686,7 +3770,7 @@ test("event2message: mentioning events falls back to original link when server d
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getEvent(roomID, eventID) {
 					called++
@@ -3732,7 +3816,7 @@ test("event2message: mentioning events falls back to original link when the chan
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				/* c8 ignore next 3 */
 				async getEvent() {
@@ -3894,7 +3978,7 @@ test("event2message: caches the member if the member is not known", async t => {
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				getStateEvent: async (roomID, type, stateKey) => {
 					called++
@@ -3944,7 +4028,7 @@ test("event2message: does not cache the member if the room is not known", async 
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				getStateEvent: async (roomID, type, stateKey) => {
 					called++
@@ -3992,7 +4076,7 @@ test("event2message: skips caching the member if the member does not exist, some
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				getStateEvent: async (roomID, type, stateKey) => {
 					called++
@@ -4037,7 +4121,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			unsigned: {
 				age: 405299
 			}
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				getStateEvent: async (roomID, type, stateKey) => {
 					called++
@@ -4610,7 +4694,7 @@ test("event2message: stickers fetch mimetype from server when mimetype not provi
 			},
 			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getMedia(mxc, options) {
 					called++
@@ -4653,7 +4737,7 @@ test("event2message: stickers with unknown mimetype are not allowed", async t =>
 			},
 			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, {}, {
+		}, {}, {}, {
 			api: {
 				async getMedia(mxc, options) {
 					called++
@@ -4817,7 +4901,7 @@ test("event2message: guessed @mentions in plaintext may join members to mention"
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}, {
 			id: "112760669178241024"
-		}, {
+		}, {}, {
 			snow: {
 				guild: {
 					async searchGuildMembers(guildID, options) {
@@ -4870,7 +4954,7 @@ test("event2message: guessed @mentions in formatted body may join members to men
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
 		}, {
 			id: "112760669178241024"
-		}, {
+		}, {}, {
 			snow: {
 				guild: {
 					async searchGuildMembers(guildID, options) {
@@ -4914,7 +4998,7 @@ test("event2message: guessed @mentions feature will not activate on links or cod
 			},
 			event_id: "$u5gSwSzv_ZQS3eM00mnTBCor8nx_A_AwuQz7e59PZk8",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, {}, {
+		}, {}, {}, {
 			snow: {
 				guild: {
 					/* c8 ignore next 4 */
@@ -4983,7 +5067,7 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 			},
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
 			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				async getStateEvent(roomID, type, key) {
 					called++
@@ -5041,7 +5125,7 @@ test("event2message: @room converts to @everyone but is not allowed when the roo
 			},
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
 			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				async getStateEvent(roomID, type, key) {
 					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
@@ -5098,7 +5182,7 @@ test("event2message: @room converts to @everyone and is allowed if the user has 
 			},
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
 			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
-		}, data.guild.general, {
+		}, data.guild.general, data.channel.general, {
 			api: {
 				async getStateEvent(roomID, type, key) {
 					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
@@ -5222,7 +5306,7 @@ slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet"
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
+	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -5247,7 +5331,7 @@ slow()("event2message: known emoji from an unreachable server at the end is reup
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
+	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -5272,7 +5356,7 @@ slow()("event2message: known and unknown emojis in the end are reuploaded as a s
 		},
 		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
+	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,
@@ -5297,7 +5381,7 @@ slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet
 		},
 		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
 		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {mxcDownloader: mockGetAndConvertEmoji})
+	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
 	const testResult = {
 		content: messages.messagesToSend[0].content,
 		fileName: messages.messagesToSend[0].pendingFiles[0].name,

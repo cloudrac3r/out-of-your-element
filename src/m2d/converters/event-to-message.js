@@ -518,10 +518,11 @@ async function getL1L2ReplyLine(called = false) {
 
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
- * @param {import("discord-api-types/v10").APIGuild} guild
+ * @param {DiscordTypes.APIGuild} guild
+ * @param {DiscordTypes.APIGuildTextChannel} channel
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
  */
-async function eventToMessage(event, guild, di) {
+async function eventToMessage(event, guild, channel, di) {
 	let displayName = event.sender
 	let avatarURL = undefined
 	const allowedMentionsParse = ["users", "roles"]
@@ -918,17 +919,19 @@ async function eventToMessage(event, guild, di) {
 				content = await handleRoomOrMessageLinks(content, di) // Replace matrix.to links with discord.com equivalents where possible
 
 				let offset = 0
-				for (const match of [...content.matchAll(/\bhttps?:\/\/[^ )>]*/g)]) {
+				for (const match of [...content.matchAll(/\bhttps?:\/\/[^ )>\n]+/g)]) {
 					assert(typeof match.index === "number")
 
 					// Respect sender's angle brackets
 					const alreadySuppressed = content[match.index-1+offset] === "<" && content[match.index+match.length+offset] === ">"
 					if (alreadySuppressed) continue
-					// Put < > around any surviving matrix.to links
+
+					// Suppress matrix.to links always
 					let shouldSuppress = !!match[0].match(/^https?:\/\/matrix\.to\//)
+
+					// Suppress if regular users don't have permission
 					if (!shouldSuppress && guild?.roles) {
-						// Suppress if regular users don't have permission
-						const permissions = dUtils.getPermissions([], guild.roles)
+						const permissions = dUtils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
 						const canEmbedLinks = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.EmbedLinks)
 						shouldSuppress = !canEmbedLinks
 					}

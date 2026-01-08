@@ -69,16 +69,16 @@ async function sendEvent(event) {
 		threadID = channelID
 		channelID = row.thread_parent // it's the thread's parent... get with the times...
 	}
-	// @ts-ignore
-	const guildID = discord.channels.get(channelID).guild_id
-	const guild = discord.guilds.get(guildID)
+	/** @type {DiscordTypes.APIGuildTextChannel} */ // @ts-ignore
+	const channel = discord.channels.get(channelID)
+	const guild = discord.guilds.get(channel.guild_id)
 	assert(guild)
 	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: event.room_id}).pluck().get()
 	assert(historicalRoomIndex)
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, {api, snow: discord.snow, mxcDownloader: emojiSheet.getAndConvertEmoji})
+	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, channel, {api, snow: discord.snow, mxcDownloader: emojiSheet.getAndConvertEmoji})
 
 	messagesToEdit = await Promise.all(messagesToEdit.map(async e => {
 		e.message = await resolvePendingFiles(e.message)
