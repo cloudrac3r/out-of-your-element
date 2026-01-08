@@ -4,7 +4,7 @@ mixin space(space)
   .s-user-card.flex__1
     span.s-avatar.s-avatar__32.s-user-card--avatar
       if space.avatar
-        img.s-avatar--image(src=mUtils.getPublicUrlForMxc(space.avatar))
+        img.s-avatar--image(src=mUtils.getPublicUrlForMxc(space.avatar) alt="")
       else
         .s-avatar--letter.bg-silver-400.bar-md(aria-hidden="true")= space.name[0]
     .s-user-card--info.ai-start

@@ -1,7 +1,7 @@
 mixin guild(guild)
   span.s-avatar.s-avatar__32.s-user-card--avatar
     if guild.icon
-      img.s-avatar--image(src=`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=32`)
+      img.s-avatar--image(src=`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=32` alt="")
     else
       .s-avatar--letter.bg-silver-400.bar-md(aria-hidden="true")= guild.name[0]
   .s-user-card--info.ai-start
@@ -82,10 +82,10 @@ html(lang="en")
     +define-themed-button("matrix", "black")
   body.themed.theme-system
     header.s-topbar
-      .s-topbar--skip-link(href="#content") Skip to main content
+      a.s-topbar--skip-link(href="#content") Skip to main content
       .s-topbar--container.wmx9
         a.s-topbar--logo(href=rel("/"))
-          img.s-avatar.s-avatar__32(src=rel("/icon.png"))
+          img.s-avatar.s-avatar__32(src=rel("/icon.png") alt="")
         nav.s-topbar--navigation
           ul.s-topbar--content
             li.ps-relative.g8

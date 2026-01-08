@@ -89,7 +89,7 @@ test("web guild: unbridged self-service guild shows available spaces", async t =
 	})
 	t.has(html, `<strong>Data Horde</strong>`)
 	t.has(html, `<li>here is the space topic</li>`)
-	t.has(html, `<img class="s-avatar--image" src="https://bridge.example.org/download/matrix/cadence.moe/TLqQOsTSrZkVKwBSWYTZNTrw">`)
+	t.has(html, `<img class="s-avatar--image" src="https://bridge.example.org/download/matrix/cadence.moe/TLqQOsTSrZkVKwBSWYTZNTrw" alt="">`)
 	t.notMatch(html, /<strong>some room<\/strong>/)
 	t.notMatch(html, /<strong>somebody else's space<\/strong>/)
 })
@@ -190,21 +190,66 @@ test("api invite: can invite with valid nonce", async t => {
 			api: {
 				async getStateEvent(roomID, type, key) {
 					called++
-					return {membership: "leave"}
+					if (type === "m.room.member" && key === "@cadence:cadence.moe") {
+						return {membership: "leave"}
+					} else if (type === "m.room.power_levels" && key === "") {
+						return {}
+					} else {
+						t.fail(`unexpected getStateEvent call. roomID: ${roomID}, type: ${type}, key: ${key}`)
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					called++
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						event_id: "$create",
+						origin_server_ts: 0,
+						room_id: roomID,
+						content: {
+							room_version: "11"
+						}
+					}
 				},
 				async inviteToRoom(roomID, mxidToInvite, mxid) {
+					called++
 					t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-					called++
 				},
-				async setUserPowerCascade(roomID, mxid, power) {
-					t.equal(power, 50) // moderator
+				async *generateFullHierarchy(spaceID) {
 					called++
+					yield {
+						room_id: "!hierarchy",
+						children_state: [],
+						guest_can_join: false,
+						num_joined_members: 2,
+					}
+				},
+				async sendState(roomID, type, key, content) {
+					called++
+					t.ok(["!hierarchy", "!jjmvBegULiLucuWEHU:cadence.moe"].includes(roomID), `expected room ID to be in hierarchy, but was ${roomID}`)
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					t.deepEqual(content, {
+						users: {"@cadence:cadence.moe": 50}
+					})
+					return "$updated"
 				}
 			}
 		})
 	)
 	t.notOk(error)
-	t.equal(called, 3)
+	/*
+		1. get membership
+		2. invite to room
+		set power:
+			3. generate hierarchy
+			4-5. calculate powers
+			6. send state
+			7-8. calculate powers
+			9. send state
+	*/
+	t.equal(called, 9) // get membership +
 })
 
 test("api invite: access denied when nonce has been used", async t => {
@@ -235,21 +280,56 @@ test("api invite: can invite to a moderated guild", async t => {
 			api: {
 				async getStateEvent(roomID, type, key) {
 					called++
-					throw new MatrixServerError({errcode: "M_NOT_FOUND", error: "Event not found or something"})
+					if (type === "m.room.member" && key === "@cadence:cadence.moe") {
+						return {membership: "leave"}
+					} else if (type === "m.room.power_levels" && key === "") {
+						return {}
+					} else {
+						t.fail(`unexpected getStateEvent call. roomID: ${roomID}, type: ${type}, key: ${key}`)
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					called++
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						event_id: "$create",
+						origin_server_ts: 0,
+						room_id: roomID,
+						content: {
+							room_version: "11"
+						}
+					}
 				},
 				async inviteToRoom(roomID, mxidToInvite, mxid) {
+					called++
 					t.equal(roomID, "!jjmvBegULiLucuWEHU:cadence.moe")
-					called++
 				},
-				async setUserPowerCascade(roomID, mxid, power) {
-					t.equal(power, 100) // moderator
+				async *generateFullHierarchy(spaceID) {
 					called++
+					yield {
+						room_id: "!hierarchy",
+						children_state: [],
+						guest_can_join: false,
+						num_joined_members: 2,
+					}
+				},
+				async sendState(roomID, type, key, content) {
+					called++
+					t.ok(["!hierarchy", "!jjmvBegULiLucuWEHU:cadence.moe"].includes(roomID), `expected room ID to be in hierarchy, but was ${roomID}`)
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					t.deepEqual(content, {
+						users: {"@cadence:cadence.moe": 100}
+					})
+					return "$updated"
 				}
 			}
 		})
 	)
 	t.notOk(error)
-	t.equal(called, 3)
+	t.equal(called, 9)
 })
 
 test("api invite: does not reinvite joined users", async t => {
