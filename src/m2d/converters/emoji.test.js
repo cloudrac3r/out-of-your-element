@@ -50,3 +50,15 @@ test("emoji: spy needs u+fe0f in the middle", async t => {
 test("emoji: couple needs u+fe0f in the middle", async t => {
 	t.equal(await encodeEmoji("👩‍❤‍👩", null), "%F0%9F%91%A9%E2%80%8D%E2%9D%A4%EF%B8%8F%E2%80%8D%F0%9F%91%A9")
 })
+
+test("emoji: exact known emojis are returned", async t => {
+	t.equal(await encodeEmoji("mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC", "hippo"), "hippo%3A230201364309868544")
+})
+
+test("emoji: inexact emojis are guessed by name", async t => {
+	t.equal(await encodeEmoji("mxc://example.invalid/a", "hippo"), "hippo%3A230201364309868544")
+})
+
+test("emoji: unknown custom emoji returns null", async t => {
+	t.equal(await encodeEmoji("mxc://example.invalid/a", "silly"), null)
+})

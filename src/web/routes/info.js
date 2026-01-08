@@ -68,8 +68,7 @@ as.router.get("/api/message", defineEventHandler(async event => {
 			}
 		}
 		if (!matrix_author.displayname) matrix_author.displayname = mxid
-		if (matrix_author.avatar_url) matrix_author.avatar_url = mUtils.getPublicUrlForMxc(matrix_author.avatar_url)
-		else matrix_author.avatar_url = null
+		matrix_author.avatar_url = mUtils.getPublicUrlForMxc(matrix_author.avatar_url) || null
 		matrix_author["mxid"] = mxid
 	}
 

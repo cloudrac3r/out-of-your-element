@@ -314,6 +314,13 @@ test("api invite: can invite to a moderated guild", async t => {
 						guest_can_join: false,
 						num_joined_members: 2,
 					}
+					yield {
+						room_id: spaceID,
+						children_state: [],
+						guest_can_join: false,
+						num_joined_members: 2,
+						room_type: "m.space"
+					}
 				},
 				async sendState(roomID, type, key, content) {
 					called++

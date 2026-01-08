@@ -138,14 +138,17 @@ async function getViaServers(roomID, api) {
 	candidates.push(reg.ooye.server_name)
 	// Candidate 1: Highest joined non-sim non-bot power level user in the room
 	// https://github.com/matrix-org/matrix-react-sdk/blob/552c65db98b59406fb49562e537a2721c8505517/src/utils/permalinks/Permalinks.ts#L172
+	/* c8 ignore next */
 	const call = "getEffectivePower" in api ? api.getEffectivePower(roomID, [bot], api) : getEffectivePower(roomID, [bot], api)
 	const {allCreators, powerLevels} = await call
-	const sorted = allCreators.concat(Object.entries(powerLevels.users ?? {}).sort((a, b) => b[1] - a[1]).map(([mxid]) => mxid)) // Highest...
+	powerLevels.users ??= {}
+	const sorted = allCreators.concat(Object.entries(powerLevels.users).sort((a, b) => b[1] - a[1]).map(([mxid]) => mxid)) // Highest...
 	for (const mxid of sorted) {
 		if (!(mxid in joined)) continue // joined...
 		if (userRegex.some(r => mxid.match(r))) continue // non-sim non-bot...
 		const match = mxid.match(/:(.*)/)
 		assert(match)
+		/* c8 ignore next - should be already covered by the userRegex test, but let's be explicit */
 		if (candidates.includes(match[1])) continue // from a different server
 		candidates.push(match[1])
 		break

@@ -1,7 +1,8 @@
 // @ts-check
 
+const {select} = require("../passthrough")
 const {test} = require("supertape")
-const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers, roomHasAtLeastVersion} = require("./utils")
+const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers, roomHasAtLeastVersion, removeCreatorsFromPowerLevels, setUserPower} = require("./utils")
 const util = require("util")
 
 /** @param {string[]} mxids */
@@ -199,6 +200,221 @@ test("getViaServers: only considers power levels of currently joined members", a
 		getJoinedMembers: async () => joinedList(["@_ooye_bot:cadence.moe", "@_ooye_hazel:cadence.moe", "@cadence:cadence.moe", "@moderator:tractor.invalid", "@hazel:thecollective.invalid", "@june:thecollective.invalid", "@singleuser:selfhosted.invalid"])
 	})
 	t.deepEqual(result, ["cadence.moe", "tractor.invalid", "thecollective.invalid", "selfhosted.invalid"])
+})
+
+test("roomHasAtLeastVersion: v9 < v11", t => {
+	t.equal(roomHasAtLeastVersion("9", 11), false)
+})
+
+test("roomHasAtLeastVersion: v12 >= v11", t => {
+	t.equal(roomHasAtLeastVersion("12", 11), true)
+})
+
+test("roomHasAtLeastVersion: v12 >= v12", t => {
+	t.equal(roomHasAtLeastVersion("12", 12), true)
+})
+
+test("roomHasAtLeastVersion: custom versions never match", t => {
+	t.equal(roomHasAtLeastVersion("moe.cadence.silly", 11), false)
+})
+
+test("removeCreatorsFromPowerLevels: removes the creator from a v12 room", t => {
+	t.deepEqual(removeCreatorsFromPowerLevels({
+		type: "m.room.create",
+		state_key: "",
+		sender: "@_ooye_bot:cadence.moe",
+		room_id: "!example",
+		event_id: "$create",
+		origin_server_ts: 0,
+		content: {
+			room_version: "12"
+		}
+	}, {
+		users: {
+			"@_ooye_bot:cadence.moe": 100
+		}
+	}), {
+		users: {
+		}
+	})
+})
+
+test("removeCreatorsFromPowerLevels: removes all creators from a v12 room", t => {
+	t.deepEqual(removeCreatorsFromPowerLevels({
+		type: "m.room.create",
+		state_key: "",
+		sender: "@_ooye_bot:cadence.moe",
+		room_id: "!example",
+		event_id: "$create",
+		origin_server_ts: 0,
+		content: {
+			additional_creators: ["@cadence:cadence.moe"],
+			room_version: "12"
+		}
+	}, {
+		users: {
+			"@_ooye_bot:cadence.moe": 100,
+			"@cadence:cadence.moe": 100
+		}
+	}), {
+		users: {
+		}
+	})
+})
+
+test("removeCreatorsFromPowerLevels: doesn't touch a v11 room", t => {
+	t.deepEqual(removeCreatorsFromPowerLevels({
+		type: "m.room.create",
+		state_key: "",
+		sender: "@_ooye_bot:cadence.moe",
+		room_id: "!example",
+		event_id: "$create",
+		origin_server_ts: 0,
+		content: {
+			additional_creators: ["@cadence:cadence.moe"],
+			room_version: "11"
+		}
+	}, {
+		users: {
+			"@_ooye_bot:cadence.moe": 100,
+			"@cadence:cadence.moe": 100
+		}
+	}), {
+		users: {
+			"@_ooye_bot:cadence.moe": 100,
+			"@cadence:cadence.moe": 100
+		}
+	})
+})
+
+test("set user power: no-op", async t => {
+	let called = 0
+	await setUserPower("!room", "@cadence:cadence.moe", 0, {
+		async getStateEvent(roomID, type, key) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.power_levels")
+			t.equal(key, "")
+			return {}
+		},
+		async getStateEventOuter(roomID, type, key) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.create")
+			t.equal(key, "")
+			return {
+				type: "m.room.create",
+				state_key: "",
+				sender: "@_ooye_bot:cadence.moe",
+				room_id: "!room",
+				origin_server_ts: 0,
+				event_id: "$create",
+				content: {
+					room_version: "11"
+				}
+			}
+		},
+		/* c8 ignore next 4 */
+		async sendState() {
+			called++
+			throw new Error("should not try to send state")
+		}
+	})
+	t.equal(called, 2)
+})
+
+test("set user power: bridge bot must promote unprivileged users", async t => {
+	let called = 0
+	await setUserPower("!room", "@cadence:cadence.moe", 100, {
+		async getStateEvent(roomID, type, key) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.power_levels")
+			t.equal(key, "")
+			return {
+				users: {"@_ooye_bot:cadence.moe": 100}
+			}
+		},
+		async getStateEventOuter(roomID, type, key) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.create")
+			t.equal(key, "")
+			return {
+				type: "m.room.create",
+				state_key: "",
+				sender: "@_ooye_bot:cadence.moe",
+				room_id: "!room",
+				origin_server_ts: 0,
+				event_id: "$create",
+				content: {
+					room_version: "11"
+				}
+			}
+		},
+		async sendState(roomID, type, key, content, mxid) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.power_levels")
+			t.equal(key, "")
+			t.deepEqual(content, {
+				users: {
+					"@_ooye_bot:cadence.moe": 100,
+					"@cadence:cadence.moe": 100
+				}
+			})
+			t.equal(mxid, undefined)
+			return "$sent"
+		}
+	})
+	t.equal(called, 3)
+})
+
+test("set user power: privileged users must demote themselves", async t => {
+	let called = 0
+	await setUserPower("!room", "@cadence:cadence.moe", 0, {
+		async getStateEvent(roomID, type, key) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.power_levels")
+			t.equal(key, "")
+			return {
+				users: {
+					"@cadence:cadence.moe": 100,
+					"@_ooye_bot:cadence.moe": 100
+				}
+			}
+		},
+		async getStateEventOuter(roomID, type, key) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.create")
+			t.equal(key, "")
+			return {
+				type: "m.room.create",
+				state_key: "",
+				sender: "@_ooye_bot:cadence.moe",
+				room_id: "!room",
+				origin_server_ts: 0,
+				event_id: "$create",
+				content: {
+					room_version: "11"
+				}
+			}
+		},
+		async sendState(roomID, type, key, content, mxid) {
+			called++
+			t.equal(roomID, "!room")
+			t.equal(type, "m.room.power_levels")
+			t.equal(key, "")
+			t.deepEqual(content, {
+				users: {"@_ooye_bot:cadence.moe": 100}
+			})
+			t.equal(mxid, "@cadence:cadence.moe")
+			return "$sent"
+		}
+	})
+	t.equal(called, 3)
 })
 
 module.exports.mockGetEffectivePower = mockGetEffectivePower

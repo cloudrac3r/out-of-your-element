@@ -148,7 +148,7 @@ test("web link space: check that inviting user has PL 50", async t => {
 				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 				t.equal(type, "m.room.power_levels")
 				t.equal(key, "")
-				return {users: {"@_ooye_bot:cadence.moe": 100}}
+				return {users: {"@_ooye_bot:cadence.moe": 100}, events: {"m.room.tombstone": 150}}
 			},
 			async getStateEventOuter(roomID, type, key) {
 				called++
@@ -163,7 +163,7 @@ test("web link space: check that inviting user has PL 50", async t => {
 					event_id: "$create",
 					origin_server_ts: 0,
 					content: {
-						room_version: "11"
+						room_version: "12"
 					}
 				}
 			}
@@ -194,7 +194,7 @@ test("web link space: successfully adds entry to database and loads page", async
 				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
 				t.equal(type, "m.room.power_levels")
 				t.equal(key, "")
-				return {users: {"@_ooye_bot:cadence.moe": 100, "@cadence:cadence.moe": 50}}
+				return {users: {"@cadence:cadence.moe": 50}}
 			},
 			async getStateEventOuter(roomID, type, key) {
 				called++
@@ -204,12 +204,12 @@ test("web link space: successfully adds entry to database and loads page", async
 				return {
 					type: "m.room.create",
 					state_key: "",
-					sender: "@creator:cadence.moe",
+					sender: "@_ooye_bot:cadence.moe",
 					room_id: "!zTMspHVUBhFLLSdmnS:cadence.moe",
 					event_id: "$create",
 					origin_server_ts: 0,
 					content: {
-						room_version: "11"
+						room_version: "12"
 					}
 				}
 			}

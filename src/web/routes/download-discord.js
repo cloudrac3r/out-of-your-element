@@ -31,14 +31,13 @@ function getSnow(event) {
 /** @type {Map<string, Promise<string>>} */
 const cache = new Map()
 
-/** @param {string} url */
+/** @param {string | undefined} url */
 function timeUntilExpiry(url) {
 	const params = new URL(url).searchParams
 	const ex = params.get("ex")
 	assert(ex) // refreshed urls from the discord api always include this parameter
 	const time = parseInt(ex, 16)*1000 - Date.now()
 	if (time > 0) return time
-	return false
 }
 
 function defineMediaProxyHandler(domain) {
@@ -71,6 +70,7 @@ function defineMediaProxyHandler(domain) {
 			refreshed = await promise
 			const time = timeUntilExpiry(refreshed)
 			assert(time) // the just-refreshed URL will always be in the future
+			/* c8 ignore next 3 */
 			setTimeout(() => {
 				cache.delete(url)
 			}, time).unref()

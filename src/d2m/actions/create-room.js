@@ -127,8 +127,9 @@ async function channelToKState(channel, guild, di) {
 	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
 	const spacePowerDetails = await mUtils.getEffectivePower(guildSpaceID, [], di.api)
+	spacePowerDetails.powerLevels.users ??= {}
 	const spaceCreatorsAndFounders = spacePowerDetails.allCreators
-		.concat(Object.entries(spacePowerDetails.powerLevels.users ?? {}).filter(([, power]) => power >= spacePowerDetails.tombstone).map(([mxid]) => mxid))
+		.concat(Object.entries(spacePowerDetails.powerLevels.users).filter(([, power]) => power >= spacePowerDetails.tombstone).map(([mxid]) => mxid))
 
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
 	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
