@@ -281,7 +281,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Mentions scenarios 1 and 2, part A. i.e. translate relevant message.mentions to m.mentions
 	// (Still need to do scenarios 1 and 2 part B, and scenario 3.)
 	if (message.type === DiscordTypes.MessageType.Reply && message.message_reference?.message_id) {
-		const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").select("event_id", "room_id", "reference_channel_id", "source").and("WHERE message_id = ? AND part = 0").get(message.message_reference.message_id)
+		const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").select("event_id", "room_id", "reference_channel_id", "source").and("WHERE message_id = ? ORDER BY part ASC").get(message.message_reference.message_id)
 		if (row) {
 			repliedToEventRow = Object.assign(row, {channel_id: row.reference_channel_id})
 		} else if (message.referenced_message) {
@@ -295,7 +295,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			assert(message.embeds[0].description)
 			const match = message.embeds[0].description.match(/\/channels\/[0-9]*\/[0-9]*\/([0-9]{2,})/)
 			if (match) {
-				const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").select("event_id", "room_id", "reference_channel_id", "source").and("WHERE message_id = ? AND part = 0").get(match[1])
+				const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").select("event_id", "room_id", "reference_channel_id", "source").and("WHERE message_id = ? ORDER BY part ASC").get(match[1])
 				if (row) {
 					/*
 						we generate a partial referenced_message based on what PK provided. we don't need everything, since this will only be used for further message-to-event converting.
