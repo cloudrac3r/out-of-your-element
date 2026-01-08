@@ -1,5 +1,5 @@
 const assert = require("assert")
-const {kstateToState, stateToKState, diffKState, kstateStripConditionals, kstateUploadMxc} = require("./kstate")
+const {kstateToState, stateToKState, diffKState, kstateStripConditionals, kstateUploadMxc, kstateToCreationContent} = require("./kstate")
 const {test} = require("supertape")
 
 test("kstate strip: strips false conditions", t => {
@@ -68,6 +68,8 @@ test("kstateUploadMxc and strip: work together", async t => {
 
 test("kstate2state: general", async t => {
 	t.deepEqual(await kstateToState({
+		"m.room.create/": {bogus: true},
+		"m.room.create/outer": {bogus: true},
 		"m.room.name/": {name: "test name"},
 		"m.room.member/@cadence:cadence.moe": {membership: "join"},
 		"uk.half-shot.bridge/org.matrix.appservice-irc://irc/epicord.net/#general": {creator: "@cadence:cadence.moe"}
@@ -99,6 +101,14 @@ test("kstate2state: general", async t => {
 test("state2kstate: general", t => {
 	t.deepEqual(stateToKState([
 		{
+			type: "m.room.create",
+			state_key: "",
+			sender: "@example:matrix.org",
+			content: {
+				room_version: "12"
+			}
+		},
+		{
 			type: "m.room.name",
 			state_key: "",
 			content: {
@@ -122,7 +132,9 @@ test("state2kstate: general", t => {
 	]), {
 		"m.room.name/": {name: "test name"},
 		"m.room.member/@cadence:cadence.moe": {membership: "join"},
-		"uk.half-shot.bridge/org.matrix.appservice-irc://irc/epicord.net/#general": {creator: "@cadence:cadence.moe"}
+		"uk.half-shot.bridge/org.matrix.appservice-irc://irc/epicord.net/#general": {creator: "@cadence:cadence.moe"},
+		"m.room.create/": {room_version: "12"},
+		"m.room.create/outer": {type: "m.room.create", state_key: "", sender: "@example:matrix.org", content: {room_version: "12"}}
 	})
 })
 
@@ -157,6 +169,17 @@ test("diffKState: detects new properties", t => {
 
 test("diffKState: power levels are mixed together", t => {
 	const original = {
+		"m.room.create/outer": {
+			type: "m.room.create",
+			state_key: "",
+			sender: "@example:matrix.org",
+			content: {
+				room_version: "11"
+			}
+		},
+		"m.room.create/": {
+			room_version: "11"
+		},
 		"m.room.power_levels/": {
 			"ban": 50,
 			"events": {
@@ -181,6 +204,9 @@ test("diffKState: power levels are mixed together", t => {
 		"m.room.power_levels/": {
 			"events": {
 				"m.room.avatar": 0
+			},
+			users: {
+				"@example:matrix.org": 100
 			}
 		}
 	})
@@ -201,7 +227,8 @@ test("diffKState: power levels are mixed together", t => {
 			"redact": 50,
 			"state_default": 50,
 			"users": {
-				"@example:localhost": 100
+				"@example:localhost": 100,
+				"@example:matrix.org": 100
 			},
 			"users_default": 0
 		}
@@ -269,4 +296,155 @@ test("diffKState: topic changes if the topic key has changed", t => {
 			topic: "hello you"
 		}
 	})
+})
+
+test("diffKState: room v12 creators cannot be introduced into power levels", t => {
+	const original = {
+		"m.room.create/outer": {
+			type: "m.room.create",
+			state_key: "",
+			sender: "@example1:matrix.org",
+			content: {
+				additional_creators: ["@example2:matrix.org"],
+				room_version: "12"
+			}
+		},
+		"m.room.create/": {
+			room_version: "12"
+		},
+		"m.room.power_levels/": {
+			"ban": 50,
+			"events": {
+				"m.room.name": 100,
+				"m.room.power_levels": 100
+			},
+			"events_default": 0,
+			"invite": 50,
+			"kick": 50,
+			"notifications": {
+				"room": 20
+			},
+			"redact": 50,
+			"state_default": 50,
+			"users": {
+				"@example:localhost": 100
+			},
+			"users_default": 0
+		}
+	}
+	const result = diffKState(original, {
+		"m.room.create/": {
+			bogus: true
+		},
+		"m.room.power_levels/": {
+			events: {
+				"m.room.avatar": 0
+			},
+			users: {
+				"@example1:matrix.org": 100,
+				"@example2:matrix.org": 100,
+				"@example3:matrix.org": 100
+			}
+		}
+	})
+	t.deepEqual(result, {
+		"m.room.power_levels/": {
+			"ban": 50,
+			"events": {
+				"m.room.name": 100,
+				"m.room.power_levels": 100,
+				"m.room.avatar": 0
+			},
+			"events_default": 0,
+			"invite": 50,
+			"kick": 50,
+			"notifications": {
+				"room": 20
+			},
+			"redact": 50,
+			"state_default": 50,
+			"users": {
+				"@example:localhost": 100,
+				"@example3:matrix.org": 100
+			},
+			"users_default": 0
+		}
+	})
+	t.notDeepEqual(original, result)
+})
+
+test("diffKState: room v12 creators cannot be introduced into power levels - no diff if no changes", t => {
+	const original = {
+		"m.room.create/outer": {
+			type: "m.room.create",
+			state_key: "",
+			sender: "@example1:matrix.org",
+			content: {
+				additional_creators: ["@example2:matrix.org"],
+				room_version: "12"
+			}
+		},
+		"m.room.create/": {
+			additional_creators: ["@example2:matrix.org"],
+			room_version: "12"
+		},
+		"m.room.power_levels/": {
+			"ban": 50,
+			"events": {
+				"m.room.name": 100,
+				"m.room.power_levels": 100
+			},
+			"events_default": 0,
+			"invite": 50,
+			"kick": 50,
+			"notifications": {
+				"room": 20
+			},
+			"redact": 50,
+			"state_default": 50,
+			"users": {
+				"@example:localhost": 100
+			},
+			"users_default": 0
+		}
+	}
+	const result = diffKState(original, {
+		"m.room.power_levels/": {
+			users: {
+				"@example1:matrix.org": 100,
+				"@example2:matrix.org": 100
+			}
+		}
+	})
+	t.deepEqual(result, {})
+	t.notDeepEqual(original, result)
+})
+
+test("kstateToCreationContent: works", t => {
+	const original = {
+		"m.room.create/outer": {
+			type: "m.room.create",
+			state_key: "",
+			sender: "@example1:matrix.org",
+			content: {
+				additional_creators: ["@example2:matrix.org"],
+				room_version: "12",
+				type: "m.space"
+			}
+		},
+		"m.room.create/": {
+			additional_creators: ["@example2:matrix.org"],
+			room_version: "12",
+			type: "m.space"
+		}
+	}
+	t.deepEqual(kstateToCreationContent(original), {
+		additional_creators: ["@example2:matrix.org"],
+		room_version: "12",
+		type: "m.space"
+	})
+})
+
+test("kstateToCreationContent: works if empty", t => {
+	t.deepEqual(kstateToCreationContent({}), {})
 })

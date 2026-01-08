@@ -53,11 +53,11 @@ async function kstateToState(kstate) {
 	kstateStripConditionals(kstate)
 	await kstateUploadMxc(kstate)
 	for (const [k, content] of Object.entries(kstate)) {
-		if (k === "m.room.create/") continue
 		const slashIndex = k.indexOf("/")
 		assert(slashIndex > 0)
 		const type = k.slice(0, slashIndex)
 		const state_key = k.slice(slashIndex + 1)
+		if (type === "m.room.create") continue
 		events.push({type, state_key, content})
 	}
 	return events
@@ -94,15 +94,16 @@ function diffKState(actual, target) {
 		if (key === "m.room.power_levels/") {
 			// Special handling for power levels, we want to deep merge the actual and target into the final state.
 			if (!(key in actual)) throw new Error(`want to apply a power levels diff, but original power level data is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
-				const mixedTarget = mixin({}, actual[key], target[key])
+			// if the diff includes users, it needs to be cleaned wrt room version 12
+			const cleanedTarget = mixin({}, target[key])
+			if (target[key].users && Object.keys(target[key].users).length > 0) {
+				assert("m.room.create/" in actual, `want to apply a power levels diff, but original m.room.create/ is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
+				assert("m.room.create/outer" in actual, `want to apply a power levels diff, but original m.room.create/outer is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
+				utils.removeCreatorsFromPowerLevels(actual["m.room.create/outer"], cleanedTarget)
+			}
+			const mixedTarget = mixin({}, actual[key], cleanedTarget)
 			if (!isDeepStrictEqual(actual[key], mixedTarget)) {
 				// they differ. use the newly prepared object as the diff.
-				// if the diff includes users, it needs to be cleaned wrt room version 12
-				if (target[key].users && Object.keys(target[key].users).length > 0) {
-					if (!("m.room.create/" in actual)) throw new Error(`want to apply a power levels diff, but original m.room.create/ is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
-					if (!("m.room.create/outer" in actual)) throw new Error(`want to apply a power levels diff, but original m.room.create/outer is missing\nstarted with:  ${JSON.stringify(actual)}\nwant to apply: ${JSON.stringify(target)}`)
-					utils.removeCreatorsFromPowerLevels(actual["m.room.create/outer"], mixedTarget)
-				}
 				diff[key] = mixedTarget
 			}
 

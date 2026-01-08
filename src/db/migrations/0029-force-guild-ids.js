@@ -14,6 +14,8 @@ const {discord} = require("../../passthrough")
 const ones = "₀₁₂₃₄₅₆₇₈₉"
 const tens = "0123456789"
 
+/* c8 ignore start */
+
 module.exports = async function(db) {
 	/** @type {{name: string, channel_id: string, thread_parent: string | null}[]} */
 	const rows = db.prepare("SELECT name, channel_id, thread_parent FROM channel_room WHERE guild_id IS NULL").all()
