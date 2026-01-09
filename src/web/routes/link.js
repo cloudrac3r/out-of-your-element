@@ -70,16 +70,14 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	// Check space ID
 	if (!session.data.mxid) throw createError({status: 403, message: "Forbidden", data: "Can't link with your Matrix space if you aren't logged in to Matrix"})
 	const spaceID = parsedBody.space_id
-	const inviteType = select("invite", "type", {mxid: session.data.mxid, room_id: spaceID}).pluck().get()
-	if (inviteType !== "m.space") throw createError({status: 403, message: "Forbidden", data: "You personally must invite OOYE to that space on Matrix"})
+	const inviteRow = select("invite", ["mxid", "type"], {mxid: session.data.mxid, room_id: spaceID}).get()
+	if (!inviteRow || inviteRow.type !== "m.space") throw createError({status: 403, message: "Forbidden", data: "You personally must invite OOYE to that space on Matrix"})
 
 	// Check they are not already bridged
 	const existing = select("guild_space", "guild_id", {}, "WHERE guild_id = ? OR space_id = ?").get(guildID, spaceID)
 	if (existing) throw createError({status: 400, message: "Bad Request", data: `Guild ID ${guildID} or space ID ${spaceID} are already bridged and cannot be reused`})
 
-	const inviteSender = select("invite", "mxid", {mxid: session.data.mxid, room_id: spaceID}).pluck().get()
-	const inviteSenderServer = inviteSender?.match(/:(.*)/)?.[1]
-	const via = [inviteSenderServer || ""]
+	const via = [inviteRow.mxid.match(/:(.*)/)[1]]
 
 	// Check space exists and bridge is joined
 	try {

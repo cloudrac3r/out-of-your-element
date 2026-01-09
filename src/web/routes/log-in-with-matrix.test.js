@@ -39,7 +39,8 @@ test("log in with matrix: sends message to log in", async t => {
 	let called = 0
 	await router.test("post", "/api/log-in-with-matrix", {
 		body: {
-			mxid: "@cadence:cadence.moe"
+			mxid: "@cadence:cadence.moe",
+			next: "https://bridge.cadence.moe/guild?guild_id=123"
 		},
 		api: {
 			async usePrivateChat(mxid) {
@@ -51,7 +52,7 @@ test("log in with matrix: sends message to log in", async t => {
 				called++
 				t.equal(roomID, "!created:cadence.moe")
 				t.equal(type, "m.room.message")
-				token = content.body.match(/log-in-with-matrix\?token=([a-f0-9-]+)/)[1]
+				token = content.body.match(/log-in-with-matrix\?token=([a-f0-9-]+)&next=/)[1]
 				t.ok(token, "log in token not issued")
 				return ""
 			}

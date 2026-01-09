@@ -178,7 +178,7 @@ async function attachmentToEvent(mentions, attachment) {
 			info: {
 				mimetype: attachment.content_type,
 				size: attachment.size,
-				duration: attachment.duration_secs ? Math.round(attachment.duration_secs * 1000) : undefined
+				duration: attachment.duration_secs && Math.round(attachment.duration_secs * 1000)
 			}
 		}
 	} else {

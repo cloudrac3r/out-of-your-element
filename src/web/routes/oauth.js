@@ -2,12 +2,12 @@
 
 const {z} = require("zod")
 const {randomUUID} = require("crypto")
-const {defineEventHandler, getValidatedQuery, sendRedirect, createError} = require("h3")
+const {defineEventHandler, getValidatedQuery, sendRedirect, createError, H3Event} = require("h3")
 const {SnowTransfer, tokenless} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const getRelativePath = require("get-relative-path")
 
-const {discord, as, db, sync} = require("../../passthrough")
+const {as, db, sync} = require("../../passthrough")
 const {id, permissions} = require("../../../addbot")
 /** @type {import("../auth")} */
 const auth = sync.require("../auth")
@@ -31,6 +31,24 @@ const schema = {
 		refresh_token: z.string(),
 		scope: z.string()
 	})
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {(string) => {user: {getGuilds: () => Promise<DiscordTypes.RESTGetAPICurrentUserGuildsResult>}}}
+ */
+function getClient(event) {
+	/* c8 ignore next */
+	return event.context.getClient || (accessToken => new SnowTransfer(`Bearer ${accessToken}`))
+}
+
+/**
+ * @param {H3Event} event
+ * @returns {typeof tokenless.getOauth2Token}
+ */
+function getOauth2Token(event) {
+	/* c8 ignore next */
+	return event.context.getOauth2Token || tokenless.getOauth2Token
 }
 
 as.router.get("/oauth", defineEventHandler(async event => {
@@ -61,21 +79,15 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	if (!savedState) throw createError({status: 400, message: "Missing state", data: "Missing saved state parameter. Please try again, and make sure you have cookies enabled."})
 	if (savedState != parsedQuery.data.state) return tryAgain()
 
-	const oauthResult = await tokenless.getOauth2Token(id, redirect_uri, reg.ooye.discord_client_secret, parsedQuery.data.code)
-	const parsedToken = schema.token.safeParse(oauthResult)
-	if (!parsedToken.success) {
-		throw createError({status: 502, message: "Invalid token response", data: `Discord completed OAuth, but returned this instead of an OAuth access token: ${JSON.stringify(oauthResult)}`})
-	}
+	const oauthResult = await getOauth2Token(event)(id, redirect_uri, reg.ooye.discord_client_secret, parsedQuery.data.code)
+	const parsedToken = schema.token.parse(oauthResult)
 
-	const userID = Buffer.from(parsedToken.data.access_token.split(".")[0], "base64").toString()
-	const client = new SnowTransfer(`Bearer ${parsedToken.data.access_token}`)
-	try {
-		const guilds = await client.user.getGuilds()
-		var managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
-		await session.update({managedGuilds, userID, state: undefined})
-	} catch (e) {
-		throw createError({status: 502, message: "API call failed", data: e.message})
-	}
+	const userID = Buffer.from(parsedToken.access_token.split(".")[0], "base64").toString()
+	const client = getClient(event)(parsedToken.access_token)
+
+	const guilds = await client.user.getGuilds()
+	var managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
+	await session.update({managedGuilds, userID, state: undefined})
 
 	// Set auto-create for the guild
 	// @ts-ignore

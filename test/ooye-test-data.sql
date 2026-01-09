@@ -3,10 +3,12 @@ BEGIN TRANSACTION;
 INSERT INTO guild_active (guild_id, autocreate) VALUES
 ('112760669178241024', 1),
 ('66192955777486848', 1),
-('665289423482519565', 0);
+('665289423482519565', 0),
+('1345641201902288987', 1);
 
 INSERT INTO guild_space (guild_id, space_id, privacy_level) VALUES
-('112760669178241024', '!jjmvBegULiLucuWEHU:cadence.moe', 0);
+('112760669178241024', '!jjmvBegULiLucuWEHU:cadence.moe', 0),
+('1345641201902288987', '!CvQMeeqXIkgedUpkzv:cadence.moe', 0);
 
 INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar, guild_id) VALUES
 ('112760669178241024', '!kLRqKKUQXcibIMtOpl:cadence.moe', 'heave', 'main', NULL, NULL, '112760669178241024'),
@@ -21,7 +23,8 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL, '66192955777486848'),
 ('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL, '66192955777486848'),
 ('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL, '665289423482519565'),
-('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL, '665289423482519565');
+('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL, '665289423482519565'),
+('598707048112193536', '!JBxeGYnzQwLnaooOLD:cadence.moe', 'winners', NULL, NULL, NULL, '1345641201902288987');
 
 INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) SELECT channel_id, room_id, 0 FROM channel_room;
 
@@ -78,7 +81,8 @@ WITH a (message_id, channel_id) AS (VALUES
 ('1339000288144658482', '176333891320283136'),
 ('1381212840957972480', '112760669178241024'),
 ('1401760355339862066', '112760669178241024'),
-('1439351590262800565', '1438284564815548418'))
+('1439351590262800565', '1438284564815548418'),
+('1404133238414376971', '112760669178241024'))
 SELECT message_id, max(historical_room_index) as historical_room_index FROM a INNER JOIN historical_channel_room ON historical_channel_room.reference_channel_id = a.channel_id GROUP BY message_id;
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
@@ -124,7 +128,9 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$AfrB8hzXkDMvuoWjSZkDdFYomjInWH7jMBPkwQMN8AI', 'm.room.message', 'm.text', '1381212840957972480', 0, 1, 1),
 ('$43baKEhJfD-RlsFQi0LB16Zxd8yMqp0HSVL00TDQOqM', 'm.room.message', 'm.image', '1381212840957972480', 1, 0, 1),
 ('$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk', 'm.room.message', 'm.text', '1401760355339862066', 0, 0, 0),
-('$ielAnR6geu0P1Tl5UXfrbxlIf-SV9jrNprxrGXP3v7M', 'm.room.message', 'm.image', '1439351590262800565', 0, 0, 0);
+('$ielAnR6geu0P1Tl5UXfrbxlIf-SV9jrNprxrGXP3v7M', 'm.room.message', 'm.image', '1439351590262800565', 0, 0, 0),
+('$uUKLcTQvik5tgtTGDKuzn0Ci4zcCvSoUcYn2X7mXm9I', 'm.room.message', 'm.text', '1404133238414376971', 0, 1, 1),
+('$LhmoWWvYyn5_AHkfb6FaXmLI6ZOC1kloql5P40YDmIk', 'm.room.message', 'm.notice', '1404133238414376971', 1, 0, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
@@ -155,7 +161,8 @@ INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('551636841284108289', 'ae_botrac4r', 0, 'mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs'),
 ('975572106295259148', 'brillillillilliant_move', 0, 'mxc://cadence.moe/scfRIDOGKWFDEBjVXocWYQHik'),
 ('606664341298872324', 'online', 0, 'mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ'),
-('288858540888686602', 'upstinky', 0, 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO');
+('288858540888686602', 'upstinky', 0, 'mxc://cadence.moe/mwZaCtRGAQQyOItagDeCocEO'),
+('1437322787994992650', 'cx_marvelous', 0, 'mxc://cadence.moe/TPZdosVUjTIopsLijkygIbti');
 
 INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES
 ('!jjmvBegULiLucuWEHU:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 50),
@@ -199,5 +206,11 @@ INSERT INTO invite (mxid, room_id, type, name, avatar, topic) VALUES
 INSERT INTO direct (mxid, room_id) VALUES
 ('@user1:example.org', '!existing:cadence.moe'),
 ('@user2:example.org', '!existing:cadence.moe');
+
+-- for cross-room reply test, in 'updates' room
+UPDATE historical_channel_room SET room_id = '!mHmhQQPwXNananaOLD:cadence.moe' WHERE room_id = '!mHmhQQPwXNananMUqq:cadence.moe';
+INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) VALUES ('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 1767922455991);
+INSERT INTO message_room (message_id, historical_room_index) SELECT '1458091145136443547', historical_room_index FROM historical_channel_room WHERE room_id = '!mHmhQQPwXNananaOLD:cadence.moe';
+INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES ('$pgzCQjq_y5sy8RvWOUuoF3obNHjs8iNvt9c-odrOCPY', 'm.room.message', 'm.image', '1458091145136443547', 0, 0, 0);
 
 COMMIT;

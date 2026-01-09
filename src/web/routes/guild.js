@@ -74,22 +74,46 @@ function filterTo(xs, fn) {
 }
 
 /**
+ * @param {{type: number, parent_id?: string, position?: number}} channel
+ * @param {Map<string, {type: number, parent_id?: string, position?: number}>} channels
+ */
+function getPosition(channel, channels) {
+	let position = 0
+
+	// Categories always appear below un-categorised channels. Their contents can be ordered.
+	// So categories, and things in them, will have their position multiplied by a big number. The category's big number. The regular position small number sorts within the category.
+	// Categories are size 2000.
+	let foundCategory = channel
+	while (foundCategory.parent_id) {
+		foundCategory = channels.get(foundCategory.parent_id)
+	}
+	if (foundCategory.type === DiscordTypes.ChannelType.GuildCategory) position = (foundCategory.position + 1) * 2000
+
+	// Categories always appear above what they contain.
+	if (channel.type === DiscordTypes.ChannelType.GuildCategory) position -= 0.5
+
+	// Within a category, voice channels are always sorted to the bottom. The text/voice split is size 1000 each.
+	if ([DiscordTypes.ChannelType.GuildVoice, DiscordTypes.ChannelType.GuildStageVoice].includes(channel.type)) position += 1000
+
+	// Channels are manually ordered within the text/voice split.
+	if (typeof channel.position === "number") position += channel.position
+
+	// Threads appear below their channel.
+	if ([DiscordTypes.ChannelType.PublicThread, DiscordTypes.ChannelType.PrivateThread, DiscordTypes.ChannelType.AnnouncementThread].includes(channel.type)) {
+		position += 0.5
+		let parent = channels.get(channel.parent_id)
+		if (parent && parent["position"]) position += parent["position"]
+	}
+
+	return position
+}
+
+/**
  * @param {DiscordTypes.APIGuild} guild
  * @param {Ty.R.Hierarchy[]} rooms
  * @param {string[]} roles
  */
 function getChannelRoomsLinks(guild, rooms, roles) {
-	function getPosition(channel) {
-		let position = 0
-		let looking = channel
-		while (looking.parent_id) {
-			looking = discord.channels.get(looking.parent_id)
-			position = looking.position * 1000
-		}
-		if (channel.position) position += channel.position
-		return position
-	}
-
 	let channelIDs = discord.guildChannelMap.get(guild.id)
 	assert(channelIDs)
 
@@ -97,7 +121,7 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c}))
 	let removedUncachedChannels = filterTo(linkedChannelsWithDetails, c => c.channel)
 	let linkedChannelIDs = linkedChannelsWithDetails.map(c => c.channel_id)
-	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel) - getPosition(b.channel))
+	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel, discord.channels) - getPosition(b.channel, discord.channels))
 
 	let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
 	/** @type {DiscordTypes.APIGuildChannel[]} */ // @ts-ignore
@@ -107,7 +131,7 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 		const permissions = dUtils.getPermissions(roles, guild.roles, botID, c["permission_overwrites"])
 		return dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
 	})
-	unlinkedChannels.sort((a, b) => getPosition(a) - getPosition(b))
+	unlinkedChannels.sort((a, b) => getPosition(a, discord.channels) - getPosition(b, discord.channels))
 
 	let linkedRoomIDs = linkedChannels.map(c => c.room_id)
 	let unlinkedRooms = [...rooms]
@@ -239,3 +263,6 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 		return sendRedirect(event, "/ok?msg=User has been invited.", 302)
 	}
 }))
+
+module.exports._getPosition = getPosition
+module.exports._filterTo = filterTo

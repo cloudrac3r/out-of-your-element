@@ -108,12 +108,7 @@ function isWebhookUserID(userID) {
  * @returns {string}
  */
 function webhookAuthorToSimName(author) {
-	if (SPECIAL_USER_MAPPINGS.has(author.id)) {
-		const error = new Error("Special users should have followed the other code path.")
-		// @ts-ignore
-		error.author = author
-		throw error
-	}
+	assert(!SPECIAL_USER_MAPPINGS.has(author.id), "Special users should have followed the other code path.")
 
 	// 1. Is sim user already registered?
 	const fakeUserID = webhookAuthorToFakeUserID(author)

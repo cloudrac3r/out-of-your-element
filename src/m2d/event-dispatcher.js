@@ -332,7 +332,7 @@ async event => {
 	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
 	if (event.state_key === bot) {
-		const upgraded = await roomUpgrade.onBotMembership(event)
+		const upgraded = await roomUpgrade.onBotMembership(event, api, createRoom)
 		if (upgraded) return
 	}
 
@@ -406,7 +406,9 @@ sync.addTemporaryListener(as, "type:m.room.tombstone", guard("m.room.tombstone",
  * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Tombstone>} event
  */
 async event => {
-	await roomUpgrade.onTombstone(event)
+	if (event.state_key !== "") return
+	if (!event.content.replacement_room) return
+	await roomUpgrade.onTombstone(event, api)
 }))
 
 module.exports.stringifyErrorStack = stringifyErrorStack

@@ -1356,3 +1356,83 @@ test("message2event: channel links are converted even inside lists (parser post-
 	])
 	t.equal(called, 1)
 })
+
+test("message2event: emoji added special message", async t => {
+	const events = await messageToEvent(data.special_message.emoji_added)
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			msgtype: "m.emote",
+			body: "added a new emoji, :cx_marvelous: :cx_marvelous:",
+			format: "org.matrix.custom.html",
+			formatted_body: `added a new emoji, <img data-mx-emoticon height="32" src="mxc://cadence.moe/TPZdosVUjTIopsLijkygIbti" title=":cx_marvelous:" alt=":cx_marvelous:"> :cx_marvelous:`,
+			"m.mentions": {}
+		}
+	])
+})
+
+test("message2event: cross-room reply", async t => {
+	let called = 0
+	const events = await messageToEvent({
+		type: 19,
+		message_reference: {
+			channel_id: "1161864271370666075",
+			guild_id: "1160893336324931584",
+			message_id: "1458091145136443547"
+		},
+		referenced_message: {
+			channel_id: "1161864271370666075",
+			id: "1458091145136443547",
+			content: "",
+			attachments: [{
+				filename: "image.png",
+				id: "1456813607693193478",
+				size: 104006,
+				content_type: "image/png",
+				url: "https://cdn.discordapp.com/attachments/1160893337029586956/1458790740338409605/image.png?ex=696194ff&is=6960437f&hm=923d0ef7d1b249470be49edbc37628cc4ff8a438f0ab12f54c045578135f7050"
+			}],
+			author: {
+				username: "Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆"
+			}
+		},
+		content: "cross-room reply"
+	}, {}, {}, {api: {
+		async getEvent(roomID, eventID) {
+			called++
+			t.equal(roomID, "!mHmhQQPwXNananaOLD:cadence.moe")
+			t.equal(eventID, "$pgzCQjq_y5sy8RvWOUuoF3obNHjs8iNvt9c-odrOCPY")
+			return {
+				type: "m.room.message",
+				sender: "@cadence:cadence.moe",
+				content: {
+					"body": "image.png",
+					"info": {
+						"h": 738,
+						"mimetype": "image/png",
+						"org.matrix.msc4230.is_animated": false,
+						"size": 111189,
+						"w": 772,
+						"xyz.amorgan.blurhash": "L255Oa~qRPD$-pxuoJoLIUM{xuxu"
+					},
+					"m.mentions": {},
+					"msgtype": "m.image",
+					"url": "mxc://matrix.org/QbSujQjRLekzPknKlPsXbGDS"
+				}
+			}
+		}
+	}})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			msgtype: "m.text",
+			body: "> Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆: [Media]\n\ncross-room reply",
+			format: "org.matrix.custom.html",
+			formatted_body: `<blockquote><a href="https://matrix.to/#/!mHmhQQPwXNananaOLD:cadence.moe/$pgzCQjq_y5sy8RvWOUuoF3obNHjs8iNvt9c-odrOCPY">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆</a><br>[Media]</blockquote>cross-room reply`,
+			"m.mentions": {
+				user_ids: [
+					"@cadence:cadence.moe"
+				]
+			}
+		}
+	])
+})

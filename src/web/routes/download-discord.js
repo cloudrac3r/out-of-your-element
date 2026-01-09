@@ -83,3 +83,5 @@ function defineMediaProxyHandler(domain) {
 
 as.router.get(`/download/discordcdn/:channel_id/:attachment_id/:file_name`, defineMediaProxyHandler("cdn.discordapp.com"))
 as.router.get(`/download/discordmedia/:channel_id/:attachment_id/:file_name`, defineMediaProxyHandler("media.discordapp.net"))
+
+module.exports._cache = cache

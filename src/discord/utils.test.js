@@ -180,3 +180,15 @@ test("isEphemeralMessage: doesn't detect normal message", t => {
 test("getPublicUrlForCdn: no-op on non-discord URL", t => {
 	t.equal(utils.getPublicUrlForCdn("https://cadence.moe"), "https://cadence.moe")
 })
+
+test("how old: now", t => {
+	t.equal(utils.howOldUnbridgedMessage(new Date().toISOString(), new Date().toISOString()), "an unbridged message")
+})
+
+test("how old: hours", t => {
+	t.equal(utils.howOldUnbridgedMessage("2026-01-01T00:00:00", "2026-01-01T03:10:00"), "a 3-hour-old unbridged message")
+})
+
+test("how old: days", t => {
+	t.equal(utils.howOldUnbridgedMessage("2024-01-01", "2025-01-01"), "a 366-day-old unbridged message")
+})

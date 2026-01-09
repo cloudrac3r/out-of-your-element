@@ -1,8 +1,10 @@
 // @ts-check
 
+const DiscordTypes = require("discord-api-types/v10")
 const tryToCatch = require("try-to-catch")
 const {router, test} = require("../../../test/web")
 const {MatrixServerError} = require("../../matrix/mreq")
+const {_getPosition, _filterTo} = require("./guild")
 
 let nonce
 
@@ -101,12 +103,6 @@ test("web guild: can view bridged guild when logged in with discord", async t =>
 			managedGuilds: ["112760669178241024"]
 		},
 		api: {
-			async getStateEvent(roomID, type, key) {
-				return {}
-			},
-			async getMembers(roomID, membership) {
-				return {chunk: []}
-			},
 			async getFullHierarchy(roomID) {
 				return []
 			}
@@ -121,12 +117,6 @@ test("web guild: can view bridged guild when logged in with matrix", async t => 
 			mxid: "@cadence:cadence.moe"
 		},
 		api: {
-			async getStateEvent(roomID, type, key) {
-				return {}
-			},
-			async getMembers(roomID, membership) {
-				return {chunk: []}
-			},
 			async getFullHierarchy(roomID) {
 				return []
 			}
@@ -191,12 +181,12 @@ test("api invite: can invite with valid nonce", async t => {
 				async getStateEvent(roomID, type, key) {
 					called++
 					if (type === "m.room.member" && key === "@cadence:cadence.moe") {
-						return {membership: "leave"}
+						throw new Error("event not found")
 					} else if (type === "m.room.power_levels" && key === "") {
 						return {}
-					} else {
-						t.fail(`unexpected getStateEvent call. roomID: ${roomID}, type: ${type}, key: ${key}`)
 					}
+					/* c8 ignore next */
+					t.fail(`unexpected getStateEvent call. roomID: ${roomID}, type: ${type}, key: ${key}`)
 				},
 				async getStateEventOuter(roomID, type, key) {
 					called++
@@ -284,9 +274,9 @@ test("api invite: can invite to a moderated guild", async t => {
 						return {membership: "leave"}
 					} else if (type === "m.room.power_levels" && key === "") {
 						return {}
-					} else {
-						t.fail(`unexpected getStateEvent call. roomID: ${roomID}, type: ${type}, key: ${key}`)
 					}
+					/* c8 ignore next */
+					t.fail(`unexpected getStateEvent call. roomID: ${roomID}, type: ${type}, key: ${key}`)
 				},
 				async getStateEventOuter(roomID, type, key) {
 					called++
@@ -361,4 +351,53 @@ test("api invite: does not reinvite joined users", async t => {
 	)
 	t.notOk(error)
 	t.equal(called, 1)
+})
+
+
+test("position sorting: sorts like discord does", t => {
+	const channelsList = [{
+		type: DiscordTypes.ChannelType.GuildText,
+		id: "first",
+		position: 0
+	}, {
+		type: DiscordTypes.ChannelType.PublicThread,
+		id: "thread",
+		parent_id: "first",
+	}, {
+		type: DiscordTypes.ChannelType.GuildText,
+		id: "second",
+		position: 1
+	}, {
+		type: DiscordTypes.ChannelType.GuildVoice,
+		id: "voice",
+		position: 0
+	}, {
+		type: DiscordTypes.ChannelType.GuildCategory,
+		id: "category",
+		position: 0
+	}, {
+		type: DiscordTypes.ChannelType.GuildText,
+		id: "category-first",
+		parent_id: "category",
+		position: 0
+	}, {
+		type: DiscordTypes.ChannelType.GuildText,
+		id: "category-second",
+		parent_id: "category",
+		position: 1
+	}, {
+		type: DiscordTypes.ChannelType.PublicThread,
+		id: "category-second-thread",
+		parent_id: "category-second",
+	}].reverse()
+	const channels = new Map(channelsList.map(c => [c.id, c]))
+	const sortedChannelIDs = [...channels.values()].sort((a, b) => _getPosition(a, channels) - _getPosition(b, channels)).map(c => c.id)
+	t.deepEqual(sortedChannelIDs, ["first", "thread", "second", "voice", "category", "category-first", "category-second", "category-second-thread"])
+})
+
+test("filterTo: works", t => {
+	const fruit = ["apple", "banana", "apricot"]
+	const rest = _filterTo(fruit, f => f[0] === "b")
+	t.deepEqual(fruit, ["banana"])
+	t.deepEqual(rest, ["apple", "apricot"])
 })

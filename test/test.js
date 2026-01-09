@@ -29,6 +29,7 @@ reg.namespaces = {
 reg.ooye.bridge_origin = "https://bridge.example.org"
 reg.ooye.time_zone = "Pacific/Auckland"
 reg.ooye.max_file_size = 5000000
+reg.ooye.web_password = "password123"
 
 const sync = new HeatSync({watchFS: false})
 
@@ -140,6 +141,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/web/routes/info.test")
 	require("../src/web/routes/link.test")
 	require("../src/web/routes/log-in-with-matrix.test")
+	require("../src/web/routes/oauth.test")
 	require("../src/web/routes/password.test")
 	require("../src/discord/utils.test")
 	require("../src/matrix/kstate.test")
@@ -147,6 +149,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/matrix/file.test")
 	require("../src/matrix/mreq.test")
 	require("../src/matrix/read-registration.test")
+	require("../src/matrix/room-upgrade.test")
 	require("../src/matrix/txnid.test")
 	require("../src/matrix/utils.test")
 	require("../src/d2m/actions/create-room.test")

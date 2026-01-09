@@ -4,12 +4,8 @@ const assert = require("assert/strict")
 const Ty = require("../types")
 const {Semaphore} = require("@chriscdn/promise-semaphore")
 const {tag} = require("@cloudrac3r/html-template-tag")
-const {discord, db, sync, as, select, from} = require("../passthrough")
+const {db, sync, select, from} = require("../passthrough")
 
-/** @type {import("./api")}) */
-const api = sync.require("./api")
-/** @type {import("../d2m/actions/create-room")}) */
-const createRoom = sync.require("../d2m/actions/create-room")
 /** @type {import("./utils")}) */
 const utils = sync.require("./utils")
 
@@ -17,11 +13,12 @@ const roomUpgradeSema = new Semaphore()
 
 /**
  * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Tombstone>} event
+ * @param {import("./api")} api
  */
-async function onTombstone(event) {
-	// Validate
-	if (event.state_key !== "") return
-	if (!event.content.replacement_room) return
+async function onTombstone(event, api) {
+	// Preconditions (checked by event-dispatcher, enforced here)
+	assert.equal(event.state_key, "")
+	assert.ok(event.content.replacement_room)
 
 	// Set up
 	const oldRoomID = event.room_id
@@ -48,13 +45,21 @@ async function onTombstone(event) {
 
 /**
  * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Member>} event
+ * @param {import("./api")} api
+ * @param {import("../d2m/actions/create-room")} createRoom
  * @returns {Promise<boolean>} whether to cancel other membership actions
  */
-async function onBotMembership(event) {
+async function onBotMembership(event, api, createRoom) {
+	// Preconditions (checked by event-dispatcher, enforced here)
+	assert.equal(event.type, "m.room.member")
+	assert.equal(event.state_key, utils.bot)
+
 	// Check if an upgrade is pending for this room
 	const newRoomID = event.room_id
 	const oldRoomID = select("room_upgrade_pending", "old_room_id", {new_room_id: newRoomID}).pluck().get()
 	if (!oldRoomID) return
+	const channelRow = from("channel_room").join("guild_space", "guild_id").where({room_id: oldRoomID}).select("space_id", "guild_id", "channel_id").get()
+	assert(channelRow) // this could only fail if the channel was unbridged or something between upgrade and joining
 
 	// Check if is join/invite
 	if (event.content.membership !== "invite" && event.content.membership !== "join") return
@@ -65,9 +70,6 @@ async function onBotMembership(event) {
 			await api.joinRoom(newRoomID)
 		}
 
-		const channelRow = from("channel_room").join("guild_space", "guild_id").where({room_id: oldRoomID}).select("space_id", "guild_id", "channel_id").get()
-		assert(channelRow)
-
 		// Remove old room from space
 		await api.sendState(channelRow.space_id, "m.space.child", oldRoomID, {})
 		// await api.sendState(oldRoomID, "m.space.parent", spaceID, {}) // keep this - the room isn't advertised but should still be grouped if opened
@@ -75,7 +77,7 @@ async function onBotMembership(event) {
 		// Remove declaration that old room is bridged (if able)
 		try {
 			await api.sendState(oldRoomID, "uk.half-shot.bridge", `moe.cadence.ooye://discord/${channelRow.guild_id}/${channelRow.channel_id}`, {})
-		} catch (e) {}
+		} catch (e) { /* c8 ignore next */ }
 
 		// Update database
 		db.transaction(() => {

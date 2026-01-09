@@ -180,6 +180,39 @@ module.exports = {
 			afk_timeout: 300,
 			id: "112760669178241024",
 			icon: "a_f83622e09ead74f0c5c527fe241f8f8c",
+			/** @type {DiscordTypes.APIGuildMember[]} */ // @ts-ignore
+			members: [{
+				user: {
+					username: 'Matrix Bridge',
+					public_flags: 0,
+					primary_guild: null,
+					id: '684280192553844747',
+					global_name: null,
+					display_name_styles: null,
+					display_name: null,
+					discriminator: '5728',
+					collectibles: null,
+					bot: true,
+					avatar_decoration_data: null,
+					avatar: '48ae3c24f2a6ec5c60c41bdabd904018'
+				},
+				roles: [
+					'703457691342995528',
+					'289671295359254529',
+					'1040735082610167858',
+					'114526764860047367'
+				],
+				premium_since: null,
+				pending: false,
+				nick: 'Mother',
+				mute: false,
+				joined_at: '2020-04-25T04:09:43.253000+00:00',
+				flags: 0,
+				deaf: false,
+				communication_disabled_until: null,
+				banner: null,
+				avatar: null
+			}],
 			emojis: [
 				{
 					roles: [],
@@ -5433,6 +5466,50 @@ module.exports = {
 		}
 	},
 	special_message: {
+		emoji_added: {
+			type: 63,
+			content: '<:cx_marvelous:1437322787994992650>',
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: '2025-11-10T06:07:36.930000+00:00',
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: '1437322788439457794',
+			channel_id: '1100319550446252084',
+			author: {
+				id: '772659086046658620',
+				username: 'cadence.worm',
+				avatar: '466df0c98b1af1e1388f595b4c1ad1b9',
+				discriminator: '0',
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: 'cadence',
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: null,
+				banner_color: null,
+				clan: {
+					identity_guild_id: '532245108070809601',
+					identity_enabled: true,
+					tag: 'doll',
+					badge: 'dba08126b4e810a0e096cc7cd5bc37f0'
+				},
+				primary_guild: {
+					identity_guild_id: '532245108070809601',
+					identity_enabled: true,
+					tag: 'doll',
+					badge: 'dba08126b4e810a0e096cc7cd5bc37f0'
+				}
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false
+		},
 		thread_name_change: {
 			id: "1142391602799710298",
 			type: 4,

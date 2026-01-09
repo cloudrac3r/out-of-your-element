@@ -271,6 +271,61 @@ test("edit2changes: promotes the text event when multiple rows have part = 1 (sh
 	])
 })
 
+test("edit2changes: promotes newly sent event", async t => {
+	const {eventsToReplace, eventsToRedact, eventsToSend, promotions} = await editToChanges({
+		channel_id: "1160894080998461480",
+		id: "1404133238414376971",
+		content: "hi",
+		attachments: [{
+			id: "1157854643037163610",
+			filename: "Screenshot_20231001_034036.jpg",
+			size: 51981,
+			url: "https://cdn.discordapp.com/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg?ex=651a1faa&is=6518ce2a&hm=eb5ca80a3fa7add8765bf404aea2028a28a2341e4a62435986bcdcf058da82f3&",
+			proxy_url: "https://media.discordapp.net/attachments/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg?ex=651a1faa&is=6518ce2a&hm=eb5ca80a3fa7add8765bf404aea2028a28a2341e4a62435986bcdcf058da82f3&",
+			width: 1080,
+			height: 1170,
+			content_type: "image/jpeg"
+		}],
+		author: {
+			username: "cadence.worm",
+			global_name: "Cadence"
+		}
+	}, data.guild.general, {
+		async getEvent(roomID, eventID) {
+			t.equal(eventID, "$uUKLcTQvik5tgtTGDKuzn0Ci4zcCvSoUcYn2X7mXm9I")
+			return {
+				type: "m.room.message",
+				sender: "@_ooye_cadence.worm:cadence.moe",
+				content: {
+					msgtype: "m.text",
+					body: "hi"
+				}
+			}
+		}
+	})
+	t.deepEqual(eventsToRedact, ["$LhmoWWvYyn5_AHkfb6FaXmLI6ZOC1kloql5P40YDmIk"])
+	t.deepEqual(eventsToReplace, [])
+	t.deepEqual(eventsToSend, [{
+		$type: "m.room.message",
+		body: "Screenshot_20231001_034036.jpg",
+		external_url: "https://bridge.example.org/download/discordcdn/176333891320283136/1157854643037163610/Screenshot_20231001_034036.jpg",
+		filename: "Screenshot_20231001_034036.jpg",
+		info: {
+			mimetype: "image/jpeg",
+			size: 51981,
+			w: 1080,
+			h: 1170
+		},
+		url: "mxc://cadence.moe/zAXdQriaJuLZohDDmacwWWDR",
+		"m.mentions": {},
+		msgtype: "m.image"
+	}])
+	t.deepEqual(promotions, [
+		{column: "reaction_part", nextEvent: true}
+	])
+	// assert that the event parts will be consistent in database after this
+})
+
 test("edit2changes: generated embed", async t => {
 	let called = 0
 	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_social_media_image, data.guild.general, {

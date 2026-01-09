@@ -58,7 +58,7 @@ async function addButton(roomID, eventID, key, mxid) {
 setInterval(() => {
 	const now = Date.now()
 	buttons = buttons.filter(b => now - b.created < 2*60*60*1000)
-}, 10*60*1000)
+}, 10*60*1000).unref()
 
 /** @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event */
 function onReactionAdd(event) {
