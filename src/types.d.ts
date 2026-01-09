@@ -276,7 +276,6 @@ export namespace Event {
 	}
 
 	export type M_Room_Avatar = {
-		discord_path?: string
 		url?: string
 	}
 
