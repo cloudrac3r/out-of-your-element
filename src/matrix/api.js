@@ -79,9 +79,17 @@ async function joinRoom(roomIDOrAlias, mxid, via) {
 }
 
 async function inviteToRoom(roomID, mxidToInvite, mxid) {
-	await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/invite`, mxid), {
-		user_id: mxidToInvite
-	})
+	try {
+		await mreq.mreq("POST", path(`/client/v3/rooms/${roomID}/invite`, mxid), {
+			user_id: mxidToInvite
+		})
+	} catch (e) {
+		if (e.message.includes("is already in the room.") || e.message.includes("cannot invite user that is joined")) {
+			// Sweet!
+		} else {
+			throw e
+		}
+	}
 }
 
 async function leaveRoom(roomID, mxid) {

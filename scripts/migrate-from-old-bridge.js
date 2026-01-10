@@ -82,15 +82,7 @@ async function migrateGuild(guild) {
 		// Step 2: (Using old bridge access token) Join the new bridge to the old rooms and give it PL 100
 		console.log(`-- Joining channel ${channel.name}...`)
 		await mreq.withAccessToken(oldAT, async () => {
-			try {
-				await api.inviteToRoom(roomID, newBridgeMxid)
-			} catch (e) {
-				if (e.message.includes("is already in the room")) {
-					// Great!
-				} else {
-					throw e
-				}
-			}
+			await api.inviteToRoom(roomID, newBridgeMxid)
 			await utils.setUserPower(roomID, newBridgeMxid, 100, api)
 		})
 		await api.joinRoom(roomID)
