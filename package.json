@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@chriscdn/promise-semaphore": "^3.0.1",
-    "@cloudrac3r/discord-markdown": "^2.6.7",
+    "@cloudrac3r/discord-markdown": "^2.6.10",
     "@cloudrac3r/giframe": "^0.4.3",
     "@cloudrac3r/html-template-tag": "^5.0.1",
     "@cloudrac3r/in-your-element": "^1.1.1",
@@ -64,6 +64,7 @@
   "scripts": {
     "start": "node --enable-source-maps start.js",
     "setup": "node --enable-source-maps scripts/setup.js",
+    "build": "mkdir -p dist/out-of-your-element && cp -R src dist/out-of-your-element && cp -R docs dist/out-of-your-element && npx tsdown",
     "addbot": "node addbot.js",
     "test": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap --no-worker test/test.js | tap-dot",
     "test-slow": "cross-env FORCE_COLOR=true supertape --no-check-assertions-count --format tap --no-worker test/test.js -- --slow | tap-dot",

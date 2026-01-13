@@ -26,8 +26,9 @@ const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
  * @param {DiscordTypes.APIMessage} message
  * @param {DiscordTypes.APIGuild} guild
  * @param {boolean} useHTML
+ * @param {string[]} spoilers
  */
-function getDiscordParseCallbacks(message, guild, useHTML) {
+function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 	return {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
@@ -90,6 +91,10 @@ function getDiscordParseCallbacks(message, guild, useHTML) {
 		here: () => {
 			if (message.mention_everyone) return "@room"
 			return "@here"
+		},
+		spoiler: node => {
+			spoilers.push(node.raw)
+			return useHTML
 		}
 	}
 }
@@ -392,6 +397,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		return content.replace(/https:\/\/(cdn|media)\.discordapp\.(?:com|net)\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/g, url => dUtils.getPublicUrlForCdn(url))
 	}
 
+	const spoilers = []
 	/**
 	 * Translate links and emojis and mentions and stuff. Give back the text and HTML so they can be combined into bigger events.
 	 * @param {string} content Partial or complete Discord message content
@@ -431,7 +437,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 
 		let html = await markdown.toHtmlWithPostParser(content, transformParsedVia, {
-			discordCallback: getDiscordParseCallbacks(message, guild, true),
+			discordCallback: getDiscordParseCallbacks(message, guild, true, spoilers),
 			...customOptions
 		}, customParser, customHtmlOutput)
 
@@ -690,6 +696,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		if (embed.url?.startsWith("https://discord.com/")) {
 			continue // If discord creates an embed preview for a discord channel link, don't copy that embed
+		}
+
+		if (embed.url && spoilers.some(sp => sp.match(/\bhttps?:\/\/[a-z]/))) {
+			// If the original message had spoilered URLs, don't generate any embeds for links.
+			// This logic is the same as the Discord desktop client. It doesn't match specific embeds to specific spoilered text, it's all or nothing.
+			// It's not easy to do much better because posting a link like youtu.be generates an embed.url with youtube.com/watch, so you can't match up the text without making at least that a special case.
+			continue
 		}
 
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once

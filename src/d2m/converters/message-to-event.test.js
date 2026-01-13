@@ -862,6 +862,20 @@ test("message2event: advanced written @mentions for matrix users", async t => {
 	t.equal(called, 1, "should only look up the member list once")
 })
 
+test("message2event: spoilers are removed from plaintext body", async t => {
+	const events = await messageToEvent({
+		content: "||**beatrice**||"
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "[spoiler]",
+		format: "org.matrix.custom.html",
+		formatted_body: `<span data-mx-spoiler=""><strong>beatrice</strong></span>`
+	}])
+})
+
 test("message2event: very large attachment is linked instead of being uploaded", async t => {
 	const events = await messageToEvent({
 		content: "hey",

@@ -312,6 +312,21 @@ test("message2event embeds: youtube video", async t => {
 	}])
 })
 
+test("message2event embeds: embed not bridged if its link was spoilered", async t => {
+	const events = await messageToEvent({
+		...data.message_with_embeds.youtube_video,
+		content: "||https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E\n\n\nJutomi I'm gonna make these sounds in your walls tonight||"
+	}, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "[spoiler]",
+		format: "org.matrix.custom.html",
+		formatted_body: `<span data-mx-spoiler=""><a href="https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E">https://youtu.be/kDMHHw8JqLE?si=NaqNjVTtXugHeG_E</a><br><br><br>Jutomi I'm gonna make these sounds in your walls tonight</span>`,
+		"m.mentions": {}
+	}])
+})
+
 test("message2event embeds: tenor gif should show a video link without a provider", async t => {
 	const events = await messageToEvent(data.message_with_embeds.tenor_gif, data.guild.general, {}, {})
 	t.deepEqual(events, [{
