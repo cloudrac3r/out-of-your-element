@@ -286,8 +286,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Mentions scenarios 1 and 2, part A. i.e. translate relevant message.mentions to m.mentions
 	// (Still need to do scenarios 1 and 2 part B, and scenario 3.)
 	if (message.type === DiscordTypes.MessageType.Reply && message.message_reference?.message_id) {
-		const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").select("event_id", "room_id", "reference_channel_id", "source").and("WHERE message_id = ? ORDER BY part ASC").get(message.message_reference.message_id)
-		if (row) {
+		const row = await getHistoricalEventRow(message.message_reference?.message_id)
+		if (row && "event_id" in row) {
 			repliedToEventRow = Object.assign(row, {channel_id: row.reference_channel_id})
 		} else if (message.referenced_message) {
 			repliedToUnknownEvent = true
@@ -300,8 +300,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			assert(message.embeds[0].description)
 			const match = message.embeds[0].description.match(/\/channels\/[0-9]*\/[0-9]*\/([0-9]{2,})/)
 			if (match) {
-				const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index").select("event_id", "room_id", "reference_channel_id", "source").and("WHERE message_id = ? ORDER BY part ASC").get(match[1])
-				if (row) {
+				const row = await getHistoricalEventRow(match[1])
+				if (row && "event_id" in row) {
 					/*
 						we generate a partial referenced_message based on what PK provided. we don't need everything, since this will only be used for further message-to-event converting.
 						the following properties are necessary:
@@ -347,6 +347,34 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	/**
+	 * @param {string} messageID
+	 * @param {string} [timestampChannelID]
+	 */
+	async function getHistoricalEventRow(messageID, timestampChannelID) {
+		/** @type {{room_id: string} | {event_id: string, room_id: string, reference_channel_id: string, source: number} | null} */
+		let row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+			.select("event_id", "room_id", "reference_channel_id", "source").where({message_id: messageID}).and("ORDER BY part ASC").get()
+		if (!row && timestampChannelID) {
+			const ts = dUtils.snowflakeToTimestampExact(messageID)
+			const oldestRow = from("historical_channel_room").selectUnsafe("max(upgraded_timestamp)", "room_id")
+				.where({reference_channel_id: timestampChannelID}).and("and upgraded_timestamp < ?").get(ts)
+			if (oldestRow?.room_id) {
+				row = {room_id: oldestRow.room_id}
+				try {
+					const {event_id} = await di.api.getEventForTimestamp(oldestRow.room_id, ts)
+					row = {
+						event_id,
+						room_id: oldestRow.room_id,
+						reference_channel_id: oldestRow.reference_channel_id,
+						source: 1
+					}
+				} catch (e) {}
+			}
+		}
+		return row
+	}
+
+	/**
 	 * Translate Discord message links to Matrix event links.
 	 * If OOYE has handled this message in the past, this is an instant database lookup.
 	 * Otherwise, if OOYE knows the channel, this is a multi-second request to /timestamp_to_event to approximate.
@@ -358,30 +386,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 			assert(typeof match.index === "number")
 			const [_, channelID, messageID] = match
 			const result = await (async () => {
-				const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
-					.select("event_id", "room_id").where({message_id: messageID}).get()
-				// const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
-				if (row) {
-					const via = await getViaServersMemo(row.room_id)
-					return `https://matrix.to/#/${row.room_id}/${row.event_id}?${via}`
-				}
-
-				const ts = dUtils.snowflakeToTimestampExact(messageID)
-				const oldestRow = from("historical_channel_room").selectUnsafe("max(upgraded_timestamp)", "room_id")
-					.where({reference_channel_id: channelID}).and("and upgraded_timestamp < ?").get(ts)
-				if (oldestRow?.room_id) {
-					const via = await getViaServersMemo(oldestRow.room_id)
-					try {
-						const {event_id} = await di.api.getEventForTimestamp(oldestRow.room_id, ts)
-						return `https://matrix.to/#/${oldestRow.room_id}/${event_id}?${via}`
-					} catch (e) {
-						// M_NOT_FOUND: Unable to find event from <ts> in direction Direction.FORWARDS
-						// not supported in Conduit and descendants
-						return `[unknown event, timestamp resolution failed, in room: https://matrix.to/#/${oldestRow.room_id}?${via}]`
-					}
-				}
-
-				return `${match[0]} [event is from another server]`
+				const row = await getHistoricalEventRow(messageID, channelID)
+				if (!row) return `${match[0]} [event is from another server]`
+				const via = await getViaServersMemo(row.room_id)
+				if (!("event_id" in row)) return `[unknown event in https://matrix.to/#/${row.room_id}?${via}]`
+				return `https://matrix.to/#/${row.room_id}/${row.event_id}?${via}`
 			})()
 
 			content = content.slice(0, match.index + offset) + result + content.slice(match.index + match[0].length + offset)
@@ -561,17 +570,16 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Forwarded content appears first
 	if (message.message_reference?.type === DiscordTypes.MessageReferenceType.Forward && message.message_snapshots?.length) {
 		// Forwarded notice
-		const event = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
-			.select("event_id", "room_id").where({message_id: message.message_reference.message_id}).get()
+		const row = await getHistoricalEventRow(message.message_reference.message_id, message.message_reference.channel_id)
 		const room = select("channel_room", ["room_id", "name", "nick"], {channel_id: message.message_reference.channel_id}).get()
 		const forwardedNotice = new mxUtils.MatrixStringBuilder()
 		if (room) {
 			const roomName = room && (room.nick || room.name)
-			if (event) {
-				const via = await getViaServersMemo(event.room_id)
+			if ("event_id" in row) {
+				const via = await getViaServersMemo(row.room_id)
 				forwardedNotice.addLine(
 					`[🔀 Forwarded from #${roomName}]`,
-					tag`🔀 <em>Forwarded from ${roomName} <a href="https://matrix.to/#/${room.room_id}/${event.event_id}?${via}">[jump to event]</a></em>`
+					tag`🔀 <em>Forwarded from ${roomName} <a href="https://matrix.to/#/${room.room_id}/${row.event_id}?${via}">[jump to event]</a></em>`
 				)
 			} else {
 				const via = await getViaServersMemo(room.room_id)

@@ -287,10 +287,10 @@ test("message2event: message timestamp failed to fetch", async t => {
 		"m.mentions": {},
 		msgtype: "m.text",
 		body: "Me: I'll scroll up to find a certain message I'll send\n_scrolls up and clicks message links for god knows how long_\n_completely forgets what they were looking for and simply begins scrolling up to find some fun moments_\n_stumbles upon:_ "
-			+ "[unknown event, timestamp resolution failed, in room: https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&via=matrix.org]",
+			+ "[unknown event in https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&via=matrix.org]",
 		format: "org.matrix.custom.html",
 		formatted_body: "Me: I'll scroll up to find a certain message I'll send<br><em>scrolls up and clicks message links for god knows how long</em><br><em>completely forgets what they were looking for and simply begins scrolling up to find some fun moments</em><br><em>stumbles upon:</em> "
-			+ '[unknown event, timestamp resolution failed, in room: <a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&amp;via=matrix.org</a>]'
+			+ '[unknown event in <a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&amp;via=matrix.org">https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe?via=cadence.moe&amp;via=matrix.org</a>]'
 	}])
 	t.equal(called, 2, "getEventForTimestamp and getJoinedMembers should be called once each")
 })
