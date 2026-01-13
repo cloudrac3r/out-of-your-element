@@ -28,6 +28,8 @@ const api = sync.require("../matrix/api")
 const createRoom = sync.require("../d2m/actions/create-room")
 /** @type {import("../matrix/room-upgrade")} */
 const roomUpgrade = require("../matrix/room-upgrade")
+/** @type {import("../d2m/actions/retrigger")} */
+const retrigger = sync.require("../d2m/actions/retrigger")
 const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
@@ -201,6 +203,7 @@ async event => {
 		// @ts-ignore
 		await matrixCommandHandler.execute(event)
 	}
+	retrigger.messageFinishedBridging(event.event_id)
 	await api.ackEvent(event)
 }))
 
@@ -211,6 +214,7 @@ sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const messageResponses = await sendEvent.sendEvent(event)
+	retrigger.messageFinishedBridging(event.event_id)
 	await api.ackEvent(event)
 }))
 

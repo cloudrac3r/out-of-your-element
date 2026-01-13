@@ -4,9 +4,11 @@ const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select, from} = passthrough
+const {discord, as, sync, db, select, from} = passthrough
 /** @type {import("../../matrix/utils")} */
 const utils = sync.require("../../matrix/utils")
+/** @type {import("../../d2m/actions/retrigger")} */
+const retrigger = sync.require("../../d2m/actions/retrigger")
 
 /**
  * @param {Ty.Event.Outer_M_Room_Redaction} event
@@ -52,13 +54,18 @@ async function removeReaction(event) {
  * @param {Ty.Event.Outer_M_Room_Redaction} event
  */
 async function handle(event) {
+	// If this is for removing a reaction, try it
+	await removeReaction(event)
+
+	// Or, it might be for removing a message or suppressing embeds. But to do that, the message needs to be bridged first.
+	if (retrigger.eventNotFoundThenRetrigger(event.redacts, as.emit.bind(as, "type:m.room.redaction", event))) return
+
 	const row = select("event_message", ["event_type", "event_subtype", "part"], {event_id: event.redacts}).get()
 	if (row && row.event_type === "m.room.message" && row.event_subtype === "m.notice" && row.part === 1) {
 		await suppressEmbeds(event)
 	} else {
 		await deleteMessage(event)
 	}
-	await removeReaction(event)
 }
 
 module.exports.handle = handle

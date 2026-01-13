@@ -20,31 +20,39 @@ const emitter = new EventEmitter()
  * (or before the it has finished being bridged to an event).
  * In this case, wait until the original message has finished bridging, then retrigger the passed function.
  * @template {(...args: any[]) => Promise<any>} T
- * @param {string} messageID
+ * @param {string} inputID
  * @param {T} fn
  * @param {Parameters<T>} rest
  * @returns {boolean} false if the event was found and the function will be ignored, true if the event was not found and the function will be retriggered
  */
-function eventNotFoundThenRetrigger(messageID, fn, ...rest) {
-	if (!paused.has(messageID)) {
-		const eventID = select("event_message", "event_id", {message_id: messageID}).pluck().get()
-		if (eventID) {
-			debugRetrigger(`[retrigger] OK mid <-> eid = ${messageID} <-> ${eventID}`)
-			return false // event was found so don't retrigger
+function eventNotFoundThenRetrigger(inputID, fn, ...rest) {
+	if (!paused.has(inputID)) {
+		if (inputID.match(/^[0-9]+$/)) {
+			const eventID = select("event_message", "event_id", {message_id: inputID}).pluck().get()
+			if (eventID) {
+				debugRetrigger(`[retrigger] OK mid <-> eid = ${inputID} <-> ${eventID}`)
+				return false // event was found so don't retrigger
+			}
+		} else if (inputID.match(/^\$/)) {
+			const messageID = select("event_message", "message_id", {event_id: inputID}).pluck().get()
+			if (messageID) {
+				debugRetrigger(`[retrigger] OK eid <-> mid = ${inputID} <-> ${messageID}`)
+				return false // message was found so don't retrigger
+			}
 		}
 	}
 
-	debugRetrigger(`[retrigger] WAIT mid = ${messageID}`)
-	emitter.once(messageID, () => {
-		debugRetrigger(`[retrigger] TRIGGER mid = ${messageID}`)
+	debugRetrigger(`[retrigger] WAIT id = ${inputID}`)
+	emitter.once(inputID, () => {
+		debugRetrigger(`[retrigger] TRIGGER id = ${inputID}`)
 		fn(...rest)
 	})
 	// if the event never arrives, don't trigger the callback, just clean up
 	setTimeout(() => {
-		if (emitter.listeners(messageID).length) {
-			debugRetrigger(`[retrigger] EXPIRE mid = ${messageID}`)
+		if (emitter.listeners(inputID).length) {
+			debugRetrigger(`[retrigger] EXPIRE id = ${inputID}`)
 		}
-		emitter.removeAllListeners(messageID)
+		emitter.removeAllListeners(inputID)
 	}, 60 * 1000) // 1 minute
 	return true // event was not found, then retrigger
 }
@@ -58,11 +66,11 @@ function eventNotFoundThenRetrigger(messageID, fn, ...rest) {
  */
 async function pauseChanges(messageID, promise) {
 	try {
-		debugRetrigger(`[retrigger] PAUSE mid = ${messageID}`)
+		debugRetrigger(`[retrigger] PAUSE id = ${messageID}`)
 		paused.add(messageID)
 		return await promise
 	} finally {
-		debugRetrigger(`[retrigger] RESUME mid = ${messageID}`)
+		debugRetrigger(`[retrigger] RESUME id = ${messageID}`)
 		paused.delete(messageID)
 		messageFinishedBridging(messageID)
 	}
@@ -74,7 +82,7 @@ async function pauseChanges(messageID, promise) {
  */
 function messageFinishedBridging(messageID) {
 	if (emitter.listeners(messageID).length) {
-		debugRetrigger(`[retrigger] EMIT mid = ${messageID}`)
+		debugRetrigger(`[retrigger] EMIT id = ${messageID}`)
 	}
 	emitter.emit(messageID)
 }

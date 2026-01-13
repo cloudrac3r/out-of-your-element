@@ -4,20 +4,27 @@ const assert = require("assert").strict
 const Ty = require("../../types")
 
 const passthrough = require("../../passthrough")
-const {discord, sync, db, select} = passthrough
+const {discord, as, sync, db, select, from} = passthrough
 /** @type {import("../../matrix/utils")} */
 const utils = sync.require("../../matrix/utils")
 /** @type {import("../converters/emoji")} */
 const emoji = sync.require("../converters/emoji")
+/** @type {import("../../d2m/actions/retrigger")} */
+const retrigger = sync.require("../../d2m/actions/retrigger")
 
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} event
  */
 async function addReaction(event) {
-	const channelID = select("historical_channel_room", "reference_channel_id", {room_id: event.room_id}).pluck().get()
-	if (!channelID) return // We just assume the bridge has already been created
-	const messageID = select("event_message", "message_id", {event_id: event.content["m.relates_to"].event_id}, "ORDER BY reaction_part").pluck().get()
-	if (!messageID) return // Nothing can be done if the parent message was never bridged.
+	// Wait until the corresponding channel and message have already been bridged
+	if (retrigger.eventNotFoundThenRetrigger(event.content["m.relates_to"].event_id, as.emit.bind(as, "type:m.reaction", event))) return
+
+	// These will exist because it passed retrigger
+	const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("message_id", "reference_channel_id").where({event_id: event.content["m.relates_to"].event_id}).and("ORDER BY reaction_part ASC").get()
+	assert(row)
+	const messageID = row.message_id
+	const channelID = row.reference_channel_id
 
 	const key = event.content["m.relates_to"].key
 	const discordPreferredEncoding = await emoji.encodeEmoji(key, event.content.shortcode)
@@ -33,6 +40,10 @@ async function addReaction(event) {
 		}
 		if (e.message?.includes("Unknown Emoji")) {
 			// happens if a matrix user tries to add on to a super reaction
+			return
+		}
+		if (e.message?.includes("Unknown Message")) {
+			// happens under a race condition where a message is deleted after it passes the database check above
 			return
 		}
 		throw e
