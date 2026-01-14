@@ -75,13 +75,25 @@ async function editToChanges(message, guild, api) {
 			+ The events must have the same subtype.
 		Events will therefore be divided into four categories:
 	*/
-	/** 1. Events that are matched, and should be edited by sending another m.replace event */
+	/**
+	 * 1. Events that are matched, and should be edited by sending another m.replace event
+	 * @type {{old: typeof oldEventRows[0], newFallbackContent: typeof newFallbackContent[0], newInnerContent: typeof newInnerContent[0]}[]}
+	 */
 	let eventsToReplace = []
-	/** 2. Events that are present in the old version only, and should be blanked or redacted */
+	/**
+	 * 2. Events that are present in the old version only, and should be blanked or redacted
+	 * @type {{old: typeof oldEventRows[0]}[]}
+	 */
 	let eventsToRedact = []
-	/** 3. Events that are present in the new version only, and should be sent as new, with references back to the context */
+	/**
+	 * 3. Events that are present in the new version only, and should be sent as new, with references back to the context
+	 * @type {typeof newInnerContent}
+	 */
 	let eventsToSend = []
-	/**  4. Events that are matched and have definitely not changed, so they don't need to be edited or replaced at all. */
+	/**
+	 * 4. Events that are matched and have definitely not changed, so they don't need to be edited or replaced at all.
+	 * @type {(typeof eventsToRedact[0] | typeof eventsToReplace[0])[]}
+	 */
 	let unchangedEvents = []
 
 	function shift() {
@@ -124,15 +136,14 @@ async function editToChanges(message, guild, api) {
 		eventsToRedact = eventsToRedact.filter(e => e.old.event_subtype === "m.notice")
 		unchangedEvents.push(...eventsToReplace.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToReplace to unchangedEvents.
 		eventsToReplace = eventsToReplace.filter(e => e.old.event_subtype === "m.notice")
-		unchangedEvents.push(...eventsToSend.filter(e => e.msgtype !== "m.notice")) // Move them from eventsToSend to unchangedEvents.
-		eventsToSend = eventsToSend.filter(e => e.msgtype === "m.notice")
+		eventsToSend = eventsToSend.filter(e => e.msgtype === "m.notice") // Don't send new events that aren't the embed.
 
 		// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
 		const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 120 * 1000 // older than 2 minutes ago
 		// Don't post new generated embeds for messages if the setting was disabled.
 		const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 		if (messageTooOld || !embedsEnabled) {
-			eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice")
+			eventsToSend = []
 		}
 	}
 
@@ -196,10 +207,14 @@ async function editToChanges(message, guild, api) {
 	}
 
 	// Removing unnecessary properties before returning
-	eventsToRedact = eventsToRedact.map(e => e.old.event_id)
-	eventsToReplace = eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)}))
-
-	return {roomID, eventsToReplace, eventsToRedact, eventsToSend, senderMxid, promotions}
+	return {
+		roomID,
+		eventsToReplace: eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)})),
+		eventsToRedact: eventsToRedact.map(e => e.old.event_id),
+		eventsToSend,
+		senderMxid,
+		promotions
+	}
 }
 
 /**
