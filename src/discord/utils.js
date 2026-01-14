@@ -15,19 +15,18 @@ require("xxhash-wasm")().then(h => hasher = h)
 const EPOCH = 1420070400000
 
 /**
+ * @param {string} guildID
  * @param {string[]} userRoles
  * @param {DiscordTypes.APIGuild["roles"]} guildRoles
  * @param {string} [userID]
  * @param {DiscordTypes.APIGuildChannel["permission_overwrites"]} [channelOverwrites]
  */
-function getPermissions(userRoles, guildRoles, userID, channelOverwrites) {
+function getPermissions(guildID, userRoles, guildRoles, userID, channelOverwrites) {
 	let allowed = BigInt(0)
-	let everyoneID
 	// Guild allows
 	for (const role of guildRoles) {
-		if (role.name === "@everyone") {
+		if (role.id === guildID) {
 			allowed |= BigInt(role.permissions)
-			everyoneID = role.id
 		}
 		if (userRoles.includes(role.id)) {
 			allowed |= BigInt(role.permissions)
@@ -38,9 +37,9 @@ function getPermissions(userRoles, guildRoles, userID, channelOverwrites) {
 		/** @type {((overwrite: Required<DiscordTypes.APIOverwrite>) => any)[]} */
 		const actions = [
 			// Channel @everyone deny
-			overwrite => overwrite.id === everyoneID && (allowed &= ~BigInt(overwrite.deny)),
+			overwrite => overwrite.id === guildID && (allowed &= ~BigInt(overwrite.deny)),
 			// Channel @everyone allow
-			overwrite => overwrite.id === everyoneID && (allowed |= BigInt(overwrite.allow)),
+			overwrite => overwrite.id === guildID && (allowed |= BigInt(overwrite.allow)),
 			// Role deny
 			overwrite => userRoles.includes(overwrite.id) && (allowed &= ~BigInt(overwrite.deny)),
 			// Role allow

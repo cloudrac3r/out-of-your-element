@@ -79,7 +79,7 @@ test("getPermissions: channel overwrite to allow role works", t => {
 		{ type: 0, id: "1168988246680801360", deny: "0", allow: "1024" },
 		{ type: 1, id: "353373325575323648", deny: "0", allow: "1024" }
 	]
-	const permissions = utils.getPermissions(userRoles, guildRoles, userID, overwrites)
+	const permissions = utils.getPermissions("1154868424724463687", userRoles, guildRoles, userID, overwrites)
 	const want = BigInt(1 << 10 | 1 << 16)
 	t.equal((permissions & want), want)
 })
@@ -140,7 +140,7 @@ test("getPermissions: channel overwrite to allow user works", t => {
 		{ type: 0, id: "1168988246680801360", deny: "0", allow: "1024" },
 		{ type: 1, id: "353373325575323648", deny: "0", allow: "1024" }
 	]
-	const permissions = utils.getPermissions(userRoles, guildRoles, userID, overwrites)
+	const permissions = utils.getPermissions("1154868424724463687", userRoles, guildRoles, userID, overwrites)
 	const want = BigInt(1 << 10 | 1 << 16)
 	t.equal((permissions & want), want)
 })

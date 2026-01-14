@@ -87,7 +87,7 @@ module.exports = {
 			const member = guild.members.find(m => m.user?.id === client.user.id)
 			if (!member) return
 			if (!("permission_overwrites" in channel)) continue
-			const permissions = dUtils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
+			const permissions = dUtils.getPermissions(guild.id, member.roles, guild.roles, client.user.id, channel.permission_overwrites)
 			if (!dUtils.hasAllPermissions(permissions, ["ViewChannel", "ReadMessageHistory"])) continue // We don't have permission to look back in this channel
 
 			/** More recent messages come first. */
@@ -146,7 +146,7 @@ module.exports = {
 			const lastPin = updatePins.convertTimestamp(channel.last_pin_timestamp)
 
 			// Permissions check
-			const permissions = dUtils.getPermissions(member.roles, guild.roles, client.user.id, channel.permission_overwrites)
+			const permissions = dUtils.getPermissions(guild.id, member.roles, guild.roles, client.user.id, channel.permission_overwrites)
 			if (!dUtils.hasAllPermissions(permissions, ["ViewChannel", "ReadMessageHistory"])) continue // We don't have permission to look up the pins in this channel
 
 			const row = select("channel_room", ["room_id", "last_bridged_pin_timestamp"], {channel_id: channel.id}).get()

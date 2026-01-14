@@ -868,7 +868,7 @@ async function eventToMessage(event, guild, channel, di) {
 							let shouldSuppress = inBody !== -1 && event.content.body[inBody-1] === "<"
 							if (!shouldSuppress && guild?.roles) {
 								// Suppress if regular users don't have permission
-								const permissions = dUtils.getPermissions([], guild.roles)
+								const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
 								const canEmbedLinks = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.EmbedLinks)
 								shouldSuppress = !canEmbedLinks
 							}
@@ -931,7 +931,7 @@ async function eventToMessage(event, guild, channel, di) {
 
 					// Suppress if regular users don't have permission
 					if (!shouldSuppress && guild?.roles) {
-						const permissions = dUtils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
+						const permissions = dUtils.getPermissions(guild.id, [], guild.roles, undefined, channel.permission_overwrites)
 						const canEmbedLinks = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.EmbedLinks)
 						shouldSuppress = !canEmbedLinks
 					}

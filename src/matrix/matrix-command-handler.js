@@ -114,7 +114,7 @@ const commands = [{
 				const guild = discord.guilds.get(guildID)
 				assert(guild)
 				const slots = getSlotCount(guild.premium_tier)
-				const permissions = dUtils.getPermissions([], guild.roles)
+				const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
 				if (guild.emojis.length >= slots) {
 					matrixOnlyReason = "CAPACITY"
 				} else if (!(permissions & 0x40000000n)) { // MANAGE_GUILD_EXPRESSIONS (apparently CREATE_GUILD_EXPRESSIONS isn't good enough...)
@@ -250,7 +250,7 @@ const commands = [{
 
 			const guild = discord.guilds.get(guildID)
 			assert(guild)
-			const permissions = dUtils.getPermissions([], guild.roles)
+			const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
 			if (!(permissions & 0x800000000n)) { // CREATE_PUBLIC_THREADS
 				return api.sendEvent(event.room_id, "m.room.message", {
 					...ctx,

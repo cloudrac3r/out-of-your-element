@@ -122,7 +122,7 @@ async function channelToKState(channel, guild, di) {
 		join_rules = {join_rule: PRIVACY_ENUMS.ROOM_JOIN_RULES[privacyLevel]}
 	}
 
-	const everyonePermissions = dUtils.getPermissions([], guild.roles, undefined, channel.permission_overwrites)
+	const everyonePermissions = dUtils.getPermissions(guild.id, [], guild.roles, undefined, channel.permission_overwrites)
 	const everyoneCanSend = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
 	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
 
