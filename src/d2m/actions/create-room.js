@@ -273,7 +273,7 @@ async function postApplyPowerLevels(kstate, callback) {
 
 		const originalPowerLevels = await api.getStateEvent(roomID, "m.room.power_levels", "")
 		const powerLevelsDiff = ks.diffKState(
-			{"m.room.power_levels/": originalPowerLevels},
+			{"m.room.power_levels/": originalPowerLevels, "m.room.create/": roomCreate.content, "m.room.create/outer": roomCreate},
 			{"m.room.power_levels/": powerLevelContent}
 		)
 		await ks.applyKStateDiffToRoom(roomID, powerLevelsDiff)
