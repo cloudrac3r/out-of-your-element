@@ -103,9 +103,9 @@ function memberAvatar(guildID, user, member) {
 }
 
 function emoji(emojiID, animated) {
-	const base = `/emojis/${emojiID}`
-	if (animated) return base + ".gif"
-	else return base + ".png"
+	const base = `/emojis/${emojiID}.webp`
+	if (animated) return base + "?animated=true"
+	else return base
 }
 
 const stickerFormat = new Map([

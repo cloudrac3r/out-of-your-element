@@ -24,7 +24,7 @@ async function emojisToState(emojis) {
 		file.uploadDiscordFileToMxc(file.emoji(emoji.id, emoji.animated)).then(url => {
 			result.images[emoji.name] = {
 				info: {
-					mimetype: emoji.animated ? "image/gif" : "image/png"
+					mimetype: "image/webp"
 				},
 				url
 			}
