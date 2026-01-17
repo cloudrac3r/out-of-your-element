@@ -34,6 +34,8 @@ const retrigger = sync.require("./actions/retrigger")
 const setPresence = sync.require("./actions/set-presence")
 /** @type {import("../m2d/event-dispatcher")} */
 const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
+/** @type {import("../discord/interactions/matrix-info")} */
+const matrixInfoInteraction = sync.require("../discord/interactions/matrix-info")
 
 const {Semaphore} = require("@chriscdn/promise-semaphore")
 const checkMissedPinsSema = new Semaphore()
@@ -299,7 +301,16 @@ module.exports = {
 	 */
 	async MESSAGE_REACTION_ADD(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
-		await addReaction.addReaction(data)
+		if (data.emoji.name === "❓" && select("event_message", "message_id", {message_id: data.message_id, source: 0})) {
+			const guild_id = data.guild_id ?? client.channels.get(data.channel_id)["guild_id"]
+			await Promise.all([
+				client.snow.channel.deleteReaction(data.channel_id, data.message_id, data.emoji.name).catch(() => {}),
+				// @ts-ignore - this is all you need for it to do a matrix-side lookup
+				matrixInfoInteraction.dm({guild_id, data: {target_id: data.message_id}, member: {user: {id: data.user_id}}})
+			])
+		} else {
+			await addReaction.addReaction(data)
+		}
 	},
 
 	/**

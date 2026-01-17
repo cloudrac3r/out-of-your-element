@@ -60,13 +60,27 @@ test("matrix info: shows info for matrix source message", async t => {
 					},
 					sender: "@cadence:cadence.moe"
 				}
+			},
+			async getJoinedMembers(roomID) {
+				return {
+					joined: {}
+				}
+			},
+			async getStateEventOuter(roomID, type, key) {
+				return {
+					content: {
+						room_version: "11"
+					}
+				}
+			},
+			async getStateEvent(roomID, type, key) {
+				return {}
 			}
 		}
 	})
 	t.equal(
-		msg.data.content,
-		"Bridged [@cadence:cadence.moe](<https://matrix.to/#/@cadence:cadence.moe>)'s message in [main](<https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4>) on Matrix to https://discord.com/channels/112760669178241024/112760669178241024/1128118177155526666 on Discord."
-		+ "\n-# Room ID: `!kLRqKKUQXcibIMtOpl:cadence.moe`"
+		msg.data.embeds[0].fields[1].value,
+		"\n-# Room ID: `!kLRqKKUQXcibIMtOpl:cadence.moe`"
 		+ "\n-# Event ID: `$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4`"
 	)
 	t.equal(called, 1)
