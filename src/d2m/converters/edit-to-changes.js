@@ -6,8 +6,10 @@ const passthrough = require("../../passthrough")
 const {sync, select, from} = passthrough
 /** @type {import("./message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
+/** @type {import("../../discord/utils")} */
+const dUtils = sync.require("../../discord/utils")
 /** @type {import("../../matrix/utils")} */
-const utils = sync.require("../../matrix/utils")
+const mxUtils = sync.require("../../matrix/utils")
 
 function eventCanBeEdited(ev) {
 	// Discord does not allow files, images, attachments, or videos to be edited.
@@ -56,7 +58,7 @@ async function editToChanges(message, guild, api) {
 		// Should be a system generated embed. We want the embed to be sent by the same user who sent the message, so that the messages get grouped in most clients.
 		const eventID = oldEventRows[0].event_id // a calling function should have already checked that there is at least one message to edit
 		const event = await api.getEvent(roomID, eventID)
-		if (utils.eventSenderIsFromDiscord(event.sender)) {
+		if (mxUtils.eventSenderIsFromDiscord(event.sender)) {
 			senderMxid = event.sender
 		}
 	}
@@ -132,14 +134,14 @@ async function editToChanges(message, guild, api) {
 	// If this is a generated embed update, only allow the embeds to be updated, since the system only sends data about events. Ignore changes to other things.
 	// This also prevents Matrix events that were re-subtyped during conversion (e.g. large image -> text link) from being mistakenly included.
 	if (isGeneratedEmbed) {
-		unchangedEvents.push(...eventsToRedact.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToRedact to unchangedEvents.
-		eventsToRedact = eventsToRedact.filter(e => e.old.event_subtype === "m.notice")
-		unchangedEvents.push(...eventsToReplace.filter(e => e.old.event_subtype !== "m.notice")) // Move them from eventsToReplace to unchangedEvents.
-		eventsToReplace = eventsToReplace.filter(e => e.old.event_subtype === "m.notice")
+		unchangedEvents = unchangedEvents.concat(
+			dUtils.filterTo(eventsToRedact, e => e.old.event_subtype === "m.notice" && e.old.source === 1), // Move everything except embeds from eventsToRedact to unchangedEvents.
+			dUtils.filterTo(eventsToReplace, e => e.old.event_subtype === "m.notice" && e.old.source === 1) // Move everything except embeds from eventsToReplace to unchangedEvents.
+		)
 		eventsToSend = eventsToSend.filter(e => e.msgtype === "m.notice") // Don't send new events that aren't the embed.
 
 		// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
-		const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 120 * 1000 // older than 2 minutes ago
+		const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 30 * 1000 // older than 30 seconds ago
 		// Don't post new generated embeds for messages if the setting was disabled.
 		const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 		if (messageTooOld || !embedsEnabled) {
@@ -150,8 +152,7 @@ async function editToChanges(message, guild, api) {
 	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!
 	// (Example: a MESSAGE_UPDATE for a text+image message - Discord does not allow the image to be changed, but the text might have been.)
 	// So we'll remove entries from eventsToReplace that *definitely* cannot have changed. (This is category 4 mentioned above.) Everything remaining *may* have changed.
-	unchangedEvents.push(...eventsToReplace.filter(ev => !eventCanBeEdited(ev))) // Move them from eventsToRedact to unchangedEvents.
-	eventsToReplace = eventsToReplace.filter(eventCanBeEdited)
+	unchangedEvents = unchangedEvents.concat(dUtils.filterTo(eventsToReplace, ev => eventCanBeEdited(ev))) // Move them from eventsToReplace to unchangedEvents.
 
 	// Now, everything in eventsToReplace has the potential to have changed, but did it actually?
 	// (Example: if a URL preview was generated or updated, the message text won't have changed.)

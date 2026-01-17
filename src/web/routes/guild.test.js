@@ -4,7 +4,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const tryToCatch = require("try-to-catch")
 const {router, test} = require("../../../test/web")
 const {MatrixServerError} = require("../../matrix/mreq")
-const {_getPosition, _filterTo} = require("./guild")
+const {_getPosition} = require("./guild")
 
 let nonce
 
@@ -393,11 +393,4 @@ test("position sorting: sorts like discord does", t => {
 	const channels = new Map(channelsList.map(c => [c.id, c]))
 	const sortedChannelIDs = [...channels.values()].sort((a, b) => _getPosition(a, channels) - _getPosition(b, channels)).map(c => c.id)
 	t.deepEqual(sortedChannelIDs, ["first", "thread", "second", "voice", "category", "category-first", "category-second", "category-second-thread"])
-})
-
-test("filterTo: works", t => {
-	const fruit = ["apple", "banana", "apricot"]
-	const rest = _filterTo(fruit, f => f[0] === "b")
-	t.deepEqual(fruit, ["banana"])
-	t.deepEqual(rest, ["apple", "apricot"])
 })

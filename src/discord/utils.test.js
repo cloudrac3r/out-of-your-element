@@ -192,3 +192,10 @@ test("how old: hours", t => {
 test("how old: days", t => {
 	t.equal(utils.howOldUnbridgedMessage("2024-01-01", "2025-01-01"), "a 366-day-old unbridged message")
 })
+
+test("filterTo: works", t => {
+	const fruit = ["apple", "banana", "apricot"]
+	const rest = utils.filterTo(fruit, f => f[0] === "b")
+	t.deepEqual(fruit, ["banana"])
+	t.deepEqual(rest, ["apple", "apricot"])
+})

@@ -153,6 +153,26 @@ function howOldUnbridgedMessage(oldTimestamp, newTimestamp) {
 	return dateDisplay
 }
 
+/**
+ * Modifies the input, removing items that don't pass the filter. Returns the items that didn't pass.
+ * @param {T[]} xs
+ * @param {(x: T, i?: number) => any} fn
+ * @template T
+ * @returns T[]
+ */
+function filterTo(xs, fn) {
+	/** @type {T[]} */
+	const filtered = []
+	for (let i = xs.length-1; i >= 0; i--) {
+		const x = xs[i]
+		if (!fn(x, i)) {
+			filtered.unshift(x)
+			xs.splice(i, 1)
+		}
+	}
+	return filtered
+}
+
 module.exports.getPermissions = getPermissions
 module.exports.hasPermission = hasPermission
 module.exports.hasSomePermissions = hasSomePermissions
@@ -163,3 +183,4 @@ module.exports.snowflakeToTimestampExact = snowflakeToTimestampExact
 module.exports.timestampToSnowflakeInexact = timestampToSnowflakeInexact
 module.exports.getPublicUrlForCdn = getPublicUrlForCdn
 module.exports.howOldUnbridgedMessage = howOldUnbridgedMessage
+module.exports.filterTo = filterTo

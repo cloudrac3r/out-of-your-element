@@ -54,26 +54,6 @@ function getAPI(event) {
 const validNonce = new LRUCache({max: 200})
 
 /**
- * Modifies the input, removing items that don't pass the filter. Returns the items that didn't pass.
- * @param {T[]} xs
- * @param {(x: T, i?: number) => any} fn
- * @template T
- * @returns T[]
- */
-function filterTo(xs, fn) {
-	/** @type {T[]} */
-	const filtered = []
-	for (let i = xs.length-1; i >= 0; i--) {
-		const x = xs[i]
-		if (!fn(x, i)) {
-			filtered.unshift(x)
-			xs.splice(i, 1)
-		}
-	}
-	return filtered
-}
-
-/**
  * @param {{type: number, parent_id?: string, position?: number}} channel
  * @param {Map<string, {type: number, parent_id?: string, position?: number}>} channels
  */
@@ -119,15 +99,15 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 
 	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
 	let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c}))
-	let removedUncachedChannels = filterTo(linkedChannelsWithDetails, c => c.channel)
+	let removedUncachedChannels = dUtils.filterTo(linkedChannelsWithDetails, c => c.channel)
 	let linkedChannelIDs = linkedChannelsWithDetails.map(c => c.channel_id)
 	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel, discord.channels) - getPosition(b.channel, discord.channels))
 
 	let unlinkedChannelIDs = channelIDs.filter(c => !linkedChannelIDs.includes(c))
 	/** @type {DiscordTypes.APIGuildChannel[]} */ // @ts-ignore
 	let unlinkedChannels = unlinkedChannelIDs.map(c => discord.channels.get(c))
-	let removedWrongTypeChannels = filterTo(unlinkedChannels, c => c && [0, 5].includes(c.type))
-	let removedPrivateChannels = filterTo(unlinkedChannels, c => {
+	let removedWrongTypeChannels = dUtils.filterTo(unlinkedChannels, c => c && [0, 5].includes(c.type))
+	let removedPrivateChannels = dUtils.filterTo(unlinkedChannels, c => {
 		const permissions = dUtils.getPermissions(guild.id, roles, guild.roles, botID, c["permission_overwrites"])
 		return dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
 	})
@@ -135,11 +115,11 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 
 	let linkedRoomIDs = linkedChannels.map(c => c.room_id)
 	let unlinkedRooms = [...rooms]
-	let removedLinkedRooms = filterTo(unlinkedRooms, r => !linkedRoomIDs.includes(r.room_id))
-	let removedWrongTypeRooms = filterTo(unlinkedRooms, r => !r.room_type)
+	let removedLinkedRooms = dUtils.filterTo(unlinkedRooms, r => !linkedRoomIDs.includes(r.room_id))
+	let removedWrongTypeRooms = dUtils.filterTo(unlinkedRooms, r => !r.room_type)
 	// https://discord.com/developers/docs/topics/threads#active-archived-threads
 	// need to filter out linked archived threads from unlinkedRooms, will just do that by comparing against the name
-	let removedArchivedThreadRooms = filterTo(unlinkedRooms, r => r.name && !r.name.match(/^\[(🔒)?⛓️\]/))
+	let removedArchivedThreadRooms = dUtils.filterTo(unlinkedRooms, r => r.name && !r.name.match(/^\[(🔒)?⛓️\]/))
 
 	return {
 		linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms,
@@ -265,4 +245,3 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 }))
 
 module.exports._getPosition = getPosition
-module.exports._filterTo = filterTo
