@@ -30,6 +30,7 @@ reg.ooye.bridge_origin = "https://bridge.example.org"
 reg.ooye.time_zone = "Pacific/Auckland"
 reg.ooye.max_file_size = 5000000
 reg.ooye.web_password = "password123"
+reg.ooye.include_user_id_in_mxid = false
 
 const sync = new HeatSync({watchFS: false})
 

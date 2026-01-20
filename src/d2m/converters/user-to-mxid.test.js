@@ -45,18 +45,17 @@ test("user2name: works on special user", t => {
 	t.equal(userToSimName(data.user.clyde_ai), "clyde_ai")
 })
 
-test("user2name: includes ID if requested in config", t => {
-	const {reg} = require("../../matrix/read-registration")
-	reg.ooye.include_user_id_in_mxid = true
-	t.equal(userToSimName({username: "Harry Styles!", discriminator: "0001", id: "123456"}), "123456_harry_styles")
-   t.equal(userToSimName({username: "f***", discriminator: "0001", id: "123456"}), "123456_f")
-	reg.ooye.include_user_id_in_mxid = false
-})
-
 test("webhook author: can generate sim names", t => {
 	t.equal(webhookAuthorToSimName({
 		username: "Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆",
 		avatar: null,
 		id: "123"
 	}), "webhook_cadence_maid_of_creation_eye_of_clarity_empress_of_hope")
+})
+
+test("user2name: includes ID if requested in config", t => {
+	const {reg} = require("../../matrix/read-registration")
+	reg.ooye.include_user_id_in_mxid = true
+	t.equal(userToSimName({username: "Harry Styles!", discriminator: "0001", id: "123456"}), "123456_harry_styles")
+	t.equal(userToSimName({username: "f***", discriminator: "0001", id: "123456"}), "123456_f")
 })
