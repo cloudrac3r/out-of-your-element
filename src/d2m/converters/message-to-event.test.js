@@ -423,12 +423,7 @@ test("message2event: reply to skull webp attachment with content", async t => {
 		},
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "> Extremity: Image\n\nReply",
-		format: "org.matrix.custom.html",
-		formatted_body:
-			'<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$oLyUTyZ_7e_SUzGNWZKz880ll9amLZvXGbArJCKai2Q">In reply to</a> Extremity'
-			+ '<br>Image</blockquote></mx-reply>'
-			+ 'Reply'
+		body: "Reply"
 	}, {
 		$type: "m.room.message",
 		"m.mentions": {},
@@ -472,12 +467,7 @@ test("message2event: simple reply to matrix user", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "> cadence: so can you reply to my webhook uwu\n\nReply",
-		format: "org.matrix.custom.html",
-		formatted_body:
-			'<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">cadence</a>'
-			+ '<br>so can you reply to my webhook uwu</blockquote></mx-reply>'
-			+ 'Reply'
+		body: "Reply"
 	}])
 })
 
@@ -539,12 +529,7 @@ test("message2event: reply to matrix user with mention", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "> okay 🤍 yay 🤍: @extremity: you owe me $30\n\nkys",
-		format: "org.matrix.custom.html",
-		formatted_body:
-			'<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">okay 🤍 yay 🤍</a>'
-			+ '<br><a href="https://matrix.to/#/@_ooye_extremity:cadence.moe">@extremity</a> you owe me $30</blockquote></mx-reply>'
-			+ 'kys'
+		body: "kys"
 	}])
 })
 
@@ -656,9 +641,7 @@ test("message2event: simple reply in thread to a matrix user's reply", async t =
 			user_ids: ["@cadence:cadence.moe"]
 		},
 		msgtype: "m.text",
-      body: "> cadence [they]: What about them?\n\nWell, they don't seem to...",
-      format: "org.matrix.custom.html",
-      formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe/$nUM-ABBF8KdnvrhXwLlYAE9dgDl_tskOvvcNIBrtsVo\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">cadence [they]</a><br>What about them?</blockquote></mx-reply>Well, they don't seem to...",
+      body: "Well, they don't seem to..."
 	}])
 })
 
@@ -695,9 +678,7 @@ test("message2event: infinidoge's reply to ami's matrix smalltext reply to infin
 			user_ids: ["@ami:the-apothecary.club"]
 		},
 		msgtype: "m.text",
-      body: `> Ami (she/her): let me guess they got a lot of bug reports like "empty chest with no loot?"\n\nMost likely`,
-      format: "org.matrix.custom.html",
-      formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4">In reply to</a> <a href="https://matrix.to/#/@ami:the-apothecary.club">Ami (she/her)</a><br>let me guess they got a lot of bug reports like "empty chest with no loot?"</blockquote></mx-reply>Most likely`,
+      body: `Most likely`
 	}])
 })
 
@@ -734,9 +715,7 @@ test("message2event: infinidoge's reply to ami's matrix smalltext singleline rep
 			user_ids: ["@ami:the-apothecary.club"]
 		},
 		msgtype: "m.text",
-      body: `> Ami (she/her): let me guess they got a lot of bug reports like "empty chest with no loot?"\n\nMost likely`,
-      format: "org.matrix.custom.html",
-      formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!BnKuBPCvyfOkhcUjEu:cadence.moe/$W1nsDhNIojWrcQOdnOD9RaEvrz2qyZErQoNhPRs1nK4">In reply to</a> <a href="https://matrix.to/#/@ami:the-apothecary.club">Ami (she/her)</a><br>let me guess they got a lot of bug reports like "empty chest with no loot?"</blockquote></mx-reply>Most likely`,
+      body: `Most likely`
 	}])
 })
 

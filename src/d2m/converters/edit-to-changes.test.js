@@ -181,12 +181,7 @@ test("edit2changes: edit of reply to skull webp attachment with content", async 
 		newContent: {
 			$type: "m.room.message",
 			msgtype: "m.text",
-			body: "> Extremity: Image\n\n* Edit",
-			format: "org.matrix.custom.html",
-			formatted_body:
-				'<mx-reply><blockquote><a href="https://matrix.to/#/!kLRqKKUQXcibIMtOpl:cadence.moe/$oLyUTyZ_7e_SUzGNWZKz880ll9amLZvXGbArJCKai2Q">In reply to</a> Extremity'
-				+ '<br>Image</blockquote></mx-reply>'
-				+ '* Edit',
+			body: "* Edit",
 			"m.mentions": {},
 			"m.new_content": {
 				msgtype: "m.text",

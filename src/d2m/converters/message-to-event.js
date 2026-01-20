@@ -508,15 +508,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 				// Generate a reply pointing to the Matrix event we found
 				const latestRoomID = select("channel_room", "room_id", {channel_id: repliedToEventRow.channel_id}).pluck().get()  // native replies don't work across room upgrades, so make sure the old and new message are in the same room
 				if (latestRoomID !== repliedToEventRow.room_id) repliedToEventInDifferentRoom = true
-				html =
-					(latestRoomID === repliedToEventRow.room_id ? "<mx-reply>" : "")
-					+ `<blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
+				html = repliedToEventInDifferentRoom ?
+					(`<blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
 					+ `<br>${repliedToHtml}</blockquote>`
-					+ (latestRoomID === repliedToEventRow.room_id ? "</mx-reply>" : "")
-					+ html
-				body = (`${repliedToDisplayName}: ` // scenario 1 part B for mentions
+					+ html) : html
+				body = repliedToEventInDifferentRoom ? ((`${repliedToDisplayName}: ` // scenario 1 part B for mentions
 					+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
-					+ "\n\n" + body
+					+ "\n\n" + body) : body
 			} else { // repliedToUnknownEvent
 				// This reply can't point to the Matrix event because it isn't bridged, we need to indicate this.
 				assert(message.referenced_message)
