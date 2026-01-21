@@ -480,51 +480,61 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 
 		// Fallback body/formatted_body for replies
+		// Generate a fallback if native replies are unsupported, which is in the following situations:
+		//   1. The replied-to event is in a different room to where the reply will be sent (i.e. a room upgrade occurred between)
+		//   2. The replied-to message has no corresponding Matrix event (repliedToUnknownEvent is true)
 		// This branch is optional - do NOT change anything apart from the reply fallback, since it may not be run
 		if ((repliedToEventRow || repliedToUnknownEvent) && options.includeReplyFallback !== false) {
-			let repliedToDisplayName
-			let repliedToUserHtml
-			if (repliedToEventRow?.source === 0 && repliedToEventSenderMxid) {
-				const match = repliedToEventSenderMxid.match(/^@([^:]*)/)
-				assert(match)
-				repliedToDisplayName = message.referenced_message?.author.username || match[1] || "a Matrix user" // grab the localpart as the display name, whatever
-				repliedToUserHtml = `<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
-			} else {
-				repliedToDisplayName = message.referenced_message?.author.global_name || message.referenced_message?.author.username || "a Discord user"
-				repliedToUserHtml = repliedToDisplayName
-			}
-			let repliedToContent = message.referenced_message?.content
-			if (repliedToContent?.match(/^(-# )?> (-# )?<:L1:/)) {
-				// If the Discord user is replying to a Matrix user's reply, the fallback is going to contain the emojis and stuff from the bridged rep of the Matrix user's reply quote.
-				// Need to remove that previous reply rep from this fallback body. The fallbody body should only contain the Matrix user's actual message.
-				//                                            ┌──────A─────┐       A reply rep starting with >quote or -#smalltext >quote. Match until the end of the line.
-				//                                            ┆            ┆┌─B─┐  There may be up to 2 reply rep lines in a row if it was created in the old format. Match all lines.
-				repliedToContent = repliedToContent.replace(/^((-# )?> .*\n){1,2}/, "")
-			}
-			if (repliedToContent == "") repliedToContent = "[Media]"
-			else if (!repliedToContent) repliedToContent = "[Replied-to message content wasn't provided by Discord]"
-			const {body: repliedToBody, html: repliedToHtml} = await transformContent(repliedToContent)
-			if (repliedToEventRow) {
-				// Generate a reply pointing to the Matrix event we found
-				const latestRoomID = select("channel_room", "room_id", {channel_id: repliedToEventRow.channel_id}).pluck().get()  // native replies don't work across room upgrades, so make sure the old and new message are in the same room
-				if (latestRoomID !== repliedToEventRow.room_id) repliedToEventInDifferentRoom = true
-				html = repliedToEventInDifferentRoom ?
-					(`<blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
-					+ `<br>${repliedToHtml}</blockquote>`
-					+ html) : html
-				body = repliedToEventInDifferentRoom ? ((`${repliedToDisplayName}: ` // scenario 1 part B for mentions
-					+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
-					+ "\n\n" + body) : body
-			} else { // repliedToUnknownEvent
-				// This reply can't point to the Matrix event because it isn't bridged, we need to indicate this.
-				assert(message.referenced_message)
-				const dateDisplay = dUtils.howOldUnbridgedMessage(message.referenced_message.timestamp, message.timestamp)
-				html = `<blockquote>In reply to ${dateDisplay} from ${repliedToDisplayName}:`
-					+ `<br>${repliedToHtml}</blockquote>`
-					+ html
-				body = (`In reply to ${dateDisplay}:\n${repliedToDisplayName}: `
-					+ repliedToBody).split("\n").map(line => "> " + line).join("\n")
-					+ "\n\n" + body
+			const latestRoomID = repliedToEventRow ? select("channel_room", "room_id", {channel_id: repliedToEventRow.channel_id}).pluck().get() : null
+			if (latestRoomID !== repliedToEventRow?.room_id) repliedToEventInDifferentRoom = true
+
+			// check that condition 1 or 2 is met
+			if (repliedToEventInDifferentRoom || repliedToUnknownEvent) {
+				let referenced = message.referenced_message
+				if (!referenced) { // backend couldn't be bothered to dereference the message, have to do it ourselves
+					referenced = await discord.snow.channel.getChannelMessage(message.message_reference.channel_id, message.message_reference.message_id)
+				}
+
+				// Username
+				let repliedToDisplayName
+				let repliedToUserHtml
+				if (repliedToEventRow?.source === 0 && repliedToEventSenderMxid) {
+					const match = repliedToEventSenderMxid.match(/^@([^:]*)/)
+					assert(match)
+					repliedToDisplayName = referenced.author.username || match[1] || "a Matrix user" // grab the localpart as the display name, whatever
+					repliedToUserHtml = `<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
+				} else {
+					repliedToDisplayName = referenced.author.global_name || referenced.author.username || "a Discord user"
+					repliedToUserHtml = repliedToDisplayName
+				}
+
+				// Content
+				let repliedToContent = referenced.content
+				if (repliedToContent?.match(/^(-# )?> (-# )?<:L1:/)) {
+					// If the Discord user is replying to a Matrix user's reply, the fallback is going to contain the emojis and stuff from the bridged rep of the Matrix user's reply quote.
+					// Need to remove that previous reply rep from this fallback body. The fallbody body should only contain the Matrix user's actual message.
+					//                                            ┌──────A─────┐       A reply rep starting with >quote or -#smalltext >quote. Match until the end of the line.
+					//                                            ┆            ┆┌─B─┐  There may be up to 2 reply rep lines in a row if it was created in the old format. Match all lines.
+					repliedToContent = repliedToContent.replace(/^((-# )?> .*\n){1,2}/, "")
+				}
+				if (repliedToContent == "") repliedToContent = "[Media]"
+				const {body: repliedToBody, html: repliedToHtml} = await transformContent(repliedToContent)
+
+				// Now branch on condition 1 or 2 for a different kind of fallback
+				if (repliedToEventRow) {
+					html = `<blockquote><a href="https://matrix.to/#/${repliedToEventRow.room_id}/${repliedToEventRow.event_id}">In reply to</a> ${repliedToUserHtml}`
+						+ `<br>${repliedToHtml}</blockquote>`
+						+ html
+					body = `${repliedToDisplayName}: ${repliedToBody}`.split("\n").map(line => "> " + line).join("\n") // scenario 1 part B for mentions
+						+ "\n\n" + body
+				} else { // repliedToUnknownEvent
+					const dateDisplay = dUtils.howOldUnbridgedMessage(referenced.timestamp, message.timestamp)
+					html = `<blockquote>In reply to ${dateDisplay} from ${repliedToDisplayName}:`
+						+ `<br>${repliedToHtml}</blockquote>`
+						+ html
+					body = `In reply to ${dateDisplay}:\n${repliedToDisplayName}: ${repliedToBody}`.split("\n").map(line => "> " + line).join("\n")
+						+ "\n\n" + body
+				}
 			}
 		}
 
