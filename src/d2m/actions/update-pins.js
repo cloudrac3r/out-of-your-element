@@ -34,7 +34,7 @@ async function updatePins(channelID, roomID, convertedTimestamp) {
 		throw e
 	}
 
-	const kstate = await ks.roomToKState(roomID)
+	const kstate = await ks.roomToKState(roomID, [["m.room.pinned_events", ""]])
 	const pinned = pinsToList.pinsToList(discordPins, kstate)
 
 	const diff = ks.diffKState(kstate, {"m.room.pinned_events/": {pinned}})

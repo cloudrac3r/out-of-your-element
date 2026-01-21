@@ -140,10 +140,20 @@ function diffKState(actual, target) {
 /**
  * Async because it gets all room state from the homeserver.
  * @param {string} roomID
+ * @param {[type: string, key: string][]} [limitToEvents]
  */
-async function roomToKState(roomID) {
-	const root = await api.getAllState(roomID)
-	return stateToKState(root)
+async function roomToKState(roomID, limitToEvents) {
+	if (!limitToEvents) {
+		const root = await api.getAllState(roomID)
+		return stateToKState(root)
+	} else {
+		const root = []
+		await Promise.all(limitToEvents.map(async ([type, key]) => {
+			const outer = await api.getStateEventOuter(roomID, type, key)
+			root.push(outer)
+		}))
+		return stateToKState(root)
+	}
 }
 
 /**

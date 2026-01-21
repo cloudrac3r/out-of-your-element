@@ -1,6 +1,7 @@
 const {test} = require("supertape")
 const data = require("../../../test/data")
 const {pinsToList} = require("./pins-to-list")
+const mixin = require("@cloudrac3r/mixin-deep")
 
 test("pins2list: converts known IDs, ignores unknown IDs", t => {
 	const result = pinsToList(data.pins.faked, {})
@@ -46,7 +47,9 @@ test("pins2list: already pinned unknown items are not moved", t => {
 })
 
 test("pins2list: bridged messages can be unpinned", t => {
-	const result = pinsToList(data.pins.faked.slice(0, -2), {
+	const shortPins = mixin({}, data.pins.faked)
+	shortPins.items = shortPins.items.slice(0, -2)
+	const result = pinsToList(shortPins, {
 		"m.room.pinned_events/": {
 			pinned: [
 				"$mtR8cJqM4fKno1bVsm8F4wUVqSntt2sq6jav1lyavuA",
