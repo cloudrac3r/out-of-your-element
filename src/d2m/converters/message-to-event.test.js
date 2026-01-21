@@ -869,14 +869,62 @@ test("message2event: very large attachment is linked instead of being uploaded",
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "hey"
-	}, {
+		body: "hey\n📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)",
+		format: "org.matrix.custom.html",
+		formatted_body: 'hey<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)'
+	}])
+})
+
+test("message2event: multiple attachments are combined into the same event where possible", async t => {
+	const events = await messageToEvent({
+		content: "hey",
+		attachments: [{
+			filename: "hey.jpg",
+			url: "https://cdn.discordapp.com/attachments/123/456/789.mega",
+			content_type: "application/i-made-it-up",
+			size: 100e6
+		}, {
+			filename: "SPOILER_secret.jpg",
+			url: "https://cdn.discordapp.com/attachments/123/456/SPOILER_secret.jpg",
+			content_type: "image/jpeg",
+			size: 38291
+		}, {
+			filename: "my enemies.txt",
+			url: "https://cdn.discordapp.com/attachments/123/456/my_enemies.txt",
+			content_type: "text/plain",
+			size: 8911
+		}, {
+			filename: "hey.jpg",
+			url: "https://cdn.discordapp.com/attachments/123/456/789.mega",
+			content_type: "application/i-made-it-up",
+			size: 100e6
+		}]
+	})
+	t.deepEqual(events, [{
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)",
+		body: "hey"
+			+ "\n📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)"
+			+ "\n📸 Uploaded SPOILER file: https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg (38 KB)"
+			+ "\n📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)",
 		format: "org.matrix.custom.html",
-		formatted_body: '📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)'
+		formatted_body: "hey"
+			+ `<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
+			+ `<br><blockquote>📸 Uploaded SPOILER file: <a href="https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg">https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg</a> (38 KB)</blockquote>`
+			+ `<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
+	}, {
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.file",
+		body: "my enemies.txt",
+		filename: "my enemies.txt",
+		external_url: "https://bridge.example.org/download/discordcdn/123/456/my_enemies.txt",
+		url: "mxc://cadence.moe/y89EOTRp2lbeOkgdsEleGOge",
+		info: {
+			mimetype: "text/plain",
+			size: 8911
+		}
 	}])
 })
 
@@ -1494,21 +1542,12 @@ test("message2event: forwarded message with unreferenced mention", async t => {
 			}
 		]
 	})
-	t.deepEqual(events, [
-		{
-			$type: "m.room.message",
-			msgtype: "m.text",
-			body: "[🔀 Forwarded message]\n» @unknown-user:",
-			format: "org.matrix.custom.html",
-			formatted_body: `🔀 <em>Forwarded message</em><br><blockquote>@unknown-user:</blockquote>`,
-			"m.mentions": {}
-		}, {
-			$type: "m.room.message",
-			msgtype: "m.text",
-			body: "» 🎞️ Uploaded file: https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4 (51 MB)",
-			format: "org.matrix.custom.html",
-			formatted_body: "<blockquote>🎞️ Uploaded file: <a href=\"https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4\">2022-10-18_16-49-46.mp4</a> (51 MB)</blockquote>",
-			"m.mentions": {}
-		}
-	])
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "[🔀 Forwarded message]\n» @unknown-user:\n» 🎞️ Uploaded file: https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4 (51 MB)",
+		format: "org.matrix.custom.html",
+		formatted_body: "🔀 <em>Forwarded message</em><br><blockquote>@unknown-user:<br>🎞️ Uploaded file: <a href=\"https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4\">2022-10-18_16-49-46.mp4</a> (51 MB)</blockquote>",
+		"m.mentions": {}
+	}])
 })

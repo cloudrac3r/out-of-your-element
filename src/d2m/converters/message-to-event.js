@@ -542,16 +542,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype,
-			body: body
-		}
-
-		const isPlaintext = body === html
-
-		if (!isPlaintext || options.alwaysReturnFormattedBody) {
-			Object.assign(newTextMessageEvent, {
-				format: "org.matrix.custom.html",
-				formatted_body: html
-			})
+			body: body,
+			format: "org.matrix.custom.html",
+			formatted_body: html
 		}
 
 		events.push(newTextMessageEvent)
@@ -695,7 +688,18 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Then attachments
 	if (message.attachments) {
 		const attachmentEvents = await Promise.all(message.attachments.map(attachmentToEvent.bind(null, mentions)))
-		events.push(...attachmentEvents)
+
+		// Try to merge attachment events with the previous event
+		// This means that if the attachments ended up as a text link, and especially if there were many of them, the events will be joined together.
+		let prev = events.at(-1)
+		for (const atch of attachmentEvents) {
+			if (atch.msgtype === "m.text" && prev?.body && prev?.formatted_body && ["m.text", "m.notice"].includes(prev?.msgtype)) {
+				prev.body = prev.body + "\n" + atch.body
+				prev.formatted_body = prev.formatted_body + "<br>" + atch.formatted_body
+			} else {
+				events.push(atch)
+			}
+		}
 	}
 
 	// Then embeds
@@ -827,6 +831,16 @@ async function messageToEvent(message, guild, options = {}, di) {
 				}
 			}
 		})
+	}
+
+	// Strip formatted_body where equivalent to body
+	if (!options.alwaysReturnFormattedBody) {
+		for (const event of events) {
+			if (["m.text", "m.notice"].includes(event.msgtype) && event.body === event.formatted_body) {
+				delete event.format
+				delete event.formatted_body
+			}
+		}
 	}
 
 	return events
