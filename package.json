@@ -59,7 +59,7 @@
     "@types/node": "^22.17.1",
     "c8": "^10.1.2",
     "cross-env": "^7.0.3",
-    "supertape": "^11.3.0"
+    "supertape": "^12.0.12"
   },
   "scripts": {
     "start": "node --enable-source-maps start.js",
