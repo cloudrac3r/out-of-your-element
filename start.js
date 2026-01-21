@@ -36,5 +36,9 @@ sync.require("./src/m2d/event-dispatcher")
 	sync.require("./src/web/server")
 	await power.applyPower()
 
+	discord.cloud.once("ready", () => {
+		as.listen()
+	})
+
 	require("./src/stdin")
 })()
