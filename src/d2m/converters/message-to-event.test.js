@@ -1090,7 +1090,7 @@ test("message2event: constructed forwarded message", async t => {
 			formatted_body: `🔀 <em>Forwarded from wonderland <a href="https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$tBIT8mO7XTTCgIINyiAIy6M2MSoPAdJenRl_RLyYuaE?via=cadence.moe&amp;via=matrix.org">[jump to event]</a></em>`
 				+ `<br><blockquote>What's cooking, good looking? <img data-mx-emoticon height="32" src="mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc" title=":hipposcope:" alt=":hipposcope:"></blockquote>`,
 			"m.mentions": {},
-			msgtype: "m.notice",
+			msgtype: "m.text",
 		},
 		{
 			$type: "m.room.message",
@@ -1149,7 +1149,7 @@ test("message2event: constructed forwarded text", async t => {
 			formatted_body: `🔀 <em>Forwarded from amanda-spam <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe?via=cadence.moe&amp;via=matrix.org">[jump to room]</a></em>`
 				+ `<br><blockquote>What's cooking, good looking?</blockquote>`,
 			"m.mentions": {},
-			msgtype: "m.notice",
+			msgtype: "m.text",
 		},
 		{
 			$type: "m.room.message",
@@ -1172,7 +1172,7 @@ test("message2event: don't scan forwarded messages for mentions", async t => {
 			formatted_body: `🔀 <em>Forwarded message</em>`
 				+ `<br><blockquote>If some folks have spare bandwidth then helping out ArchiveTeam with archiving soon to be deleted research and government data might be worthwhile <a href="https://social.luca.run/@luca/113950834185678114">https://social.luca.run/@luca/113950834185678114</a></blockquote>`,
 			"m.mentions": {},
-			msgtype: "m.notice"
+			msgtype: "m.text"
 		}
 	])
 })
@@ -1426,6 +1426,89 @@ test("message2event: cross-room reply", async t => {
 					"@cadence:cadence.moe"
 				]
 			}
+		}
+	])
+})
+
+test("message2event: forwarded message with unreferenced mention", async t => {
+	const events = await messageToEvent({
+		type: 0,
+		content: "",
+		attachments: [],
+		embeds: [],
+		timestamp: "2026-01-20T14:14:21.281Z",
+		edited_timestamp: null,
+		flags: 16384,
+		components: [],
+		id: "1463174818823405651",
+		channel_id: "893634327722721290",
+		author: {
+			id: "100031256988766208",
+			username: "leo60228",
+			discriminator: "0",
+			avatar: "8a164f29946f23eb4f45cde71a75e5a6",
+			avatar_decoration_data: null,
+			public_flags: 768,
+			global_name: "leo vriska",
+			primary_guild: null,
+			collectibles: null,
+			display_name_styles: null
+		},
+		bot: false,
+		pinned: false,
+		mentions: [],
+		mention_roles: [],
+		mention_everyone: false,
+		tts: false,
+		message_reference: {
+			type: 1,
+			channel_id: "937181373943382036",
+			message_id: "1032034158261846038",
+			guild_id: "936370934292549712"
+		},
+		message_snapshots: [
+			{
+				message: {
+					type: 0,
+					content: "<@77084495118868480>",
+					attachments: [
+						{
+							id: "1463174815119704114",
+							filename: "2022-10-18_16-49-46.mp4",
+							size: 51238885,
+							url: "https://cdn.discordapp.com/attachments/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4?ex=6970df3c&is=696f8dbc&hm=515d3cbcc8464bdada7f4c3d9ccc8174f671cb75391ce21a46a804fcb1e4befe&",
+							proxy_url: "https://media.discordapp.net/attachments/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4?ex=6970df3c&is=696f8dbc&hm=515d3cbcc8464bdada7f4c3d9ccc8174f671cb75391ce21a46a804fcb1e4befe&",
+							width: 1920,
+							height: 1080,
+							content_type: "video/mp4",
+							content_scan_version: 3,
+							spoiler: false
+						}
+					],
+					embeds: [],
+					timestamp: "2022-10-18T20:55:17.597Z",
+					edited_timestamp: null,
+					flags: 0,
+					components: []
+				}
+			}
+		]
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			msgtype: "m.text",
+			body: "[🔀 Forwarded message]\n» @unknown-user:",
+			format: "org.matrix.custom.html",
+			formatted_body: `🔀 <em>Forwarded message</em><br><blockquote>@unknown-user:</blockquote>`,
+			"m.mentions": {}
+		}, {
+			$type: "m.room.message",
+			msgtype: "m.text",
+			body: "» 🎞️ Uploaded file: https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4 (51 MB)",
+			format: "org.matrix.custom.html",
+			formatted_body: "<blockquote>🎞️ Uploaded file: <a href=\"https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4\">2022-10-18_16-49-46.mp4</a> (51 MB)</blockquote>",
+			"m.mentions": {}
 		}
 	])
 })

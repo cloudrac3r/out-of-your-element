@@ -37,8 +37,8 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 			const username = message.mentions?.find(ment => ment.id === node.id)?.username
 				|| message.referenced_message?.mentions?.find(ment => ment.id === node.id)?.username
 				|| (interaction?.user.id === node.id ? interaction.user.username : null)
-				|| (message.author.id === node.id ? message.author.username : null)
-				|| node.id
+				|| (message.author?.id === node.id ? message.author.username : null)
+				|| "unknown-user"
 			if (mxid && useHTML) {
 				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
 			} else {
@@ -610,7 +610,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// Indent
 		for (const event of forwardedEvents) {
 			if (["m.text", "m.notice"].includes(event.msgtype)) {
-				event.msgtype = "m.notice"
 				event.body = event.body.split("\n").map(l => "» " + l).join("\n")
 				event.formatted_body = `<blockquote>${event.formatted_body}</blockquote>`
 			}
