@@ -169,7 +169,10 @@ as.router.post("/api/link", defineEventHandler(async event => {
 	const nick = await api.getStateEvent(parsedBody.matrix, "m.room.name", "").then(content => content.name || null).catch(() => null)
 	const avatar = await api.getStateEvent(parsedBody.matrix, "m.room.avatar", "").then(content => content.url || null).catch(() => null)
 	const topic = await api.getStateEvent(parsedBody.matrix, "m.room.topic", "").then(content => content.topic || null).catch(() => null)
-	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id, nick, custom_avatar, custom_topic) VALUES (?, ?, ?, ?, ?, ?, ?)").run(channel.id, parsedBody.matrix, channel.name, guildID, nick, avatar, topic)
+	db.transaction(() => {
+		db.prepare("INSERT INTO channel_room (channel_id, room_id, name, guild_id, nick, custom_avatar, custom_topic) VALUES (?, ?, ?, ?, ?, ?, ?)").run(channel.id, parsedBody.matrix, channel.name, guildID, nick, avatar, topic)
+		db.prepare("INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) VALUES (?, ?, 0)").run(channel.id, parsedBody.matrix)
+	})()
 
 	// Sync room data and space child
 	await createRoom.syncRoom(parsedBody.discord)
