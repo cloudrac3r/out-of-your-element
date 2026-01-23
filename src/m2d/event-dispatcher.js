@@ -333,14 +333,20 @@ sync.addTemporaryListener(as, "type:m.room.member", guard("m.room.member",
  */
 async event => {
 	if (event.state_key[0] !== "@") return
-	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 
-	if (event.state_key === bot) {
+	if (event.state_key === utils.bot) {
 		const upgraded = await roomUpgrade.onBotMembership(event, api, createRoom)
 		if (upgraded) return
 	}
 
-	if (event.content.membership === "invite" && event.state_key === bot) {
+	if (event.content.membership === "invite" && event.state_key === utils.bot) {
+		// Supposed to be here already?
+		const guildID = select("guild_space", "guild_id", {space_id: event.room_id}).pluck().get()
+		if (guildID) {
+			await api.joinRoom(event.room_id)
+			return
+		}
+
 		// We were invited to a room. We should join, and register the invite details for future reference in web.
 		let attemptedApiMessage = "According to unsigned invite data."
 		let inviteRoomState = event.unsigned?.invite_room_state
@@ -369,7 +375,7 @@ async event => {
 		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
 
 		// Unregister room's use as a direct chat if the bot itself left
-		if (event.state_key === bot) {
+		if (event.state_key === utils.bot) {
 			db.prepare("DELETE FROM direct WHERE room_id = ?").run(event.room_id)
 		}
 	}
