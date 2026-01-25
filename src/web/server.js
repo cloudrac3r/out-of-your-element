@@ -69,3 +69,8 @@ as.router.get("/icon.png", defineEventHandler(event => {
 	handleCacheHeaders(event, {maxAge: 86400})
 	return fs.promises.readFile(join(__dirname, "../../docs/img/icon.png"))
 }))
+
+as.router.get("/discord/poll-star-avatar.png", defineEventHandler(event => {
+	handleCacheHeaders(event, {maxAge: 86400})
+	return fs.promises.readFile(join(__dirname, "../../docs/img/poll-star-avatar.png"))
+}))

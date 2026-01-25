@@ -6,6 +6,7 @@ const {isDeepStrictEqual} = require("util")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select, from} = passthrough
+const {reg} = require("../../matrix/read-registration")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("./register-user")} */
@@ -14,6 +15,8 @@ const registerUser = sync.require("./register-user")
 const createRoom = sync.require("../actions/create-room")
 /** @type {import("./add-or-remove-vote.js")} */
 const vote = sync.require("../actions/add-or-remove-vote")
+/** @type {import("../../m2d/converters/poll-components")} */
+const pollComponents = sync.require("../../m2d/converters/poll-components")
 /** @type {import("../../m2d/actions/channel-webhook")} */
 const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
 
@@ -26,8 +29,9 @@ const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
  * @param {number} percent
  */
 function barChart(percent){
-	let bars = Math.floor(percent*10)
-	return "█".repeat(bars) + "▒".repeat(10-bars)
+	const width = 12
+	const bars = Math.floor(percent*width)
+	return "█".repeat(bars) + "▒".repeat(width-bars)
 }
 
 /**
@@ -73,7 +77,7 @@ async function closePoll(closeMessage, guild){
 	// If the closure came from Discord, we want to fetch all the votes there again and bridge over any that got lost to Matrix before posting the results.
 	// Database reads are cheap, and API calls are expensive, so we will only query Discord when the totals don't match.
 
-	const totalVotes = pollCloseObject.fields.find(element => element.name === "total_votes").value // We could do [2], but best not to rely on the ordering staying consistent.
+	const totalVotes = +pollCloseObject.fields.find(element => element.name === "total_votes").value // We could do [2], but best not to rely on the ordering staying consistent.
 
 	const databaseVotes = select("poll_vote", ["discord_or_matrix_user_id", "matrix_option"], {message_id: pollMessageID}, " AND discord_or_matrix_user_id NOT LIKE '@%'").all()
 
@@ -120,26 +124,27 @@ async function closePoll(closeMessage, guild){
 		}))
 	}
 
-	/** @type {{discord_option: string, option_text: string, count: number}[]} */
-	const pollResults = db.prepare("SELECT discord_option, option_text, count(*) as count FROM poll_option INNER JOIN poll_vote USING (message_id, matrix_option) GROUP BY discord_option").all()
+	/** @type {{matrix_option: string, option_text: string, count: number}[]} */
+	const pollResults = db.prepare("SELECT matrix_option, option_text, seq, count(discord_or_matrix_user_id) as count FROM poll_option LEFT JOIN poll_vote USING (message_id, matrix_option) WHERE message_id = ? GROUP BY matrix_option ORDER BY seq").all(pollMessageID)
 	const combinedVotes = pollResults.reduce((a, c) => a + c.count, 0)
+	const totalVoters = db.prepare("SELECT count(DISTINCT discord_or_matrix_user_id) as count FROM poll_vote WHERE message_id = ?").pluck().get(pollMessageID)
 
 	if (combinedVotes !== totalVotes) { // This means some votes were cast on Matrix!
-		const message = await discord.snow.channel.getChannelMessage(closeMessage.channel_id, pollMessageID)
-		assert(message?.poll?.answers)
 		// Now that we've corrected the vote totals, we can get the results again and post them to Discord!
-		const topAnswers = pollResults.toSorted()
-		const unique = topAnswers.length > 1 && topAnswers[0].count === topAnswers[1].count
-
-		let messageString = "📶 Results including Matrix votes\n"
-		for (const result of pollResults) {
-			if (result === topAnswers[0] && unique) {
-				messageString = messageString + `${barChart(result.count/combinedVotes)} **${result.option_text}** (**${result.count}**)\n`
-			} else {
-				messageString = messageString + `${barChart(result.count/combinedVotes)} ${result.option_text} (${result.count})\n`
-			}
+		const topAnswers = pollResults.toSorted((a, b) => b.count - a.count)
+		let messageString = ""
+		for (const option of pollResults) {
+			const medal = pollComponents.getMedal(topAnswers, option.count)
+			const countString = `${String(option.count).padStart(String(topAnswers[0].count).length)}`
+			const votesString = option.count === 1 ? "vote " : "votes"
+			const label = medal === "🥇" ? `**${option.option_text}**` : option.option_text
+			messageString += `\`\u200b${countString} ${votesString}\u200b\` ${barChart(option.count/totalVoters)} ${label} ${medal}\n`
 		}
-		await channelWebhook.sendMessageWithWebhook(closeMessage.channel_id, {content: messageString}, closeMessage.thread_id)
+		return {
+			username: "Total results including Matrix votes",
+			avatar_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`,
+			content: messageString
+		}
 	}
 }
 

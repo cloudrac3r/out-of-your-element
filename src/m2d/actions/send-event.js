@@ -14,6 +14,8 @@ const channelWebhook = sync.require("./channel-webhook")
 const eventToMessage = sync.require("../converters/event-to-message")
 /** @type {import("../../matrix/api")}) */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/utils")}) */
+const utils = sync.require("../../matrix/utils")
 /** @type {import("../../d2m/actions/register-user")} */
 const registerUser = sync.require("../../d2m/actions/register-user")
 /** @type {import("../../d2m/actions/edit-message")} */
@@ -59,7 +61,7 @@ async function resolvePendingFiles(message) {
 	return newMessage
 }
 
-/** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start} event */
+/** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_End} event */
 async function sendEvent(event) {
 	const row = from("channel_room").where({room_id: event.room_id}).select("channel_id", "thread_parent").get()
 	if (!row) return [] // allow the bot to exist in unbridged rooms, just don't do anything with it
@@ -79,7 +81,19 @@ async function sendEvent(event) {
 
 	// no need to sync the matrix member to the other side. but if I did need to, this is where I'd do it
 
-	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, channel, {api, snow: discord.snow, mxcDownloader: emojiSheet.getAndConvertEmoji})
+	const di = {api, snow: discord.snow, mxcDownloader: emojiSheet.getAndConvertEmoji}
+
+	if (event.type === "org.matrix.msc3381.poll.end") {
+		// Validity already checked by dispatcher. Poll is definitely closed. Update it and DI necessary data.
+		const messageID = select("event_message", "message_id", {event_id: event.content["m.relates_to"].event_id, event_type: "org.matrix.msc3381.poll.start", source: 0}).pluck().get()
+		assert(messageID)
+		db.prepare("UPDATE poll SET is_closed = 1 WHERE message_id = ?").run(messageID)
+		di.pollEnd = {
+			messageID
+		}
+	}
+
+	let {messagesToEdit, messagesToSend, messagesToDelete, ensureJoined} = await eventToMessage.eventToMessage(event, guild, channel, di)
 
 	messagesToEdit = await Promise.all(messagesToEdit.map(async e => {
 		e.message = await resolvePendingFiles(e.message)
@@ -105,8 +119,16 @@ async function sendEvent(event) {
 		await channelWebhook.deleteMessageWithWebhook(channelID, id, threadID)
 	}
 
+	// Poll ends do not follow the normal laws of parts.
+	// Normally when editing and adding extra parts, the new parts should always have part = 1 and reaction_part = 1 (because the existing part, which is being edited, already took 0).
+	// However for polls, the edit is actually for a different message. The message being sent is truly a new message, and should have parts = 0.
+	// So in that case, just override these variables to have the right values.
+	if (di.pollEnd) {
+		eventPart = 0
+	}
+
 	for (const message of messagesToSend) {
-		const reactionPart = messagesToEdit.length === 0 && message === messagesToSend[messagesToSend.length - 1] ? 0 : 1
+		const reactionPart = (messagesToEdit.length === 0 || di.pollEnd) && message === messagesToSend[messagesToSend.length - 1] ? 0 : 1
 		const messageResponse = await channelWebhook.sendMessageWithWebhook(channelID, message, threadID)
 		db.transaction(() => {
 			db.prepare("INSERT INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(messageResponse.id, historicalRoomIndex)

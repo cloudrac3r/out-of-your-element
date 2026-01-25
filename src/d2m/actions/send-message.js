@@ -4,7 +4,7 @@ const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db, select } = passthrough
+const { discord, sync, db, select, from} = passthrough
 /** @type {import("../converters/message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
 /** @type {import("../../matrix/api")} */
@@ -21,6 +21,8 @@ const createRoom = sync.require("../actions/create-room")
 const closePoll = sync.require("../actions/close-poll")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
+/** @type {import("../../m2d/actions/channel-webhook")} */
+const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
 
 /**
  * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
@@ -32,10 +34,6 @@ async function sendMessage(message, channel, guild, row) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: roomID}).pluck().get()
 	assert(historicalRoomIndex)
-
-	if (message.type === 46) { // This is a poll_result. We might need to send a message to Discord (if there were any Matrix-side votes), regardless of if this message was sent by the bridge or not.
-		await closePoll.closePoll(message, guild)
-	}
 
 	let senderMxid = null
 	if (dUtils.isWebhookMessage(message)) {
@@ -102,6 +100,20 @@ async function sendMessage(message, channel, guild, row) {
 					)
 				}
 			})()
+		}
+
+		if (message.type === DiscordTypes.MessageType.PollResult) { // We might need to send a message to Discord (if there were any Matrix-side votes).
+			const detailedResultsMessage = await closePoll.closePoll(message, guild)
+			if (detailedResultsMessage) {
+				const threadParent = select("channel_room", "thread_parent", {channel_id: message.channel_id}).pluck().get()
+				const channelID = threadParent ? threadParent : message.channel_id
+				const threadID = threadParent ? message.channel_id : undefined
+				const sentResultsMessage = await channelWebhook.sendMessageWithWebhook(channelID, detailedResultsMessage, threadID)
+				db.transaction(() => {
+					db.prepare("UPDATE event_message SET reaction_part = 1 WHERE event_id = ?").run(eventID)
+					db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, sentResultsMessage.id, 1, 0) // part = 1, reaction_part = 0
+				})()
+			}
 		}
 
 		eventIDs.push(eventID)

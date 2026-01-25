@@ -237,6 +237,35 @@ sync.addTemporaryListener(as, "type:org.matrix.msc3381.poll.response", guard("or
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	await vote.updateVote(event) // Matrix votes can't be bridged, so all we do is store it in the database.
+	await api.ackEvent(event)
+}))
+
+sync.addTemporaryListener(as, "type:org.matrix.msc3381.poll.end", guard("org.matrix.msc3381.poll.end",
+/**
+ * @param {Ty.Event.Outer_Org_Matrix_Msc3381_Poll_End} event it is a org.matrix.msc3381.poll.end because that's what this listener is filtering for
+ */
+async event => {
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const pollEventID = event.content["m.relates_to"]?.event_id
+	if (!pollEventID) return // Validity check
+	const messageID = select("event_message", "message_id", {event_id: pollEventID, event_type: "org.matrix.msc3381.poll.start", source: 0}).pluck().get()
+	if (!messageID) return // Nothing can be done if the parent message was never bridged. Also, Discord-native polls cannot be ended by others, so this only works for polls started on Matrix.
+	try {
+		var pollEvent = await api.getEvent(event.room_id, pollEventID) // Poll start event must exist for this to be valid
+	} catch (e) {
+		return
+	}
+
+	// According to the rules, the poll end is only allowed if it was sent by the poll starter, or by someone with redact powers.
+	if (pollEvent.sender !== event.sender) {
+		const {powerLevels, powers: {[event.sender]: enderPower}} = await utils.getEffectivePower(event.room_id, [event.sender], api)
+		if (enderPower < (powerLevels.redact ?? 50)) {
+			return // Not allowed
+		}
+	}
+
+	const messageResponses = await sendEvent.sendEvent(event)
+	await api.ackEvent(event)
 }))
 
 sync.addTemporaryListener(as, "type:m.reaction", guard("m.reaction",

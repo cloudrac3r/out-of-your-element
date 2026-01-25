@@ -9,6 +9,7 @@ const invite = sync.require("./interactions/invite.js")
 const permissions = sync.require("./interactions/permissions.js")
 const reactions = sync.require("./interactions/reactions.js")
 const privacy = sync.require("./interactions/privacy.js")
+const poll = sync.require("./interactions/poll.js")
 
 // User must have EVERY permission in default_member_permissions to be able to use the command
 
@@ -68,25 +69,36 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	console.error(e)
 })
 
+/** @param {DiscordTypes.APIInteraction} interaction */
 async function dispatchInteraction(interaction) {
-	const interactionId = interaction.data.custom_id || interaction.data.name
+	const interactionId = interaction.data?.["custom_id"] || interaction.data?.["name"]
 	try {
-		if (interactionId === "Matrix info") {
-			await matrixInfo.interact(interaction)
-		} else if (interactionId === "invite") {
-			await invite.interact(interaction)
-		} else if (interactionId === "invite_channel") {
-			await invite.interactButton(interaction)
-		} else if (interactionId === "Permissions") {
-			await permissions.interact(interaction)
-		} else if (interactionId === "permissions_edit") {
-			await permissions.interactEdit(interaction)
-		} else if (interactionId === "Reactions") {
-			await reactions.interact(interaction)
-		} else if (interactionId === "privacy") {
-			await privacy.interact(interaction)
+		if (interaction.type === DiscordTypes.InteractionType.MessageComponent || interaction.type === DiscordTypes.InteractionType.ModalSubmit) {
+			// All we get is custom_id, don't know which context the button was clicked in.
+			// So we namespace these ourselves in the custom_id. Currently the only existing namespace is POLL_.
+			if (interaction.data.custom_id.startsWith("POLL_")) {
+				await poll.interact(interaction)
+			} else {
+				throw new Error(`Unknown message component ${interaction.data.custom_id}`)
+			}
 		} else {
-			throw new Error(`Unknown interaction ${interactionId}`)
+			if (interactionId === "Matrix info") {
+				await matrixInfo.interact(interaction)
+			} else if (interactionId === "invite") {
+				await invite.interact(interaction)
+			} else if (interactionId === "invite_channel") {
+				await invite.interactButton(interaction)
+			} else if (interactionId === "Permissions") {
+				await permissions.interact(interaction)
+			} else if (interactionId === "permissions_edit") {
+				await permissions.interactEdit(interaction)
+			} else if (interactionId === "Reactions") {
+				await reactions.interact(interaction)
+			} else if (interactionId === "privacy") {
+				await privacy.interact(interaction)
+			} else {
+				throw new Error(`Unknown interaction ${interactionId}`)
+			}
 		}
 	} catch (e) {
 		let stackLines = null
@@ -97,12 +109,16 @@ async function dispatchInteraction(interaction) {
 				stackLines = stackLines.slice(0, cloudstormLine - 2)
 			}
 		}
-		await discord.snow.interaction.createFollowupMessage(id, interaction.token, {
-			content: `Interaction failed: **${interactionId}**`
-				+ `\nError trace:\n\`\`\`\n${stackLines.join("\n")}\`\`\``
-				+ `Interaction data:\n\`\`\`\n${JSON.stringify(interaction.data, null, 2)}\`\`\``,
-				flags: DiscordTypes.MessageFlags.Ephemeral
-		})
+		try {
+			await discord.snow.interaction.createFollowupMessage(id, interaction.token, {
+				content: `Interaction failed: **${interactionId}**`
+					+ `\nError trace:\n\`\`\`\n${stackLines.join("\n")}\`\`\``
+					+ `Interaction data:\n\`\`\`\n${JSON.stringify(interaction.data, null, 2)}\`\`\``,
+					flags: DiscordTypes.MessageFlags.Ephemeral
+			})
+		} catch (_) {
+			throw e
+		}
 	}
 }
 

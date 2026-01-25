@@ -519,10 +519,10 @@ async function getL1L2ReplyLine(called = false) {
 }
 
 /**
- * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start} event
+ * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_End} event
  * @param {DiscordTypes.APIGuild} guild
  * @param {DiscordTypes.APIGuildTextChannel} channel
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, mxcDownloader: (mxc: string) => Promise<Buffer | undefined>, pollEnd?: {messageID: string}}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, channel, di) {
 	let displayName = event.sender
@@ -553,8 +553,8 @@ async function eventToMessage(event, guild, channel, di) {
 	const pendingFiles = []
 	/** @type {DiscordTypes.APIUser[]} */
 	const ensureJoined = []
-	/** @type {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody?} */
-	let pollMessage = null
+	/** @type {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody[]} */
+	const pollMessages = []
 
 	// Convert content depending on what the message is
 	// Handle images first - might need to handle their `body`/`formatted_body` as well, which will fall through to the text processor
@@ -644,7 +644,17 @@ async function eventToMessage(event, guild, channel, di) {
 			count: 0 // no votes initially
 		}))
 		content = ""
-		pollMessage = pollComponents.getPollComponents(isClosed, maxSelections, questionText, pollOptions)
+		pollMessages.push(pollComponents.getPollComponents(isClosed, maxSelections, questionText, pollOptions))
+
+	} else if (event.type === "org.matrix.msc3381.poll.end") {
+		assert(di.pollEnd)
+		content = ""
+		messageIDsToEdit.push(di.pollEnd.messageID)
+		pollMessages.push(pollComponents.getPollComponentsFromDatabase(di.pollEnd.messageID))
+		pollMessages.push({
+			...await pollComponents.getPollEndMessageFromDatabase(channel.id, di.pollEnd.messageID),
+			avatar_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`
+		})
 
 	} else {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
@@ -1001,12 +1011,14 @@ async function eventToMessage(event, guild, channel, di) {
 		messages[0].pendingFiles = pendingFiles
 	}
 
-	if (pollMessage) {
-		messages.push({
-			...pollMessage,
-			username: displayNameShortened,
-			avatar_url: avatarURL
-		})
+	if (pollMessages.length) {
+		for (const pollMessage of pollMessages) {
+			messages.push({
+				username: displayNameShortened,
+				avatar_url: avatarURL,
+				...pollMessage,
+			})
+		}
 	}
 
 	const messagesToEdit = []

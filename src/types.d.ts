@@ -302,6 +302,18 @@ export namespace Event {
 
 	export type Outer_Org_Matrix_Msc3381_Poll_Response = Outer<Org_Matrix_Msc3381_Poll_Response> & {type: "org.matrix.msc3381.poll.response"}
 
+	export type Org_Matrix_Msc3381_Poll_End = {
+		"org.matrix.msc3381.poll.end": {},
+		"org.matrix.msc1767.text": string,
+		body: string,
+		"m.relates_to": {
+			rel_type: string
+			event_id: string
+		}
+	}
+
+	export type Outer_Org_Matrix_Msc3381_Poll_End = Outer<Org_Matrix_Msc3381_Poll_End> & {type: "org.matrix.msc3381.poll.end"}
+
 	export type M_Room_Member = {
 		membership: string
 		displayname?: string

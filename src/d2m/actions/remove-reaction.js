@@ -22,7 +22,7 @@ async function removeSomeReactions(data) {
 	if (!row) return
 
 	const eventReactedTo = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
-		.where({message_id: data.message_id, reaction_part: 0}).select("event_id", "room_id").get()
+		.where({message_id: data.message_id}).and("ORDER BY reaction_part").select("event_id", "room_id").get()
 	if (!eventReactedTo) return
 
 	// Due to server restrictions, all relations (i.e. reactions) have to be in the same room as the original event.
