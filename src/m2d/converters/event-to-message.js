@@ -22,6 +22,8 @@ const dUtils = sync.require("../../discord/utils")
 const file = sync.require("../../matrix/file")
 /** @type {import("./emoji-sheet")} */
 const emojiSheet = sync.require("./emoji-sheet")
+/** @type {import("./poll-components")} */
+const pollComponents = sync.require("./poll-components")
 /** @type {import("../actions/setup-emojis")} */
 const setupEmojis = sync.require("../actions/setup-emojis")
 /** @type {import("../../d2m/converters/user-to-mxid")} */
@@ -551,8 +553,8 @@ async function eventToMessage(event, guild, channel, di) {
 	const pendingFiles = []
 	/** @type {DiscordTypes.APIUser[]} */
 	const ensureJoined = []
-	/** @type {Ty.SendingPoll} */
-	let poll = null
+	/** @type {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody?} */
+	let pollMessage = null
 
 	// Convert content depending on what the message is
 	// Handle images first - might need to handle their `body`/`formatted_body` as well, which will fall through to the text processor
@@ -632,21 +634,17 @@ async function eventToMessage(event, guild, channel, di) {
 		pendingFiles.push({name: filename, mxc: event.content.url})
 
 	} else if (event.type === "org.matrix.msc3381.poll.start") {
-		content = ""
 		const pollContent = event.content["org.matrix.msc3381.poll.start"] // just for convenience
-		let allowMultiselect = (pollContent.max_selections != 1)
-		let answers = pollContent.answers.map(answer=>{
-			return {poll_media: {text: answer["org.matrix.msc1767.text"]}, matrix_option: answer["id"]}
-		})
-		poll = {
-			question: {
-				text: event.content["org.matrix.msc3381.poll.start"].question["org.matrix.msc1767.text"]
-			},
-			answers: answers,
-			duration: 768, // Maximum duration (32 days). Matrix doesn't allow automatically-expiring polls, so this is the only thing that makes sense to send.
-			allow_multiselect: allowMultiselect,
-			layout_type: 1
-		}
+		const isClosed = false;
+		const maxSelections = pollContent.max_selections || 1
+		const questionText = pollContent.question["org.matrix.msc1767.text"]
+		const pollOptions = pollContent.answers.map(answer => ({
+			matrix_option: answer.id,
+			option_text: answer["org.matrix.msc1767.text"],
+			count: 0 // no votes initially
+		}))
+		content = ""
+		pollMessage = pollComponents.getPollComponents(isClosed, maxSelections, questionText, pollOptions)
 
 	} else {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
@@ -980,7 +978,7 @@ async function eventToMessage(event, guild, channel, di) {
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
-	/** @type {({poll?: Ty.SendingPoll} & DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
+	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
 	const messages = chunks.map(content => ({
 		content,
 		allowed_mentions: {
@@ -1003,13 +1001,12 @@ async function eventToMessage(event, guild, channel, di) {
 		messages[0].pendingFiles = pendingFiles
 	}
 
-	if (poll) {
-		if (!messages.length) messages.push({
-			content: " ", // stopgap, remove when library updates
+	if (pollMessage) {
+		messages.push({
+			...pollMessage,
 			username: displayNameShortened,
 			avatar_url: avatarURL
 		})
-		messages[0].poll = poll
 	}
 
 	const messagesToEdit = []

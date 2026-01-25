@@ -85,14 +85,26 @@ async function sendMessage(message, channel, guild, row) {
 		// The last event gets reaction_part = 0. Reactions are managed there because reactions are supposed to appear at the bottom.
 
 
-		if (eventType === "org.matrix.msc3381.poll.start"){
-			for (let i=0; i<event["org.matrix.msc3381.poll.start"].answers.length;i++){
-				db.prepare("INSERT INTO poll_option (message_id, matrix_option, discord_option) VALUES (?, ?, ?)").run(message.id, event["org.matrix.msc3381.poll.start"].answers[i].id, event["org.matrix.msc3381.poll.start"].answers[i].id) // Since we can set the ID on Matrix, we use the same ID that Discord gives us.
-			}
+		if (eventType === "org.matrix.msc3381.poll.start") {
+			db.transaction(() => {
+				db.prepare("INSERT INTO poll (message_id, max_selections, question_text, is_closed) VALUES (?, ?, ?, 0)").run(
+					message.id,
+					event["org.matrix.msc3381.poll.start"].max_selections,
+					event["org.matrix.msc3381.poll.start"].question["org.matrix.msc1767.text"]
+				)
+				for (const [index, option] of Object.entries(event["org.matrix.msc3381.poll.start"].answers)) {
+					db.prepare("INSERT INTO poll_option (message_id, matrix_option, discord_option, option_text, seq) VALUES (?, ?, ?, ?, ?)").run(
+						message.id,
+						option.id,
+						option.id,
+						option["org.matrix.msc1767.text"],
+						index
+					)
+				}
+			})()
 		}
 
 		eventIDs.push(eventID)
-
 	}
 
 	return eventIDs

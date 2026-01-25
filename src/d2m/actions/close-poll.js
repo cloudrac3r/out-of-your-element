@@ -30,16 +30,25 @@ function barChart(percent){
 	return "█".repeat(bars) + "▒".repeat(10-bars)
 }
 
-async function getAllVotes(channel_id, message_id, answer_id){
+/**
+ * @param {string} channelID
+ * @param {string} messageID
+ * @param {string} answerID
+ * @returns {Promise<DiscordTypes.RESTGetAPIPollAnswerVotersResult["users"]>}
+ */
+async function getAllVotesOnAnswer(channelID, messageID, answerID){
+	const limit = 100
+	/** @type {DiscordTypes.RESTGetAPIPollAnswerVotersResult["users"]} */
 	let voteUsers = []
-	let after = 0;
-	while (!voteUsers.length || after){
-		let curVotes = await discord.snow.requestHandler.request("/channels/"+channel_id+"/polls/"+message_id+"/answers/"+answer_id, {after: after, limit: 100}, "get", "json")
-		if (curVotes.users.length == 0 && after == 0){ // Zero votes.
+	let after = undefined
+	while (!voteUsers.length || after) {
+		const curVotes = await discord.snow.channel.getPollAnswerVoters(channelID, messageID, answerID, {after: after, limit})
+		if (curVotes.users.length === 0) { // Reached the end.
 			break
 		}
-		if (curVotes.users[99]){
-			after = curVotes.users[99].id
+		if (curVotes.users.length >= limit) { // Loop again for the next page.
+			// @ts-ignore - stupid
+			after = curVotes.users.at(-1).id
 		}
 		voteUsers = voteUsers.concat(curVotes.users)
 	}
@@ -48,91 +57,89 @@ async function getAllVotes(channel_id, message_id, answer_id){
 
 
 /**
- * @param {typeof import("../../../test/data.js")["poll_close"]} message
+ * @param {typeof import("../../../test/data.js")["poll_close"]} closeMessage
  * @param {DiscordTypes.APIGuild} guild
 */
-async function closePoll(message, guild){
-	const pollCloseObject = message.embeds[0]
+async function closePoll(closeMessage, guild){
+	const pollCloseObject = closeMessage.embeds[0]
 
-	const parentID = select("event_message", "event_id", {message_id: message.message_reference.message_id, event_type: "org.matrix.msc3381.poll.start"}).pluck().get()
-	if (!parentID) return // Nothing we can send Discord-side if we don't have the original poll. We will still send a results message Matrix-side.
+	const pollMessageID = closeMessage.message_reference.message_id
+	const pollEventID = select("event_message", "event_id", {message_id: pollMessageID, event_type: "org.matrix.msc3381.poll.start"}).pluck().get()
+	if (!pollEventID) return // Nothing we can send Discord-side if we don't have the original poll. We will still send a results message Matrix-side.
 
-	const pollOptions = select("poll_option", "discord_option", {message_id: message.message_reference.message_id}).pluck().all()
+	const discordPollOptions = select("poll_option", "discord_option", {message_id: pollMessageID}).pluck().all()
+	assert(discordPollOptions.every(x => typeof x === "string")) // This poll originated on Discord so it will have Discord option IDs
+
 	// If the closure came from Discord, we want to fetch all the votes there again and bridge over any that got lost to Matrix before posting the results.
 	// Database reads are cheap, and API calls are expensive, so we will only query Discord when the totals don't match.
 
-	let totalVotes = pollCloseObject.fields.find(element => element.name === "total_votes").value // We could do [2], but best not to rely on the ordering staying consistent.
+	const totalVotes = pollCloseObject.fields.find(element => element.name === "total_votes").value // We could do [2], but best not to rely on the ordering staying consistent.
 
-	let databaseVotes = select("poll_vote", ["discord_or_matrix_user_id", "vote"], {message_id: message.message_reference.message_id}, " AND discord_or_matrix_user_id NOT LIKE '@%'").all()
+	const databaseVotes = select("poll_vote", ["discord_or_matrix_user_id", "matrix_option"], {message_id: pollMessageID}, " AND discord_or_matrix_user_id NOT LIKE '@%'").all()
 
-	if (databaseVotes.length != totalVotes) { // Matching length should be sufficient for most cases.
+	if (databaseVotes.length !== totalVotes) { // Matching length should be sufficient for most cases.
 		let voteUsers = [...new Set(databaseVotes.map(vote => vote.discord_or_matrix_user_id))] // Unique array of all users we have votes for in the database.
 
 		// Main design challenge here: we get the data by *answer*, but we need to send it to Matrix by *user*.
 
-		let updatedAnswers = [] // This will be our new array of answers: [{user: ID, votes: [1, 2, 3]}].
-		for (let i=0;i<pollOptions.length;i++){
-			let optionUsers = await getAllVotes(message.channel_id, message.message_reference.message_id, pollOptions[i]) // Array of user IDs who voted for the option we're testing.
-			optionUsers.map(user=>{
-				let userLocation = updatedAnswers.findIndex(item=>item.id===user.id)
+		/** @type {{user: DiscordTypes.APIUser, matrixOptionVotes: string[]}[]} This will be our new array of answers */
+		const updatedAnswers = []
+
+		for (const discordPollOption of discordPollOptions) {
+			const optionUsers = await getAllVotesOnAnswer(closeMessage.channel_id, pollMessageID, discordPollOption) // Array of user IDs who voted for the option we're testing.
+			optionUsers.map(user => {
+				const userLocation = updatedAnswers.findIndex(answer => answer.user.id === user.id)
+				const matrixOption = select("poll_option", "matrix_option", {message_id: pollMessageID, discord_option: discordPollOption}).pluck().get()
+				assert(matrixOption)
 				if (userLocation === -1){ // We haven't seen this user yet, so we need to add them.
-					updatedAnswers.push({id: user.id, votes: [pollOptions[i].toString()]}) // toString as this is what we store and get from the database and send to Matrix.
+					updatedAnswers.push({user, matrixOptionVotes: [matrixOption]}) // toString as this is what we store and get from the database and send to Matrix.
 				} else { // This user already voted for another option on the poll.
-					updatedAnswers[userLocation].votes.push(pollOptions[i])
+					updatedAnswers[userLocation].matrixOptionVotes.push(matrixOption)
 				}
 			})
 		}
-		updatedAnswers.map(async user=>{
-			voteUsers = voteUsers.filter(item => item != user.id) // Remove any users we have updated answers for from voteUsers. The only remaining entries in this array will be users who voted, but then removed their votes before the poll ended.
-			let userAnswers = select("poll_vote", "vote", {discord_or_matrix_user_id: user.id, message_id: message.message_reference.message_id}).pluck().all().sort()
-			let updatedUserAnswers = user.votes.sort() // Sorting both just in case.
-			if (isDeepStrictEqual(userAnswers,updatedUserAnswers)){
-				db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(user.id, message.message_reference.message_id) // Delete existing stored votes.
-				updatedUserAnswers.map(vote=>{
-					db.prepare("INSERT INTO poll_vote (discord_or_matrix_user_id, message_id, vote) VALUES (?, ?, ?)").run(user.id, message.message_reference.message_id, vote)
-				})
-				await vote.modifyVote({user_id: user.id, message_id: message.message_reference.message_id, channel_id: message.channel_id, answer_id: 0}, parentID) // Fake answer ID, not actually needed (but we're sorta faking the datatype to call this function).
-			}
-		})
 
-		voteUsers.map(async user_id=>{ // Remove these votes.
-			db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(user_id, message.message_reference.message_id)
-			await vote.modifyVote({user_id: user_id, message_id: message.message_reference.message_id, channel_id: message.channel_id, answer_id: 0}, parentID)
-		})
+		// Check for inconsistencies in what was cached in database vs final confirmed poll answers
+		// If different, sync the final confirmed answers to Matrix-side to make it accurate there too
+
+		await Promise.all(updatedAnswers.map(async answer => {
+			voteUsers = voteUsers.filter(item => item !== answer.user.id) // Remove any users we have updated answers for from voteUsers. The only remaining entries in this array will be users who voted, but then removed their votes before the poll ended.
+			const cachedAnswers = select("poll_vote", "matrix_option", {discord_or_matrix_user_id: answer.user.id, message_id: pollMessageID}).pluck().all()
+			if (!isDeepStrictEqual(new Set(cachedAnswers), new Set(answer.matrixOptionVotes))){
+				db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(answer.user.id, pollMessageID) // Delete existing stored votes.
+				for (const matrixOption of answer.matrixOptionVotes) {
+					db.prepare("INSERT INTO poll_vote (discord_or_matrix_user_id, message_id, matrix_option) VALUES (?, ?, ?)").run(answer.user.id, pollMessageID, matrixOption)
+				}
+				await vote.debounceSendVotes({user_id: answer.user.id, message_id: pollMessageID, channel_id: closeMessage.channel_id, answer_id: 0}, pollEventID) // Fake answer ID, not actually needed (but we're sorta faking the datatype to call this function).
+			}
+		}))
+
+		await Promise.all(voteUsers.map(async user_id => { // Remove these votes.
+			db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(user_id, pollMessageID)
+			await vote.debounceSendVotes({user_id: user_id, message_id: pollMessageID, channel_id: closeMessage.channel_id, answer_id: 0}, pollEventID)
+		}))
 	}
 
-	let combinedVotes = 0;
+	/** @type {{discord_option: string, option_text: string, count: number}[]} */
+	const pollResults = db.prepare("SELECT discord_option, option_text, count(*) as count FROM poll_option INNER JOIN poll_vote USING (message_id, matrix_option) GROUP BY discord_option").all()
+	const combinedVotes = pollResults.reduce((a, c) => a + c.count, 0)
 
-	let pollResults = pollOptions.map(option => {
-		let votes = Number(db.prepare("SELECT COUNT(*) FROM poll_vote WHERE message_id = ? AND vote = ?").get(message.message_reference.message_id, option)["COUNT(*)"])
-		combinedVotes = combinedVotes + votes
-		return {answer: option, votes: votes}
-	})
-
-	if (combinedVotes!=totalVotes){ // This means some votes were cast on Matrix!
-		let pollAnswersObject = (await discord.snow.channel.getChannelMessage(message.channel_id, message.message_reference.message_id)).poll.answers
+	if (combinedVotes !== totalVotes) { // This means some votes were cast on Matrix!
+		const message = await discord.snow.channel.getChannelMessage(closeMessage.channel_id, pollMessageID)
+		assert(message?.poll?.answers)
 		// Now that we've corrected the vote totals, we can get the results again and post them to Discord!
-		let winningAnswer = 0
-		let unique = true
-		for (let i=1;i<pollResults.length;i++){
-			if (pollResults[i].votes>pollResults[winningAnswer].votes){
-				winningAnswer = i
-				unique = true
-			} else if (pollResults[i].votes==pollResults[winningAnswer].votes){
-				unique = false
-			}
-		}
+		const topAnswers = pollResults.toSorted()
+		const unique = topAnswers.length > 1 && topAnswers[0].count === topAnswers[1].count
 
-		let messageString = "📶 Results with Matrix votes\n"
-		for (let i=0;i<pollResults.length;i++){
-			if (i == winningAnswer && unique){
-				messageString = messageString + barChart(pollResults[i].votes/combinedVotes) + " **" + pollAnswersObject[i].poll_media.text + "** (**" + pollResults[i].votes + "**)\n"
-			} else{
-				messageString = messageString + barChart(pollResults[i].votes/combinedVotes) + " " + pollAnswersObject[i].poll_media.text + " (" + pollResults[i].votes + ")\n"
+		let messageString = "📶 Results including Matrix votes\n"
+		for (const result of pollResults) {
+			if (result === topAnswers[0] && unique) {
+				messageString = messageString + `${barChart(result.count/combinedVotes)} **${result.option_text}** (**${result.count}**)\n`
+			} else {
+				messageString = messageString + `${barChart(result.count/combinedVotes)} ${result.option_text} (${result.count})\n`
 			}
 		}
-		const messageResponse = await channelWebhook.sendMessageWithWebhook(message.channel_id, {content: messageString}, message.thread_id)
-		db.prepare("INSERT INTO message_channel (message_id, channel_id) VALUES (?, ?)").run(messageResponse.id, message.thread_id || message.channel_id)
+		await channelWebhook.sendMessageWithWebhook(closeMessage.channel_id, {content: messageString}, closeMessage.thread_id)
 	}
 }
 

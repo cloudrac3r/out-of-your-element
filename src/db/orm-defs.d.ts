@@ -140,16 +140,25 @@ export type Models = {
 		original_encoding: string | null
 	}
 
-	poll_vote: {
-		vote: string
+	poll: { // not actually in database yet
 		message_id: string
-		discord_or_matrix_user_id: string
+		max_selections: number
+		question_text: string
+		is_closed: number
 	}
-
+	
 	poll_option: {
 		message_id: string
 		matrix_option: string
-		discord_option: string
+		discord_option: string | null
+		option_text: string // not actually in database yet
+		seq: number // not actually in database yet
+	}
+
+	poll_vote: {
+		message_id: string
+		matrix_option: string
+		discord_or_matrix_user_id: string
 	}
 }
 

@@ -83,10 +83,6 @@ export type WebhookAuthor = {
 	id: string
 }
 
-export type SendingPoll = DiscordTypes.RESTAPIPoll & {
-	answers: (DiscordTypes.APIBasePollAnswer & {matrix_option: string})[]
-}
-
 export type PkSystem = {
 	id: string
 	uuid: string

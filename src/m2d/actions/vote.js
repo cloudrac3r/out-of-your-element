@@ -17,7 +17,7 @@ async function updateVote(event) {
 	db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(event.sender, messageID) // Clear all the existing votes, since this overwrites. Technically we could check and only overwrite the changes, but the complexity isn't worth it.
 
 	event.content["org.matrix.msc3381.poll.response"].answers.map(answer=>{
-		db.prepare("INSERT OR IGNORE INTO poll_vote (discord_or_matrix_user_id, message_id, vote) VALUES (?, ?, ?)").run(event.sender, messageID, answer)
+		db.prepare("INSERT OR IGNORE INTO poll_vote (discord_or_matrix_user_id, message_id, matrix_option) VALUES (?, ?, ?)").run(event.sender, messageID, answer)
 	})
 }
 

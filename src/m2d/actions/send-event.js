@@ -22,8 +22,8 @@ const editMessage = sync.require("../../d2m/actions/edit-message")
 const emojiSheet = sync.require("../actions/emoji-sheet")
 
 /**
- * @param {{poll?: Ty.SendingPoll} & DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | stream.Readable})[]}} message
- * @returns {Promise<{poll?: Ty.SendingPoll} & DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}>}
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | stream.Readable})[]}} message
+ * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}>}
  */
 async function resolvePendingFiles(message) {
 	if (!message.pendingFiles) return message
@@ -71,6 +71,7 @@ async function sendEvent(event) {
 	}
 	/** @type {DiscordTypes.APIGuildTextChannel} */ // @ts-ignore
 	const channel = discord.channels.get(channelID)
+	// @ts-ignore
 	const guild = discord.guilds.get(channel.guild_id)
 	assert(guild)
 	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: event.room_id}).pluck().get()
@@ -133,12 +134,25 @@ async function sendEvent(event) {
 				}, guild, null)
 			)
 		}
+	}
 
-		if (message.poll){ // Need to store answer mapping in the database.
-			for (let i=0; i<message.poll.answers.length; i++){
-				db.prepare("INSERT INTO poll_option (message_id, matrix_option, discord_option) VALUES (?, ?, ?)").run(messageResponse.id, message.poll.answers[i].matrix_option, messageResponse.poll.answers[i].answer_id.toString())
+	if (event.type === "org.matrix.msc3381.poll.start") { // Need to store answer mapping in the database.
+		db.transaction(() => {
+			const messageID = messageResponses[0].id
+			db.prepare("INSERT INTO poll (message_id, max_selections, question_text, is_closed) VALUES (?, ?, ?, 0)").run(
+				messageID,
+				event.content["org.matrix.msc3381.poll.start"].max_selections,
+				event.content["org.matrix.msc3381.poll.start"].question["org.matrix.msc1767.text"]
+			)
+			for (const [i, option] of Object.entries(event.content["org.matrix.msc3381.poll.start"].answers)) {
+				db.prepare("INSERT INTO poll_option (message_id, matrix_option, option_text, seq) VALUES (?, ?, ?, ?)").run(
+					messageID,
+					option.id,
+					option["org.matrix.msc1767.text"],
+					i
+				)
 			}
-		}
+		})()
 	}
 
 	for (const user of ensureJoined) {
