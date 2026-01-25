@@ -487,9 +487,8 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	/** @type {Ty.Event.M_Power_Levels} */
 	const powerLevelContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
 	powerLevelContent.users ??= {}
-	const bot = `@${reg.sender_localpart}:${reg.ooye.server_name}`
 	for (const mxid of Object.keys(powerLevelContent.users)) {
-		if (powerLevelContent.users[mxid] >= 100 && mUtils.eventSenderIsFromDiscord(mxid) && mxid !== bot) {
+		if (powerLevelContent.users[mxid] >= 100 && mUtils.eventSenderIsFromDiscord(mxid) && mxid !== mUtils.bot) {
 			delete powerLevelContent.users[mxid]
 			await api.sendState(roomID, "m.room.power_levels", "", powerLevelContent, mxid)
 		}
@@ -513,7 +512,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	// (the room can be used with less clutter and the member list makes sense if it's bridged somewhere else)
 	if (row.autocreate === 0) {
 		// remove sim members
-		const members = db.prepare("SELECT mxid FROM sim_member WHERE room_id = ? AND mxid <> ?").pluck().all(roomID, bot)
+		const members = db.prepare("SELECT mxid FROM sim_member WHERE room_id = ? AND mxid <> ?").pluck().all(roomID, mUtils.bot)
 		const preparedDelete = db.prepare("DELETE FROM sim_member WHERE room_id = ? AND mxid = ?")
 		for (const mxid of members) {
 			await api.leaveRoom(roomID, mxid)

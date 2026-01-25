@@ -162,7 +162,7 @@ function getStateEventOuter(roomID, type, key) {
  */
 async function getInviteState(roomID) {
 	/** @type {Ty.R.SSS} */
-	const root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`), {
+	const root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
 		room_subscriptions: {
 			[roomID]: {
 				timeline_limit: 0,

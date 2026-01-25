@@ -173,7 +173,7 @@ async function onRetryReactionAdd(reactionEvent) {
 		if (event.sender !== `@${reg.sender_localpart}:${reg.ooye.server_name}` || !error) return
 
 		// To stop people injecting misleading messages, the reaction needs to come from either the original sender or a room moderator
-		if (reactionEvent.sender !== event.sender) {
+		if (reactionEvent.sender !== error.payload.sender) {
 			// Check if it's a room moderator
 			const {powers: {[reactionEvent.sender]: senderPower}, powerLevels} = await utils.getEffectivePower(roomID, [reactionEvent.sender], api)
 			if (senderPower < (powerLevels.state_default ?? 50)) return
