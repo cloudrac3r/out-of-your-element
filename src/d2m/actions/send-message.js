@@ -17,8 +17,8 @@ const registerPkUser = sync.require("./register-pk-user")
 const registerWebhookUser = sync.require("./register-webhook-user")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
-/** @type {import("../actions/close-poll")} */
-const closePoll = sync.require("../actions/close-poll")
+/** @type {import("../actions/poll-end")} */
+const pollEnd = sync.require("../actions/poll-end")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
 /** @type {import("../../m2d/actions/channel-webhook")} */
@@ -103,7 +103,7 @@ async function sendMessage(message, channel, guild, row) {
 		}
 
 		if (message.type === DiscordTypes.MessageType.PollResult) { // We might need to send a message to Discord (if there were any Matrix-side votes).
-			const detailedResultsMessage = await closePoll.closePoll(message, guild)
+			const detailedResultsMessage = await pollEnd.endPoll(message, guild)
 			if (detailedResultsMessage) {
 				const threadParent = select("channel_room", "thread_parent", {channel_id: message.channel_id}).pluck().get()
 				const channelID = threadParent ? threadParent : message.channel_id

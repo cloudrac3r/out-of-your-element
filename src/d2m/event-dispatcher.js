@@ -32,8 +32,8 @@ const speedbump = sync.require("./actions/speedbump")
 const retrigger = sync.require("./actions/retrigger")
 /** @type {import("./actions/set-presence")} */
 const setPresence = sync.require("./actions/set-presence")
-/** @type {import("./actions/add-or-remove-vote")} */
-const vote = sync.require("./actions/add-or-remove-vote")
+/** @type {import("./actions/poll-vote")} */
+const vote = sync.require("./actions/poll-vote")
 /** @type {import("../m2d/event-dispatcher")} */
 const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
 /** @type {import("../discord/interactions/matrix-info")} */

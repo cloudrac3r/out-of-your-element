@@ -12,8 +12,8 @@ const api = sync.require("../../matrix/api")
 const utils = sync.require("../../matrix/utils")
 /** @type {import("../../m2d/converters/poll-components")} */
 const pollComponents = sync.require("../../m2d/converters/poll-components")
-/** @type {import("../../d2m/actions/add-or-remove-vote")} */
-const vote = sync.require("../../d2m/actions/add-or-remove-vote")
+/** @type {import("../../d2m/actions/poll-vote")} */
+const vote = sync.require("../../d2m/actions/poll-vote")
 
 /**
  * @param {DiscordTypes.APIMessageComponentButtonInteraction} interaction
@@ -34,7 +34,7 @@ async function* _interact({data, message, member, user}, {api}) {
 
 	const maxSelections = pollRow.max_selections
 	const alreadySelected = select("poll_vote", "matrix_option", {discord_or_matrix_user_id: userID, message_id: message.id}).pluck().all()
-	
+
 	// Show modal (if no capacity or if requested)
 	if (data.custom_id === "POLL_VOTE" || (maxSelections > 1 && alreadySelected.length === maxSelections)) {
 		const options = select("poll_option", ["matrix_option", "option_text", "seq"], {message_id: message.id}, "ORDER BY seq").all().map(option => ({
@@ -91,7 +91,7 @@ async function* _interact({data, message, member, user}, {api}) {
 				db.prepare("INSERT OR IGNORE INTO poll_vote (discord_or_matrix_user_id, message_id, matrix_option) VALUES (?, ?, ?)").run(userID, message.id, option)
 			}
 		})()
-		
+
 		// Update counts on message
 		yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.UpdateMessage,
@@ -105,7 +105,7 @@ async function* _interact({data, message, member, user}, {api}) {
 		const optionPrefix = "POLL_OPTION#" // we use a prefix to prevent someone from sending a Matrix poll that intentionally collides with other elements of the embed
 		const matrixOption = select("poll_option", "matrix_option", {matrix_option: data.custom_id.substring(optionPrefix.length), message_id: message.id}).pluck().get()
 		assert(matrixOption)
-		
+
 		// Remove a vote
 		if (alreadySelected.includes(matrixOption)) {
 			db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ? AND matrix_option = ?").run(userID, message.id, matrixOption)

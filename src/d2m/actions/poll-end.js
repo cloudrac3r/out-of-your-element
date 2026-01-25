@@ -13,8 +13,8 @@ const api = sync.require("../../matrix/api")
 const registerUser = sync.require("./register-user")
 /** @type {import("./create-room")} */
 const createRoom = sync.require("../actions/create-room")
-/** @type {import("./add-or-remove-vote.js")} */
-const vote = sync.require("../actions/add-or-remove-vote")
+/** @type {import("./poll-vote")} */
+const vote = sync.require("../actions/poll-vote")
 /** @type {import("../../m2d/converters/poll-components")} */
 const pollComponents = sync.require("../../m2d/converters/poll-components")
 /** @type {import("../../m2d/actions/channel-webhook")} */
@@ -64,7 +64,7 @@ async function getAllVotesOnAnswer(channelID, messageID, answerID){
  * @param {typeof import("../../../test/data.js")["poll_close"]} closeMessage
  * @param {DiscordTypes.APIGuild} guild
 */
-async function closePoll(closeMessage, guild){
+async function endPoll(closeMessage, guild){
 	const pollCloseObject = closeMessage.embeds[0]
 
 	const pollMessageID = closeMessage.message_reference.message_id
@@ -148,4 +148,4 @@ async function closePoll(closeMessage, guild){
 	}
 }
 
-module.exports.closePoll = closePoll
+module.exports.endPoll = endPoll
