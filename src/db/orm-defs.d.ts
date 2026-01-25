@@ -139,6 +139,18 @@ export type Models = {
 		encoded_emoji: string
 		original_encoding: string | null
 	}
+
+	poll_vote: {
+		vote: string
+		message_id: string
+		discord_or_matrix_user_id: string
+	}
+
+	poll_option: {
+		message_id: string
+		matrix_option: string
+		discord_option: string
+	}
 }
 
 export type Prepared<Row> = {

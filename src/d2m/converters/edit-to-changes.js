@@ -16,8 +16,8 @@ function eventCanBeEdited(ev) {
 	if (ev.old.event_type === "m.room.message" && ev.old.event_subtype !== "m.text" && ev.old.event_subtype !== "m.emote" && ev.old.event_subtype !== "m.notice") {
 		return false
 	}
-	// Discord does not allow stickers to be edited.
-	if (ev.old.event_type === "m.sticker") {
+	// Discord does not allow stickers to be edited. Poll closures are sent as "edits", but not in a way we care about.
+	if (ev.old.event_type === "m.sticker" || ev.old.event_type === "org.matrix.msc3381.poll.start") {
 		return false
 	}
 	// Anything else is fair game.

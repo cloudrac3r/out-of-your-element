@@ -18,6 +18,8 @@ const addReaction = sync.require("./actions/add-reaction")
 const redact = sync.require("./actions/redact")
 /** @type {import("./actions/update-pins")}) */
 const updatePins = sync.require("./actions/update-pins")
+/** @type {import("./actions/vote")}) */
+const vote = sync.require("./actions/vote")
 /** @type {import("../matrix/matrix-command-handler")} */
 const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
 /** @type {import("../matrix/utils")} */
@@ -216,6 +218,25 @@ async event => {
 	const messageResponses = await sendEvent.sendEvent(event)
 	retrigger.messageFinishedBridging(event.event_id)
 	await api.ackEvent(event)
+}))
+
+sync.addTemporaryListener(as, "type:org.matrix.msc3381.poll.start", guard("org.matrix.msc3381.poll.start",
+/**
+ * @param {Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start} event it is a org.matrix.msc3381.poll.start because that's what this listener is filtering for
+ */
+async event => {
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	const messageResponses = await sendEvent.sendEvent(event)
+	await api.ackEvent(event)
+}))
+
+sync.addTemporaryListener(as, "type:org.matrix.msc3381.poll.response", guard("org.matrix.msc3381.poll.response",
+/**
+ * @param {Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Response} event it is a org.matrix.msc3381.poll.response because that's what this listener is filtering for
+ */
+async event => {
+	if (utils.eventSenderIsFromDiscord(event.sender)) return
+	await vote.updateVote(event) // Matrix votes can't be bridged, so all we do is store it in the database.
 }))
 
 sync.addTemporaryListener(as, "type:m.reaction", guard("m.reaction",

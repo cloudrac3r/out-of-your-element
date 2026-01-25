@@ -17,6 +17,8 @@ const registerPkUser = sync.require("./register-pk-user")
 const registerWebhookUser = sync.require("./register-webhook-user")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
+/** @type {import("../actions/close-poll")} */
+const closePoll = sync.require("../actions/close-poll")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
 
@@ -30,6 +32,10 @@ async function sendMessage(message, channel, guild, row) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: roomID}).pluck().get()
 	assert(historicalRoomIndex)
+
+	if (message.type === 46) { // This is a poll_result. We might need to send a message to Discord (if there were any Matrix-side votes), regardless of if this message was sent by the bridge or not.
+		await closePoll.closePoll(message, guild)
+	}
 
 	let senderMxid = null
 	if (dUtils.isWebhookMessage(message)) {
@@ -78,7 +84,15 @@ async function sendMessage(message, channel, guild, row) {
 
 		// The last event gets reaction_part = 0. Reactions are managed there because reactions are supposed to appear at the bottom.
 
+
+		if (eventType === "org.matrix.msc3381.poll.start"){
+			for (let i=0; i<event["org.matrix.msc3381.poll.start"].answers.length;i++){
+				db.prepare("INSERT INTO poll_option (message_id, matrix_option, discord_option) VALUES (?, ?, ?)").run(message.id, event["org.matrix.msc3381.poll.start"].answers[i].id, event["org.matrix.msc3381.poll.start"].answers[i].id) // Since we can set the ID on Matrix, we use the same ID that Discord gives us.
+			}
+		}
+
 		eventIDs.push(eventID)
+
 	}
 
 	return eventIDs

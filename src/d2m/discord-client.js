@@ -23,7 +23,7 @@ class DiscordClient {
 		/** @type {import("cloudstorm").IClientOptions["intents"]} */
 		const intents = [
 			"DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS", "DIRECT_MESSAGE_TYPING",
-			"GUILDS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_WEBHOOKS",
+			"GUILDS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_WEBHOOKS", "GUILD_MESSAGE_POLLS",
 			"MESSAGE_CONTENT"
 		]
 		if (reg.ooye.receive_presences !== false) intents.push("GUILD_PRESENCES")
@@ -31,7 +31,6 @@ class DiscordClient {
 		this.snow = new SnowTransfer(discordToken)
 		this.cloud = new CloudStorm(discordToken, {
 			shards: [0],
-			reconnect: true,
 			snowtransferInstance: this.snow,
 			intents,
 			ws: {

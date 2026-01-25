@@ -203,6 +203,46 @@ async function attachmentToEvent(mentions, attachment) {
 	}
 }
 
+/** @param {DiscordTypes.APIPoll} poll */
+async function pollToEvent(poll) {
+	let fallbackText = poll.question.text
+	if (poll.allow_multiselect) {
+		var maxSelections = poll.answers.length;
+	} else {
+		var maxSelections = 1;
+	}
+	let answers = poll.answers.map(answer=>{
+		let matrixText = answer.poll_media.text
+		if (answer.poll_media.emoji) {
+			if (answer.poll_media.emoji.id) {
+				// Custom emoji. It seems like no Matrix client allows custom emoji in poll answers, so leaving this unimplemented.
+			} else {
+				matrixText = "[" + answer.poll_media.emoji.name + "] " + matrixText
+			}
+		}
+		let matrixAnswer = {
+			id: answer.answer_id.toString(),
+			"org.matrix.msc1767.text": matrixText
+		}
+		fallbackText = fallbackText + "\n" + answer.answer_id.toString() + ". " + matrixText
+		return matrixAnswer;
+	})
+	return {
+		$type: "org.matrix.msc3381.poll.start",
+		"org.matrix.msc3381.poll.start": {
+			question: {
+				"org.matrix.msc1767.text": poll.question.text,
+				body: poll.question.text,
+				msgtype: "m.text"
+			},
+			kind: "org.matrix.msc3381.poll.disclosed", // Discord always lets you see results, so keeping this consistent with that.
+			max_selections: maxSelections,
+			answers: answers
+		},
+		"org.matrix.msc1767.text": fallbackText
+	}
+}
+
 /**
  * @param {DiscordTypes.APIMessage} message
  * @param {DiscordTypes.APIGuild} guild
@@ -224,6 +264,20 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// [#] NICKNAME started a thread: __THREAD NAME__. __See all threads__
 		// We're already bridging the THREAD_CREATED gateway event to make a comparable message, so drop this one.
 		return []
+	}
+
+	if (message.type === DiscordTypes.MessageType.PollResult) {
+		const event_id = select("event_message", "event_id", {message_id: message.message_reference?.message_id}).pluck().get()
+		return [{
+			$type: "org.matrix.msc3381.poll.end",
+			"m.relates_to": {
+				rel_type: "m.reference",
+				event_id
+			},
+			"org.matrix.msc3381.poll.end": {},
+			body: "This poll has ended.",
+			msgtype: "m.text"
+		}]
 	}
 
 	if (message.type === DiscordTypes.MessageType.ThreadStarterMessage) {
@@ -702,6 +756,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 	}
 
+	// Then polls
+	if (message.poll) {
+		const pollEvent = await pollToEvent(message.poll)
+		events.push(pollEvent)
+	}
+
 	// Then embeds
 	const urlPreviewEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 	for (const embed of message.embeds || []) {
@@ -711,6 +771,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		if (embed.type === "image") {
 			continue // Matrix's own URL previews are fine for images.
+		}
+
+		if (embed.type === "poll_result") {
+			// The code here is only for the message to be bridged to Matrix. Dealing with the Discord-side updates is in actions/poll-close.js.
 		}
 
 		if (embed.url?.startsWith("https://discord.com/")) {

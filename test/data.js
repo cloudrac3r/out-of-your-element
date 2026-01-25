@@ -3593,7 +3593,233 @@ module.exports = {
 			},
 			attachments: [],
 			guild_id: "286888431945252874"
-		}
+		},
+		poll_single_choice: {
+			type: 0,
+			content: "",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2025-02-15T23:19:04.127000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1340462414176718889",
+			channel_id: "1340048919589158986",
+			author: {
+				id: "307894326028140546",
+				username: "ellienyaa",
+				avatar: "f98417a0a0b4aecc7d7667bece353b7e",
+				discriminator: "0",
+				public_flags: 128,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "unambiguously boring username",
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			position: 0,
+			poll: {
+				question: {
+					text: "only one answer allowed!"
+				},
+				answers: [
+					{
+						answer_id: 1,
+						poll_media: {
+							text: "answer one",
+							emoji: {
+								id: null,
+								name: "\ud83d\udc4d"
+							}
+						}
+					},
+					{
+						answer_id: 2,
+						poll_media: {
+							text: "answer two",
+							emoji: {
+								id: null,
+								name: "\ud83d\udc4e"
+							}
+						}
+					},
+					{
+						answer_id: 3,
+						poll_media: {
+							text: "answer three"
+						}
+					}
+				],
+				expiry: "2025-02-16T23:19:04.122364+00:00",
+				allow_multiselect: false,
+				layout_type: 1,
+				results: {
+					answer_counts: [],
+					is_finalized: false
+				}
+			}
+		},
+		poll_multiple_choice: {
+			type: 0,
+			content: "",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2025-02-16T00:47:12.310000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1340484594423562300",
+			channel_id: "1340048919589158986",
+			author: {
+				id: "307894326028140546",
+				username: "ellienyaa",
+				avatar: "f98417a0a0b4aecc7d7667bece353b7e",
+				discriminator: "0",
+				public_flags: 128,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "unambiguously boring username",
+				avatar_decoration_data: null,
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			position: 0,
+			poll: {
+				question: {
+					text: "more than one answer allowed"
+				},
+				answers: [
+					{
+						answer_id: 1,
+						poll_media: {
+							text: "no",
+							emoji: {
+								id: null,
+								name: "😭"
+							}
+						}
+					},
+					{
+						answer_id: 2,
+						poll_media: {
+							text: "oh no",
+							emoji: {
+								id: "891723675261366292",
+								name: "this"
+							}
+						}
+					},
+					{
+						answer_id: 3,
+						poll_media: {
+							text: "oh noooooo",
+							emoji: {
+								id: "964520120682680350",
+								name: "disapprove"
+							}
+						}
+					}
+				],
+				expiry: "2025-02-17T00:47:12.307985+00:00",
+				allow_multiselect: true,
+				layout_type: 1,
+				results: {
+					answer_counts: [],
+					is_finalized: false
+				}
+			}
+		},
+		poll_close: {
+			type: 46,
+			content: "",
+			mentions: [
+			  {
+				 id: "307894326028140546",
+				 username: "ellienyaa",
+				 avatar: "f98417a0a0b4aecc7d7667bece353b7e",
+				 discriminator: "0",
+				 public_flags: 128,
+				 flags: 128,
+				 banner: null,
+				 accent_color: null,
+				 global_name: "unambiguously boring username",
+				 avatar_decoration_data: null,
+				 banner_color: null,
+				 clan: null,
+				 primary_guild: null
+			  }
+			],
+			mention_roles: [],
+			attachments: [],
+			embeds: [
+			  {
+				 type: "poll_result",
+				 fields: [
+					{
+					  name: "poll_question_text",
+					  value: "test poll that's being closed",
+					  inline: false
+					},
+					{
+					  name: "victor_answer_votes",
+					  value: "0",
+					  inline: false
+					},
+					{
+					  name: "total_votes",
+					  value: "0",
+					  inline: false
+					}
+				 ],
+				 content_scan_version: 0
+			  }
+			],
+			timestamp: "2025-02-20T23:07:12.178000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1342271367374049351",
+			channel_id: "1340048919589158986",
+			author: {
+			  id: "307894326028140546",
+			  username: "ellienyaa",
+			  avatar: "f98417a0a0b4aecc7d7667bece353b7e",
+			  discriminator: "0",
+			  public_flags: 128,
+			  flags: 128,
+			  banner: null,
+			  accent_color: null,
+			  global_name: "unambiguously boring username",
+			  avatar_decoration_data: null,
+			  banner_color: null,
+			  clan: null,
+			  primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+			  type: 0,
+			  channel_id: "1340048919589158986",
+			  message_id: "1342271353990021206"
+			},
+			position: 0
+		 }
 	},
 	pk_message: {
 		pk_reply_to_matrix: {

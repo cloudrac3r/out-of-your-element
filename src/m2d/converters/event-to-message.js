@@ -517,7 +517,7 @@ async function getL1L2ReplyLine(called = false) {
 }
 
 /**
- * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File} event
+ * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start} event
  * @param {DiscordTypes.APIGuild} guild
  * @param {DiscordTypes.APIGuildTextChannel} channel
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, mxcDownloader: (mxc: string) => Promise<Buffer | undefined>}} di simple-as-nails dependency injection for the matrix API
@@ -544,13 +544,15 @@ async function eventToMessage(event, guild, channel, di) {
 		displayNameRunoff = ""
 	}
 
-	let content = event.content.body // ultimate fallback
+	let content = event.content["body"] || "" // ultimate fallback
 	/** @type {{id: string, filename: string}[]} */
 	const attachments = []
 	/** @type {({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} */
 	const pendingFiles = []
 	/** @type {DiscordTypes.APIUser[]} */
 	const ensureJoined = []
+	/** @type {Ty.SendingPoll} */
+	let poll = null
 
 	// Convert content depending on what the message is
 	// Handle images first - might need to handle their `body`/`formatted_body` as well, which will fall through to the text processor
@@ -628,6 +630,24 @@ async function eventToMessage(event, guild, channel, di) {
 		}
 		attachments.push({id: "0", filename})
 		pendingFiles.push({name: filename, mxc: event.content.url})
+
+	} else if (event.type === "org.matrix.msc3381.poll.start") {
+		content = ""
+		const pollContent = event.content["org.matrix.msc3381.poll.start"] // just for convenience
+		let allowMultiselect = (pollContent.max_selections != 1)
+		let answers = pollContent.answers.map(answer=>{
+			return {poll_media: {text: answer["org.matrix.msc1767.text"]}, matrix_option: answer["id"]}
+		})
+		poll = {
+			question: {
+				text: event.content["org.matrix.msc3381.poll.start"].question["org.matrix.msc1767.text"]
+			},
+			answers: answers,
+			duration: 768, // Maximum duration (32 days). Matrix doesn't allow automatically-expiring polls, so this is the only thing that makes sense to send.
+			allow_multiselect: allowMultiselect,
+			layout_type: 1
+		}
+
 	} else {
 		// Handling edits. If the edit was an edit of a reply, edits do not include the reply reference, so we need to fetch up to 2 more events.
 		// this event ---is an edit of--> original event ---is a reply to--> past event
@@ -828,7 +848,7 @@ async function eventToMessage(event, guild, channel, di) {
 					'<x-turndown id="turndown-root">' + input + '</x-turndown>'
 				);
 				const root = doc.getElementById("turndown-root");
-				async function forEachNode(node) {
+				async function forEachNode(event, node) {
 					for (; node; node = node.nextSibling) {
 						// Check written mentions
 						if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
@@ -876,10 +896,10 @@ async function eventToMessage(event, guild, channel, di) {
 								node.setAttribute("data-suppress", "")
 							}
 						}
-						await forEachNode(node.firstChild)
+						await forEachNode(event, node.firstChild)
 					}
 				}
-				await forEachNode(root)
+				await forEachNode(event, root)
 
 				// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
 				// First we need to determine which emojis are at the end.
@@ -960,7 +980,7 @@ async function eventToMessage(event, guild, channel, di) {
 
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
-	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
+	/** @type {({poll?: Ty.SendingPoll} & DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
 	const messages = chunks.map(content => ({
 		content,
 		allowed_mentions: {
@@ -981,6 +1001,15 @@ async function eventToMessage(event, guild, channel, di) {
 		messages[0].attachments = attachments
 		// @ts-ignore these will be converted to real files when the message is about to be sent
 		messages[0].pendingFiles = pendingFiles
+	}
+
+	if (poll) {
+		if (!messages.length) messages.push({
+			content: " ", // stopgap, remove when library updates
+			username: displayNameShortened,
+			avatar_url: avatarURL
+		})
+		messages[0].poll = poll
 	}
 
 	const messagesToEdit = []

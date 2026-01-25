@@ -32,6 +32,8 @@ const speedbump = sync.require("./actions/speedbump")
 const retrigger = sync.require("./actions/retrigger")
 /** @type {import("./actions/set-presence")} */
 const setPresence = sync.require("./actions/set-presence")
+/** @type {import("./actions/add-or-remove-vote")} */
+const vote = sync.require("./actions/add-or-remove-vote")
 /** @type {import("../m2d/event-dispatcher")} */
 const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
 /** @type {import("../discord/interactions/matrix-info")} */
@@ -368,6 +370,14 @@ module.exports = {
 	 */
 	async GUILD_STICKERS_UPDATE(client, data) {
 		await createSpace.syncSpaceExpressions(data, false)
+	},
+
+	async MESSAGE_POLL_VOTE_ADD(client, data){
+		await vote.addVote(data)
+	},
+
+	async MESSAGE_POLL_VOTE_REMOVE(client, data){
+		await vote.removeVote(data)
 	},
 
 	/**

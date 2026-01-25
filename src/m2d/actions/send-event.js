@@ -22,8 +22,8 @@ const editMessage = sync.require("../../d2m/actions/edit-message")
 const emojiSheet = sync.require("../actions/emoji-sheet")
 
 /**
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | stream.Readable})[]}} message
- * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}>}
+ * @param {{poll?: Ty.SendingPoll} & DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | stream.Readable})[]}} message
+ * @returns {Promise<{poll?: Ty.SendingPoll} & DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}>}
  */
 async function resolvePendingFiles(message) {
 	if (!message.pendingFiles) return message
@@ -59,7 +59,7 @@ async function resolvePendingFiles(message) {
 	return newMessage
 }
 
-/** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker} event */
+/** @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start} event */
 async function sendEvent(event) {
 	const row = from("channel_room").where({room_id: event.room_id}).select("channel_id", "thread_parent").get()
 	if (!row) return [] // allow the bot to exist in unbridged rooms, just don't do anything with it
@@ -132,6 +132,12 @@ async function sendEvent(event) {
 					embeds: messageResponse.embeds
 				}, guild, null)
 			)
+		}
+
+		if (message.poll){ // Need to store answer mapping in the database.
+			for (let i=0; i<message.poll.answers.length; i++){
+				db.prepare("INSERT INTO poll_option (message_id, matrix_option, discord_option) VALUES (?, ?, ?)").run(messageResponse.id, message.poll.answers[i].matrix_option, messageResponse.poll.answers[i].answer_id.toString())
+			}
 		}
 	}
 

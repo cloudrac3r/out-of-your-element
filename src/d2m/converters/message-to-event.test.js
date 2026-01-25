@@ -1551,3 +1551,57 @@ test("message2event: forwarded message with unreferenced mention", async t => {
 		"m.mentions": {}
 	}])
 })
+
+test("message2event: single-choice poll", async t => {
+	const events = await messageToEvent(data.message.poll_single_choice, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "org.matrix.msc3381.poll.start",
+		"org.matrix.msc3381.poll.start": {
+			question: {
+				"org.matrix.msc1767.text": "only one answer allowed!",
+				body: "only one answer allowed!",
+				msgtype: "m.text"
+			},
+			kind: "org.matrix.msc3381.poll.disclosed", // Discord always lets you see results, so keeping this consistent with that.
+			max_selections: 1,
+			answers: [{
+					id: "1",
+					"org.matrix.msc1767.text": "[\ud83d\udc4d] answer one"
+				}, {
+					id: "2",
+					"org.matrix.msc1767.text": "[\ud83d\udc4e] answer two"
+				}, {
+					id: "3",
+					"org.matrix.msc1767.text": "answer three"
+				}]
+		},
+		"org.matrix.msc1767.text": "only one answer allowed!\n1. [\ud83d\udc4d] answer one\n2. [\ud83d\udc4e] answer two\n3. answer three"
+	}])
+})
+
+test("message2event: multiple-choice poll", async t => {
+	const events = await messageToEvent(data.message.poll_multiple_choice, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "org.matrix.msc3381.poll.start",
+		"org.matrix.msc3381.poll.start": {
+			question: {
+				"org.matrix.msc1767.text": "more than one answer allowed",
+				body: "more than one answer allowed",
+				msgtype: "m.text"
+			},
+			kind: "org.matrix.msc3381.poll.disclosed", // Discord always lets you see results, so keeping this consistent with that.
+			max_selections: 3,
+			answers: [{
+					id: "1",
+					"org.matrix.msc1767.text": "[😭] no"
+				}, {
+					id: "2",
+					"org.matrix.msc1767.text": "oh no"
+				}, {
+					id: "3",
+					"org.matrix.msc1767.text": "oh noooooo"
+				}]
+		},
+		"org.matrix.msc1767.text": "more than one answer allowed\n1. [😭] no\n2. oh no\n3. oh noooooo"
+	}])
+})

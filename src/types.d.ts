@@ -1,3 +1,5 @@
+import * as DiscordTypes from "discord-api-types/v10"
+
 export type AppServiceRegistrationConfig = {
 	id: string
 	as_token: string
@@ -79,6 +81,10 @@ export type WebhookAuthor = {
 	username: string
 	avatar: string | null
 	id: string
+}
+
+export type SendingPoll = DiscordTypes.RESTAPIPoll & {
+	answers: (DiscordTypes.APIBasePollAnswer & {matrix_option: string})[]
 }
 
 export type PkSystem = {
@@ -268,6 +274,37 @@ export namespace Event {
 	}
 
 	export type Outer_M_Sticker = Outer<M_Sticker> & {type: "m.sticker"}
+
+	export type Org_Matrix_Msc3381_Poll_Start = {
+		"org.matrix.msc3381.poll.start": {
+			question: {
+				"org.matrix.msc1767.text": string
+				body: string
+				msgtype: string
+			},
+			kind: string
+			max_selections: number
+			answers: {
+				id: string
+				"org.matrix.msc1767.text": string
+			}[]
+			"org.matrix.msc1767.text": string
+		}
+	}
+
+	export type Outer_Org_Matrix_Msc3381_Poll_Start = Outer<Org_Matrix_Msc3381_Poll_Start> & {type: "org.matrix.msc3381.poll.start"}
+
+	export type Org_Matrix_Msc3381_Poll_Response = {
+		"org.matrix.msc3381.poll.response": {
+			answers: string[]
+		}
+		"m.relates_to": {
+			rel_type: string
+			event_id: string
+		}
+	}
+
+	export type Outer_Org_Matrix_Msc3381_Poll_Response = Outer<Org_Matrix_Msc3381_Poll_Response> & {type: "org.matrix.msc3381.poll.response"}
 
 	export type M_Room_Member = {
 		membership: string
