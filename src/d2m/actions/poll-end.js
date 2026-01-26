@@ -7,18 +7,10 @@ const {isDeepStrictEqual} = require("util")
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select, from} = passthrough
 const {reg} = require("../../matrix/read-registration")
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
-/** @type {import("./register-user")} */
-const registerUser = sync.require("./register-user")
-/** @type {import("./create-room")} */
-const createRoom = sync.require("../actions/create-room")
 /** @type {import("./poll-vote")} */
 const vote = sync.require("../actions/poll-vote")
 /** @type {import("../../m2d/converters/poll-components")} */
 const pollComponents = sync.require("../../m2d/converters/poll-components")
-/** @type {import("../../m2d/actions/channel-webhook")} */
-const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
 
 // This handles, in the following order:
 // * verifying Matrix-side votes are accurate for a poll originating on Discord, sending missed votes to Matrix if necessary
@@ -28,7 +20,7 @@ const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
 /**
  * @param {number} percent
  */
-function barChart(percent){
+function barChart(percent) {
 	const width = 12
 	const bars = Math.floor(percent*width)
 	return "█".repeat(bars) + "▒".repeat(width-bars)
@@ -40,31 +32,27 @@ function barChart(percent){
  * @param {string} answerID
  * @returns {Promise<DiscordTypes.RESTGetAPIPollAnswerVotersResult["users"]>}
  */
-async function getAllVotesOnAnswer(channelID, messageID, answerID){
+async function getAllVotesOnAnswer(channelID, messageID, answerID) {
 	const limit = 100
 	/** @type {DiscordTypes.RESTGetAPIPollAnswerVotersResult["users"]} */
 	let voteUsers = []
 	let after = undefined
-	while (!voteUsers.length || after) {
+	while (true) {
 		const curVotes = await discord.snow.channel.getPollAnswerVoters(channelID, messageID, answerID, {after: after, limit})
-		if (curVotes.users.length === 0) { // Reached the end.
-			break
-		}
+		voteUsers = voteUsers.concat(curVotes.users)
 		if (curVotes.users.length >= limit) { // Loop again for the next page.
 			// @ts-ignore - stupid
 			after = curVotes.users.at(-1).id
+		} else { // Reached the end.
+			return voteUsers
 		}
-		voteUsers = voteUsers.concat(curVotes.users)
 	}
-	return voteUsers
 }
-
 
 /**
  * @param {typeof import("../../../test/data.js")["poll_close"]} closeMessage
- * @param {DiscordTypes.APIGuild} guild
 */
-async function endPoll(closeMessage, guild){
+async function endPoll(closeMessage) {
 	const pollCloseObject = closeMessage.embeds[0]
 
 	const pollMessageID = closeMessage.message_reference.message_id
@@ -91,16 +79,16 @@ async function endPoll(closeMessage, guild){
 
 		for (const discordPollOption of discordPollOptions) {
 			const optionUsers = await getAllVotesOnAnswer(closeMessage.channel_id, pollMessageID, discordPollOption) // Array of user IDs who voted for the option we're testing.
-			optionUsers.map(user => {
+			for (const user of optionUsers) {
 				const userLocation = updatedAnswers.findIndex(answer => answer.user.id === user.id)
 				const matrixOption = select("poll_option", "matrix_option", {message_id: pollMessageID, discord_option: discordPollOption}).pluck().get()
 				assert(matrixOption)
-				if (userLocation === -1){ // We haven't seen this user yet, so we need to add them.
+				if (userLocation === -1) { // We haven't seen this user yet, so we need to add them.
 					updatedAnswers.push({user, matrixOptionVotes: [matrixOption]}) // toString as this is what we store and get from the database and send to Matrix.
 				} else { // This user already voted for another option on the poll.
 					updatedAnswers[userLocation].matrixOptionVotes.push(matrixOption)
 				}
-			})
+			}
 		}
 
 		// Check for inconsistencies in what was cached in database vs final confirmed poll answers
@@ -109,18 +97,20 @@ async function endPoll(closeMessage, guild){
 		await Promise.all(updatedAnswers.map(async answer => {
 			voteUsers = voteUsers.filter(item => item !== answer.user.id) // Remove any users we have updated answers for from voteUsers. The only remaining entries in this array will be users who voted, but then removed their votes before the poll ended.
 			const cachedAnswers = select("poll_vote", "matrix_option", {discord_or_matrix_user_id: answer.user.id, message_id: pollMessageID}).pluck().all()
-			if (!isDeepStrictEqual(new Set(cachedAnswers), new Set(answer.matrixOptionVotes))){
-				db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(answer.user.id, pollMessageID) // Delete existing stored votes.
-				for (const matrixOption of answer.matrixOptionVotes) {
-					db.prepare("INSERT INTO poll_vote (discord_or_matrix_user_id, message_id, matrix_option) VALUES (?, ?, ?)").run(answer.user.id, pollMessageID, matrixOption)
-				}
-				await vote.debounceSendVotes({user_id: answer.user.id, message_id: pollMessageID, channel_id: closeMessage.channel_id, answer_id: 0}, pollEventID) // Fake answer ID, not actually needed (but we're sorta faking the datatype to call this function).
+			if (!isDeepStrictEqual(new Set(cachedAnswers), new Set(answer.matrixOptionVotes))) {
+				db.transaction(() => {
+					db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(answer.user.id, pollMessageID) // Delete existing stored votes.
+					for (const matrixOption of answer.matrixOptionVotes) {
+						db.prepare("INSERT INTO poll_vote (discord_or_matrix_user_id, message_id, matrix_option) VALUES (?, ?, ?)").run(answer.user.id, pollMessageID, matrixOption)
+					}
+				})()
+				await vote.sendVotes(answer.user, closeMessage.channel_id, pollMessageID, pollEventID)
 			}
 		}))
 
 		await Promise.all(voteUsers.map(async user_id => { // Remove these votes.
 			db.prepare("DELETE FROM poll_vote WHERE discord_or_matrix_user_id = ? AND message_id = ?").run(user_id, pollMessageID)
-			await vote.debounceSendVotes({user_id: user_id, message_id: pollMessageID, channel_id: closeMessage.channel_id, answer_id: 0}, pollEventID)
+			await vote.sendVotes(user_id, closeMessage.channel_id, pollMessageID, pollEventID)
 		}))
 	}
 

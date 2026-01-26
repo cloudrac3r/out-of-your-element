@@ -44,7 +44,7 @@
     "lru-cache": "^11.0.2",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.34.5",
-    "snowtransfer": "^0.17.0",
+    "snowtransfer": "^0.17.1",
     "stream-mime-type": "^1.0.2",
     "try-to-catch": "^3.0.1",
     "uqr": "^0.1.2",

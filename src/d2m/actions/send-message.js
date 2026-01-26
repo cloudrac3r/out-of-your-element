@@ -55,6 +55,16 @@ async function sendMessage(message, channel, guild, row) {
 		}
 	}
 
+	if (message.type === DiscordTypes.MessageType.PollResult) { // ensure all Discord-side votes were pushed to Matrix before a poll is closed
+		const detailedResultsMessage = await pollEnd.endPoll(message)
+		if (detailedResultsMessage) {
+			const threadParent = select("channel_room", "thread_parent", {channel_id: message.channel_id}).pluck().get()
+			const channelID = threadParent ? threadParent : message.channel_id
+			const threadID = threadParent ? message.channel_id : undefined
+			var sentResultsMessage = await channelWebhook.sendMessageWithWebhook(channelID, detailedResultsMessage, threadID)
+		}
+	}
+
 	const events = await messageToEvent.messageToEvent(message, guild, {}, {api, snow: discord.snow})
 	const eventIDs = []
 	if (events.length) {
@@ -102,18 +112,13 @@ async function sendMessage(message, channel, guild, row) {
 			})()
 		}
 
-		if (message.type === DiscordTypes.MessageType.PollResult) { // We might need to send a message to Discord (if there were any Matrix-side votes).
-			const detailedResultsMessage = await pollEnd.endPoll(message, guild)
-			if (detailedResultsMessage) {
-				const threadParent = select("channel_room", "thread_parent", {channel_id: message.channel_id}).pluck().get()
-				const channelID = threadParent ? threadParent : message.channel_id
-				const threadID = threadParent ? message.channel_id : undefined
-				const sentResultsMessage = await channelWebhook.sendMessageWithWebhook(channelID, detailedResultsMessage, threadID)
-				db.transaction(() => {
-					db.prepare("UPDATE event_message SET reaction_part = 1 WHERE event_id = ?").run(eventID)
-					db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, sentResultsMessage.id, 1, 0) // part = 1, reaction_part = 0
-				})()
-			}
+		// part/reaction_part consistency for polls
+		if (sentResultsMessage) {
+			db.transaction(() => {
+				db.prepare("INSERT OR IGNORE INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(sentResultsMessage.id, historicalRoomIndex)
+				db.prepare("UPDATE event_message SET reaction_part = 1 WHERE event_id = ?").run(eventID)
+				db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, sentResultsMessage.id, 1, 0) // part = 1, reaction_part = 0
+			})()
 		}
 
 		eventIDs.push(eventID)

@@ -372,11 +372,17 @@ module.exports = {
 		await createSpace.syncSpaceExpressions(data, false)
 	},
 
-	async MESSAGE_POLL_VOTE_ADD(client, data){
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayMessagePollVoteDispatchData} data
+	 */
+	async MESSAGE_POLL_VOTE_ADD(client, data) {
+		if (retrigger.eventNotFoundThenRetrigger(data.message_id, module.exports.MESSAGE_POLL_VOTE_ADD, client, data)) return
 		await vote.addVote(data)
 	},
 
-	async MESSAGE_POLL_VOTE_REMOVE(client, data){
+	async MESSAGE_POLL_VOTE_REMOVE(client, data) {
+		if (retrigger.eventNotFoundThenRetrigger(data.message_id, module.exports.MESSAGE_POLL_VOTE_REMOVE, client, data)) return
 		await vote.removeVote(data)
 	},
 
