@@ -357,15 +357,7 @@ async event => {
 	await api.ackEvent(event)
 }))
 
-function getFromInviteRoomState(inviteRoomState, nskey, key) {
-	if (!Array.isArray(inviteRoomState)) return null
-	for (const event of inviteRoomState) {
-		if (event.type === nskey && event.state_key === "") {
-			return event.content[key]
-		}
-	}
-	return null
-}
+
 
 sync.addTemporaryListener(as, "type:m.space.child", guard("m.space.child",
 /**
@@ -398,24 +390,16 @@ async event => {
 		}
 
 		// We were invited to a room. We should join, and register the invite details for future reference in web.
-		let attemptedApiMessage = "According to unsigned invite data."
-		let inviteRoomState = event.unsigned?.invite_room_state
-		if (!Array.isArray(inviteRoomState) || inviteRoomState.length === 0) {
-			try {
-				inviteRoomState = await api.getInviteState(event.room_id)
-				attemptedApiMessage = "According to SSS API."
-			} catch (e) {
-				attemptedApiMessage = "According to unsigned invite data. SSS API unavailable: " + e.toString()
-			}
+		try {
+			var inviteRoomState = await api.getInviteState(event.room_id, event)
+		} catch (e) {
+			console.error(e)
+			return await api.leaveRoomWithReason(event.room_id, `I wasn't able to find out what this room is. Please report this as a bug. Check console for more details. (${e.toString()})`)
 		}
-		const name = getFromInviteRoomState(inviteRoomState, "m.room.name", "name")
-		const topic = getFromInviteRoomState(inviteRoomState, "m.room.topic", "topic")
-		const avatar = getFromInviteRoomState(inviteRoomState, "m.room.avatar", "url")
-		const creationType = getFromInviteRoomState(inviteRoomState, "m.room.create", "type")
-		if (!name) return await api.leaveRoomWithReason(event.room_id, `Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite! (${attemptedApiMessage})`)
+		if (!inviteRoomState?.name) return await api.leaveRoomWithReason(event.room_id, `Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite.`)
 		await api.joinRoom(event.room_id)
-		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, creationType, name, topic, avatar)
-		if (avatar) utils.getPublicUrlForMxc(avatar) // make sure it's available in the media_proxy allowed URLs
+		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, inviteRoomState.type, inviteRoomState.name, inviteRoomState.topic, inviteRoomState.avatar)
+		if (inviteRoomState.avatar) utils.getPublicUrlForMxc(inviteRoomState.avatar) // make sure it's available in the media_proxy allowed URLs
 	}
 
 	if (utils.eventSenderIsFromDiscord(event.state_key)) return
