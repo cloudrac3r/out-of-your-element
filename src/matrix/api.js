@@ -183,38 +183,40 @@ async function getInviteState(roomID, event) {
 	}
 
 	// Try calling sliding sync API and extracting from stripped state
-	/** @type {Ty.R.SSS} */
-	const root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
-		lists: {
-			a: {
-				ranges: [[0, 999]],
-				timeline_limit: 0,
-				required_state: [],
-				filters: {
-					is_invite: true
+	try {
+		/** @type {Ty.R.SSS} */
+		var root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
+			lists: {
+				a: {
+					ranges: [[0, 999]],
+					timeline_limit: 0,
+					required_state: [],
+					filters: {
+						is_invite: true
+					}
 				}
 			}
-		}
-	})
+		})
 
-	// Extract from sliding sync response if valid (seems to be okay on Synapse, Tuwunel and Continuwuity at time of writing)
-	if ("lists" in root) {
-		if (!root.rooms?.[roomID]) {
-			const e = new Error("Room data unavailable via SSS")
-			e["data_sss"] = root
-			throw e
-		}
+		// Extract from sliding sync response if valid (seems to be okay on Synapse, Tuwunel and Continuwuity at time of writing)
+		if ("lists" in root) {
+			if (!root.rooms?.[roomID]) {
+				const e = new Error("Room data unavailable via SSS")
+				e["data_sss"] = root
+				throw e
+			}
 
-		const roomResponse = root.rooms[roomID]
-		const strippedState = "stripped_state" in roomResponse ? roomResponse.stripped_state : roomResponse.invite_state
+			const roomResponse = root.rooms[roomID]
+			const strippedState = "stripped_state" in roomResponse ? roomResponse.stripped_state : roomResponse.invite_state
 
-		return {
-			name: getFromInviteRoomState(strippedState, "m.room.name", "name"),
-			topic: getFromInviteRoomState(strippedState, "m.room.topic", "topic"),
-			avatar: getFromInviteRoomState(strippedState, "m.room.avatar", "url"),
-			type: getFromInviteRoomState(strippedState, "m.room.create", "type")
+			return {
+				name: getFromInviteRoomState(strippedState, "m.room.name", "name"),
+				topic: getFromInviteRoomState(strippedState, "m.room.topic", "topic"),
+				avatar: getFromInviteRoomState(strippedState, "m.room.avatar", "url"),
+				type: getFromInviteRoomState(strippedState, "m.room.create", "type")
+			}
 		}
-	}
+	} catch (e) {}
 
 	// Invalid sliding sync response, try alternative (required for Conduit at time of writing)
 	const hierarchy = await getHierarchy(roomID, {limit: 1})
