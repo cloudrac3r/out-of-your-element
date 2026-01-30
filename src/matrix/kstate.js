@@ -149,8 +149,10 @@ async function roomToKState(roomID, limitToEvents) {
 	} else {
 		const root = []
 		await Promise.all(limitToEvents.map(async ([type, key]) => {
-			const outer = await api.getStateEventOuter(roomID, type, key)
-			root.push(outer)
+			try {
+				const outer = await api.getStateEventOuter(roomID, type, key)
+				root.push(outer)
+			} catch (e) {}
 		}))
 		return stateToKState(root)
 	}
