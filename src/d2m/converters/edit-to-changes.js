@@ -227,8 +227,8 @@ async function editToChanges(message, guild, api) {
  */
 function makeReplacementEventContent(oldID, newFallbackContent, newInnerContent) {
 	const content = {
-		...newFallbackContent,
 		"m.mentions": {},
+		...newFallbackContent,
 		"m.new_content": {
 			...newInnerContent
 		},

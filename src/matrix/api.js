@@ -130,6 +130,19 @@ async function getEventForTimestamp(roomID, ts) {
 
 /**
  * @param {string} roomID
+ * @param {"b" | "f"} dir
+ * @param {{from?: string, limit?: any}} [pagination]
+ * @param {any} [filter]
+ */
+async function getEvents(roomID, dir, pagination = {}, filter) {
+	filter = filter && JSON.stringify(filter)
+	/** @type {Ty.Pagination<Ty.Event.Outer<any>>} */
+	const root = await mreq.mreq("GET", path(`/client/v3/rooms/${roomID}/messages`, null, {...pagination, dir, filter}))
+	return root
+}
+
+/**
+ * @param {string} roomID
  * @returns {Promise<Ty.Event.StateOuter<any>[]>}
  */
 function getAllState(roomID) {
@@ -583,6 +596,7 @@ module.exports.leaveRoom = leaveRoom
 module.exports.leaveRoomWithReason = leaveRoomWithReason
 module.exports.getEvent = getEvent
 module.exports.getEventForTimestamp = getEventForTimestamp
+module.exports.getEvents = getEvents
 module.exports.getAllState = getAllState
 module.exports.getStateEvent = getStateEvent
 module.exports.getStateEventOuter = getStateEventOuter

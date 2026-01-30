@@ -10,6 +10,7 @@ const permissions = sync.require("./interactions/permissions.js")
 const reactions = sync.require("./interactions/reactions.js")
 const privacy = sync.require("./interactions/privacy.js")
 const poll = sync.require("./interactions/poll.js")
+const ping = sync.require("./interactions/ping.js")
 
 // User must have EVERY permission in default_member_permissions to be able to use the command
 
@@ -37,6 +38,20 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 			type: DiscordTypes.ApplicationCommandOptionType.String,
 			description: "The Matrix user to invite, e.g. @username:example.org",
 			name: "user"
+		}
+	],
+}, {
+	name: "ping",
+	contexts: [DiscordTypes.InteractionContextType.Guild],
+	type: DiscordTypes.ApplicationCommandType.ChatInput,
+	description: "Ping a Matrix user.",
+	options: [
+		{
+			type: DiscordTypes.ApplicationCommandOptionType.String,
+			description: "Display name or ID of the Matrix user",
+			name: "user",
+			autocomplete: true,
+			required: true
 		}
 	]
 }, {
@@ -94,6 +109,8 @@ async function dispatchInteraction(interaction) {
 				await permissions.interactEdit(interaction)
 			} else if (interactionId === "Reactions") {
 				await reactions.interact(interaction)
+			} else if (interactionId === "ping") {
+				await ping.interact(interaction)
 			} else if (interactionId === "privacy") {
 				await privacy.interact(interaction)
 			} else {
