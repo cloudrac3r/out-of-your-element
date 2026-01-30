@@ -107,9 +107,10 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
 
 /**
  * @param {{room?: boolean, user_ids?: string[]}} mentions
- * @param {DiscordTypes.APIAttachment} attachment
+ * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url">} attachment
+ * @param {boolean} [alwaysLink]
  */
-async function attachmentToEvent(mentions, attachment) {
+async function attachmentToEvent(mentions, attachment, alwaysLink) {
 	const external_url = dUtils.getPublicUrlForCdn(attachment.url)
 	const emoji =
 		attachment.content_type?.startsWith("image/jp") ? "📸"
@@ -130,7 +131,7 @@ async function attachmentToEvent(mentions, attachment) {
 		}
 	}
 	// for large files, always link them instead of uploading so I don't use up all the space in the content repo
-	else if (attachment.size > reg.ooye.max_file_size) {
+	else if (alwaysLink || attachment.size > reg.ooye.max_file_size) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -228,6 +229,7 @@ async function pollToEvent(poll) {
 		return matrixAnswer;
 	})
 	return {
+		/** @type {"org.matrix.msc3381.poll.start"} */
 		$type: "org.matrix.msc3381.poll.start",
 		"org.matrix.msc3381.poll.start": {
 			question: {
@@ -538,7 +540,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		//   1. The replied-to event is in a different room to where the reply will be sent (i.e. a room upgrade occurred between)
 		//   2. The replied-to message has no corresponding Matrix event (repliedToUnknownEvent is true)
 		// This branch is optional - do NOT change anything apart from the reply fallback, since it may not be run
-		if ((repliedToEventRow || repliedToUnknownEvent) && options.includeReplyFallback !== false) {
+		if ((repliedToEventRow || repliedToUnknownEvent) && options.includeReplyFallback !== false && events.length === 0) {
 			const latestRoomID = repliedToEventRow ? select("channel_room", "room_id", {channel_id: repliedToEventRow.channel_id}).pluck().get() : null
 			if (latestRoomID !== repliedToEventRow?.room_id) repliedToEventInDifferentRoom = true
 
@@ -741,7 +743,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	// Then attachments
 	if (message.attachments) {
-		const attachmentEvents = await Promise.all(message.attachments.map(attachmentToEvent.bind(null, mentions)))
+		const attachmentEvents = await Promise.all(message.attachments.map(attachment => attachmentToEvent(mentions, attachment)))
 
 		// Try to merge attachment events with the previous event
 		// This means that if the attachments ended up as a text link, and especially if there were many of them, the events will be joined together.
@@ -754,6 +756,101 @@ async function messageToEvent(message, guild, options = {}, di) {
 				events.push(atch)
 			}
 		}
+	}
+
+	// Then components
+	if (message.components?.length) {
+		const stack = [new mxUtils.MatrixStringBuilder()]
+		/** @param {DiscordTypes.APIMessageComponent} component */
+		async function processComponent(component) {
+			// Standalone components
+			if (component.type === DiscordTypes.ComponentType.TextDisplay) {
+				const {body, html} = await transformContent(component.content)
+				stack[0].addParagraph(body, html)
+			}
+			else if (component.type === DiscordTypes.ComponentType.Separator) {
+				stack[0].addParagraph("----", "<hr>")
+			}
+			else if (component.type === DiscordTypes.ComponentType.File) {
+				const ev = await attachmentToEvent({}, {...component.file, filename: component.name, size: component.size}, true)
+				stack[0].addLine(ev.body, ev.formatted_body)
+			}
+			else if (component.type === DiscordTypes.ComponentType.MediaGallery) {
+				const description = component.items.length === 1 ? component.items[0].description || "Image:" : "Image gallery:"
+				const images = component.items.map(item => {
+					const publicURL = dUtils.getPublicUrlForCdn(item.media.url)
+					return {
+						url: publicURL,
+						estimatedName: item.media.url.match(/\/([^/?]+)(\?|$)/)?.[1] || publicURL
+					}
+				})
+				stack[0].addLine(`🖼️ ${description} ${images.map(i => i.url).join(", ")}`, tag`🖼️ ${description} $${images.map(i => tag`<a href="${i.url}">${i.estimatedName}</a>`).join(", ")}`)
+			}
+			// string select, text input, user select, role select, mentionable select, channel select
+
+			// Components that can have things nested
+			else if (component.type === DiscordTypes.ComponentType.Container) {
+				// May contain action row, text display, section, media gallery, separator, file
+				stack.unshift(new mxUtils.MatrixStringBuilder())
+				for (const innerComponent of component.components) {
+					await processComponent(innerComponent)
+				}
+				let {body, formatted_body} = stack.shift().get()
+				body = body.split("\n").map(l => "| " + l).join("\n")
+				formatted_body = `<blockquote>${formatted_body}</blockquote>`
+				if (stack[0].body) stack[0].body += "\n\n"
+				stack[0].add(body, formatted_body)
+			}
+			else if (component.type === DiscordTypes.ComponentType.Section) {
+				// May contain text display, possibly more in the future
+				// Accessory may be button or thumbnail
+				stack.unshift(new mxUtils.MatrixStringBuilder())
+				for (const innerComponent of component.components) {
+					await processComponent(innerComponent)
+				}
+				if (component.accessory) {
+					stack.unshift(new mxUtils.MatrixStringBuilder())
+					await processComponent(component.accessory)
+					const {body, formatted_body} = stack.shift().get()
+					stack[0].addLine(body, formatted_body)
+				}
+				const {body, formatted_body} = stack.shift().get()
+				stack[0].addParagraph(body, formatted_body)
+			}
+			else if (component.type === DiscordTypes.ComponentType.ActionRow) {
+				const linkButtons = component.components.filter(c => c.type === DiscordTypes.ComponentType.Button && c.style === DiscordTypes.ButtonStyle.Link)
+				if (linkButtons.length) {
+					stack[0].addLine("")
+					for (const linkButton of linkButtons) {
+						await processComponent(linkButton)
+					}
+				}
+			}
+			// Components that can only be inside things
+			else if (component.type === DiscordTypes.ComponentType.Thumbnail) {
+				// May only be a section accessory
+				stack[0].add(`🖼️ ${component.media.url}`, tag`🖼️ <a href="${component.media.url}">${component.media.url}</a>`)
+			}
+			else if (component.type === DiscordTypes.ComponentType.Button) {
+				// May only be a section accessory or in an action row (up to 5)
+				if (component.style === DiscordTypes.ButtonStyle.Link) {
+					if (component.label) {
+						stack[0].add(`[${component.label} ${component.url}] `, tag`<a href="${component.url}">${component.label}</a> `)
+					} else {
+						stack[0].add(component.url)
+					}
+				}
+			}
+
+			// Not handling file upload or label because they are modal-only components
+		}
+
+		for (const component of message.components) {
+			await processComponent(component)
+		}
+
+		const {body, formatted_body} = stack[0].get()
+		await addTextEvent(body, formatted_body, "m.text")
 	}
 
 	// Then polls
@@ -773,7 +870,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue // Matrix's own URL previews are fine for images.
 		}
 
-		if (embed.type === "video" && !embed.title && !embed.description && message.content.includes(embed.video?.url)) {
+		if (embed.type === "video" && !embed.title && message.content.includes(embed.video?.url)) {
 			continue // Doesn't add extra information and the direct video URL is already there.
 		}
 
@@ -904,7 +1001,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Strip formatted_body where equivalent to body
 	if (!options.alwaysReturnFormattedBody) {
 		for (const event of events) {
-			if (["m.text", "m.notice"].includes(event.msgtype) && event.body === event.formatted_body) {
+			if (event.$type === "m.room.message" && "msgtype" in event && ["m.text", "m.notice"].includes(event.msgtype) && event.body === event.formatted_body) {
 				delete event.format
 				delete event.formatted_body
 			}

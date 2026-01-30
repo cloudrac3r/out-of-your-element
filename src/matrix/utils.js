@@ -106,7 +106,8 @@ class MatrixStringBuilder {
 			if (formattedBody == undefined) formattedBody = body
 			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n\n"
 			this.body += body
-			formattedBody = `<p>${formattedBody}</p>`
+			const match = formattedBody.match(/^<([a-zA-Z]+[a-zA-Z0-9]*)/)
+			if (!match || !BLOCK_ELEMENTS.includes(match[1].toUpperCase())) formattedBody = `<p>${formattedBody}</p>`
 			this.formattedBody += formattedBody
 		}
 		return this

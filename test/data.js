@@ -4975,6 +4975,194 @@ module.exports = {
 			tts: false
 		}
 	},
+	message_with_components: {
+		pk_question_mark_response: {
+			type: 0,
+			content: '',
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: '2026-01-30T01:20:07.488000+00:00',
+			edited_timestamp: null,
+			flags: 32768,
+			author: {
+				id: '772659086046658620',
+				username: 'cadence.worm',
+				avatar: '466df0c98b1af1e1388f595b4c1ad1b9',
+				discriminator: '0',
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: 'cadence',
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: null,
+				banner_color: null,
+				clan: {
+					identity_guild_id: '532245108070809601',
+					identity_enabled: true,
+					tag: 'doll',
+					badge: 'dba08126b4e810a0e096cc7cd5bc37f0'
+				},
+				primary_guild: {
+					identity_guild_id: '532245108070809601',
+					identity_enabled: true,
+					tag: 'doll',
+					badge: 'dba08126b4e810a0e096cc7cd5bc37f0'
+				}
+			},
+			components: [
+				{
+					type: 17,
+					id: 1,
+					accent_color: 1042150,
+					components: [
+						{
+							type: 9,
+							id: 2,
+							components: [
+								{ type: 10, id: 3, content: '### Lillith (INX)' },
+								{
+									type: 10,
+									id: 4,
+									content: '**Display name:** Lillith (she/her)\n' +
+									'**Pronouns:** She/Her\n' +
+									'**Message count:** 3091'
+								}
+							],
+							accessory: {
+								type: 11,
+								id: 5,
+								media: {
+									id: '1466603856149610687',
+									url: 'https://files.inx.moe/p/cdn/lillith.webp',
+									proxy_url: 'https://images-ext-1.discordapp.net/external/Kn5b32mM4o8AAQbq0k39KOzp9-fy6D1tWKvK_XI27LI/https/files.inx.moe/p/cdn/lillith.webp',
+									width: 256,
+									height: 256,
+									placeholder: 'KVoKJwSnt7lZl5ecj1mal5eGWjAHZXIA',
+									placeholder_version: 1,
+									content_scan_metadata: { version: 4, flags: 0 },
+									content_type: 'image/webp',
+									loading_state: 2,
+									flags: 0
+								},
+								description: null,
+								spoiler: false
+							}
+						},
+						{ type: 14, id: 6, spacing: 1, divider: true },
+						{
+							type: 10,
+							id: 7,
+							content: '**Proxy tags:**\n' +
+							'``l;text``\n' +
+							'``l:text``\n' +
+							'``l.text``\n' +
+							'``textl.``\n' +
+							'``textl;``\n' +
+							'``textl:``'
+						}
+					],
+					spoiler: false
+				},
+				{
+					type: 9,
+					id: 8,
+					components: [
+						{
+							type: 10,
+							id: 9,
+							content: '-# System ID: `xffgnx` ∙ Member ID: `pphhoh`\n' +
+							'-# Created: 2025-12-31 03:16:45 UTC'
+						}
+					],
+					accessory: {
+						type: 2,
+						id: 10,
+						style: 5,
+						label: 'View on dashboard',
+						url: 'https://dash.pluralkit.me/profile/m/pphhoh'
+					}
+				},
+				{ type: 14, id: 11, spacing: 1, divider: true },
+				{
+					type: 17,
+					id: 12,
+					accent_color: null,
+					components: [
+						{
+							type: 9,
+							id: 13,
+							components: [
+								{
+									type: 10,
+									id: 14,
+									content: '**System:** INX (`xffgnx`)\n' +
+									'**Member:** Lillith (`pphhoh`)\n' +
+									'**Sent by:** infinidoge1337 (<@197126718400626689>)\n' +
+									'\n' +
+									'**Account Roles (7)**\n' +
+									'§b, !, ‼, Ears Port Ping, Ears Update Ping, Yttr Ping, unsup Ping'
+								}
+							],
+							accessory: {
+								type: 11,
+								id: 15,
+								media: {
+									id: '1466603856149610689',
+									url: 'https://files.inx.moe/p/cdn/lillith.webp',
+									proxy_url: 'https://images-ext-1.discordapp.net/external/Kn5b32mM4o8AAQbq0k39KOzp9-fy6D1tWKvK_XI27LI/https/files.inx.moe/p/cdn/lillith.webp',
+									width: 256,
+									height: 256,
+									placeholder: 'KVoKJwSnt7lZl5ecj1mal5eGWjAHZXIA',
+									placeholder_version: 1,
+									content_scan_metadata: { version: 4, flags: 0 },
+									content_type: 'image/webp',
+									loading_state: 2,
+									flags: 0
+								},
+								description: null,
+								spoiler: false
+							}
+						},
+						{ type: 14, id: 16, spacing: 2, divider: true },
+						{ type: 10, id: 17, content: 'Same hat' },
+						{
+							type: 12,
+							id: 18,
+							items: [
+								{
+									media: {
+										id: '1466603856149610690',
+										url: 'https://cdn.discordapp.com/attachments/934955898965729280/1466556006527012987/image.png?ex=697d2c37&is=697bdab7&hm=09c5028be61ce01ebbdda5c79c42e4dc10d053ce0c4b12c9d84135a0708e9db6&',
+										proxy_url: 'https://media.discordapp.net/attachments/934955898965729280/1466556006527012987/image.png?ex=697d2c37&is=697bdab7&hm=09c5028be61ce01ebbdda5c79c42e4dc10d053ce0c4b12c9d84135a0708e9db6&',
+										width: 285,
+										height: 126,
+										placeholder: '0PcBA4BqSIl9t/dnn9f0rm0=',
+										placeholder_version: 1,
+										content_scan_metadata: { version: 4, flags: 0 },
+										content_type: 'image/png',
+										loading_state: 2,
+										flags: 0
+									},
+									description: null,
+									spoiler: false
+								}
+							]
+						}
+					],
+					spoiler: false
+				},
+				{
+					type: 10,
+					id: 19,
+					content: '-# Original Message ID: 1466556003645657118 · <t:1769724599:f>'
+				}
+			]
+		}
+	},
 	message_update: {
 		edit_by_webhook: {
 			application_id: "684280192553844747",
