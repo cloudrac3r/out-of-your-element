@@ -773,8 +773,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue // Matrix's own URL previews are fine for images.
 		}
 
+		if (embed.type === "video" && !embed.title && !embed.description && message.content.includes(embed.video?.url)) {
+			continue // Doesn't add extra information and the direct video URL is already there.
+		}
+
 		if (embed.type === "poll_result") {
-			// The code here is only for the message to be bridged to Matrix. Dealing with the Discord-side updates is in actions/poll-close.js.
+			// The code here is only for the message to be bridged to Matrix. Dealing with the Discord-side updates is in d2m/actions/poll-end.js.
 		}
 
 		if (embed.url?.startsWith("https://discord.com/")) {
