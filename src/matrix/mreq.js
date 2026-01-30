@@ -77,6 +77,7 @@ async function mreq(method, url, bodyIn, extra = {}) {
 		/** @type {any} */
 		var root = JSON.parse(text)
 	} catch (e) {
+		delete opts.headers?.["Authorization"]
 		throw new MatrixServerError(text, {baseUrl, url, ...opts})
 	}
 

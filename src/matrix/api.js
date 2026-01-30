@@ -158,20 +158,82 @@ function getStateEventOuter(roomID, type, key) {
 
 /**
  * @param {string} roomID
- * @returns {Promise<Ty.Event.InviteStrippedState[]>}
+ * @param {{unsigned?: {invite_room_state?: Ty.Event.InviteStrippedState[]}}} [event]
+ * @returns {Promise<{name: string?, topic: string?, avatar: string?, type: string?}>}
  */
-async function getInviteState(roomID) {
-	/** @type {Ty.R.SSS} */
-	const root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
-		room_subscriptions: {
-			[roomID]: {
-				timeline_limit: 0,
-				required_state: []
+async function getInviteState(roomID, event) {
+	function getFromInviteRoomState(strippedState, nskey, key) {
+		if (!Array.isArray(strippedState)) return null
+		for (const event of strippedState) {
+			if (event.type === nskey && event.state_key === "") {
+				return event.content[key]
 			}
 		}
-	})
-	const roomResponse = root.rooms[roomID]
-	return "stripped_state" in roomResponse ? roomResponse.stripped_state : roomResponse.invite_state
+		return null
+	}
+
+	// Try extracting from event (if passed)
+	if (Array.isArray(event?.unsigned?.invite_room_state) && event.unsigned.invite_room_state.length) {
+		return {
+			name: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.name", "name"),
+			topic: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.topic", "topic"),
+			avatar: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.avatar", "url"),
+			type: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.create", "type")
+		}
+	}
+
+	// Try calling sliding sync API and extracting from stripped state
+	try {
+		/** @type {Ty.R.SSS} */
+		var root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
+			lists: {
+				a: {
+					ranges: [[0, 999]],
+					timeline_limit: 0,
+					required_state: [],
+					filters: {
+						is_invite: true
+					}
+				}
+			}
+		})
+
+		// Extract from sliding sync response if valid (seems to be okay on Synapse, Tuwunel and Continuwuity at time of writing)
+		if ("lists" in root) {
+			if (!root.rooms?.[roomID]) {
+				const e = new Error("Room data unavailable via SSS")
+				e["data_sss"] = root
+				throw e
+			}
+
+			const roomResponse = root.rooms[roomID]
+			const strippedState = "stripped_state" in roomResponse ? roomResponse.stripped_state : roomResponse.invite_state
+
+			return {
+				name: getFromInviteRoomState(strippedState, "m.room.name", "name"),
+				topic: getFromInviteRoomState(strippedState, "m.room.topic", "topic"),
+				avatar: getFromInviteRoomState(strippedState, "m.room.avatar", "url"),
+				type: getFromInviteRoomState(strippedState, "m.room.create", "type")
+			}
+		}
+	} catch (e) {}
+
+	// Invalid sliding sync response, try alternative (required for Conduit at time of writing)
+	const hierarchy = await getHierarchy(roomID, {limit: 1})
+	if (hierarchy?.rooms?.[0]?.room_id === roomID) {
+		const room = hierarchy?.rooms?.[0]
+		return {
+			name: room.name ?? null,
+			topic: room.topic ?? null,
+			avatar: room.avatar_url ?? null,
+			type: room.room_type
+		}
+	}
+
+	const e = new Error("Room data unavailable via SSS/hierarchy")
+	e["data_sss"] = root
+	e["data_hierarchy"] = hierarchy
+	throw e
 }
 
 /**

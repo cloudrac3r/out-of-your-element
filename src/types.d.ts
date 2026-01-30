@@ -433,6 +433,7 @@ export namespace R {
 		guest_can_join: boolean
 		join_rule?: string
 		name?: string
+		topic?: string
 		num_joined_members: number
 		room_id: string
 		room_type?: string
