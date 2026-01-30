@@ -21,7 +21,7 @@ const mreq = sync.require("../../matrix/mreq")
 async function editMessage(message, guild, row) {
 	const historicalRoomOfMessage = from("message_room").join("historical_channel_room", "historical_room_index").where({message_id: message.id}).select("room_id").get()
 	const currentRoom = from("channel_room").join("historical_channel_room", "room_id").where({channel_id: message.channel_id}).select("room_id", "historical_room_index").get()
-	assert(currentRoom)
+	if (!currentRoom) return
 
 	if (historicalRoomOfMessage && historicalRoomOfMessage.room_id !== currentRoom.room_id) return // tombstoned rooms should not have new events (including edits) sent to them
 

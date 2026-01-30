@@ -274,7 +274,7 @@ module.exports = {
 		// Based on looking at data they've sent me over the gateway, this is the best way to check for meaningful changes.
 		// If the message content is a string then it includes all interesting fields and is meaningful.
 		// Otherwise, if there are embeds, then the system generated URL preview embeds.
-		if (!(typeof data.content === "string" || "embeds" in data)) return
+		if (!(typeof data.content === "string" || "embeds" in data || "components" in data)) return
 
 		if (dUtils.isEphemeralMessage(data)) return // Ephemeral messages are for the eyes of the receiver only!
 
@@ -282,8 +282,10 @@ module.exports = {
 		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
 		if (affected) return
 
-		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
-		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.MESSAGE_UPDATE, client, data)) return
+		if (!row) {
+			// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
+			if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.MESSAGE_UPDATE, client, data)) return
+		}
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 		// @ts-ignore

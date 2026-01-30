@@ -4,6 +4,14 @@ const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
 const {discord, select, db} = passthrough
 
+const DEBUG_SPEEDBUMP = false
+
+function debugSpeedbump(message) {
+	if (DEBUG_SPEEDBUMP) {
+		console.log(message)
+	}
+}
+
 const SPEEDBUMP_SPEED = 4000 // 4 seconds delay
 const SPEEDBUMP_UPDATE_FREQUENCY = 2 * 60 * 60 // 2 hours
 
@@ -27,8 +35,8 @@ async function updateCache(channelID, lastChecked) {
 	db.prepare("UPDATE channel_room SET speedbump_id = ?, speedbump_webhook_id = ?, speedbump_checked = ? WHERE channel_id = ?").run(foundApplication, foundWebhook, now, channelID)
 }
 
-/** @type {Set<string>} set of messageID */
-const bumping = new Set()
+/** @type {Map<string, number>} messageID -> number of gateway events currently bumping */
+const bumping = new Map()
 
 /**
  * Slow down a message. After it passes the speedbump, return whether it's okay or if it's been deleted.
@@ -36,9 +44,26 @@ const bumping = new Set()
  * @returns whether it was deleted
  */
 async function doSpeedbump(messageID) {
-	bumping.add(messageID)
+	let value = (bumping.get(messageID) ?? 0) + 1
+	bumping.set(messageID, value)
+	debugSpeedbump(`[speedbump] WAIT ${messageID}++ = ${value}`)
+
 	await new Promise(resolve => setTimeout(resolve, SPEEDBUMP_SPEED))
-	return !bumping.delete(messageID)
+
+	if (!bumping.has(messageID)) {
+		debugSpeedbump(`[speedbump] DELETED ${messageID}`)
+		return true
+	}
+	value = bumping.get(messageID) - 1
+	if (value === 0) {
+		debugSpeedbump(`[speedbump] OK ${messageID}-- = ${value}`)
+		bumping.delete(messageID)
+		return false
+	} else {
+		debugSpeedbump(`[speedbump] MULTI ${messageID}-- = ${value}`)
+		bumping.set(messageID, value)
+		return true
+	}
 }
 
 /**
