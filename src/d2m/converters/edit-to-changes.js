@@ -46,7 +46,7 @@ async function editToChanges(message, guild, api) {
 	// Now, this code path is only used by generated embeds for messages that were originally sent from Matrix.
 
 	const originallyFromMatrix = oldEventRows.find(r => r.part === 0)?.source === 0
-	const isGeneratedEmbed = !("content" in message) || originallyFromMatrix
+	const mightBeGeneratedEmbed = !("content" in message) || originallyFromMatrix
 
 	// Figure out who to send as
 
@@ -79,7 +79,7 @@ async function editToChanges(message, guild, api) {
 	*/
 	/**
 	 * 1. Events that are matched, and should be edited by sending another m.replace event
-	 * @type {{old: typeof oldEventRows[0], newFallbackContent: typeof newFallbackContent[0], newInnerContent: typeof newInnerContent[0]}[]}
+	 * @type {{old: typeof oldEventRows[0], oldMentions?: any, newFallbackContent: typeof newFallbackContent[0], newInnerContent: typeof newInnerContent[0]}[]}
 	 */
 	let eventsToReplace = []
 	/**
@@ -133,20 +133,20 @@ async function editToChanges(message, guild, api) {
 
 	// If this is a generated embed update, only allow the embeds to be updated, since the system only sends data about events. Ignore changes to other things.
 	// This also prevents Matrix events that were re-subtyped during conversion (e.g. large image -> text link) from being mistakenly included.
-	if (isGeneratedEmbed) {
+	if (mightBeGeneratedEmbed) {
 		unchangedEvents = unchangedEvents.concat(
 			dUtils.filterTo(eventsToRedact, e => e.old.event_subtype === "m.notice" && e.old.source === 1), // Move everything except embeds from eventsToRedact to unchangedEvents.
 			dUtils.filterTo(eventsToReplace, e => e.old.event_subtype === "m.notice" && e.old.source === 1) // Move everything except embeds from eventsToReplace to unchangedEvents.
 		)
 		eventsToSend = eventsToSend.filter(e => e.msgtype === "m.notice") // Don't send new events that aren't the embed.
+	}
 
-		// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
-		const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 30 * 1000 // older than 30 seconds ago
-		// Don't post new generated embeds for messages if the setting was disabled.
-		const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
-		if (messageTooOld || !embedsEnabled) {
-			eventsToSend = []
-		}
+	// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
+	const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 30 * 1000 // older than 30 seconds ago
+	// Don't post new generated embeds for messages if the setting was disabled.
+	const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
+	if ((messageTooOld || !embedsEnabled) && !message.author.bot) {
+		eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice") // Only send events that aren't embeds.
 	}
 
 	// Now, everything in eventsToSend and eventsToRedact is a real change, but everything in eventsToReplace might not have actually changed!
@@ -161,6 +161,7 @@ async function editToChanges(message, guild, api) {
 		const event = eventsToReplace[i]
 		if (!eventIsText(event)) continue // not text, can't analyse
 		const oldEvent = await api.getEvent(roomID, eventsToReplace[i].old.event_id)
+		eventsToReplace[i].oldMentions = oldEvent.content["m.mentions"]
 		const oldEventBodyWithoutQuotedReply = oldEvent.content.body?.replace(/^(>.*\n)*\n*/sm, "")
 		if (oldEventBodyWithoutQuotedReply !== event.newInnerContent.body) continue // event changed, must replace it
 		// Move it from eventsToRedact to unchangedEvents.
@@ -210,7 +211,7 @@ async function editToChanges(message, guild, api) {
 	// Removing unnecessary properties before returning
 	return {
 		roomID,
-		eventsToReplace: eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.newFallbackContent, e.newInnerContent)})),
+		eventsToReplace: eventsToReplace.map(e => ({oldID: e.old.event_id, newContent: makeReplacementEventContent(e.old.event_id, e.oldMentions, e.newFallbackContent, e.newInnerContent)})),
 		eventsToRedact: eventsToRedact.map(e => e.old.event_id),
 		eventsToSend,
 		senderMxid,
@@ -221,14 +222,25 @@ async function editToChanges(message, guild, api) {
 /**
  * @template T
  * @param {string} oldID
+ * @param {any} oldMentions
  * @param {T} newFallbackContent
  * @param {T} newInnerContent
  * @returns {import("../../types").Event.ReplacementContent<T>} content
  */
-function makeReplacementEventContent(oldID, newFallbackContent, newInnerContent) {
+function makeReplacementEventContent(oldID, oldMentions, newFallbackContent, newInnerContent) {
+	const mentions = {}
+	const newMentionUsers = new Set(newFallbackContent["m.mentions"]?.user_ids || [])
+	const oldMentionUsers = new Set(oldMentions?.user_ids || [])
+	const mentionDiff = newMentionUsers.difference(oldMentionUsers)
+	if (mentionDiff.size) {
+		mentions.user_ids = [...mentionDiff.values()]
+	}
+	if (newFallbackContent["m.mentions"]?.room && !oldMentions?.room) {
+		mentions.room = true
+	}
 	const content = {
-		"m.mentions": {},
 		...newFallbackContent,
+		"m.mentions": mentions,
 		"m.new_content": {
 			...newInnerContent
 		},

@@ -15,7 +15,7 @@
   "author": "Cadence, PapiOphidian",
   "license": "AGPL-3.0-or-later",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "@chriscdn/promise-semaphore": "^3.0.1",

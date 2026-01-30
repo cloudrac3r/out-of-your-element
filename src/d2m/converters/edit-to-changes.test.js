@@ -42,7 +42,14 @@ test("edit2changes: bot response", async t => {
 	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.bot_response, data.guild.general, {
 		getEvent(roomID, eventID) {
 			t.equal(eventID, "$fdD9OZ55xg3EAsfvLZza5tMhtjUO91Wg3Otuo96TplY")
-			return {content: {body: "dummy"}}
+			return {
+				content: {
+					"m.mentions": {
+						user_ids: ["@cadence:cadence.moe"],
+					},
+					body: "dummy"
+				}
+			}
 		},
 		async getJoinedMembers(roomID) {
 			t.equal(roomID, "!hYnGGlPHlbujVVfktC:cadence.moe")
@@ -365,6 +372,7 @@ test("edit2changes: generated embed", async t => {
 
 test("edit2changes: generated embed on a reply", async t => {
 	let called = 0
+	data.message_update.embed_generated_on_reply.timestamp = new Date().toISOString()
 	const {senderMxid, eventsToRedact, eventsToReplace, eventsToSend, promotions} = await editToChanges(data.message_update.embed_generated_on_reply, data.guild.general, {
 		getEvent(roomID, eventID) {
 			called++
