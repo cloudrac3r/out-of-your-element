@@ -850,7 +850,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}
 
 		const {body, formatted_body} = stack[0].get()
-		await addTextEvent(body, formatted_body, "m.text")
+		if (body.trim().length) {
+			await addTextEvent(body, formatted_body, "m.text")
+		}
 	}
 
 	// Then polls
