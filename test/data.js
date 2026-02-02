@@ -4987,31 +4987,20 @@ module.exports = {
 			edited_timestamp: null,
 			flags: 32768,
 			author: {
-				id: '772659086046658620',
-				username: 'cadence.worm',
+				id: '466378653216014359',
+				username: 'PluralKit',
 				avatar: '466df0c98b1af1e1388f595b4c1ad1b9',
 				discriminator: '0',
 				public_flags: 0,
 				flags: 0,
+				bot: true,
 				banner: null,
 				accent_color: null,
-				global_name: 'cadence',
+				global_name: 'PluralKit',
 				avatar_decoration_data: null,
 				collectibles: null,
 				display_name_styles: null,
-				banner_color: null,
-				clan: {
-					identity_guild_id: '532245108070809601',
-					identity_enabled: true,
-					tag: 'doll',
-					badge: 'dba08126b4e810a0e096cc7cd5bc37f0'
-				},
-				primary_guild: {
-					identity_guild_id: '532245108070809601',
-					identity_enabled: true,
-					tag: 'doll',
-					badge: 'dba08126b4e810a0e096cc7cd5bc37f0'
-				}
+				banner_color: null
 			},
 			components: [
 				{

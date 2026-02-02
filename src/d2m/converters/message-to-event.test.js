@@ -1605,3 +1605,18 @@ test("message2event: multiple-choice poll", async t => {
 		"org.matrix.msc1767.text": "more than one answer allowed\n1. [😭] no\n2. oh no\n3. oh noooooo"
 	}])
 })
+
+test("message2event: smalltext from regular user", async t => {
+	const events = await messageToEvent({
+		content: "-# hmm",
+		author: {
+			bot: false
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {},
+		body: "...hmm"
+	}])
+})

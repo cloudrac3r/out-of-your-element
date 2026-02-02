@@ -474,6 +474,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 		content = transformAttachmentLinks(content)
 		content = await transformContentMessageLinks(content)
 
+		// Remove smalltext from non-bots (I don't like it). Webhooks included due to PluralKit.
+		const isHumanOrDataMissing = !message.author?.bot
+		if (isHumanOrDataMissing || dUtils.isWebhookMessage(message)) {
+			content = content.replaceAll(/^-# +([^\n].*?)/gm, "...$1")
+		}
+
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.
 		// So we scan the message ahead of time for all its emojis and ensure they are in the DB.
 		const emojiMatches = [...content.matchAll(/<(a?):([^:>]{1,64}):([0-9]+)>/g)]
