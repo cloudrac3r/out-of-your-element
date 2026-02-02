@@ -572,7 +572,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 				// Content
 				let repliedToContent = referenced.content
-				if (repliedToContent?.match(/^(-# )?> (-# )?<:L1:/)) {
+				if (repliedToContent?.match(/^(-# )?> (-# )?<?:L1:/)) {
 					// If the Discord user is replying to a Matrix user's reply, the fallback is going to contain the emojis and stuff from the bridged rep of the Matrix user's reply quote.
 					// Need to remove that previous reply rep from this fallback body. The fallbody body should only contain the Matrix user's actual message.
 					//                                            ┌──────A─────┐       A reply rep starting with >quote or -#smalltext >quote. Match until the end of the line.
