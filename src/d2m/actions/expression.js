@@ -9,11 +9,12 @@ const file = sync.require("../../matrix/file")
 
 /**
  * @param {DiscordTypes.APIEmoji[]} emojis
+ * @param {DiscordTypes.APIGuild} guild
  */
-async function emojisToState(emojis) {
+async function emojisToState(emojis, guild) {
 	const result = {
 		pack: {
-			display_name: "Discord Emojis",
+			display_name: `${guild.name} (Discord Emojis)`,
 			usage: ["emoticon"] // we'll see...
 		},
 		images: {
@@ -42,11 +43,12 @@ async function emojisToState(emojis) {
 
 /**
  * @param {DiscordTypes.APISticker[]} stickers
+ * @param {DiscordTypes.APIGuild} guild
  */
-async function stickersToState(stickers) {
+async function stickersToState(stickers, guild) {
 	const result = {
 		pack: {
-			display_name: "Discord Stickers",
+			display_name: `${guild.name} (Discord Stickers)`,
 			usage: ["sticker"] // we'll see...
 		},
 		images: {

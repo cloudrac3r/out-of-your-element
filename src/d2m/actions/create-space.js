@@ -229,14 +229,16 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 	 */
 	async function update(spaceID, key, eventKey, fn) {
 		if (!(key in data) || !data[key].length) return
-		const content = await fn(data[key])
+		const guild = discord.guilds.get(data.guild_id)
+		assert(guild)
+		const content = await fn(data[key], guild)
 		if (checkBeforeSync) {
 			let existing
 			try {
 				existing = await api.getStateEvent(spaceID, "im.ponies.room_emotes", eventKey)
 			} catch (e) {
 				// State event not found. This space doesn't have any existing emojis. We create a dummy empty event for comparison's sake.
-				existing = fn([])
+				existing = fn([], guild)
 			}
 			if (isDeepStrictEqual(existing, content)) return
 		}
