@@ -1,7 +1,7 @@
 // @ts-check
 
 const {test} = require("supertape")
-const {scoreLocalpart, scoreName, tokenise} = require("./find-mentions")
+const {processJoined, scoreLocalpart, scoreName, tokenise, findMention} = require("./find-mentions")
 
 test("score localpart: score against cadence", t => {
 	const localparts = [
@@ -87,7 +87,7 @@ test("score name: prefers earlier match", t => {
 test("score name: matches lots of tokens", t => {
 	t.deepEqual(
 		Math.round(scoreName(tokenise("Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆"), tokenise("cadence maid of creation eye of clarity empress of hope")).score),
-		50
+		65
 	)
 })
 
@@ -115,4 +115,15 @@ test("score name: finds match location", t => {
 	const startLocation = result.matchedInputTokens[0].index
 	const endLocation = result.matchedInputTokens.at(-1).end
 	t.equal(message.slice(startLocation, endLocation), "evil lillith")
+})
+
+test("find mention: test various tiebreakers", t => {
+	const found = findMention(processJoined([{
+		mxid: "@emma:conduit.rory.gay",
+		displayname: "Emma [it/its] ⚡️"
+	}, {
+		mxid: "@emma:rory.gay",
+		displayname: "Emma [it/its]"
+	}]), "emma ⚡ curious which one this prefers", 0, "@", "@emma ⚡ curious which one this prefers")
+	t.equal(found.mxid, "@emma:conduit.rory.gay")
 })

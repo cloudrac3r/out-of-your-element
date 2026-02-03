@@ -52,7 +52,7 @@ function scoreLocalpart(localpart, input, displayname) {
 	return {score, matchedInputTokens: [fakeToken]}
 }
 
-const decayDistance = 10
+const decayDistance = 20
 const decayValue = 0.33
 /**
  * Score by how many tokens in sequence (not necessarily back to back) at the start of input are in display name tokens. Score each token on its length. 2x if it matches at the start. +1 tiebreaker bonus if it matches all
@@ -90,11 +90,12 @@ function scoreName(displaynameTokens, inputTokens) {
  * @returns {Token[]}
  */
 function tokenise(name) {
+	name = name.replaceAll("\ufe0f", "").normalize().toLowerCase()
 	let index = 0
 	let result = []
 	for (const part of name.split(/(_|\s|\b)/g)) {
 		if (part.trim()) {
-			result.push({text: part.toLowerCase(), index, end: index + part.length})
+			result.push({text: part, index, end: index + part.length})
 		}
 		index += part.length
 	}
