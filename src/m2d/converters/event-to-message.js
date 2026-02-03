@@ -138,7 +138,9 @@ turndownService.addRule("inlineLink", {
 		if (node.getAttribute("data-message-id")) return `https://discord.com/channels/${node.getAttribute("data-guild-id")}/${node.getAttribute("data-channel-id")}/${node.getAttribute("data-message-id")}`
 		if (node.getAttribute("data-channel-id")) return `<#${node.getAttribute("data-channel-id")}>`
 		const href = node.getAttribute("href")
-		const suppressedHref = node.hasAttribute("data-suppress") ? "<" + href + ">" : href
+		let shouldSuppress = node.hasAttribute("data-suppress")
+		if (href.match(/^https?:\/\/matrix.to\//)) shouldSuppress = false // avoid double-escaping
+		const suppressedHref = shouldSuppress ? "<" + href + ">" : href
 		content = content.replace(/ @.*/, "")
 		if (href === content) return suppressedHref
 		if (decodeURIComponent(href).startsWith("https://matrix.to/#/@") && content[0] !== "@") content = "@" + content
