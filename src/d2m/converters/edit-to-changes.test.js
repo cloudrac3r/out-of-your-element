@@ -78,18 +78,18 @@ test("edit2changes: bot response", async t => {
 		newContent: {
 			$type: "m.room.message",
 			msgtype: "m.text",
-			body: "* :ae_botrac4r: @cadence asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
+			body: "* :ae_botrac4r: [@cadence](https://matrix.to/#/@cadence:cadence.moe) asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
 			format: "org.matrix.custom.html",
-			formatted_body: '* <img data-mx-emoticon height="32" src="mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs" title=":ae_botrac4r:" alt=":ae_botrac4r:"> @cadence asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img data-mx-emoticon height="32" src="mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT" title=":bn_re:" alt=":bn_re:"> to reroll.',
+			formatted_body: '* <img data-mx-emoticon height="32" src="mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs" title=":ae_botrac4r:" alt=":ae_botrac4r:"> <a href="https://matrix.to/#/@cadence:cadence.moe">@cadence</a> asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img data-mx-emoticon height="32" src="mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT" title=":bn_re:" alt=":bn_re:"> to reroll.',
 			"m.mentions": {
 				// Client-Server API spec 11.37.7: Copy Discord's behaviour by not re-notifying anyone that an *edit occurred*
 			},
 			// *** Replaced With: ***
 			"m.new_content": {
 				msgtype: "m.text",
-				body: ":ae_botrac4r: @cadence asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
+				body: ":ae_botrac4r: [@cadence](https://matrix.to/#/@cadence:cadence.moe) asked ``­``, I respond: Stop drinking paint. (No)\n\nHit :bn_re: to reroll.",
 				format: "org.matrix.custom.html",
-				formatted_body: '<img data-mx-emoticon height="32" src="mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs" title=":ae_botrac4r:" alt=":ae_botrac4r:"> @cadence asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img data-mx-emoticon height="32" src="mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT" title=":bn_re:" alt=":bn_re:"> to reroll.',
+				formatted_body: '<img data-mx-emoticon height="32" src="mxc://cadence.moe/skqfuItqxNmBYekzmVKyoLzs" title=":ae_botrac4r:" alt=":ae_botrac4r:"> <a href="https://matrix.to/#/@cadence:cadence.moe">@cadence</a> asked <code>­</code>, I respond: Stop drinking paint. (No)<br><br>Hit <img data-mx-emoticon height="32" src="mxc://cadence.moe/OIpqpfxTnHKokcsYqDusxkBT" title=":bn_re:" alt=":bn_re:"> to reroll.',
 				"m.mentions": {
 					// Client-Server API spec 11.37.7: This should contain the mentions for the final version of the event
 					"user_ids": ["@cadence:cadence.moe"]

@@ -18,9 +18,9 @@ const lottie = sync.require("../actions/lottie")
 const mxUtils = sync.require("../../matrix/utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
+/** @type {import("./find-mentions")} */
+const findMentions = sync.require("./find-mentions")
 const {reg} = require("../../matrix/read-registration")
-
-const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
 /**
  * @param {DiscordTypes.APIMessage} message
@@ -684,23 +684,28 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Then text content
 	if (message.content) {
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
-		const matches = [...message.content.matchAll(/@ ?([a-z0-9._]+)\b/gi)]
-		if (options.scanTextForMentions !== false && matches.length && matches.some(m => m[1].match(/[a-z]/i) && m[1] !== "everyone" && m[1] !== "here")) {
-			const writtenMentionsText = matches.map(m => m[1].toLowerCase())
-			const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
-			assert(roomID)
-			const {joined} = await di.api.getJoinedMembers(roomID)
-			for (const [mxid, member] of Object.entries(joined)) {
-				if (!userRegex.some(rx => mxid.match(rx))) {
-					const localpart = mxid.match(/@([^:]*)/)
-					assert(localpart)
-					const displayName = member.display_name || localpart[1]
-					if (writtenMentionsText.includes(localpart[1].toLowerCase()) || writtenMentionsText.includes(displayName.toLowerCase())) addMention(mxid)
+		let content = message.content
+		if (options.scanTextForMentions !== false) {
+			const matches = [...content.matchAll(/(@ ?)([a-z0-9_.][^@\n]+)/gi)]
+			for (let i = matches.length; i--;) {
+				const m = matches[i]
+				const prefix = m[1]
+				const maximumWrittenSection = m[2].toLowerCase()
+				if (maximumWrittenSection.match(/^!?&?[0-9]+>/) || maximumWrittenSection.match(/^everyone\b/) || maximumWrittenSection.match(/^here\b/)) continue
+
+				var roomID = roomID ?? select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
+				assert(roomID)
+				var pjr = pjr ?? findMentions.processJoined(Object.entries((await di.api.getJoinedMembers(roomID)).joined).map(([mxid, ev]) => ({mxid, displayname: ev.display_name})))
+
+				const found = findMentions.findMention(pjr, maximumWrittenSection, m.index, prefix, content)
+				if (found) {
+					addMention(found.mxid)
+					content = found.newContent
 				}
 			}
 		}
 
-		const {body, html} = await transformContent(message.content)
+		const {body, html} = await transformContent(content)
 		await addTextEvent(body, html, msgtype)
 	}
 

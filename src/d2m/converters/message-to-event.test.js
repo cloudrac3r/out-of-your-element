@@ -789,11 +789,13 @@ test("message2event: simple written @mention for matrix user", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "@ash do you need anything from the store btw as I'm heading there after gym"
+		body: "[@ash](https://matrix.to/#/@she_who_brings_destruction:cadence.moe) do you need anything from the store btw as I'm heading there after gym",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://matrix.to/#/@she_who_brings_destruction:cadence.moe">@ash</a> do you need anything from the store btw as I'm heading there after gym`
 	}])
 })
 
-test("message2event: advanced written @mentions for matrix users", async t => {
+test("message2event: many written @mentions for matrix users", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.advanced_written_at_mention_for_matrix, data.guild.general, {}, {
 		api: {
@@ -831,14 +833,169 @@ test("message2event: advanced written @mentions for matrix users", async t => {
 		$type: "m.room.message",
 		"m.mentions": {
 			user_ids: [
-				"@cadence:cadence.moe",
-				"@huckleton:cadence.moe"
+				"@huckleton:cadence.moe",
+				"@cadence:cadence.moe"
 			]
 		},
 		msgtype: "m.text",
-		body: "@Cadence, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and @huck"
+		body: "[@Cadence](https://matrix.to/#/@cadence:cadence.moe), tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and [@huck](https://matrix.to/#/@huckleton:cadence.moe)",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://matrix.to/#/@cadence:cadence.moe">@Cadence</a>, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and <a href="https://matrix.to/#/@huckleton:cadence.moe">@huck</a>`
 	}])
 	t.equal(called, 1, "should only look up the member list once")
+})
+
+test("message2event: written @mentions may match part of the name", async t => {
+	let called = 0
+	const events = await messageToEvent({
+		...data.message.advanced_written_at_mention_for_matrix,
+		content: "I wonder if @cadence saw this?"
+	}, data.guild.general, {}, {
+		api: {
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return new Promise(resolve => {
+					setTimeout(() => {
+						resolve({
+							joined: {
+								"@secret:cadence.moe": {
+									display_name: "cadence [they]",
+									avatar_url: "whatever"
+								},
+								"@huckleton:cadence.moe": {
+									display_name: "huck",
+									avatar_url: "whatever"
+								},
+								"@_ooye_botrac4r:cadence.moe": {
+									display_name: "botrac4r",
+									avatar_url: "whatever"
+								},
+								"@_ooye_bot:cadence.moe": {
+									display_name: "Out Of Your Element",
+									avatar_url: "whatever"
+								}
+							}
+						})
+					})
+				})
+			}
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {
+			user_ids: [
+				"@secret:cadence.moe",
+			]
+		},
+		msgtype: "m.text",
+		body: "I wonder if [@cadence](https://matrix.to/#/@secret:cadence.moe) saw this?",
+		format: "org.matrix.custom.html",
+		formatted_body: `I wonder if <a href="https://matrix.to/#/@secret:cadence.moe">@cadence</a> saw this?`
+	}])
+})
+
+test("message2event: written @mentions may match part of the mxid", async t => {
+	let called = 0
+	const events = await messageToEvent({
+		...data.message.advanced_written_at_mention_for_matrix,
+		content: "I wonder if @huck saw this?"
+	}, data.guild.general, {}, {
+		api: {
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return new Promise(resolve => {
+					setTimeout(() => {
+						resolve({
+							joined: {
+								"@cadence:cadence.moe": {
+									display_name: "cadence [they]",
+									avatar_url: "whatever"
+								},
+								"@huckleton:cadence.moe": {
+									display_name: "wa",
+									avatar_url: "whatever"
+								},
+								"@_ooye_botrac4r:cadence.moe": {
+									display_name: "botrac4r",
+									avatar_url: "whatever"
+								},
+								"@_ooye_bot:cadence.moe": {
+									display_name: "Out Of Your Element",
+									avatar_url: "whatever"
+								}
+							}
+						})
+					})
+				})
+			}
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {
+			user_ids: [
+				"@huckleton:cadence.moe",
+			]
+		},
+		msgtype: "m.text",
+		body: "I wonder if [@huck](https://matrix.to/#/@huckleton:cadence.moe) saw this?",
+		format: "org.matrix.custom.html",
+		formatted_body: `I wonder if <a href="https://matrix.to/#/@huckleton:cadence.moe">@huck</a> saw this?`
+	}])
+})
+
+test("message2event: entire message may match elaborate display name", async t => {
+	let called = 0
+	const events = await messageToEvent({
+		...data.message.advanced_written_at_mention_for_matrix,
+		content: "@Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆"
+	}, data.guild.general, {}, {
+		api: {
+			async getJoinedMembers(roomID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				return new Promise(resolve => {
+					setTimeout(() => {
+						resolve({
+							joined: {
+								"@wa:cadence.moe": {
+									display_name: "Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆",
+									avatar_url: "whatever"
+								},
+								"@huckleton:cadence.moe": {
+									display_name: "huck",
+									avatar_url: "whatever"
+								},
+								"@_ooye_botrac4r:cadence.moe": {
+									display_name: "botrac4r",
+									avatar_url: "whatever"
+								},
+								"@_ooye_bot:cadence.moe": {
+									display_name: "Out Of Your Element",
+									avatar_url: "whatever"
+								}
+							}
+						})
+					})
+				})
+			}
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {
+			user_ids: [
+				"@wa:cadence.moe",
+			]
+		},
+		msgtype: "m.text",
+		body: "[@Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆](https://matrix.to/#/@wa:cadence.moe)",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://matrix.to/#/@wa:cadence.moe">@Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆</a>`
+	}])
 })
 
 test("message2event: spoilers are removed from plaintext body", async t => {

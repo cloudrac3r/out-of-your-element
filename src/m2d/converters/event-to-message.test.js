@@ -3314,6 +3314,47 @@ test("event2message: mentioning matrix users works", async t => {
 	)
 })
 
+test("event2message: matrix mentions are not double-escaped when embed links permission is denied", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `I'm just <a href="https://matrix.to/#/@rnl:cadence.moe">▲</a> testing mentions`
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}, {
+			id: "123",
+			roles: [{
+				id: "123",
+				name: "@everyone",
+				permissions: DiscordTypes.PermissionFlagsBits.SendMessages
+			}]
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "I'm just [@▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: multiple mentions are both escaped", async t => {
 	t.deepEqual(
 		await eventToMessage({
