@@ -69,7 +69,8 @@ async function sendMessage(message, channel, guild, row) {
 	const eventIDs = []
 	if (events.length) {
 		db.prepare("INSERT OR IGNORE INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(message.id, historicalRoomIndex)
-		if (senderMxid) api.sendTyping(roomID, false, senderMxid).catch(() => {})
+		const typingMxid = from("sim").join("sim_member", "mxid").where({user_id: message.author.id, room_id: roomID}).pluck("mxid").get()
+		if (typingMxid) api.sendTyping(roomID, false, typingMxid).catch(() => {})
 	}
 	for (const event of events) {
 		const part = event === events[0] ? 0 : 1
