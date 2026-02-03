@@ -4916,6 +4916,69 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		klipy_gif: {
+			type: 0,
+			content: "https://klipy.com/gifs/cute-15",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [
+				{
+					type: "gifv",
+					url: "https://klipy.com/gifs/cute-15",
+					title: "Cute Corgi Waddle",
+					provider: {
+						name: "Klipy",
+						url: "https://klipy.com"
+					},
+					thumbnail: {
+						url: "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/5b/5b/xHVF6sVV.webp",
+						proxy_url: "https://images-ext-1.discordapp.net/external/Z54QmlQflPPb6NoXikflBHGmttgRm3_jhzmcILXHhcA/https/static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/5b/5b/xHVF6sVV.webp",
+						width: 277,
+						height: 498,
+						placeholder: "3gcGDAJV+WZYl3RpZ2gGeFBxBw==",
+						placeholder_version: 1,
+						flags: 0
+					},
+					video: {
+						url: "https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/5b/5b/7ndEhcilPNKJ8O.mp4",
+						proxy_url: "https://images-ext-1.discordapp.net/external/xZspzkQPUKBa74pBhJDpBf3v2d3d0lC943xaB9_JnoM/https/static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/5b/5b/7ndEhcilPNKJ8O.mp4",
+						width: 356,
+						height: 640,
+						placeholder: "3gcGDAJV+WZYl3RpZ2gGeFBxBw==",
+						placeholder_version: 1,
+						flags: 0
+					},
+					content_scan_version: 4
+				}
+			],
+			timestamp: "2026-02-03T11:11:50.070000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1468202316233707613",
+			channel_id: "1370776315266859131",
+			author: {
+				id: "304655299631906816",
+				username: "witterson",
+				avatar: "47ec94a1b2b4cc41ce0329b3575e9b66",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "wit",
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: null,
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false
+		},
 		tenor_gif: {
 			type: 0,
 			content: "<@&1182745800661540927> get real https://tenor.com/view/get-real-gif-26176788",

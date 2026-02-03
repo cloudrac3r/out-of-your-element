@@ -346,6 +346,18 @@ test("message2event embeds: tenor gif should show a video link without a provide
 	}])
 })
 
+test("message2event embeds: klipy gif should send in customised format", async t => {
+	const events = await messageToEvent(data.message_with_embeds.klipy_gif, data.guild.general, {}, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "[GIF] Cute Corgi Waddle https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/5b/5b/7ndEhcilPNKJ8O.mp4",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote>➿ <a href=\"https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/5b/5b/7ndEhcilPNKJ8O.mp4\">Cute Corgi Waddle</a></blockquote>",
+		"m.mentions": {}
+	}])
+})
+
 test("message2event embeds: if discord creates an embed preview for a discord channel link, don't copy that embed", async t => {
 	const events = await messageToEvent(data.message_with_embeds.discord_server_included_punctuation_bad_discord, data.guild.general, {}, {
 		api: {

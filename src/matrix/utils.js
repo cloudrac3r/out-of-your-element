@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const Ty = require("../types")
+const {tag} = require("@cloudrac3r/html-template-tag")
 const passthrough = require("../passthrough")
 const {db} = passthrough
 
@@ -72,7 +73,7 @@ class MatrixStringBuilder {
 	 */
 	add(body, formattedBody, condition = true) {
 		if (condition) {
-			if (formattedBody == undefined) formattedBody = body
+			if (formattedBody == undefined) formattedBody = tag`${body}`
 			this.body += body
 			this.formattedBody += formattedBody
 		}
@@ -86,7 +87,7 @@ class MatrixStringBuilder {
 	 */
 	addLine(body, formattedBody, condition = true) {
 		if (condition) {
-			if (formattedBody == undefined) formattedBody = body
+			if (formattedBody == undefined) formattedBody = tag`${body}`
 			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n"
 			this.body += body
 			const match = this.formattedBody.match(/<\/?([a-zA-Z]+[a-zA-Z0-9]*)[^>]*>\s*$/)
@@ -103,7 +104,7 @@ class MatrixStringBuilder {
 	 */
 	addParagraph(body, formattedBody, condition = true) {
 		if (condition) {
-			if (formattedBody == undefined) formattedBody = body
+			if (formattedBody == undefined) formattedBody = tag`${body}`
 			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n\n"
 			this.body += body
 			const match = formattedBody.match(/^<([a-zA-Z]+[a-zA-Z0-9]*)/)

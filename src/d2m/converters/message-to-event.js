@@ -630,6 +630,16 @@ async function messageToEvent(message, guild, options = {}, di) {
 		message.content = `added a new emoji, ${message.content} :${name}:`
 	}
 
+	// Send Klipy GIFs in customised form
+	let isKlipyGIF = false
+	let isOnlyKlipyGIF = false
+	if (message.embeds?.length === 1 && message.embeds[0].provider?.name === "Klipy" && message.embeds[0].video?.url) {
+		isKlipyGIF = true
+		if (message.content.match(/^https?:\/\/klipy\.com[^ \n]+$/)) {
+			isOnlyKlipyGIF = true
+		}
+	}
+
 	// Forwarded content appears first
 	if (message.message_reference?.type === DiscordTypes.MessageReferenceType.Forward && message.message_snapshots?.length) {
 		// Forwarded notice
@@ -682,7 +692,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Then text content
-	if (message.content) {
+	if (message.content && !isOnlyKlipyGIF) {
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 		let content = message.content
 		if (options.scanTextForMentions !== false) {
@@ -904,6 +914,20 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
 		const rep = new mxUtils.MatrixStringBuilder()
+
+		if (isKlipyGIF) {
+			rep.add("[GIF] ", "➿ ")
+			if (embed.title) {
+				rep.add(`${embed.title} ${embed.video.url}`, tag`<a href="${embed.video.url}">${embed.title}</a>`)
+			} else {
+				rep.add(embed.video.url)
+			}
+
+			let {body, formatted_body: html} = rep.get()
+			html = `<blockquote>${html}</blockquote>`
+			await addTextEvent(body, html, "m.text")
+			continue
+		}
 
 		// Provider
 		if (embed.provider?.name && embed.provider.name !== "Tenor") {
