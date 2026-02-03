@@ -88,6 +88,12 @@ function stringifyErrorStack(err, depth = 0) {
 	return collapsed;
 }
 
+function printError(type, source, e, payload) {
+	console.error(`Error while processing a ${type} ${source} event:`)
+	console.error(e)
+	console.dir(payload, {depth: null})
+}
+
 /**
  * @param {string} roomID
  * @param {"Discord" | "Matrix"} source
@@ -96,9 +102,9 @@ function stringifyErrorStack(err, depth = 0) {
  * @param {any} payload
  */
 async function sendError(roomID, source, type, e, payload) {
-	console.error(`Error while processing a ${type} ${source} event:`)
-	console.error(e)
-	console.dir(payload, {depth: null})
+	if (source === "Matrix") {
+		printError(type, source, e, payload)
+	}
 
 	if (Date.now() - lastReportedEvent < 5000) return null
 	lastReportedEvent = Date.now()
@@ -457,3 +463,4 @@ async event => {
 
 module.exports.stringifyErrorStack = stringifyErrorStack
 module.exports.sendError = sendError
+module.exports.printError = printError

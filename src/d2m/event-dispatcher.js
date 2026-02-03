@@ -51,12 +51,14 @@ module.exports = {
 	 * @param {import("cloudstorm").IGatewayMessage} gatewayMessage
 	 */
 	async onError(client, e, gatewayMessage) {
+		if (gatewayMessage.t === "TYPING_START") return
+
+		matrixEventDispatcher.printError(gatewayMessage.t, "Discord", e, gatewayMessage)
+
 		const channelID = gatewayMessage.d["channel_id"]
 		if (!channelID) return
 		const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!roomID) return
-
-		if (gatewayMessage.t === "TYPING_START") return
 
 		await matrixEventDispatcher.sendError(roomID, "Discord", gatewayMessage.t, e, gatewayMessage)
 	},
