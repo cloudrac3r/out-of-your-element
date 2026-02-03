@@ -563,8 +563,8 @@ async function eventToMessage(event, guild, channel, di) {
 	let shouldProcessTextEvent = event.type === "m.room.message" && (event.content.msgtype === "m.text" || event.content.msgtype === "m.emote")
 	if (event.type === "m.room.message" && (event.content.msgtype === "m.file" || event.content.msgtype === "m.video" || event.content.msgtype === "m.audio" || event.content.msgtype === "m.image")) {
 		// Build message content in addition to the uploaded file
-		const fileIsSpoiler = event.content["page.codeberg.everypizza.msc4193.spoiler"]
-		const fileSpoilerReason = event.content["page.codeberg.everypizza.msc4193.spoiler.reason"]
+		const fileIsSpoiler = event.content["page.codeberg.everypizza.msc4193.spoiler"] || event.content["town.robin.msc3725.content_warning"]
+		const fileSpoilerReason = event.content["page.codeberg.everypizza.msc4193.spoiler.reason"] || event.content["town.robin.msc3725.content_warning"]?.description
 		content = ""
 		const captionContent = new mxUtils.MatrixStringBuilder()
 
