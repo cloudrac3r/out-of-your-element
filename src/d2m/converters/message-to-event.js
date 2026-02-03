@@ -696,7 +696,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 		let content = message.content
 		if (options.scanTextForMentions !== false) {
-			const matches = [...content.matchAll(/(@ ?)([a-z0-9_.][^@\n]+)/gi)]
+			const matches = [...content.matchAll(/(@ ?)([a-z0-9_.#$][^@\n]+)/gi)]
 			for (let i = matches.length; i--;) {
 				const m = matches[i]
 				const prefix = m[1]
