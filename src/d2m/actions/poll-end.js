@@ -113,7 +113,8 @@ async function endPoll(closeMessage) {
 		return {
 			username: "Total results including Matrix votes",
 			avatar_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`,
-			content: messageString
+			content: messageString,
+			flags: DiscordTypes.MessageFlags.SuppressEmbeds
 		}
 	}
 }

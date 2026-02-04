@@ -20,6 +20,8 @@ const mxUtils = sync.require("../../matrix/utils")
 const dUtils = sync.require("../../discord/utils")
 /** @type {import("./find-mentions")} */
 const findMentions = sync.require("./find-mentions")
+/** @type {import("../../discord/interactions/poll-responses")} */
+const pollResponses = sync.require("../../discord/interactions/poll-responses")
 const {reg} = require("../../matrix/read-registration")
 
 /**
@@ -269,7 +271,21 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	if (message.type === DiscordTypes.MessageType.PollResult) {
-		const event_id = select("event_message", "event_id", {message_id: message.message_reference?.message_id}).pluck().get()
+		const pollMessageID = message.message_reference?.message_id
+		if (!pollMessageID) return []
+		const event_id = select("event_message", "event_id", {message_id: pollMessageID}).pluck().get()
+		const roomID = select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
+		const pollQuestionText = select("poll", "question_text", {message_id: pollMessageID}).pluck().get()
+		if (!event_id || !roomID || !pollQuestionText) return [] // drop it if the corresponding poll start was not bridged
+
+		const rep = new mxUtils.MatrixStringBuilder()
+		rep.addLine(`The poll ${pollQuestionText} has closed.`, tag`The poll <a href="https://matrix.to/#/${roomID}/${event_id}">${pollQuestionText}</a> has closed.`)
+		
+		const {messageString} = pollResponses.getCombinedResults(pollMessageID, true) // poll results have already been double-checked before this point, so these totals will be accurate
+		rep.addLine(markdown.toHTML(messageString, {discordOnly: true, escapeHTML: false}), markdown.toHTML(messageString, {}))
+		
+		const {body, formatted_body} = rep.get()
+
 		return [{
 			$type: "org.matrix.msc3381.poll.end",
 			"m.relates_to": {
@@ -277,7 +293,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 				event_id
 			},
 			"org.matrix.msc3381.poll.end": {},
-			body: "This poll has ended.",
+			"org.matrix.msc1767.text": body,
+			"org.matrix.msc1767.html": formatted_body,
+			body: body,
+			format: "org.matrix.custom.html",
+			formatted_body: formatted_body,
 			msgtype: "m.text"
 		}]
 	}
