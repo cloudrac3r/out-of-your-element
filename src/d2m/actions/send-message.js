@@ -55,13 +55,14 @@ async function sendMessage(message, channel, guild, row) {
 		}
 	}
 
+	let sentResultsMessage
 	if (message.type === DiscordTypes.MessageType.PollResult) { // ensure all Discord-side votes were pushed to Matrix before a poll is closed
 		const detailedResultsMessage = await pollEnd.endPoll(message)
 		if (detailedResultsMessage) {
 			const threadParent = select("channel_room", "thread_parent", {channel_id: message.channel_id}).pluck().get()
 			const channelID = threadParent ? threadParent : message.channel_id
 			const threadID = threadParent ? message.channel_id : undefined
-			var sentResultsMessage = await channelWebhook.sendMessageWithWebhook(channelID, detailedResultsMessage, threadID)
+			sentResultsMessage = await channelWebhook.sendMessageWithWebhook(channelID, detailedResultsMessage, threadID)
 		}
 	}
 
@@ -118,7 +119,8 @@ async function sendMessage(message, channel, guild, row) {
 			db.transaction(() => {
 				db.prepare("INSERT OR IGNORE INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(sentResultsMessage.id, historicalRoomIndex)
 				db.prepare("UPDATE event_message SET reaction_part = 1 WHERE event_id = ?").run(eventID)
-				db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, sentResultsMessage.id, 1, 0) // part = 1, reaction_part = 0
+				// part = 1, reaction_part = 0, source = 0 as the results are "from Matrix" and doing otherwise breaks things when that message gets updated by Discord (it just does that sometimes)
+				db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(eventID, eventType, event.msgtype || null, sentResultsMessage.id, 1, 0)
 			})()
 		}
 

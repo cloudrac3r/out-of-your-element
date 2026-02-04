@@ -45,7 +45,7 @@ async function editToChanges(message, guild, api) {
 	// Since an update in August 2024, the system always provides the full data of message updates.
 	// Now, this code path is only used by generated embeds for messages that were originally sent from Matrix.
 
-	const originallyFromMatrix = oldEventRows.find(r => r.part === 0)?.source === 0
+	const originallyFromMatrix = oldEventRows.some(r => r.source === 0)
 	const mightBeGeneratedEmbed = !("content" in message) || originallyFromMatrix
 
 	// Figure out who to send as
