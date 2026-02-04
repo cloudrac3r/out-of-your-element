@@ -10,6 +10,7 @@ const permissions = sync.require("./interactions/permissions.js")
 const reactions = sync.require("./interactions/reactions.js")
 const privacy = sync.require("./interactions/privacy.js")
 const poll = sync.require("./interactions/poll.js")
+const pollResponses = sync.require("./interactions/poll-responses.js")
 const ping = sync.require("./interactions/ping.js")
 
 // User must have EVERY permission in default_member_permissions to be able to use the command
@@ -24,7 +25,7 @@ discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
 	type: DiscordTypes.ApplicationCommandType.Message,
 	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.KickMembers | DiscordTypes.PermissionFlagsBits.ManageRoles)
 }, {
-	name: "Reactions",
+	name: "Responses",
 	contexts: [DiscordTypes.InteractionContextType.Guild],
 	type: DiscordTypes.ApplicationCommandType.Message
 }, {
@@ -107,8 +108,14 @@ async function dispatchInteraction(interaction) {
 				await permissions.interact(interaction)
 			} else if (interactionId === "permissions_edit") {
 				await permissions.interactEdit(interaction)
-			} else if (interactionId === "Reactions") {
-				await reactions.interact(interaction)
+			} else if (interactionId === "Responses") {
+				/** @type {DiscordTypes.APIMessageApplicationCommandGuildInteraction} */ // @ts-ignore
+				const messageInteraction = interaction
+				if (messageInteraction.data.resolved.messages[messageInteraction.data.target_id]?.poll) {
+					await pollResponses.interact(messageInteraction)
+				} else {
+					await reactions.interact(messageInteraction)
+				}
 			} else if (interactionId === "ping") {
 				await ping.interact(interaction)
 			} else if (interactionId === "privacy") {

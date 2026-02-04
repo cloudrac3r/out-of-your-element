@@ -9,22 +9,15 @@ const {discord, sync, db, select, from} = passthrough
 const {reg} = require("../../matrix/read-registration")
 /** @type {import("./poll-vote")} */
 const vote = sync.require("../actions/poll-vote")
-/** @type {import("../../m2d/converters/poll-components")} */
-const pollComponents = sync.require("../../m2d/converters/poll-components")
-
-// This handles, in the following order:
-// * verifying Matrix-side votes are accurate for a poll originating on Discord, sending missed votes to Matrix if necessary
-// * sending a message to Discord if a vote in that poll has been cast on Matrix
-// This does *not* handle bridging of poll closures on Discord to Matrix; that takes place in converters/message-to-event.js.
+/** @type {import("../../discord/interactions/poll-responses")} */
+const pollResponses = sync.require("../../discord/interactions/poll-responses")
 
 /**
- * @param {number} percent
+ * @file This handles, in the following order:
+ * * verifying Matrix-side votes are accurate for a poll originating on Discord, sending missed votes to Matrix if necessary
+ * * sending a message to Discord if a vote in that poll has been cast on Matrix
+ * This does *not* handle bridging of poll closures on Discord to Matrix; that takes place in converters/message-to-event.js.
  */
-function barChart(percent) {
-	const width = 12
-	const bars = Math.floor(percent*width)
-	return "█".repeat(bars) + "▒".repeat(width-bars)
-}
 
 /**
  * @param {string} channelID
@@ -114,22 +107,9 @@ async function endPoll(closeMessage) {
 		}))
 	}
 
-	/** @type {{matrix_option: string, option_text: string, count: number}[]} */
-	const pollResults = db.prepare("SELECT matrix_option, option_text, seq, count(discord_or_matrix_user_id) as count FROM poll_option LEFT JOIN poll_vote USING (message_id, matrix_option) WHERE message_id = ? GROUP BY matrix_option ORDER BY seq").all(pollMessageID)
-	const combinedVotes = pollResults.reduce((a, c) => a + c.count, 0)
-	const totalVoters = db.prepare("SELECT count(DISTINCT discord_or_matrix_user_id) as count FROM poll_vote WHERE message_id = ?").pluck().get(pollMessageID)
+	const {combinedVotes, messageString} = pollResponses.getCombinedResults(pollMessageID, true)
 
-	if (combinedVotes !== totalVotes) { // This means some votes were cast on Matrix!
-		// Now that we've corrected the vote totals, we can get the results again and post them to Discord!
-		const topAnswers = pollResults.toSorted((a, b) => b.count - a.count)
-		let messageString = ""
-		for (const option of pollResults) {
-			const medal = pollComponents.getMedal(topAnswers, option.count)
-			const countString = `${String(option.count).padStart(String(topAnswers[0].count).length)}`
-			const votesString = option.count === 1 ? "vote " : "votes"
-			const label = medal === "🥇" ? `**${option.option_text}**` : option.option_text
-			messageString += `\`\u200b${countString} ${votesString}\u200b\` ${barChart(option.count/totalVoters)} ${label} ${medal}\n`
-		}
+	if (combinedVotes !== totalVotes) { // This means some votes were cast on Matrix. Now that we've corrected the vote totals, we can get the results again and post them to Discord.
 		return {
 			username: "Total results including Matrix votes",
 			avatar_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`,
