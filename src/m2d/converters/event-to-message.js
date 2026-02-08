@@ -348,25 +348,44 @@ function getUserOrProxyOwnerMention(mxid) {
 
 /**
  * At the time of this executing, we know what the end of message emojis are, and we know that at least one of them is unknown.
- * This function will strip them from the content and generate the correct pending file of the sprite sheet.
+ * This function will strip them from the content and generate a link in it's place for proxying a sprite sheet that discord previews.
  * @param {string} content
- * @param {{id: string, filename: string}[]} attachments
- * @param {({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer})[]} pendingFiles
- * @param {(mxc: string) => Promise<Buffer | undefined>} mxcDownloader function that will download the mxc URLs and convert to uncompressed PNG data. use `getAndConvertEmoji` or a mock.
  */
-async function uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, mxcDownloader) {
+async function uploadEndOfMessageSpriteSheet(content) {
 	if (!content.includes("<::>")) return content // No unknown emojis, nothing to do
 	// Remove known and unknown emojis from the end of the message
 	const r = /<a?:[a-zA-Z0-9_]*:[0-9]*>\s*$/
+
 	while (content.match(r)) {
 		content = content.replace(r, "")
 	}
-	// Create a sprite sheet of known and unknown emojis from the end of the message
-	const buffer = await emojiSheet.compositeMatrixEmojis(endOfMessageEmojis, mxcDownloader)
-	// Attach it
-	const filename = "emojis.png"
-	attachments.push({id: String(attachments.length), filename})
-	pendingFiles.push({name: filename, buffer})
+
+	let emojiSheetUrl = new URL('emoji/matrix', reg.ooye.bridge_origin)
+	for(let mxc of endOfMessageEmojis) {
+		const emojiSheetUrlString = emojiSheetUrl.toString()
+
+		// Discord will not preview the URL if it is longer than 2000 characters. 
+		// Longer URLs can preview but it's very inconsistant so ignoring any additional emojis
+		if(emojiSheetUrlString.length + mxc.length > 2000) {
+			break
+		}
+
+		// Ignoring any additional emojis if it would exceed discords message length
+		if(emojiSheetUrlString.length + mxc.length + content.length > 4000) {
+			break
+		}
+
+		mxUtils.generatePermittedMediaHash(mxc)
+		emojiSheetUrl.searchParams.append('e', mxc)
+	}
+
+	const emojiSheetUrlString = emojiSheetUrl.toString()
+
+	// Discord message length check. Using markdown link with placeholder text since discord displays 
+	// the link when there is preceeding text to the emoji
+	const placeholderText = '.'
+	content = content.concat(`[${placeholderText}](${emojiSheetUrlString})`)
+
 	return content
 }
 
@@ -937,7 +956,7 @@ async function eventToMessage(event, guild, channel, di) {
 				if (replyLine && content.startsWith("> ")) content = "\n" + content
 
 				// SPRITE SHEET EMOJIS FEATURE:
-				content = await uploadEndOfMessageSpriteSheet(content, attachments, pendingFiles, di?.mxcDownloader)
+				content = await uploadEndOfMessageSpriteSheet(content)
 			} else {
 				// Looks like we're using the plaintext body!
 				content = event.content.body

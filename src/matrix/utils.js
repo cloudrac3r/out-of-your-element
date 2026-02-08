@@ -205,6 +205,19 @@ async function getViaServersQuery(roomID, api) {
 	return qs
 }
 
+function generatePermittedMediaHash(mxc) {
+	assert(hasher, "xxhash is not ready yet")
+	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	if (!mediaParts) return undefined
+
+	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
+	const unsignedHash = hasher.h64(serverAndMediaID)
+	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
+	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
+
+	return serverAndMediaID
+}
+
 /**
  * Since the introduction of authenticated media, this can no longer just be the /_matrix/media/r0/download URL
  * because Discord and Discord users cannot use those URLs. Media now has to be proxied through the bridge.
@@ -219,15 +232,8 @@ async function getViaServersQuery(roomID, api) {
  * @returns {string | undefined}
  */
 function getPublicUrlForMxc(mxc) {
-	assert(hasher, "xxhash is not ready yet")
-	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
-	if (!mediaParts) return undefined
-
-	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
-	const unsignedHash = hasher.h64(serverAndMediaID)
-	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
-	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
-
+	const serverAndMediaID = generatePermittedMediaHash(mxc);
+	if(!serverAndMediaID) return undefined
 	return `${reg.ooye.bridge_origin}/download/matrix/${serverAndMediaID}`
 }
 
@@ -358,6 +364,7 @@ async function setUserPowerCascade(spaceID, mxid, power, api) {
 module.exports.bot = bot
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
+module.exports.generatePermittedMediaHash = generatePermittedMediaHash
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash
 module.exports.MatrixStringBuilder = MatrixStringBuilder
