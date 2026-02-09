@@ -280,10 +280,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		const rep = new mxUtils.MatrixStringBuilder()
 		rep.addLine(`The poll ${pollQuestionText} has closed.`, tag`The poll <a href="https://matrix.to/#/${roomID}/${event_id}">${pollQuestionText}</a> has closed.`)
-		
+
 		const {messageString} = pollResponses.getCombinedResults(pollMessageID, true) // poll results have already been double-checked before this point, so these totals will be accurate
 		rep.addLine(markdown.toHTML(messageString, {discordOnly: true, escapeHTML: false}), markdown.toHTML(messageString, {}))
-		
+
 		const {body, formatted_body} = rep.get()
 
 		return [{
