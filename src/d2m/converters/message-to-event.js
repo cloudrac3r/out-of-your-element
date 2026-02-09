@@ -721,7 +721,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 				const m = matches[i]
 				const prefix = m[1]
 				const maximumWrittenSection = m[2].toLowerCase()
-				if (maximumWrittenSection.match(/^!?&?[0-9]+>/) || maximumWrittenSection.match(/^everyone\b/) || maximumWrittenSection.match(/^here\b/)) continue
+				if (m.index > 0 && !content[m.index-1].match(/ |\(|\n/)) continue // must have space before it
+				if (maximumWrittenSection.match(/^everyone\b/) || maximumWrittenSection.match(/^here\b/)) continue // ignore @everyone/@here
 
 				var roomID = roomID ?? select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
 				assert(roomID)

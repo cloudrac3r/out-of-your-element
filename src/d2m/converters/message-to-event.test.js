@@ -947,6 +947,21 @@ test("message2event: written @mentions may match part of the mxid", async t => {
 	}])
 })
 
+test("message2event: written @mentions do not match in URLs", async t => {
+	const events = await messageToEvent({
+		...data.message.advanced_written_at_mention_for_matrix,
+		content: "the fucking around with pixel composer continues https://pub.mastodon.sleeping.town/@exa/116037641900024965"
+	}, data.guild.general, {}, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "the fucking around with pixel composer continues https://pub.mastodon.sleeping.town/@exa/116037641900024965",
+		format: "org.matrix.custom.html",
+		formatted_body: `the fucking around with pixel composer continues <a href="https://pub.mastodon.sleeping.town/@exa/116037641900024965">https://pub.mastodon.sleeping.town/@exa/116037641900024965</a>`
+	}])
+})
+
 test("message2event: entire message may match elaborate display name", async t => {
 	let called = 0
 	const events = await messageToEvent({
