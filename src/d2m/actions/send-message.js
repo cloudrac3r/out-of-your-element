@@ -86,7 +86,19 @@ async function sendMessage(message, channel, guild, row) {
 
 		const useTimestamp = message["backfill"] ? new Date(message.timestamp).getTime() : undefined
 		const eventID = await api.sendEvent(roomID, eventType, eventWithoutType, senderMxid, useTimestamp)
-		db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, part, reactionPart) // source 1 = discord
+		eventIDs.push(eventID)
+
+		try {
+			db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 1)").run(eventID, eventType, event.msgtype || null, message.id, part, reactionPart) // source 1 = discord
+		} catch (e) {
+			// check if we got rugpulled
+			if (!select("message_room", "message_id", {message_id: message.id}).get()) {
+				for (const eventID of eventIDs) {
+					await api.redactEvent(roomID, eventID)
+				}
+				return []
+			}
+		}
 
 		// The primary event is part = 0 and has the most important and distinct information. It is used to provide reply previews, be pinned, and possibly future uses.
 		// The first event is chosen to be the primary part because it is usually the message text content and is more likely to be distinct.
@@ -123,8 +135,6 @@ async function sendMessage(message, channel, guild, row) {
 				db.prepare("INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES (?, ?, ?, ?, ?, ?, 0)").run(eventID, eventType, event.msgtype || null, sentResultsMessage.id, 1, 0)
 			})()
 		}
-
-		eventIDs.push(eventID)
 	}
 
 	return eventIDs
