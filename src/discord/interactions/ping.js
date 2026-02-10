@@ -31,7 +31,7 @@ async function* _interactAutocomplete({data, channel}, {api}) {
 	}
 
 	// Check it was used in a bridged channel
-	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
+	const roomID = select("channel_room", "room_id", {channel_id: channel?.id}).pluck().get()
 	if (!roomID) return yield exit()
 
 	// Check we are in fact autocompleting the first option, the user
@@ -58,9 +58,9 @@ async function* _interactAutocomplete({data, channel}, {api}) {
 		const displaynameMatches = select("member_cache", ["mxid", "displayname"], {room_id: roomID}, "AND displayname IS NOT NULL AND displayname LIKE ? ESCAPE '$' LIMIT 25").all(query)
 		// prioritise matches closer to the start
 		displaynameMatches.sort((a, b) => {
-			let ai = a.displayname.toLowerCase().indexOf(input.toLowerCase())
+			let ai = a.displayname?.toLowerCase().indexOf(input.toLowerCase()) ?? -1
 			if (ai === -1) ai = 999
-			let bi = b.displayname.toLowerCase().indexOf(input.toLowerCase())
+			let bi = b.displayname?.toLowerCase().indexOf(input.toLowerCase()) ?? -1
 			if (bi === -1) bi = 999
 			return ai - bi
 		})
@@ -132,14 +132,18 @@ async function* _interactCommand({data, channel, guild_id}, {api}) {
 		type: DiscordTypes.InteractionResponseType.DeferredChannelMessageWithSource
 	}}
 
+	let member
 	try {
 		/** @type {Ty.Event.M_Room_Member} */
-		var member = await api.getStateEvent(roomID, "m.room.member", mxid)
+		member = await api.getStateEvent(roomID, "m.room.member", mxid)
 	} catch (e) {}
 
 	if (!member || member.membership !== "join") {
-		const inChannels = discord.guildChannelMap.get(guild_id)
-			.map(cid => discord.channels.get(cid))
+		const channelsInGuild = discord.guildChannelMap.get(guild_id)
+		assert(channelsInGuild)
+		const inChannels = channelsInGuild
+		// @ts-ignore
+		.map(/** @returns {DiscordTypes.APIGuildChannel} */ cid => discord.channels.get(cid))
 			.sort((a, b) => webGuild._getPosition(a, discord.channels) - webGuild._getPosition(b, discord.channels))
 			.filter(channel => from("channel_room").join("member_cache", "room_id").select("mxid").where({channel_id: channel.id, mxid}).get())
 		if (inChannels.length) {

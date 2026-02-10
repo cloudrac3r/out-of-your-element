@@ -58,7 +58,7 @@ async function handle(event) {
 	await removeReaction(event)
 
 	// Or, it might be for removing a message or suppressing embeds. But to do that, the message needs to be bridged first.
-	if (retrigger.eventNotFoundThenRetrigger(event.redacts, as.emit.bind(as, "type:m.room.redaction", event))) return
+	if (retrigger.eventNotFoundThenRetrigger(event.redacts, () => as.emit("type:m.room.redaction", event))) return
 
 	const row = select("event_message", ["event_type", "event_subtype", "part"], {event_id: event.redacts}).get()
 	if (row && row.event_type === "m.room.message" && row.event_subtype === "m.notice" && row.part === 1) {

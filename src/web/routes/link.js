@@ -1,5 +1,6 @@
 // @ts-check
 
+const assert = require("assert").strict
 const {z} = require("zod")
 const {defineEventHandler, createError, readValidatedBody, setResponseHeader, H3Event} = require("h3")
 const Ty = require("../../types")
@@ -77,7 +78,9 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	const existing = select("guild_space", "guild_id", {}, "WHERE guild_id = ? OR space_id = ?").get(guildID, spaceID)
 	if (existing) throw createError({status: 400, message: "Bad Request", data: `Guild ID ${guildID} or space ID ${spaceID} are already bridged and cannot be reused`})
 
-	const via = [inviteRow.mxid.match(/:(.*)/)[1]]
+	const inviteServer = inviteRow.mxid.match(/:(.*)/)?.[1]
+	assert(inviteServer)
+	const via = [inviteServer]
 
 	// Check space exists and bridge is joined
 	try {

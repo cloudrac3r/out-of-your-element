@@ -9,7 +9,7 @@ const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
  * @typedef {{text: string, index: number, end: number}} Token
  */
 
-/** @typedef {{mxids: {localpart: string, mxid: string, displayname?: string}[], names: {displaynameTokens: Token[], mxid: string}[]}} ProcessedJoined */
+/** @typedef {{mxids: {localpart: string, mxid: string, displayname?: string | null}[], names: {displaynameTokens: Token[], mxid: string}[]}} ProcessedJoined */
 
 const lengthBonusLengthCap = 50
 const lengthBonusValue = 0.5
@@ -18,7 +18,7 @@ const lengthBonusValue = 0.5
  * 0 = no match
  * @param {string} localpart
  * @param {string} input
- * @param {string} [displayname] only for the super tiebreaker
+ * @param {string | null} [displayname] only for the super tiebreaker
  * @returns {{score: number, matchedInputTokens: Token[]}}
  */
 function scoreLocalpart(localpart, input, displayname) {
@@ -103,7 +103,7 @@ function tokenise(name) {
 }
 
 /**
- * @param {{mxid: string, displayname?: string}[]} joined
+ * @param {{mxid: string, displayname?: string | null}[]} joined
  * @returns {ProcessedJoined}
  */
 function processJoined(joined) {
@@ -120,6 +120,7 @@ function processJoined(joined) {
 		}),
 		names: joined.filter(j => j.displayname).map(j => {
 			return {
+				// @ts-ignore
 				displaynameTokens: tokenise(j.displayname),
 				mxid: j.mxid
 			}
@@ -130,6 +131,8 @@ function processJoined(joined) {
 /**
  * @param {ProcessedJoined} pjr
  * @param {string} maximumWrittenSection lowercase please
+ * @param {number} baseOffset
+ * @param {string} prefix
  * @param {string} content
  */
 function findMention(pjr, maximumWrittenSection, baseOffset, prefix, content) {
@@ -142,7 +145,7 @@ function findMention(pjr, maximumWrittenSection, baseOffset, prefix, content) {
 	if (best.scored.score > 4) { // requires in smallest case perfect match of 2 characters, or in largest case a partial middle match of 5+ characters in a row
 		// Highlight the relevant part of the message
 		const start = baseOffset + best.scored.matchedInputTokens[0].index
-		const end = baseOffset + prefix.length + best.scored.matchedInputTokens.at(-1).end
+		const end = baseOffset + prefix.length + best.scored.matchedInputTokens.slice(-1)[0].end
 		const newContent = content.slice(0, start) + "[" + content.slice(start, end) + "](https://matrix.to/#/" + best.mxid + ")" + content.slice(end)
 		return {
 			mxid: best.mxid,

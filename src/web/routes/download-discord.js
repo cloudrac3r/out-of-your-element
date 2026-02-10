@@ -31,7 +31,7 @@ function getSnow(event) {
 /** @type {Map<string, Promise<string>>} */
 const cache = new Map()
 
-/** @param {string | undefined} url */
+/** @param {string} url */
 function timeUntilExpiry(url) {
 	const params = new URL(url).searchParams
 	const ex = params.get("ex")

@@ -124,7 +124,7 @@ const commands = [{
 			if (matrixOnlyReason) {
 				// If uploading to Matrix, check if we have permission
 				const {powerLevels, powers: {[mxUtils.bot]: botPower}} = await mxUtils.getEffectivePower(event.room_id, [mxUtils.bot], api)
-				const requiredPower = powerLevels.events["im.ponies.room_emotes"] ?? powerLevels.state_default ?? 50
+				const requiredPower = powerLevels.events?.["im.ponies.room_emotes"] ?? powerLevels.state_default ?? 50
 				if (botPower < requiredPower) {
 					return api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,

@@ -60,6 +60,26 @@ function getEventIDHash(eventID) {
 	return signedHash
 }
 
+class MatrixStringBuilderStack {
+	constructor() {
+		this.stack = [new MatrixStringBuilder()]
+	}
+
+	get msb() {
+		return this.stack[0]
+	}
+
+	bump() {
+		this.stack.unshift(new MatrixStringBuilder())
+	}
+
+	shift() {
+		const msb = this.stack.shift()
+		assert(msb)
+		return msb
+	}
+}
+
 class MatrixStringBuilder {
 	constructor() {
 		this.body = ""
@@ -228,7 +248,7 @@ function generatePermittedMediaHash(mxc) {
  * @see https://matrix.org/blog/2024/06/26/sunsetting-unauthenticated-media/ background
  * @see https://matrix.org/blog/2024/06/20/matrix-v1.11-release/ implementation details
  * @see https://www.sqlite.org/fileformat2.html#record_format SQLite integer field size
- * @param {string} mxc
+ * @param {string | null | undefined} mxc
  * @returns {string | undefined}
  */
 function getPublicUrlForMxc(mxc) {
@@ -238,7 +258,7 @@ function getPublicUrlForMxc(mxc) {
 }
 
 /**
- * @param {string} mxc
+ * @param {string | null | undefined} mxc
  * @returns {string | undefined} mxc URL with protocol stripped, e.g. "cadence.moe/abcdef1234"
  */
 function makeMxcPublic(mxc) {
@@ -289,7 +309,7 @@ function roomHasAtLeastVersion(roomVersionString, desiredVersion) {
  */
 function removeCreatorsFromPowerLevels(roomCreateOuter, powerLevels) {
 	assert(roomCreateOuter.sender)
-	if (roomHasAtLeastVersion(roomCreateOuter.content.room_version, 12)) {
+	if (roomHasAtLeastVersion(roomCreateOuter.content.room_version, 12) && powerLevels.users) {
 		for (const creator of (roomCreateOuter.content.additional_creators ?? []).concat(roomCreateOuter.sender)) {
 			delete powerLevels.users[creator]
 		}
@@ -385,6 +405,7 @@ module.exports.makeMxcPublic = makeMxcPublic
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash
 module.exports.MatrixStringBuilder = MatrixStringBuilder
+module.exports.MatrixStringBuilderStack = MatrixStringBuilderStack
 module.exports.getViaServers = getViaServers
 module.exports.getViaServersQuery = getViaServersQuery
 module.exports.roomHasAtLeastVersion = roomHasAtLeastVersion

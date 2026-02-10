@@ -54,8 +54,11 @@ async function _interact({guild_id, data}, {api}) {
 	// from Matrix
 	const event = await api.getEvent(message.room_id, message.event_id)
 	const via = await utils.getViaServersQuery(message.room_id, api)
-	const inChannels = discord.guildChannelMap.get(guild_id)
-		.map(cid => discord.channels.get(cid))
+	const channelsInGuild = discord.guildChannelMap.get(guild_id)
+	assert(channelsInGuild)
+	const inChannels = channelsInGuild
+		// @ts-ignore
+		.map(/** @returns {DiscordTypes.APIGuildChannel} */ cid => discord.channels.get(cid))
 		.sort((a, b) => webGuild._getPosition(a, discord.channels) - webGuild._getPosition(b, discord.channels))
 		.filter(channel => from("channel_room").join("member_cache", "room_id").select("mxid").where({channel_id: channel.id, mxid: event.sender}).get())
 	const matrixMember = select("member_cache", ["displayname", "avatar_url"], {room_id: message.room_id, mxid: event.sender}).get()
@@ -67,7 +70,7 @@ async function _interact({guild_id, data}, {api}) {
 				author: {
 					name,
 					url: `https://matrix.to/#/${event.sender}`,
-					icon_url: utils.getPublicUrlForMxc(matrixMember.avatar_url)
+					icon_url: utils.getPublicUrlForMxc(matrixMember?.avatar_url)
 				},
 				description: `This Matrix message was delivered to Discord by **Out Of Your Element**.\n[View on Matrix →](<https://matrix.to/#/${message.room_id}/${message.event_id}?${via}>)\n\n**User ID**: [${event.sender}](<https://matrix.to/#/${event.sender}>)`,
 				color: 0x0dbd8b,
@@ -96,7 +99,7 @@ async function dm(interaction) {
 	const channel = await discord.snow.user.createDirectMessageChannel(interaction.member.user.id)
 	const response = await _interact(interaction, {api})
 	assert(response.type === DiscordTypes.InteractionResponseType.ChannelMessageWithSource)
-	response.data.flags &= 0 // not ephemeral
+	response.data.flags = 0 & 0 // not ephemeral
 	await discord.snow.channel.createMessage(channel.id, response.data)
 }
 

@@ -17,7 +17,7 @@ const retrigger = sync.require("../../d2m/actions/retrigger")
  */
 async function addReaction(event) {
 	// Wait until the corresponding channel and message have already been bridged
-	if (retrigger.eventNotFoundThenRetrigger(event.content["m.relates_to"].event_id, as.emit.bind(as, "type:m.reaction", event))) return
+	if (retrigger.eventNotFoundThenRetrigger(event.content["m.relates_to"].event_id, () => as.emit("type:m.reaction", event))) return
 
 	// These will exist because it passed retrigger
 	const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")

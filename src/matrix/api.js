@@ -196,9 +196,10 @@ async function getInviteState(roomID, event) {
 	}
 
 	// Try calling sliding sync API and extracting from stripped state
+	let root
 	try {
 		/** @type {Ty.R.SSS} */
-		var root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
+		root = await mreq.mreq("POST", path("/client/unstable/org.matrix.simplified_msc3575/sync", `@${reg.sender_localpart}:${reg.ooye.server_name}`, {timeout: "0"}), {
 			lists: {
 				a: {
 					ranges: [[0, 999]],
@@ -239,7 +240,7 @@ async function getInviteState(roomID, event) {
 			name: room.name ?? null,
 			topic: room.topic ?? null,
 			avatar: room.avatar_url ?? null,
-			type: room.room_type
+			type: room.room_type ?? null
 		}
 	}
 
@@ -426,7 +427,7 @@ async function profileSetDisplayname(mxid, displayname, inhibitPropagate) {
 
 /**
  * @param {string} mxid
- * @param {string} avatar_url
+ * @param {string | null | undefined} avatar_url
  * @param {boolean} [inhibitPropagate]
  */
 async function profileSetAvatarUrl(mxid, avatar_url, inhibitPropagate) {

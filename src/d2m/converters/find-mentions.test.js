@@ -113,7 +113,7 @@ test("score name: finds match location", t => {
 	const message = "evil lillith is an inspiration"
 	const result = scoreName(tokenise("INX | Evil Lillith (she/her)"), tokenise(message))
 	const startLocation = result.matchedInputTokens[0].index
-	const endLocation = result.matchedInputTokens.at(-1).end
+	const endLocation = result.matchedInputTokens.slice(-1)[0].end
 	t.equal(message.slice(startLocation, endLocation), "evil lillith")
 })
 
@@ -125,5 +125,5 @@ test("find mention: test various tiebreakers", t => {
 		mxid: "@emma:rory.gay",
 		displayname: "Emma [it/its]"
 	}]), "emma ⚡ curious which one this prefers", 0, "@", "@emma ⚡ curious which one this prefers")
-	t.equal(found.mxid, "@emma:conduit.rory.gay")
+	t.equal(found?.mxid, "@emma:conduit.rory.gay")
 })

@@ -54,8 +54,8 @@ async function doSpeedbump(messageID) {
 		debugSpeedbump(`[speedbump] DELETED ${messageID}`)
 		return true
 	}
-	value = bumping.get(messageID) - 1
-	if (value === 0) {
+	value = (bumping.get(messageID) ?? 0) - 1
+	if (value <= 0) {
 		debugSpeedbump(`[speedbump] OK ${messageID}-- = ${value}`)
 		bumping.delete(messageID)
 		return false

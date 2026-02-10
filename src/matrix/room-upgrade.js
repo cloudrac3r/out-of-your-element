@@ -57,12 +57,12 @@ async function onBotMembership(event, api, createRoom) {
 	// Check if an upgrade is pending for this room
 	const newRoomID = event.room_id
 	const oldRoomID = select("room_upgrade_pending", "old_room_id", {new_room_id: newRoomID}).pluck().get()
-	if (!oldRoomID) return
+	if (!oldRoomID) return false
 	const channelRow = from("channel_room").join("guild_space", "guild_id").where({room_id: oldRoomID}).select("space_id", "guild_id", "channel_id").get()
 	assert(channelRow) // this could only fail if the channel was unbridged or something between upgrade and joining
 
 	// Check if is join/invite
-	if (event.content.membership !== "invite" && event.content.membership !== "join") return
+	if (event.content.membership !== "invite" && event.content.membership !== "join") return false
 
 	return await roomUpgradeSema.request(async () => {
 		// If invited, join

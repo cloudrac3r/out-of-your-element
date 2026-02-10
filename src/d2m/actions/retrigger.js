@@ -19,7 +19,7 @@ const emitter = new EventEmitter()
  * Due to Eventual Consistency(TM) an update/delete may arrive before the original message arrives
  * (or before the it has finished being bridged to an event).
  * In this case, wait until the original message has finished bridging, then retrigger the passed function.
- * @template {(...args: any[]) => Promise<any>} T
+ * @template {(...args: any[]) => any} T
  * @param {string} inputID
  * @param {T} fn
  * @param {Parameters<T>} rest

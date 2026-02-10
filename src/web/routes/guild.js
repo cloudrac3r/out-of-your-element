@@ -54,8 +54,8 @@ function getAPI(event) {
 const validNonce = new LRUCache({max: 200})
 
 /**
- * @param {{type: number, parent_id?: string, position?: number}} channel
- * @param {Map<string, {type: number, parent_id?: string, position?: number}>} channels
+ * @param {{type: number, parent_id?: string | null, position?: number}} channel
+ * @param {Map<string, {type: number, parent_id?: string | null, position?: number}>} channels
  */
 function getPosition(channel, channels) {
 	let position = 0
@@ -65,9 +65,11 @@ function getPosition(channel, channels) {
 	// Categories are size 2000.
 	let foundCategory = channel
 	while (foundCategory.parent_id) {
-		foundCategory = channels.get(foundCategory.parent_id)
+		const f = channels.get(foundCategory.parent_id)
+		assert(f)
+		foundCategory = f
 	}
-	if (foundCategory.type === DiscordTypes.ChannelType.GuildCategory) position = (foundCategory.position + 1) * 2000
+	if (foundCategory.type === DiscordTypes.ChannelType.GuildCategory) position = ((foundCategory.position || 0) + 1) * 2000
 
 	// Categories always appear above what they contain.
 	if (channel.type === DiscordTypes.ChannelType.GuildCategory) position -= 0.5
@@ -81,7 +83,7 @@ function getPosition(channel, channels) {
 	// Threads appear below their channel.
 	if ([DiscordTypes.ChannelType.PublicThread, DiscordTypes.ChannelType.PrivateThread, DiscordTypes.ChannelType.AnnouncementThread].includes(channel.type)) {
 		position += 0.5
-		let parent = channels.get(channel.parent_id)
+		let parent = channels.get(channel.parent_id || "")
 		if (parent && parent["position"]) position += parent["position"]
 	}
 
@@ -98,7 +100,11 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	assert(channelIDs)
 
 	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
-	let linkedChannelsWithDetails = linkedChannels.map(c => ({channel: discord.channels.get(c.channel_id), ...c}))
+	let linkedChannelsWithDetails = linkedChannels.map(c => ({
+		// @ts-ignore
+		/** @type {DiscordTypes.APIGuildChannel} */ channel: discord.channels.get(c.channel_id),
+		...c
+	}))
 	let removedUncachedChannels = dUtils.filterTo(linkedChannelsWithDetails, c => c.channel)
 	let linkedChannelIDs = linkedChannelsWithDetails.map(c => c.channel_id)
 	linkedChannelsWithDetails.sort((a, b) => getPosition(a.channel, discord.channels) - getPosition(b.channel, discord.channels))

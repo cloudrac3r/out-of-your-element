@@ -70,13 +70,14 @@ async function sendVotes(userOrID, channelID, pollMessageID, pollEventID) {
 		return
 	}
 
+	let userID, senderMxid
 	if (typeof userOrID === "string") { // just a string when double-checking a vote removal - good thing the unvoter is already here from having voted
-		var userID = userOrID
-		var senderMxid = from("sim").join("sim_member", "mxid").where({user_id: userOrID, room_id: matchingRoomID}).pluck("mxid").get()
+		userID = userOrID
+		senderMxid = from("sim").join("sim_member", "mxid").where({user_id: userOrID, room_id: matchingRoomID}).pluck("mxid").get()
 		if (!senderMxid) return
 	} else { // sent in full when double-checking adding a vote, so we can properly ensure joined
-		var userID = userOrID.id
-		var senderMxid = await registerUser.ensureSimJoined(userOrID, matchingRoomID)
+		userID = userOrID.id
+		senderMxid = await registerUser.ensureSimJoined(userOrID, matchingRoomID)
 	}
 
 	const answersArray = select("poll_vote", "matrix_option", {discord_or_matrix_user_id: userID, message_id: pollMessageID}).pluck().all()

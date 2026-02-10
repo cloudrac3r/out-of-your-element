@@ -5,6 +5,7 @@ const {convertImageStream} = require("../../m2d/converters/emoji-sheet")
 const tryToCatch = require("try-to-catch")
 const {test} = require("supertape")
 const {router} = require("../../../test/web")
+const streamWeb = require("stream/web")
 
 test("web download matrix: access denied if not a known attachment", async t => {
 	const [error] = await tryToCatch(() =>
@@ -27,6 +28,7 @@ test("web download matrix: works if a known attachment", async t => {
 		},
 		event,
 		api: {
+			// @ts-ignore
 			async getMedia(mxc, init) {
 				return new Response("", {status: 200, headers: {"content-type": "image/png"}})
 			}

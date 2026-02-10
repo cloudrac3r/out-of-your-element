@@ -427,7 +427,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 * @param {string} [timestampChannelID]
 	 */
 	async function getHistoricalEventRow(messageID, timestampChannelID) {
-		/** @type {{room_id: string} | {event_id: string, room_id: string, reference_channel_id: string, source: number} | null} */
+		/** @type {{room_id: string} | {event_id: string, room_id: string, reference_channel_id: string, source: number} | null | undefined} */
 		let row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
 			.select("event_id", "room_id", "reference_channel_id", "source").where({message_id: messageID}).and("ORDER BY part ASC").get()
 		if (!row && timestampChannelID) {
@@ -574,6 +574,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			if (repliedToEventInDifferentRoom || repliedToUnknownEvent) {
 				let referenced = message.referenced_message
 				if (!referenced) { // backend couldn't be bothered to dereference the message, have to do it ourselves
+					assert(message.message_reference?.message_id)
 					referenced = await discord.snow.channel.getChannelMessage(message.message_reference.channel_id, message.message_reference.message_id)
 				}
 
@@ -661,14 +662,14 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Forwarded content appears first
-	if (message.message_reference?.type === DiscordTypes.MessageReferenceType.Forward && message.message_snapshots?.length) {
+	if (message.message_reference?.type === DiscordTypes.MessageReferenceType.Forward && message.message_reference.message_id && message.message_snapshots?.length) {
 		// Forwarded notice
 		const row = await getHistoricalEventRow(message.message_reference.message_id, message.message_reference.channel_id)
 		const room = select("channel_room", ["room_id", "name", "nick"], {channel_id: message.message_reference.channel_id}).get()
 		const forwardedNotice = new mxUtils.MatrixStringBuilder()
 		if (room) {
 			const roomName = room && (room.nick || room.name)
-			if ("event_id" in row) {
+			if (row && "event_id" in row) {
 				const via = await getViaServersMemo(row.room_id)
 				forwardedNotice.addLine(
 					`[🔀 Forwarded from #${roomName}]`,
@@ -802,20 +803,23 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	// Then components
 	if (message.components?.length) {
-		const stack = [new mxUtils.MatrixStringBuilder()]
+		const stack = new mxUtils.MatrixStringBuilderStack()
 		/** @param {DiscordTypes.APIMessageComponent} component */
 		async function processComponent(component) {
 			// Standalone components
 			if (component.type === DiscordTypes.ComponentType.TextDisplay) {
 				const {body, html} = await transformContent(component.content)
-				stack[0].addParagraph(body, html)
+				stack.msb.addParagraph(body, html)
 			}
 			else if (component.type === DiscordTypes.ComponentType.Separator) {
-				stack[0].addParagraph("----", "<hr>")
+				stack.msb.addParagraph("----", "<hr>")
 			}
 			else if (component.type === DiscordTypes.ComponentType.File) {
-				const ev = await attachmentToEvent({}, {...component.file, filename: component.name, size: component.size}, true)
-				stack[0].addLine(ev.body, ev.formatted_body)
+				/** @type {{[k in keyof DiscordTypes.APIUnfurledMediaItem]-?: NonNullable<DiscordTypes.APIUnfurledMediaItem[k]>}} */ // @ts-ignore
+				const file = component.file
+				assert(component.name && component.size && file.content_type)
+				const ev = await attachmentToEvent({}, {...file, filename: component.name, size: component.size}, true)
+				stack.msb.addLine(ev.body, ev.formatted_body)
 			}
 			else if (component.type === DiscordTypes.ComponentType.MediaGallery) {
 				const description = component.items.length === 1 ? component.items[0].description || "Image:" : "Image gallery:"
@@ -826,43 +830,43 @@ async function messageToEvent(message, guild, options = {}, di) {
 						estimatedName: item.media.url.match(/\/([^/?]+)(\?|$)/)?.[1] || publicURL
 					}
 				})
-				stack[0].addLine(`🖼️ ${description} ${images.map(i => i.url).join(", ")}`, tag`🖼️ ${description} $${images.map(i => tag`<a href="${i.url}">${i.estimatedName}</a>`).join(", ")}`)
+				stack.msb.addLine(`🖼️ ${description} ${images.map(i => i.url).join(", ")}`, tag`🖼️ ${description} $${images.map(i => tag`<a href="${i.url}">${i.estimatedName}</a>`).join(", ")}`)
 			}
 			// string select, text input, user select, role select, mentionable select, channel select
 
 			// Components that can have things nested
 			else if (component.type === DiscordTypes.ComponentType.Container) {
 				// May contain action row, text display, section, media gallery, separator, file
-				stack.unshift(new mxUtils.MatrixStringBuilder())
+				stack.bump()
 				for (const innerComponent of component.components) {
 					await processComponent(innerComponent)
 				}
 				let {body, formatted_body} = stack.shift().get()
 				body = body.split("\n").map(l => "| " + l).join("\n")
 				formatted_body = `<blockquote>${formatted_body}</blockquote>`
-				if (stack[0].body) stack[0].body += "\n\n"
-				stack[0].add(body, formatted_body)
+				if (stack.msb.body) stack.msb.body += "\n\n"
+				stack.msb.add(body, formatted_body)
 			}
 			else if (component.type === DiscordTypes.ComponentType.Section) {
 				// May contain text display, possibly more in the future
 				// Accessory may be button or thumbnail
-				stack.unshift(new mxUtils.MatrixStringBuilder())
+				stack.bump()
 				for (const innerComponent of component.components) {
 					await processComponent(innerComponent)
 				}
 				if (component.accessory) {
-					stack.unshift(new mxUtils.MatrixStringBuilder())
+					stack.bump()
 					await processComponent(component.accessory)
 					const {body, formatted_body} = stack.shift().get()
-					stack[0].addLine(body, formatted_body)
+					stack.msb.addLine(body, formatted_body)
 				}
 				const {body, formatted_body} = stack.shift().get()
-				stack[0].addParagraph(body, formatted_body)
+				stack.msb.addParagraph(body, formatted_body)
 			}
 			else if (component.type === DiscordTypes.ComponentType.ActionRow) {
 				const linkButtons = component.components.filter(c => c.type === DiscordTypes.ComponentType.Button && c.style === DiscordTypes.ButtonStyle.Link)
 				if (linkButtons.length) {
-					stack[0].addLine("")
+					stack.msb.addLine("")
 					for (const linkButton of linkButtons) {
 						await processComponent(linkButton)
 					}
@@ -871,15 +875,15 @@ async function messageToEvent(message, guild, options = {}, di) {
 			// Components that can only be inside things
 			else if (component.type === DiscordTypes.ComponentType.Thumbnail) {
 				// May only be a section accessory
-				stack[0].add(`🖼️ ${component.media.url}`, tag`🖼️ <a href="${component.media.url}">${component.media.url}</a>`)
+				stack.msb.add(`🖼️ ${component.media.url}`, tag`🖼️ <a href="${component.media.url}">${component.media.url}</a>`)
 			}
 			else if (component.type === DiscordTypes.ComponentType.Button) {
 				// May only be a section accessory or in an action row (up to 5)
 				if (component.style === DiscordTypes.ButtonStyle.Link) {
 					if (component.label) {
-						stack[0].add(`[${component.label} ${component.url}] `, tag`<a href="${component.url}">${component.label}</a> `)
+						stack.msb.add(`[${component.label} ${component.url}] `, tag`<a href="${component.url}">${component.label}</a> `)
 					} else {
-						stack[0].add(component.url)
+						stack.msb.add(component.url)
 					}
 				}
 			}
@@ -891,7 +895,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			await processComponent(component)
 		}
 
-		const {body, formatted_body} = stack[0].get()
+		const {body, formatted_body} = stack.msb.get()
 		if (body.trim().length) {
 			await addTextEvent(body, formatted_body, "m.text")
 		}
@@ -914,7 +918,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue // Matrix's own URL previews are fine for images.
 		}
 
-		if (embed.type === "video" && !embed.title && message.content.includes(embed.video?.url)) {
+		if (embed.type === "video" && embed.video?.url && !embed.title && message.content.includes(embed.video.url)) {
 			continue // Doesn't add extra information and the direct video URL is already there.
 		}
 
@@ -937,6 +941,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		const rep = new mxUtils.MatrixStringBuilder()
 
 		if (isKlipyGIF) {
+			assert(embed.video?.url)
 			rep.add("[GIF] ", "➿ ")
 			if (embed.title) {
 				rep.add(`${embed.title} ${embed.video.url}`, tag`<a href="${embed.video.url}">${embed.title}</a>`)

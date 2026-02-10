@@ -1,4 +1,5 @@
 // @ts-check
+/// <reference lib="dom" />
 
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
@@ -371,6 +372,7 @@ function linkEndOfMessageSpriteSheet(content) {
 	for (const mxc of endOfMessageEmojis) {
 		// We can do up to 2000 chars max. (In this maximal case it will get chunked to a separate message.) Ignore additional emojis.
 		const withoutMxc = mxUtils.makeMxcPublic(mxc)
+		assert(withoutMxc)
 		const emojisLength = params.toString().length + encodeURIComponent(withoutMxc).length + 2
 		if (content.length + emojisLength + afterLink.length > 2000) {
 			break

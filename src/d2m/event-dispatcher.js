@@ -308,7 +308,7 @@ module.exports = {
 	async MESSAGE_REACTION_ADD(client, data) {
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		if (data.emoji.name === "❓" && select("event_message", "message_id", {message_id: data.message_id, source: 0, part: 0}).get()) { // source 0 = matrix
-			const guild_id = data.guild_id ?? client.channels.get(data.channel_id)["guild_id"]
+			const guild_id = data.guild_id ?? client.channels.get(data.channel_id)?.["guild_id"]
 			await Promise.all([
 				client.snow.channel.deleteReaction(data.channel_id, data.message_id, data.emoji.name).catch(() => {}),
 				// @ts-ignore - this is all you need for it to do a matrix-side lookup
