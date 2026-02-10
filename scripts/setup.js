@@ -309,6 +309,7 @@ function defineEchoHandler() {
 
 	const {as} = require("../src/matrix/appservice")
 	as.router.use("/**", defineEchoHandler())
+	await as.listen()
 
 	console.log("⏳ Waiting for you to register the file with your homeserver... (Ctrl+C to cancel)")
 	process.once("SIGINT", () => {
