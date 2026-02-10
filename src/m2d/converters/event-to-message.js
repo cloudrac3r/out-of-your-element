@@ -348,10 +348,11 @@ function getUserOrProxyOwnerMention(mxid) {
 
 /**
  * At the time of this executing, we know what the end of message emojis are, and we know that at least one of them is unknown.
- * This function will strip them from the content and generate a link in it's place for proxying a sprite sheet that discord previews.
+ * This function will strip them from the content and add a link that Discord will preview with a sprite sheet of emojis.
  * @param {string} content
+ * @returns {string} new content with emoji sheet link
  */
-async function uploadEndOfMessageSpriteSheet(content) {
+function linkEndOfMessageSpriteSheet(content) {
 	if (!content.includes("<::>")) return content // No unknown emojis, nothing to do
 	// Remove known and unknown emojis from the end of the message
 	const r = /<a?:[a-zA-Z0-9_]*:[0-9]*>\s*$/
@@ -360,33 +361,25 @@ async function uploadEndOfMessageSpriteSheet(content) {
 		content = content.replace(r, "")
 	}
 
-	let emojiSheetUrl = new URL('emoji/matrix', reg.ooye.bridge_origin)
-	for(let mxc of endOfMessageEmojis) {
-		const emojiSheetUrlString = emojiSheetUrl.toString()
+	// Use a markdown link to hide the URL. If this is the only thing in the message, Discord will hide it entirely, same as lone URLs. Good for us.
+	content = content.trimEnd()
+	content += " [\u2800](" // U+2800 Braille Pattern Blank is invisible on all known platforms but is digitally not a whitespace character
+	const afterLink = ")"
 
-		// Discord will not preview the URL if it is longer than 2000 characters. 
-		// Longer URLs can preview but it's very inconsistant so ignoring any additional emojis
-		if(emojiSheetUrlString.length + mxc.length > 2000) {
+	// Make emojis URL params
+	const params = new URLSearchParams()
+	for (const mxc of endOfMessageEmojis) {
+		// We can do up to 2000 chars max. (In this maximal case it will get chunked to a separate message.) Ignore additional emojis.
+		const withoutMxc = mxUtils.makeMxcPublic(mxc)
+		const emojisLength = params.toString().length + encodeURIComponent(withoutMxc).length + 2
+		if (content.length + emojisLength + afterLink.length > 2000) {
 			break
 		}
-
-		// Ignoring any additional emojis if it would exceed discords message length
-		if(emojiSheetUrlString.length + mxc.length + content.length > 4000) {
-			break
-		}
-
-		mxUtils.generatePermittedMediaHash(mxc)
-		emojiSheetUrl.searchParams.append('e', mxc)
+		params.append("e", withoutMxc)
 	}
 
-	const emojiSheetUrlString = emojiSheetUrl.toString()
-
-	// Discord message length check. Using markdown link with placeholder text since discord displays 
-	// the link when there is preceeding text to the emoji
-	const placeholderText = '.'
-	content = content.concat(`[${placeholderText}](${emojiSheetUrlString})`)
-
-	return content
+	const url = `${reg.ooye.bridge_origin}/download/sheet?${params.toString()}`
+	return content + url + afterLink
 }
 
 /**
@@ -543,7 +536,7 @@ async function getL1L2ReplyLine(called = false) {
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_End} event
  * @param {DiscordTypes.APIGuild} guild
  * @param {DiscordTypes.APIGuildTextChannel} channel
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, mxcDownloader: (mxc: string) => Promise<Buffer | undefined>, pollEnd?: {messageID: string}}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, pollEnd?: {messageID: string}}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, channel, di) {
 	let displayName = event.sender
@@ -956,7 +949,7 @@ async function eventToMessage(event, guild, channel, di) {
 				if (replyLine && content.startsWith("> ")) content = "\n" + content
 
 				// SPRITE SHEET EMOJIS FEATURE:
-				content = await uploadEndOfMessageSpriteSheet(content)
+				content = await linkEndOfMessageSpriteSheet(content)
 			} else {
 				// Looks like we're using the plaintext body!
 				content = event.content.body

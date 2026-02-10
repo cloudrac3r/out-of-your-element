@@ -75,47 +75,45 @@ const file = sync.require("../src/matrix/file")
 file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not allowed to upload files during testing.\nURL: ${url}`) }
 
 ;(async () => {
-	/* c8 ignore start - maybe download some more test files in slow mode */
-	if (process.argv.includes("--slow")) {
-		test("test files: download", async t => {
-			/** @param {{url: string, to: string}[]} files */
-			async function allReporter(files) {
-				return new Promise(resolve => {
-					let resolved = 0
-					const report = files.map(file => file.to.split("/").slice(-1)[0][0])
-					files.map(download).forEach((p, i) => {
-						p.then(() => {
-							report[i] = green(".")
-							process.stderr.write("\r" + report.join(""))
-							if (++resolved === files.length) resolve(null)
-						})
+	/* c8 ignore start - download some more test files in slow mode */
+	test("test files: download", async t => {
+		/** @param {{url: string, to: string}[]} files */
+		async function allReporter(files) {
+			return new Promise(resolve => {
+				let resolved = 0
+				const report = files.map(file => file.to.split("/").slice(-1)[0][0])
+				files.map(download).forEach((p, i) => {
+					p.then(() => {
+						report[i] = green(".")
+						process.stderr.write("\r" + report.join(""))
+						if (++resolved === files.length) resolve(null)
 					})
 				})
-			}
-			async function download({url, to}) {
-				if (await fs.existsSync(to)) return
-				const res = await fetch(url)
-				// @ts-ignore
-				await res.body.pipeTo(Writable.toWeb(fs.createWriteStream(to, {encoding: "binary"})))
-			}
-			await allReporter([
-				{url: "https://cadence.moe/friends/ooye_test/RLMgJGfgTPjIQtvvWZsYjhjy.png", to: "test/res/RLMgJGfgTPjIQtvvWZsYjhjy.png"},
-				{url: "https://cadence.moe/friends/ooye_test/bZFuuUSEebJYXUMSxuuSuLTa.png", to: "test/res/bZFuuUSEebJYXUMSxuuSuLTa.png"},
-				{url: "https://cadence.moe/friends/ooye_test/qWmbXeRspZRLPcjseyLmeyXC.png", to: "test/res/qWmbXeRspZRLPcjseyLmeyXC.png"},
-				{url: "https://cadence.moe/friends/ooye_test/wcouHVjbKJJYajkhJLsyeJAA.png", to: "test/res/wcouHVjbKJJYajkhJLsyeJAA.png"},
-				{url: "https://cadence.moe/friends/ooye_test/WbYqNlACRuicynBfdnPYtmvc.gif", to: "test/res/WbYqNlACRuicynBfdnPYtmvc.gif"},
-				{url: "https://cadence.moe/friends/ooye_test/HYcztccFIPgevDvoaWNsEtGJ.png", to: "test/res/HYcztccFIPgevDvoaWNsEtGJ.png"},
-				{url: "https://cadence.moe/friends/ooye_test/lHfmJpzgoNyNtYHdAmBHxXix.png", to: "test/res/lHfmJpzgoNyNtYHdAmBHxXix.png"},
-				{url: "https://cadence.moe/friends/ooye_test/MtRdXixoKjKKOyHJGWLsWLNU.png", to: "test/res/MtRdXixoKjKKOyHJGWLsWLNU.png"},
-				{url: "https://cadence.moe/friends/ooye_test/HXfFuougamkURPPMflTJRxGc.png", to: "test/res/HXfFuougamkURPPMflTJRxGc.png"},
-				{url: "https://cadence.moe/friends/ooye_test/ikYKbkhGhMERAuPPbsnQzZiX.png", to: "test/res/ikYKbkhGhMERAuPPbsnQzZiX.png"},
-				{url: "https://cadence.moe/friends/ooye_test/AYPpqXzVJvZdzMQJGjioIQBZ.png", to: "test/res/AYPpqXzVJvZdzMQJGjioIQBZ.png"},
-				{url: "https://cadence.moe/friends/ooye_test/UVuzvpVUhqjiueMxYXJiFEAj.png", to: "test/res/UVuzvpVUhqjiueMxYXJiFEAj.png"},
-				{url: "https://ezgif.com/images/format-demo/butterfly.gif", to: "test/res/butterfly.gif"},
-				{url: "https://ezgif.com/images/format-demo/butterfly.png", to: "test/res/butterfly.png"},
-			])
-		}, {timeout: 60000})
-	}
+			})
+		}
+		async function download({url, to}) {
+			if (await fs.existsSync(to)) return
+			const res = await fetch(url)
+			// @ts-ignore
+			await res.body.pipeTo(Writable.toWeb(fs.createWriteStream(to, {encoding: "binary"})))
+		}
+		await allReporter([
+			{url: "https://cadence.moe/friends/ooye_test/RLMgJGfgTPjIQtvvWZsYjhjy.png", to: "test/res/RLMgJGfgTPjIQtvvWZsYjhjy.png"},
+			{url: "https://cadence.moe/friends/ooye_test/bZFuuUSEebJYXUMSxuuSuLTa.png", to: "test/res/bZFuuUSEebJYXUMSxuuSuLTa.png"},
+			{url: "https://cadence.moe/friends/ooye_test/qWmbXeRspZRLPcjseyLmeyXC.png", to: "test/res/qWmbXeRspZRLPcjseyLmeyXC.png"},
+			{url: "https://cadence.moe/friends/ooye_test/wcouHVjbKJJYajkhJLsyeJAA.png", to: "test/res/wcouHVjbKJJYajkhJLsyeJAA.png"},
+			{url: "https://cadence.moe/friends/ooye_test/WbYqNlACRuicynBfdnPYtmvc.gif", to: "test/res/WbYqNlACRuicynBfdnPYtmvc.gif"},
+			{url: "https://cadence.moe/friends/ooye_test/HYcztccFIPgevDvoaWNsEtGJ.png", to: "test/res/HYcztccFIPgevDvoaWNsEtGJ.png"},
+			{url: "https://cadence.moe/friends/ooye_test/lHfmJpzgoNyNtYHdAmBHxXix.png", to: "test/res/lHfmJpzgoNyNtYHdAmBHxXix.png"},
+			{url: "https://cadence.moe/friends/ooye_test/MtRdXixoKjKKOyHJGWLsWLNU.png", to: "test/res/MtRdXixoKjKKOyHJGWLsWLNU.png"},
+			{url: "https://cadence.moe/friends/ooye_test/HXfFuougamkURPPMflTJRxGc.png", to: "test/res/HXfFuougamkURPPMflTJRxGc.png"},
+			{url: "https://cadence.moe/friends/ooye_test/ikYKbkhGhMERAuPPbsnQzZiX.png", to: "test/res/ikYKbkhGhMERAuPPbsnQzZiX.png"},
+			{url: "https://cadence.moe/friends/ooye_test/AYPpqXzVJvZdzMQJGjioIQBZ.png", to: "test/res/AYPpqXzVJvZdzMQJGjioIQBZ.png"},
+			{url: "https://cadence.moe/friends/ooye_test/UVuzvpVUhqjiueMxYXJiFEAj.png", to: "test/res/UVuzvpVUhqjiueMxYXJiFEAj.png"},
+			{url: "https://ezgif.com/images/format-demo/butterfly.gif", to: "test/res/butterfly.gif"},
+			{url: "https://ezgif.com/images/format-demo/butterfly.png", to: "test/res/butterfly.png"},
+		])
+	}, {timeout: 60000})
 	/* c8 ignore stop */
 
 	const p = migrate.migrate(db)
@@ -135,15 +133,6 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("./addbot.test")
 	require("../src/db/orm.test")
 	require("../src/web/server.test")
-	require("../src/web/routes/download-discord.test")
-	require("../src/web/routes/download-matrix.test")
-	require("../src/web/routes/guild.test")
-	require("../src/web/routes/guild-settings.test")
-	require("../src/web/routes/info.test")
-	require("../src/web/routes/link.test")
-	require("../src/web/routes/log-in-with-matrix.test")
-	require("../src/web/routes/oauth.test")
-	require("../src/web/routes/password.test")
 	require("../src/discord/utils.test")
 	require("../src/matrix/kstate.test")
 	require("../src/matrix/api.test")
@@ -178,4 +167,13 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/discord/interactions/permissions.test")
 	require("../src/discord/interactions/privacy.test")
 	require("../src/discord/interactions/reactions.test")
+	require("../src/web/routes/download-discord.test")
+	require("../src/web/routes/download-matrix.test")
+	require("../src/web/routes/guild.test")
+	require("../src/web/routes/guild-settings.test")
+	require("../src/web/routes/info.test")
+	require("../src/web/routes/link.test")
+	require("../src/web/routes/log-in-with-matrix.test")
+	require("../src/web/routes/oauth.test")
+	require("../src/web/routes/password.test")
 })()

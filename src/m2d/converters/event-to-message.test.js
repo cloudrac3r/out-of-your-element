@@ -1,21 +1,10 @@
 const assert = require("assert").strict
-const fs = require("fs")
 const {test} = require("supertape")
 const DiscordTypes = require("discord-api-types/v10")
 const {eventToMessage} = require("./event-to-message")
-const {convertImageStream} = require("./emoji-sheet")
 const data = require("../../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {select, discord} = require("../../passthrough")
-
-/* c8 ignore next 7 */
-function slow() {
-	if (process.argv.includes("--slow")) {
-		return test
-	} else {
-		return test.skip
-	}
-}
 
 /**
  * @param {string} roomID
@@ -47,25 +36,6 @@ function sameFirstContentAndWhitespace(t, a, b) {
 	const a2 = JSON.stringify(a.messagesToSend[0].content)
 	const b2 = JSON.stringify(b.messagesToSend[0].content)
 	t.equal(a2, b2)
-}
-
-/**
- * MOCK: Gets the emoji from the filesystem and converts to uncompressed PNG data.
- * @param {string} mxc a single mxc:// URL
- * @returns {Promise<Buffer | undefined>} uncompressed PNG data, or undefined if the downloaded emoji is not valid
-*/
-async function mockGetAndConvertEmoji(mxc) {
-	const id = mxc.match(/\/([^./]*)$/)?.[1]
-	let s
-	if (fs.existsSync(`test/res/${id}.png`)) {
-		s = fs.createReadStream(`test/res/${id}.png`)
-	} else {
-		s = fs.createReadStream(`test/res/${id}.gif`)
-	}
-	return convertImageStream(s, () => {
-		s.pause()
-		s.emit("end")
-	})
 }
 
 test("event2message: body is used when there is no formatted_body", async t => {
@@ -5335,102 +5305,122 @@ test("event2message: table", async t => {
 	)
 })
 
-slow()("event2message: unknown emoji at the end is reuploaded as a sprite sheet", async t => {
-	const messages = await eventToMessage({
-		type: "m.room.message",
-		sender: "@cadence:cadence.moe",
-		content: {
-			msgtype: "m.text",
-			body: "wrong body",
-			format: "org.matrix.custom.html",
-			formatted_body: 'a b <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy\" title=\":ms_robot_grin:\" alt=\":ms_robot_grin:\">'
-		},
-		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
-		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
-	const testResult = {
-		content: messages.messagesToSend[0].content,
-		fileName: messages.messagesToSend[0].pendingFiles[0].name,
-		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
-	}
-	t.deepEqual(testResult, {
-		content: "a b",
-		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALoklEQVR4nM1ZaVBU2RU+LZSIGnAvFUtcRkSk6abpbkDH"
-	})
+test("event2message: unknown emoji at the end is used for sprite sheet", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'a b <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy\" title=\":ms_robot_grin:\" alt=\":ms_robot_grin:\">'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "a b [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FRLMgJGfgTPjIQtvvWZsYjhjy)",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
 })
 
-slow()("event2message: known emoji from an unreachable server at the end is reuploaded as a sprite sheet", async t => {
-	const messages = await eventToMessage({
-		type: "m.room.message",
-		sender: "@cadence:cadence.moe",
-		content: {
-			msgtype: "m.text",
-			body: "wrong body",
-			format: "org.matrix.custom.html",
-			formatted_body: 'a b <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/bZFuuUSEebJYXUMSxuuSuLTa\" title=\":emoji_from_unreachable_server:\" alt=\":emoji_from_unreachable_server:\">'
-		},
-		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
-		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
-	const testResult = {
-		content: messages.messagesToSend[0].content,
-		fileName: messages.messagesToSend[0].pendingFiles[0].name,
-		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
-	}
-	t.deepEqual(testResult, {
-		content: "a b",
-		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAOoUlEQVR4nM1aCXBbx3l+Eu8bN0CAuO+TAHGTFAmAJHgT"
-	})
+test("event2message: known emoji from an unreachable server at the end is used for sprite sheet", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'a b <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/bZFuuUSEebJYXUMSxuuSuLTa\" title=\":emoji_from_unreachable_server:\" alt=\":emoji_from_unreachable_server:\">'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "a b [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FbZFuuUSEebJYXUMSxuuSuLTa)",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
 })
 
-slow()("event2message: known and unknown emojis in the end are reuploaded as a sprite sheet", async t => {
-	const messages = await eventToMessage({
-		type: "m.room.message",
-		sender: "@cadence:cadence.moe",
-		content: {
-			msgtype: "m.text",
-			body: "wrong body",
-			format: "org.matrix.custom.html",
-			formatted_body: 'known unknown: <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC\" title=\":hippo:\" alt=\":hippo:\"> <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/wcouHVjbKJJYajkhJLsyeJAA\" title=\":ms_robot_dress:\" alt=\":ms_robot_dress:\"> and known unknown: <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc\" title=\":hipposcope:\" alt=\":hipposcope:\"> <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HYcztccFIPgevDvoaWNsEtGJ\" title=\":ms_robot_cat:\" alt=\":ms_robot_cat:\">'
-		},
-		event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
-		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
-	const testResult = {
-		content: messages.messagesToSend[0].content,
-		fileName: messages.messagesToSend[0].pendingFiles[0].name,
-		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
-	}
-	t.deepEqual(testResult, {
-		content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://bridge.example.org/download/matrix/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown:",
-		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAGAAAAAwCAYAAADuFn/PAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAT/klEQVR4nOVcC3CVRZbuS2KAIMpDQt5PQkIScm/uvYRX"
-	})
+test("event2message: known and unknown emojis in the end are used for sprite sheet", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: 'known unknown: <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC\" title=\":hippo:\" alt=\":hippo:\"> <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/wcouHVjbKJJYajkhJLsyeJAA\" title=\":ms_robot_dress:\" alt=\":ms_robot_dress:\"> and known unknown: <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc\" title=\":hipposcope:\" alt=\":hipposcope:\"> <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HYcztccFIPgevDvoaWNsEtGJ\" title=\":ms_robot_cat:\" alt=\":ms_robot_cat:\">'
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://bridge.example.org/download/matrix/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown: [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FWbYqNlACRuicynBfdnPYtmvc&e=cadence.moe%2FHYcztccFIPgevDvoaWNsEtGJ)",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
 })
 
-slow()("event2message: all unknown chess emojis are reuploaded as a sprite sheet", async t => {
-	const messages = await eventToMessage({
-		type: "m.room.message",
-		sender: "@cadence:cadence.moe",
-		content: {
-			msgtype: "m.text",
-			body: "testing :chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black::chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black:",
-			format: "org.matrix.custom.html",
-			formatted_body: "testing <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\">"
-		},
-		event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
-		room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-	}, {}, {}, {mxcDownloader: mockGetAndConvertEmoji})
-	const testResult = {
-		content: messages.messagesToSend[0].content,
-		fileName: messages.messagesToSend[0].pendingFiles[0].name,
-		fileContentStart: messages.messagesToSend[0].pendingFiles[0].buffer.subarray(0, 90).toString("base64")
-	}
-	t.deepEqual(testResult, {
-		content: "testing",
-		fileName: "emojis.png",
-		fileContentStart: "iVBORw0KGgoAAAANSUhEUgAAAYAAAABgCAYAAAAU9KWJAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAgAElEQVR4nOx9B3hUVdr/KIpKL2nT0pPpLRNQkdXddV1c"
-	})
+test("event2message: all unknown chess emojis are used for sprite sheet", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "testing :chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black::chess_good_move::chess_incorrect::chess_blund::chess_brilliant_move::chess_blundest::chess_draw_black:",
+				format: "org.matrix.custom.html",
+				formatted_body: "testing <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/lHfmJpzgoNyNtYHdAmBHxXix\" title=\":chess_good_move:\" alt=\":chess_good_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/MtRdXixoKjKKOyHJGWLsWLNU\" title=\":chess_incorrect:\" alt=\":chess_incorrect:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc\" title=\":chess_blund:\" alt=\":chess_blund:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/ikYKbkhGhMERAuPPbsnQzZiX\" title=\":chess_brilliant_move:\" alt=\":chess_brilliant_move:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/AYPpqXzVJvZdzMQJGjioIQBZ\" title=\":chess_blundest:\" alt=\":chess_blundest:\"><img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/UVuzvpVUhqjiueMxYXJiFEAj\" title=\":chess_draw_black:\" alt=\":chess_draw_black:\">"
+			},
+			event_id: "$Me6iE8C8CZyrDEOYYrXKSYRuuh_25Jj9kZaNrf7LKr4",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "testing [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FlHfmJpzgoNyNtYHdAmBHxXix&e=cadence.moe%2FMtRdXixoKjKKOyHJGWLsWLNU&e=cadence.moe%2FHXfFuougamkURPPMflTJRxGc&e=cadence.moe%2FikYKbkhGhMERAuPPbsnQzZiX&e=cadence.moe%2FAYPpqXzVJvZdzMQJGjioIQBZ&e=cadence.moe%2FUVuzvpVUhqjiueMxYXJiFEAj&e=cadence.moe%2FlHfmJpzgoNyNtYHdAmBHxXix&e=cadence.moe%2FMtRdXixoKjKKOyHJGWLsWLNU&e=cadence.moe%2FHXfFuougamkURPPMflTJRxGc&e=cadence.moe%2FikYKbkhGhMERAuPPbsnQzZiX&e=cadence.moe%2FAYPpqXzVJvZdzMQJGjioIQBZ&e=cadence.moe%2FUVuzvpVUhqjiueMxYXJiFEAj)",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
 })

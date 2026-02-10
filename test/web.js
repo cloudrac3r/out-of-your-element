@@ -51,7 +51,7 @@ class Router {
 	/**
 	 * @param {string} method
 	 * @param {string} inputUrl
-	 * @param {{event?: any, params?: any, body?: any, sessionData?: any, getOauth2Token?: any, getClient?: (string) => {user: {getGuilds: () => Promise<DiscordTypes.RESTGetAPICurrentUserGuildsResult>}}, api?: Partial<import("../src/matrix/api")>, snow?: {[k in keyof SnowTransfer]?: Partial<SnowTransfer[k]>}, createRoom?: Partial<import("../src/d2m/actions/create-room")>, createSpace?: Partial<import("../src/d2m/actions/create-space")>, headers?: any}} [options]
+	 * @param {{event?: any, params?: any, body?: any, sessionData?: any, getOauth2Token?: any, getClient?: (string) => {user: {getGuilds: () => Promise<DiscordTypes.RESTGetAPICurrentUserGuildsResult>}}, api?: Partial<import("../src/matrix/api")>, snow?: {[k in keyof SnowTransfer]?: Partial<SnowTransfer[k]>}, createRoom?: Partial<import("../src/d2m/actions/create-room")>, createSpace?: Partial<import("../src/d2m/actions/create-space")>, mxcDownloader?: import("../src/m2d/actions/emoji-sheet")["getAndConvertEmoji"], headers?: any}} [options]
 	 */
 	async test(method, inputUrl, options = {}) {
 		const url = new URL(inputUrl, "http://a")
@@ -83,6 +83,7 @@ class Router {
 				},
 				context: {
 					api: options.api,
+					mxcDownloader: options.mxcDownloader,
 					params: options.params,
 					snow: options.snow,
 					createRoom: options.createRoom,

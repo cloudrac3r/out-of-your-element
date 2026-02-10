@@ -34,5 +34,9 @@ passthrough.select = orm.select
 	console.log("Discord gateway started")
 	sync.require("../src/web/server")
 
+	discord.cloud.once("ready", () => {
+		as.listen()
+	})
+
 	require("../src/stdin")
 })()

@@ -232,9 +232,26 @@ function generatePermittedMediaHash(mxc) {
  * @returns {string | undefined}
  */
 function getPublicUrlForMxc(mxc) {
-	const serverAndMediaID = generatePermittedMediaHash(mxc);
+	const serverAndMediaID = makeMxcPublic(mxc)
 	if(!serverAndMediaID) return undefined
 	return `${reg.ooye.bridge_origin}/download/matrix/${serverAndMediaID}`
+}
+
+/**
+ * @param {string} mxc
+ * @returns {string | undefined} mxc URL with protocol stripped, e.g. "cadence.moe/abcdef1234"
+ */
+function makeMxcPublic(mxc) {
+	assert(hasher, "xxhash is not ready yet")
+	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	if (!mediaParts) return undefined
+
+	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
+	const unsignedHash = hasher.h64(serverAndMediaID)
+	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
+	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
+
+	return serverAndMediaID
 }
 
 /**
@@ -364,7 +381,7 @@ async function setUserPowerCascade(spaceID, mxid, power, api) {
 module.exports.bot = bot
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
-module.exports.generatePermittedMediaHash = generatePermittedMediaHash
+module.exports.makeMxcPublic = makeMxcPublic
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash
 module.exports.MatrixStringBuilder = MatrixStringBuilder

@@ -11,10 +11,18 @@ require("xxhash-wasm")().then(h => hasher = h)
 
 const {sync, as, select} = require("../../passthrough")
 
+/** @type {import("../../m2d/actions/emoji-sheet")} */
+const emojiSheet = sync.require("../../m2d/actions/emoji-sheet")
+/** @type {import("../../m2d/converters/emoji-sheet")} */
+const emojiSheetConverter = sync.require("../../m2d/converters/emoji-sheet")
+
 const schema = {
 	params: z.object({
 		server_name: z.string(),
 		media_id: z.string()
+	}),
+	sheet: z.object({
+		e: z.array(z.string()).or(z.string())
 	})
 }
 
@@ -27,8 +35,16 @@ function getAPI(event) {
 	return event.context.api || sync.require("../../matrix/api")
 }
 
-function verifyMediaHash(serverName, mediaId) {
-	const serverAndMediaID = `${serverName}/${mediaId}`
+/**
+ * @param {H3Event} event
+ * @returns {typeof emojiSheet["getAndConvertEmoji"]}
+ */
+function getMxcDownloader(event) {
+	/* c8 ignore next */
+	return event.context.mxcDownloader || emojiSheet.getAndConvertEmoji
+}
+
+function verifyMediaHash(serverAndMediaID) {
 	const unsignedHash = hasher.h64(serverAndMediaID)
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 
@@ -44,7 +60,7 @@ function verifyMediaHash(serverName, mediaId) {
 as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(async event => {
 	const params = await getValidatedRouterParams(event, schema.params.parse)
 
-	verifyMediaHash(params.server_name, params.media_id)
+	verifyMediaHash(`${params.server_name}/${params.media_id}`)
 	const api = getAPI(event)
 	const res = await api.getMedia(`mxc://${params.server_name}/${params.media_id}`)
 
@@ -57,33 +73,20 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 	return res.body
 }))
 
-const emojiSchema = z.object({
-	'e': z.array(z.string()).or(z.string())
-})
+as.router.get(`/download/sheet`, defineEventHandler(async event => {
+	const query = await getValidatedQuery(event, schema.sheet.parse)
 
-const emojiSheet = sync.require("../../m2d/actions/emoji-sheet")
-const emojiSheetConverter = sync.require("../../m2d/converters/emoji-sheet")
-
-as.router.get(`/emoji/matrix`, defineEventHandler(async event => {
-
-	const query = await getValidatedQuery(event, emojiSchema.parse)
-
+	/** remember that these have no mxc:// protocol in the string for space reasons */
 	let mxcs = query.e
-	if(!Array.isArray(mxcs)) {
+	if (!Array.isArray(mxcs)) {
 		mxcs = [mxcs]
 	}
 
-	for(let mxc of mxcs) {
-		const mediaParts = mxc.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
-		if (!mediaParts) return undefined
-		verifyMediaHash(mediaParts[1], mediaParts[2])
+	for (const serverAndMediaID of mxcs) {
+		verifyMediaHash(serverAndMediaID)
 	}
-	const buffer = await emojiSheetConverter.compositeMatrixEmojis(mxcs, emojiSheet.getAndConvertEmoji)
 
-	const contentType = 'image/png'
-
-	setResponseStatus(event, 200)
-	setResponseHeader(event, "Content-Type", contentType)
-	setResponseHeader(event, "Transfer-Encoding", "chunked")
+	const buffer = await emojiSheetConverter.compositeMatrixEmojis(mxcs.map(s => `mxc://${s}`), getMxcDownloader(event))
+	setResponseHeader(event, "Content-Type", "image/png")
 	return buffer
 }))
