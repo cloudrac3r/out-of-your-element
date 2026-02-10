@@ -112,7 +112,7 @@ async function endPoll(closeMessage) {
 	if (combinedVotes !== totalVotes) { // This means some votes were cast on Matrix. Now that we've corrected the vote totals, we can get the results again and post them to Discord.
 		return {
 			username: "Total results including Matrix votes",
-			avatar_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`,
+			avatar_url: `${reg.ooye.bridge_origin}/download/file/poll-star-avatar.png`,
 			content: messageString,
 			flags: DiscordTypes.MessageFlags.SuppressEmbeds
 		}

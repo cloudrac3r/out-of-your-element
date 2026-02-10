@@ -667,7 +667,7 @@ async function eventToMessage(event, guild, channel, di) {
 		pollMessages.push(pollComponents.getPollComponentsFromDatabase(di.pollEnd.messageID))
 		pollMessages.push({
 			...await pollComponents.getPollEndMessageFromDatabase(channel.id, di.pollEnd.messageID),
-			avatar_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`
+			avatar_url: `${reg.ooye.bridge_origin}/download/file/poll-star-avatar.png`
 		})
 
 	} else {

@@ -12,7 +12,7 @@ const pollComponents = sync.require("../../m2d/converters/poll-components")
 const {reg} = require("../../matrix/read-registration")
 
 /**
- * @param {number} percentc
+ * @param {number} percent
  */
 function barChart(percent) {
 	const width = 12
@@ -69,7 +69,7 @@ async function* _interact({data}, {api}) {
 			embeds: [{
 				author: {
 					name: "Current results including Matrix votes",
-					icon_url: `${reg.ooye.bridge_origin}/discord/poll-star-avatar.png`
+					icon_url: `${reg.ooye.bridge_origin}/download/file/poll-star-avatar.png`
 				},
 				description: messageString
 			}],
