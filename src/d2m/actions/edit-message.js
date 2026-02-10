@@ -30,7 +30,7 @@ async function editMessage(message, guild, row) {
 	if (row && row.speedbump_webhook_id === message.webhook_id) {
 		// Handle the PluralKit public instance
 		if (row.speedbump_id === "466378653216014359") {
-			senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, false)
+			senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
 		}
 	}
 
