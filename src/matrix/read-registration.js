@@ -22,7 +22,7 @@ function checkRegistration(reg) {
 /* c8 ignore next 4 */
 /** @param {import("../types").AppServiceRegistrationConfig} reg */
 function writeRegistration(reg) {
-	fs.writeFileSync(registrationFilePath, JSON.stringify(reg, null, 2))
+	fs.writeFileSync(registrationFilePath, JSON.stringify(reg, null, 2) + "\n")
 }
 
 /**
