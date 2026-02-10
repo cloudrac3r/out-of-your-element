@@ -259,6 +259,7 @@ async function pollToEvent(poll) {
  * @returns {Promise<{$type: string, $sender?: string, [x: string]: any}[]>}
  */
 async function messageToEvent(message, guild, options = {}, di) {
+	message = {...message}
 	const events = []
 
 	/* c8 ignore next 7 */
@@ -325,8 +326,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 		let content = message.content
 		if (content) content = `\n${content}`
 		else if ((message.flags || 0) & DiscordTypes.MessageFlags.Loading) content = " — interaction loading..."
-		content = `> ↪️ <@${interaction.user.id}> used \`/${interaction.name}\`${content}`
-		message = {...message, content} // editToChanges reuses the object so we can't mutate it. have to clone it
+		message.content = `> ↪️ <@${interaction.user.id}> used \`/${interaction.name}\`${content}`
 	}
 
 	/**
