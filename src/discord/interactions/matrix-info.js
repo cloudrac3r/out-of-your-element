@@ -20,7 +20,7 @@ const webGuild = sync.require("../../web/routes/guild")
  */
 async function _interact({guild_id, data}, {api}) {
 	const message = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
-		.select("source", "reference_channel_id", "room_id", "event_id").where({message_id: data.target_id, part: 0}).get()
+		.select("source", "reference_channel_id", "room_id", "event_id").where({message_id: data.target_id}).and("ORDER BY part").get()
 
 	if (!message) {
 		return {
