@@ -184,17 +184,21 @@ function defineEchoHandler() {
 			}
 		})
 
-		const mandatoryIntentFlags = DiscordTypes.ApplicationFlags.GatewayMessageContent | DiscordTypes.ApplicationFlags.GatewayMessageContentLimited
-		if (!(client.flags & mandatoryIntentFlags)) {
+		const intentFlagPossibilities = [
+			DiscordTypes.ApplicationFlags.GatewayMessageContent | DiscordTypes.ApplicationFlags.GatewayPresence,
+			DiscordTypes.ApplicationFlags.GatewayMessageContentLimited | DiscordTypes.ApplicationFlags.GatewayPresenceLimited
+		]
+		const intentFlagMask = intentFlagPossibilities.reduce((a, c) => a | c, 0)
+		if (!intentFlagPossibilities.includes(client.flags & intentFlagMask)) {
 			console.log(`On that same page, scroll down to Privileged Gateway Intents and enable all switches.`)
 			await prompt({
 				type: "invisible",
 				name: "intents",
 				message: "Press Enter when you've enabled them",
-				validate: async token => {
+				validate: async () => {
 					process.stdout.write(magenta("checking, please wait..."))
 					client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
-					if (client.flags & mandatoryIntentFlags) {
+					if (intentFlagPossibilities.includes(client.flags & intentFlagMask)) {
 						return true
 					} else {
 						return "Switches have not been enabled yet"
@@ -220,7 +224,7 @@ function defineEchoHandler() {
 			type: "invisible",
 			name: "description",
 			message: "Press Enter to acknowledge",
-			validate: async token => {
+			validate: async () => {
 				process.stdout.write(magenta("checking, please wait..."))
 				client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
 				if (client.description?.match(/out.of.your.element/i)) {
@@ -237,7 +241,8 @@ function defineEchoHandler() {
 		const clientSecretResponse = await prompt({
 			type: "input",
 			name: "discord_client_secret",
-			message: "Client secret"
+			message: "Client secret",
+			validate: secret => !!secret
 		})
 
 		const expectedUri = `${bridgeOriginResponse.bridge_origin}/oauth`
@@ -247,7 +252,7 @@ function defineEchoHandler() {
 				type: "invisible",
 				name: "redirect_uri",
 				message: "Press Enter when you've added it",
-				validate: async token => {
+				validate: async () => {
 					process.stdout.write(magenta("checking, please wait..."))
 					client = await snow.requestHandler.request(`/applications/@me`, {}, "get", "json")
 					if (client.redirect_uris.includes(expectedUri)) {
