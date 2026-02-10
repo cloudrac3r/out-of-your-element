@@ -29,6 +29,9 @@ const DiscordClient = require("../src/d2m/discord-client")
 const discord = new DiscordClient(reg.ooye.discord_token, "half")
 passthrough.discord = discord
 
+const {as} = require("../src/matrix/appservice")
+passthrough.as = as
+
 const orm = sync.require("../src/db/orm")
 passthrough.from = orm.from
 passthrough.select = orm.select
@@ -69,7 +72,7 @@ async function event(event) {
 				backfill: true,
 				...message
 			}
-			await eventDispatcher.onMessageCreate(discord, simulatedGatewayDispatchData)
+			await eventDispatcher.MESSAGE_CREATE(discord, simulatedGatewayDispatchData)
 			preparedInsert.run(channelID, message.id)
 		}
 		last = messages.at(-1)?.id

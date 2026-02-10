@@ -15,75 +15,77 @@ const ping = sync.require("./interactions/ping.js")
 
 // User must have EVERY permission in default_member_permissions to be able to use the command
 
-discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
-	name: "Matrix info",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.Message,
-}, {
-	name: "Permissions",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.Message,
-	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.KickMembers | DiscordTypes.PermissionFlagsBits.ManageRoles)
-}, {
-	name: "Responses",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.Message
-}, {
-	name: "invite",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.ChatInput,
-	description: "Invite a Matrix user to this Discord server",
-	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.CreateInstantInvite),
-	options: [
-		{
-			type: DiscordTypes.ApplicationCommandOptionType.String,
-			description: "The Matrix user to invite, e.g. @username:example.org",
-			name: "user"
-		}
-	],
-}, {
-	name: "ping",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.ChatInput,
-	description: "Ping a Matrix user.",
-	options: [
-		{
-			type: DiscordTypes.ApplicationCommandOptionType.String,
-			description: "Display name or ID of the Matrix user",
-			name: "user",
-			autocomplete: true,
-			required: true
-		}
-	]
-}, {
-	name: "privacy",
-	contexts: [DiscordTypes.InteractionContextType.Guild],
-	type: DiscordTypes.ApplicationCommandType.ChatInput,
-	description: "Change whether Matrix users can join through direct invites, links, or the public directory.",
-	default_member_permissions: String(DiscordTypes.PermissionFlagsBits.ManageGuild),
-	options: [
-		{
-			type: DiscordTypes.ApplicationCommandOptionType.String,
-			description: "Check or set the new privacy level",
-			name: "level",
-			choices: [{
-				name: "❓️ Check the current privacy level and get more information.",
-				value: "info"
-			}, {
-				name: "🤝 Only allow joining with a direct in-app invite from another user. No shareable invite links.",
-				value: "invite"
-			}, {
-				name: "🔗 Matrix links can be created and shared like Discord's invite links. In-app invites still work.",
-				value: "link",
-			}, {
-				name: "🌏️ Publicly visible in the Matrix directory, like Server Discovery. Invites and links still work.",
-				value: "directory"
-			}]
-		}
-	]
-}]).catch(e => {
-	console.error(e)
-})
+function registerInteractions() {
+	discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
+		name: "Matrix info",
+		contexts: [DiscordTypes.InteractionContextType.Guild],
+		type: DiscordTypes.ApplicationCommandType.Message,
+	}, {
+		name: "Permissions",
+		contexts: [DiscordTypes.InteractionContextType.Guild],
+		type: DiscordTypes.ApplicationCommandType.Message,
+		default_member_permissions: String(DiscordTypes.PermissionFlagsBits.KickMembers | DiscordTypes.PermissionFlagsBits.ManageRoles)
+	}, {
+		name: "Responses",
+		contexts: [DiscordTypes.InteractionContextType.Guild],
+		type: DiscordTypes.ApplicationCommandType.Message
+	}, {
+		name: "invite",
+		contexts: [DiscordTypes.InteractionContextType.Guild],
+		type: DiscordTypes.ApplicationCommandType.ChatInput,
+		description: "Invite a Matrix user to this Discord server",
+		default_member_permissions: String(DiscordTypes.PermissionFlagsBits.CreateInstantInvite),
+		options: [
+			{
+				type: DiscordTypes.ApplicationCommandOptionType.String,
+				description: "The Matrix user to invite, e.g. @username:example.org",
+				name: "user"
+			}
+		],
+	}, {
+		name: "ping",
+		contexts: [DiscordTypes.InteractionContextType.Guild],
+		type: DiscordTypes.ApplicationCommandType.ChatInput,
+		description: "Ping a Matrix user.",
+		options: [
+			{
+				type: DiscordTypes.ApplicationCommandOptionType.String,
+				description: "Display name or ID of the Matrix user",
+				name: "user",
+				autocomplete: true,
+				required: true
+			}
+		]
+	}, {
+		name: "privacy",
+		contexts: [DiscordTypes.InteractionContextType.Guild],
+		type: DiscordTypes.ApplicationCommandType.ChatInput,
+		description: "Change whether Matrix users can join through direct invites, links, or the public directory.",
+		default_member_permissions: String(DiscordTypes.PermissionFlagsBits.ManageGuild),
+		options: [
+			{
+				type: DiscordTypes.ApplicationCommandOptionType.String,
+				description: "Check or set the new privacy level",
+				name: "level",
+				choices: [{
+					name: "❓️ Check the current privacy level and get more information.",
+					value: "info"
+				}, {
+					name: "🤝 Only allow joining with a direct in-app invite from another user. No shareable invite links.",
+					value: "invite"
+				}, {
+					name: "🔗 Matrix links can be created and shared like Discord's invite links. In-app invites still work.",
+					value: "link",
+				}, {
+					name: "🌏️ Publicly visible in the Matrix directory, like Server Discovery. Invites and links still work.",
+					value: "directory"
+				}]
+			}
+		]
+	}]).catch(e => {
+		console.error(e)
+	})
+}
 
 /** @param {DiscordTypes.APIInteraction} interaction */
 async function dispatchInteraction(interaction) {
@@ -147,3 +149,4 @@ async function dispatchInteraction(interaction) {
 }
 
 module.exports.dispatchInteraction = dispatchInteraction
+module.exports.registerInteractions = registerInteractions

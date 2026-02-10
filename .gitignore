@@ -3,6 +3,7 @@ config.js
 registration.yaml
 ooye.db*
 events.db*
+backfill.db*
 
 # Automatically generated
 node_modules

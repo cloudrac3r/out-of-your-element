@@ -47,6 +47,7 @@ const utils = {
 
 			if (listen === "full") {
 				try {
+					interactions.registerInteractions()
 					await eventDispatcher.checkMissedExpressions(message.d)
 					await eventDispatcher.checkMissedPins(client, message.d)
 					await eventDispatcher.checkMissedMessages(client, message.d)
