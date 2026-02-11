@@ -146,10 +146,14 @@ async function editToChanges(message, guild, api) {
 	}
 
 	// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.
-	const messageTooOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 30 * 1000 // older than 30 seconds ago
+	const messageQuiteOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 30 * 1000 // older than 30 seconds ago
+	// Don't send anything new at all if it's been longer since the message was sent. Detached messages are just inappropriate.
+	const messageReallyOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 2 * 60 * 1000 // older than 2 minutes ago
 	// Don't post new generated embeds for messages if the setting was disabled.
 	const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
-	if ((messageTooOld || !embedsEnabled) && !message.author.bot) {
+	if (messageReallyOld) {
+		eventsToSend = [] // Only allow edits to change and delete, but not send new.
+	} else if ((messageQuiteOld || !embedsEnabled) && !message.author.bot) {
 		eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice") // Only send events that aren't embeds.
 	}
 
