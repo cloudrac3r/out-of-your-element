@@ -185,8 +185,8 @@ function defineEchoHandler() {
 		})
 
 		const intentFlagPossibilities = [
-			DiscordTypes.ApplicationFlags.GatewayMessageContent | DiscordTypes.ApplicationFlags.GatewayPresence,
-			DiscordTypes.ApplicationFlags.GatewayMessageContentLimited | DiscordTypes.ApplicationFlags.GatewayPresenceLimited
+			DiscordTypes.ApplicationFlags.GatewayMessageContent | DiscordTypes.ApplicationFlags.GatewayPresence | DiscordTypes.ApplicationFlags.GatewayGuildMembers,
+			DiscordTypes.ApplicationFlags.GatewayMessageContentLimited | DiscordTypes.ApplicationFlags.GatewayPresenceLimited | DiscordTypes.ApplicationFlags.GatewayGuildMembersLimited
 		]
 		const intentFlagMask = intentFlagPossibilities.reduce((a, c) => a | c, 0)
 		if (!intentFlagPossibilities.includes(client.flags & intentFlagMask)) {
