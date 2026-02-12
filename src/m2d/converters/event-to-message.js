@@ -69,7 +69,7 @@ turndownService.escape = function (string) {
 	return string.replace(/\s+|\S+/g, part => { // match chunks of spaces or non-spaces
 		if (part.match(/\s/)) return part // don't process spaces
 
-		if (part.match(/^https?:\/\//)) {
+		if (part.match(/^<?https?:\/\//)) {
 			return part
 		} else {
 			return markdownEscapes.reduce(function (accumulator, escape) {

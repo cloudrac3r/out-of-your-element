@@ -273,6 +273,69 @@ test("event2message: markdown in link text does not attempt to be escaped becaus
 	)
 })
 
+test("event2message: markdown in link url does not attempt to be escaped (plaintext body, not suppressed)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "the wikimedia commons freaks are gonna love this one https://commons.wikimedia.org/wiki/File:Car_covered_in_traffic_cones.jpg"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "the wikimedia commons freaks are gonna love this one https://commons.wikimedia.org/wiki/File:Car_covered_in_traffic_cones.jpg",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: markdown in link url does not attempt to be escaped (plaintext body, link suppressed)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "the wikimedia commons freaks are gonna love this one https://commons.wikimedia.org/wiki/File:Car_covered_in_traffic_cones.jpg"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message"
+		}, {
+			id: "123",
+			roles: [{
+				id: "123",
+				name: "@everyone",
+				permissions: DiscordTypes.PermissionFlagsBits.SendMessages
+			}]
+		}, {}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "the wikimedia commons freaks are gonna love this one <https://commons.wikimedia.org/wiki/File:Car_covered_in_traffic_cones.jpg>",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: embeds are suppressed if the guild does not have embed links permission (formatted body)", async t => {
 	t.deepEqual(
 		await eventToMessage({
