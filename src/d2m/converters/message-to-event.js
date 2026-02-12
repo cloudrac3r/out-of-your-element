@@ -259,7 +259,7 @@ async function pollToEvent(poll) {
  * @returns {Promise<{$type: string, $sender?: string, [x: string]: any}[]>}
  */
 async function messageToEvent(message, guild, options = {}, di) {
-	message = {...message}
+	message = structuredClone(message)
 	const events = []
 
 	/* c8 ignore next 7 */
