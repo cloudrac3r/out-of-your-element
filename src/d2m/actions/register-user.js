@@ -182,6 +182,10 @@ function memberToPowerLevel(user, member, guild, channel) {
 	const everyoneCanMentionEveryone = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
 	const userCanMentionEveryone = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
 	if (!everyoneCanMentionEveryone && userCanMentionEveryone) return 20
+	/* PL 10 = Create Polls for technical reasons. */
+	const everyoneCanCreatePolls = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendPolls)
+	const userCanCreatePolls = dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.SendPolls)
+	if (!everyoneCanCreatePolls && userCanCreatePolls) return 10
 	return 0
 }
 

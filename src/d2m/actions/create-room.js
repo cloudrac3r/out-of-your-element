@@ -124,7 +124,11 @@ async function channelToKState(channel, guild, di) {
 
 	const everyonePermissions = dUtils.getPermissions(guild.id, [], guild.roles, undefined, channel.permission_overwrites)
 	const everyoneCanSend = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendMessages)
-	const everyoneCanMentionEveryone = dUtils.hasAllPermissions(everyonePermissions, ["MentionEveryone"])
+	const everyoneCanMentionEveryone = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.MentionEveryone)
+
+	const pollStartPowerLevel = {}
+	const everyoneCanCreatePolls = dUtils.hasPermission(everyonePermissions, DiscordTypes.PermissionFlagsBits.SendPolls)
+	if (everyoneCanSend && !everyoneCanCreatePolls) pollStartPowerLevel["org.matrix.msc3381.poll.start"] = 10
 
 	const spacePowerDetails = await mUtils.getEffectivePower(guildSpaceID, [], di.api)
 	spacePowerDetails.powerLevels.users ??= {}
@@ -159,7 +163,8 @@ async function channelToKState(channel, guild, di) {
 			events_default: everyoneCanSend ? 0 : READ_ONLY_ROOM_EVENTS_DEFAULT_POWER,
 			events: {
 				"m.reaction": 0,
-				"m.room.redaction": 0 // only affects redactions of own events, required to be able to un-react
+				"m.room.redaction": 0, // only affects redactions of own events, required to be able to un-react
+				...pollStartPowerLevel
 			},
 			notifications: {
 				room: everyoneCanMentionEveryone ? 0 : 20

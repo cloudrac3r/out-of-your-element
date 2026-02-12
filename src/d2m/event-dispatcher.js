@@ -198,6 +198,21 @@ module.exports = {
 
 	/**
 	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayGuildRoleUpdateDispatchData} data
+	 */
+	async GUILD_ROLE_UPDATE(client, data) {
+		const guild = client.guilds.get(data.guild_id)
+		if (!guild) return
+		const spaceID = select("guild_space", "space_id", {guild_id: data.guild_id}).pluck().get()
+		if (!spaceID) return
+
+		if (data.role.id === data.guild_id) { // @everyone role changed - find a way to do this more efficiently in the future to handle many role updates
+			await createSpace.syncSpaceFully(guild)
+		}
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
 	 * @param {DiscordTypes.GatewayChannelUpdateDispatchData} channelOrThread
 	 */
 	async CHANNEL_UPDATE(client, channelOrThread) {
