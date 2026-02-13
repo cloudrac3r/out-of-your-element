@@ -1,0 +1,5 @@
+BEGIN TRANSACTION;
+
+ALTER TABLE member_cache ADD COLUMN missing_profile INTEGER;
+
+COMMIT;

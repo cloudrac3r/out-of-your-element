@@ -90,6 +90,7 @@ export type Models = {
 		displayname: string | null
 		avatar_url: string | null,
 		power_level: number
+		missing_profile: number | null
 	}
 
 	member_power: {
@@ -146,7 +147,7 @@ export type Models = {
 		question_text: string
 		is_closed: number
 	}
-	
+
 	poll_option: {
 		message_id: string
 		matrix_option: string

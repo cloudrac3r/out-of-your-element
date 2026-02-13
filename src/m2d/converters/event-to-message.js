@@ -290,8 +290,8 @@ function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink
  * @returns {Promise<{displayname?: string?, avatar_url?: string?}>}
  */
 async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
-	const row = select("member_cache", ["displayname", "avatar_url"], {room_id: roomID, mxid}).get()
-	if (row) return row
+	const row = select("member_cache", ["displayname", "avatar_url", "missing_profile"], {room_id: roomID, mxid}).get()
+	if (row && !row.missing_profile) return row
 	return api.getStateEvent(roomID, "m.room.member", mxid).then(event => {
 		const room = select("channel_room", "room_id", {room_id: roomID}).get()
 		if (room) {
@@ -299,7 +299,7 @@ async function getMemberFromCacheOrHomeserver(roomID, mxid, api) {
 			// the cache will be kept in sync by the `m.room.member` event listener
 			const displayname = event?.displayname || null
 			const avatar_url = event?.avatar_url || null
-			db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?").run(
+			db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url) VALUES (?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?, missing_profile = NULL").run(
 				roomID, mxid,
 				displayname, avatar_url,
 				displayname, avatar_url

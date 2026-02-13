@@ -282,11 +282,11 @@ as.router.post("/api/unlink-space", defineEventHandler(async event => {
 		await utils.setUserPower(spaceID, utils.bot, 0, api)
 		await api.leaveRoom(spaceID)
 		db.prepare("DELETE FROM guild_space WHERE guild_id = ? AND space_id = ?").run(guild_id, spaceID)
+		db.prepare("DELETE FROM invite WHERE room_id = ?").run(spaceID)
 	}
 
 	// Mark as not considered for bridging
 	db.prepare("DELETE FROM guild_active WHERE guild_id = ?").run(guild_id)
-	db.prepare("DELETE FROM invite WHERE room_id = ?").run(spaceID)
 	await snow.user.leaveGuild(guild_id)
 
 	setResponseHeader(event, "HX-Redirect", "/")

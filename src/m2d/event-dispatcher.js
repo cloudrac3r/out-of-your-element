@@ -371,7 +371,18 @@ sync.addTemporaryListener(as, "type:m.space.child", guard("m.space.child",
  */
 async event => {
 	if (Array.isArray(event.content.via) && event.content.via.length) { // space child is being added
-		await api.joinRoom(event.state_key).catch(() => {}) // try to join if able, it's okay if it doesn't want, bot will still respond to invites
+		try {
+			// try to join if able, it's okay if it doesn't want, bot will still respond to invites
+			await api.joinRoom(event.state_key)
+			// if autojoined a child space, store it in invite (otherwise the child space will be impossible to use with self-service in the future)
+			const hierarchy = await api.getHierarchy(event.state_key, {limit: 1})
+			const roomProperties = hierarchy.rooms?.[0]
+			if (roomProperties?.room_id === event.state_key && roomProperties.room_type === "m.space" && roomProperties.name) {
+				db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)")
+					.run(event.sender, event.state_key, roomProperties.room_type, roomProperties.name, roomProperties.topic, roomProperties.avatar_url)
+				await updateMemberCachePowerLevels(event.state_key) // store privileged users in member_cache so they are also allowed to perform self-service
+			}
+		} catch (e) {}
 	}
 }))
 
@@ -404,21 +415,23 @@ async event => {
 		}
 		if (!inviteRoomState?.name) return await api.leaveRoomWithReason(event.room_id, `Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite.`)
 		await api.joinRoom(event.room_id)
-		db.prepare("INSERT OR IGNORE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, inviteRoomState.type, inviteRoomState.name, inviteRoomState.topic, inviteRoomState.avatar)
+		db.prepare("REPLACE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, inviteRoomState.type, inviteRoomState.name, inviteRoomState.topic, inviteRoomState.avatar)
 		if (inviteRoomState.avatar) utils.getPublicUrlForMxc(inviteRoomState.avatar) // make sure it's available in the media_proxy allowed URLs
+		await updateMemberCachePowerLevels(event.room_id) // store privileged users in member_cache so they are also allowed to perform self-service
 	}
-
-	if (utils.eventSenderIsFromDiscord(event.state_key)) return
 
 	if (event.content.membership === "leave" || event.content.membership === "ban") {
 		// Member is gone
 		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
 
-		// Unregister room's use as a direct chat if the bot itself left
+		// Unregister room's use as a direct chat and/or an invite target if the bot itself left
 		if (event.state_key === utils.bot) {
 			db.prepare("DELETE FROM direct WHERE room_id = ?").run(event.room_id)
+			db.prepare("DELETE FROM invite WHERE room_id = ?").run(event.room_id)
 		}
 	}
+
+	if (utils.eventSenderIsFromDiscord(event.state_key)) return
 
 	const exists = select("channel_room", "room_id", {room_id: event.room_id}) ?? select("guild_space", "space_id", {space_id: event.room_id})
 	if (!exists) return // don't cache members in unbridged rooms
@@ -428,7 +441,7 @@ async event => {
 	if (memberPower === Infinity) memberPower = tombstone // database storage compatibility
 	const displayname = event.content.displayname || null
 	const avatar_url = event.content.avatar_url
-	db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?, power_level = ?").run(
+	db.prepare("INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET displayname = ?, avatar_url = ?, power_level = ?, missing_profile = NULL").run(
 		event.room_id, event.state_key,
 		displayname, avatar_url, memberPower,
 		displayname, avatar_url, memberPower
@@ -441,15 +454,24 @@ sync.addTemporaryListener(as, "type:m.room.power_levels", guard("m.room.power_le
  */
 async event => {
 	if (event.state_key !== "") return
-	const existingPower = select("member_cache", "mxid", {room_id: event.room_id}).pluck().all()
-	const {allCreators} = await utils.getEffectivePower(event.room_id, [], api)
-	const newPower = event.content.users || {}
-	for (const mxid of existingPower) {
-		if (!allCreators.includes(mxid)) {
-			db.prepare("UPDATE member_cache SET power_level = ? WHERE room_id = ? AND mxid = ?").run(newPower[mxid] || 0, event.room_id, mxid)
-		}
-	}
+	await updateMemberCachePowerLevels(event.room_id)
 }))
+
+/**
+ * @param {string} roomID
+ */
+async function updateMemberCachePowerLevels(roomID) {
+	const existingPower = select("member_cache", "mxid", {room_id: roomID}).pluck().all()
+	const {powerLevels, allCreators, tombstone} = await utils.getEffectivePower(roomID, [], api)
+	const newPower = powerLevels.users || {}
+	const newPowerUsers = Object.keys(newPower)
+	const relevantUsers = existingPower.concat(newPowerUsers).concat(allCreators)
+	for (const mxid of [...new Set(relevantUsers)]) {
+		const level = allCreators.includes(mxid) ? tombstone : newPower[mxid] ?? powerLevels.users_default ?? 0
+		db.prepare("INSERT INTO member_cache (room_id, mxid, power_level, missing_profile) VALUES (?, ?, ?, 1) ON CONFLICT DO UPDATE SET power_level = ?")
+			.run(roomID, mxid, level, level)
+	}
+}
 
 sync.addTemporaryListener(as, "type:m.room.tombstone", guard("m.room.tombstone",
 /**
