@@ -248,6 +248,20 @@ async function pollToEvent(poll) {
 }
 
 /**
+ * @param {DiscordTypes.APIMessageInteraction} interaction
+ * @param {boolean} isThinkingInteraction
+ */
+function getFormattedInteraction(interaction, isThinkingInteraction) {
+	const mxid = select("sim", "mxid", {user_id: interaction.user.id}).pluck().get()
+	const username = interaction.member?.nick || interaction.user.global_name || interaction.user.username
+	const thinkingText = isThinkingInteraction ? " — interaction loading..." : ""
+	return {
+		body: `↪️ ${username} used \`/${interaction.name}\`${thinkingText}`,
+		html: `<blockquote><sub>↪️ ${mxid ? tag`<a href="https://matrix.to/#/${mxid}">${username}</a>` : username} used <code>/${interaction.name}</code>${thinkingText}</sub></blockquote>`
+	}
+}
+
+/**
  * @param {DiscordTypes.APIMessage} message
  * @param {DiscordTypes.APIGuild} guild
  * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean, alwaysReturnFormattedBody?: boolean, scanTextForMentions?: boolean}} options default values:
@@ -321,13 +335,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	const interaction = message.interaction_metadata || message.interaction
-	if (message.type === DiscordTypes.MessageType.ChatInputCommand && interaction && "name" in interaction) {
-		// Commands are sent by the responding bot. Need to attach the metadata of the person using the command at the top.
-		let content = message.content
-		if (content) content = `\n${content}`
-		else if ((message.flags || 0) & DiscordTypes.MessageFlags.Loading) content = " — interaction loading..."
-		message.content = `> ↪️ <@${interaction.user.id}> used \`/${interaction.name}\`${content}`
-	}
+	const isInteraction = message.type === DiscordTypes.MessageType.ChatInputCommand && !!interaction && "name" in interaction
+	const isThinkingInteraction = isInteraction && !!((message.flags || 0) & DiscordTypes.MessageFlags.Loading)
 
 	/**
 	   @type {{room?: boolean, user_ids?: string[]}}
@@ -621,6 +630,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		}
 
+		if (isInteraction && !isThinkingInteraction && events.length === 0) {
+			const formattedInteraction = getFormattedInteraction(interaction, false)
+			body = `${formattedInteraction.body}\n${body}`
+			html = `${formattedInteraction.html}${html}`
+		}
+
 		const newTextMessageEvent = {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -712,8 +727,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 		events.push(...forwardedEvents)
 	}
 
+	if (isThinkingInteraction) {
+		const formattedInteraction = getFormattedInteraction(interaction, true)
+		await addTextEvent(formattedInteraction.body, formattedInteraction.html, "m.notice")
+	}
+
 	// Then text content
-	if (message.content && !isOnlyKlipyGIF) {
+	if (message.content && !isOnlyKlipyGIF && !isThinkingInteraction) {
 		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
 		let content = message.content
 		if (options.scanTextForMentions !== false) {
