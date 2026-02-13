@@ -152,7 +152,8 @@ INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/1099031887500034088/1112476845502365786/voice-message.ogg', 'mxc://cadence.moe/MRRPDggXQMYkrUjTpxQbmcxB'),
 ('https://cdn.discordapp.com/attachments/122155380120748034/1174514575220158545/the.yml', 'mxc://cadence.moe/HnQIYQmmlIKwOQsbFsIGpzPP'),
 ('https://cdn.discordapp.com/attachments/112760669178241024/1296237494987133070/100km.gif', 'mxc://cadence.moe/qDAotmebTfEIfsAIVCEZptLh'),
-('https://cdn.discordapp.com/attachments/123/456/my_enemies.txt', 'mxc://cadence.moe/y89EOTRp2lbeOkgdsEleGOge');
+('https://cdn.discordapp.com/attachments/123/456/my_enemies.txt', 'mxc://cadence.moe/y89EOTRp2lbeOkgdsEleGOge'),
+('https://cdn.discordapp.com/emojis/1254940125948022915.webp', 'mxc://cadence.moe/bvVJFgOIyNcAknKCbmaHDktG');
 
 INSERT INTO emoji (emoji_id, name, animated, mxc_url) VALUES
 ('230201364309868544', 'hippo', 0, 'mxc://cadence.moe/qWmbXeRspZRLPcjseyLmeyXC'),

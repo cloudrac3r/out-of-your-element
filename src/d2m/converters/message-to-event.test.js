@@ -1171,6 +1171,18 @@ test("message2event: emoji that hasn't been registered yet", async t => {
 	}])
 })
 
+test("message2event: emojihax", async t => {
+	const events = await messageToEvent(data.message.emojihax, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "I only violate the don't modify our console part of terms of service :troll:",
+		format: "org.matrix.custom.html",
+		formatted_body: `I only violate the don't modify our console part of terms of service <img data-mx-emoticon height="32" src="mxc://cadence.moe/bvVJFgOIyNcAknKCbmaHDktG" title=":troll:" alt=":troll:">`
+	}])
+})
+
 test("message2event: emoji triple long name", async t => {
 	const events = await messageToEvent(data.message.emoji_triple_long_name, data.guild.general, {})
 	t.deepEqual(events, [{

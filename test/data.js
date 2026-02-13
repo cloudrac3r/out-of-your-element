@@ -3219,6 +3219,37 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		emojihax: {
+			id: "1126733830494093453",
+			type: 0,
+			content: "I only violate the don't modify our console part of terms of service [troll~1](https://cdn.discordapp.com/emojis/1254940125948022915.webp?size=48&name=troll%7E1&lossless=true)",
+			channel_id: "112760669178241024",
+			author: {
+				id: "111604486476181504",
+				username: "kyuugryphon",
+				avatar: "e4ce31267ca524d19be80e684d4cafa1",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "KyuuGryphon",
+				avatar_decoration: null,
+				display_name: "KyuuGryphon",
+				banner_color: null
+			},
+			attachments: [],
+			embeds: [],
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2023-07-07T04:37:58.892000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
+		},
 		emoji_triple_long_name: {
 			id: "1156394116540805170",
 			type: 0,

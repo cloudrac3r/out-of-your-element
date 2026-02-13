@@ -757,6 +757,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		}
 
+		// Scan the content for emojihax and replace them with real emojis
+		content = content.replaceAll(/\[([a-zA-Z0-9_-]{2,32})(?:~[0-9]+)?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/([0-9]+)\.[^ \n)`]+\)/g, (_, name, id) => {
+			return `<:${name}:${id}>`
+		})
+
 		const {body, html} = await transformContent(content)
 		await addTextEvent(body, html, msgtype)
 	}
