@@ -11,6 +11,8 @@ const {discord, db, as, sync, select, from} = require("../../passthrough")
 const auth = sync.require("../auth")
 /** @type {import("../../matrix/utils")}*/
 const utils = sync.require("../../matrix/utils")
+/** @type {import("./guild")}*/
+const guildRoute = sync.require("./guild")
 
 /**
  * @param {H3Event} event
@@ -107,12 +109,14 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	// Check space ID
 	if (!session.data.mxid) throw createError({status: 403, message: "Forbidden", data: "Can't link with your Matrix space if you aren't logged in to Matrix"})
 	const spaceID = parsedBody.space_id
-	const inviteRow = select("invite", ["mxid", "type"], {mxid: session.data.mxid, room_id: spaceID}).get()
-	if (!inviteRow || inviteRow.type !== "m.space") throw createError({status: 403, message: "Forbidden", data: "You personally must invite OOYE to that space on Matrix"})
 
 	// Check they are not already bridged
 	const existing = select("guild_space", "guild_id", {}, "WHERE guild_id = ? OR space_id = ?").get(guildID, spaceID)
 	if (existing) throw createError({status: 400, message: "Bad Request", data: `Guild ID ${guildID} or space ID ${spaceID} are already bridged and cannot be reused`})
+
+	// Check space ID is a valid invite target
+	const inviteRow = guildRoute.getInviteTargetSpaces(session.data.mxid).find(s => s.room_id === spaceID)
+	if (!inviteRow) throw createError({status: 403, message: "Forbidden", data: "You personally must invite OOYE to that space on Matrix"})
 
 	const inviteServer = inviteRow.mxid.match(/:(.*)/)?.[1]
 	assert(inviteServer)

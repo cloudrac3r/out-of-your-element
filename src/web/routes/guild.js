@@ -133,6 +133,20 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	}
 }
 
+/**
+ * @param {string} mxid
+ */
+function getInviteTargetSpaces(mxid) {
+	/** @type {{room_id: string, mxid: string, type: string, name: string, topic: string?, avatar: string?}[]} */
+	const spaces =
+		// invited spaces
+		db.prepare("SELECT room_id, invite.mxid, type, name, topic, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id WHERE mxid = ? AND space_id IS NULL AND type = 'm.space'").all(mxid)
+		// moderated spaces
+		.concat(db.prepare("SELECT room_id, invite.mxid, type, name, topic, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id INNER JOIN member_cache USING (room_id) WHERE member_cache.mxid = ? AND power_level >= 50 AND space_id IS NULL AND type = 'm.space'").all(mxid))
+	const seen = new Set(spaces.map(s => s.room_id))
+	return spaces.filter(s => seen.delete(s.room_id))
+}
+
 as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
 	const session = await auth.useSession(event)
@@ -148,13 +162,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 
 	// Self-service guild that hasn't been linked yet - needs a special page encouraging the link flow
 	if (!row.space_id && row.autocreate === 0) {
-		let spaces =
-			// invited spaces
-			db.prepare("SELECT room_id, type, name, topic, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id WHERE mxid = ? AND space_id IS NULL AND type = 'm.space'").all(session.data.mxid)
-			// moderated spaces
-			.concat(db.prepare("SELECT room_id, type, name, topic, avatar FROM invite LEFT JOIN guild_space ON invite.room_id = guild_space.space_id INNER JOIN member_cache USING (room_id) WHERE member_cache.mxid = ? AND power_level >= 50 AND space_id IS NULL AND type = 'm.space'").all(session.data.mxid))
-		const seen = new Set(spaces.map(s => s.room_id))
-		spaces = spaces.filter(s => seen.delete(s.room_id))
+		const spaces = session.data.mxid ? getInviteTargetSpaces(session.data.mxid) : []
 		return pugSync.render(event, "guild_not_linked.pug", {guild, guild_id, spaces})
 	}
 
@@ -257,3 +265,4 @@ as.router.post("/api/invite", defineEventHandler(async event => {
 }))
 
 module.exports._getPosition = getPosition
+module.exports.getInviteTargetSpaces = getInviteTargetSpaces

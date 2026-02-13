@@ -844,7 +844,6 @@ async function eventToMessage(event, guild, channel, di) {
 				// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
 				// But I should not count it if it's between block elements.
 				input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
-					// console.error(beforeContext, beforeTag, afterContext, afterTag)
 					if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
 						return "<br>"
 					}
