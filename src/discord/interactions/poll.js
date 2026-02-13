@@ -43,7 +43,8 @@ async function* _interact({data, message, member, user}, {api}) {
 			default: alreadySelected.includes(option.matrix_option)
 		}))
 		const checkboxGroupExtras = maxSelections === 1 && options.length > 1 ? {} : {
-			type: 22, // DiscordTypes.ComponentType.CheckboxGroup
+			/** @type {DiscordTypes.ComponentType.CheckboxGroup} */
+			type: DiscordTypes.ComponentType.CheckboxGroup,
 			min_values: 0,
 			max_values: maxSelections
 		}
@@ -58,20 +59,12 @@ async function* _interact({data, message, member, user}, {api}) {
 				}, {
 					type: DiscordTypes.ComponentType.Label,
 					label: pollRow.question_text,
-					component: /* {
-						type: 21, // DiscordTypes.ComponentType.RadioGroup
+					component: {
+						type: DiscordTypes.ComponentType.RadioGroup,
 						custom_id: "POLL_MODAL_SELECTION",
 						options,
 						required: false,
 						...checkboxGroupExtras
-					} */
-					{
-						type: DiscordTypes.ComponentType.StringSelect,
-						custom_id: "POLL_MODAL_SELECTION",
-						options,
-						required: false,
-						min_values: 0,
-						max_values: maxSelections,
 					}
 				}]
 			}
@@ -80,14 +73,15 @@ async function* _interact({data, message, member, user}, {api}) {
 
 	if (data.custom_id === "POLL_MODAL") {
 		// Clicked options via modal
-		/** @type {DiscordTypes.APIMessageStringSelectInteractionData} */ // @ts-ignore - close enough to the real thing
+		/** @type {DiscordTypes.APIModalSubmitRadioGroupComponent | DiscordTypes.APIModalSubmitCheckboxGroupComponent} */ // @ts-ignore - close enough to the real thing
 		const component = data.components[1].component
 		assert.equal(component.custom_id, "POLL_MODAL_SELECTION")
+		const values = "values" in component ? component.values : [component.value]
 
 		// Replace votes with selection
 		db.transaction(() => {
 			db.prepare("DELETE FROM poll_vote WHERE message_id = ? AND discord_or_matrix_user_id = ?").run(message.id, userID)
-			for (const option of component.values) {
+			for (const option of values) {
 				db.prepare("INSERT OR IGNORE INTO poll_vote (discord_or_matrix_user_id, message_id, matrix_option) VALUES (?, ?, ?)").run(userID, message.id, option)
 			}
 		})()

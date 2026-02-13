@@ -113,7 +113,7 @@ async function dispatchInteraction(interaction) {
 			} else if (interactionId === "Responses") {
 				/** @type {DiscordTypes.APIMessageApplicationCommandGuildInteraction} */ // @ts-ignore
 				const messageInteraction = interaction
-				if (messageInteraction.data.resolved.messages[messageInteraction.data.target_id]?.poll) {
+				if (select("poll", "message_id", {message_id: messageInteraction.data.target_id}).get()) {
 					await pollResponses.interact(messageInteraction)
 				} else {
 					await reactions.interact(messageInteraction)
