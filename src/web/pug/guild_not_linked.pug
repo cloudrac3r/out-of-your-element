@@ -42,12 +42,23 @@ block body
               | You need to log in with Matrix first.
               a.s-btn.s-btn__matrix.s-btn__outlined(href=rel(`/log-in-with-matrix`, {next: `./guild?guild_id=${guild_id}`})) Log in with Matrix
 
-  h3.mt48.fs-category Auto-create
-  .s-card
+  h3.mt48.fs-category Other choices
+  .s-card.d-grid.g16
     form.d-flex.ai-center.g8(method="post" action=rel("/api/autocreate") hx-post=rel("/api/autocreate") hx-indicator="#easy-mode-button")
       input(type="hidden" name="guild_id" value=guild_id)
       input(type="hidden" name="autocreate" value="true")
       label.s-label.fl-grow1
-        | Changed your mind?
+        | Do it automatically
         p.s-description If you want, OOYE can create and manage the Matrix space so you don't have to.
-      button.s-btn.s-btn__outlined#easy-mode-button Use easy mode
+      button.s-btn.s-btn__icon.s-btn__outlined#easy-mode-button
+        != icons.Icons.IconWand
+        span.ml4= ` Use easy mode`
+
+    form.d-flex.gx16.ai-center(method="post" action=rel("/api/unlink-space"))
+      input(type="hidden" name="guild_id" value=guild.id)
+      label.s-label.fl-grow1
+        | Cancel
+        p.s-description Don't want to link this server after all? Here's the button for you.
+      button.s-btn.s-btn__icon.s-btn__muted.s-btn__outlined(cx-prevent-default hx-post=rel("/api/unlink-space") hx-indicator="this" hx-disabled-elt="this")
+        != icons.Icons.IconUnsync
+        span.ml4= ` Unlink`

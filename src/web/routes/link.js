@@ -9,11 +9,8 @@ const DiscordTypes = require("discord-api-types/v10")
 const {discord, db, as, sync, select, from} = require("../../passthrough")
 /** @type {import("../auth")} */
 const auth = sync.require("../auth")
-/** @type {import("../../matrix/mreq")} */
-const mreq = sync.require("../../matrix/mreq")
 /** @type {import("../../matrix/utils")}*/
 const utils = sync.require("../../matrix/utils")
-const {reg} = require("../../matrix/read-registration")
 
 /**
  * @param {H3Event} event
@@ -42,6 +39,15 @@ function getCreateSpace(event) {
 	return event.context.createSpace || sync.require("../../d2m/actions/create-space")
 }
 
+/**
+ * @param {H3Event} event
+ * @returns {import("snowtransfer").SnowTransfer}
+ */
+function getSnow(event) {
+	/* c8 ignore next */
+	return event.context.snow || discord.snow
+}
+
 const schema = {
 	linkSpace: z.object({
 		guild_id: z.string(),
@@ -55,7 +61,37 @@ const schema = {
 	unlink: z.object({
 		guild_id: z.string(),
 		channel_id: z.string()
-	})
+	}),
+	unlinkSpace: z.object({
+		guild_id: z.string(),
+	}),
+}
+
+/**
+ * @param {H3Event} event
+ * @param {string} channel_id
+ * @param {string} guild_id
+ */
+async function validateAndUnbridgeChannel(event, channel_id, guild_id) {
+	const createRoom = getCreateRoom(event)
+
+	// Check channel is currently bridged
+	const row = select("channel_room", "channel_id", {channel_id: channel_id}).get()
+	if (!row) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not currently bridged`})
+
+	// Check that the channel (if it exists) is part of this guild
+	/** @type {any} */
+	let channel = discord.channels.get(channel_id)
+	if (channel) {
+		if (!("guild_id" in channel) || channel.guild_id !== guild_id) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not part of guild ${guild_id}`})
+	} else {
+		// Otherwise, if the channel isn't cached, it must have been deleted.
+		// There's no other authentication here - it's okay for anyone to unlink a deleted channel just by knowing its ID.
+		channel = {id: channel_id}
+	}
+
+	// Do it
+	await createRoom.unbridgeChannel(channel, guild_id)
 }
 
 as.router.post("/api/link-space", defineEventHandler(async event => {
@@ -195,7 +231,6 @@ as.router.post("/api/link", defineEventHandler(async event => {
 as.router.post("/api/unlink", defineEventHandler(async event => {
 	const {channel_id, guild_id} = await readValidatedBody(event, schema.unlink.parse)
 	const managed = await auth.getManagedGuilds(event)
-	const createRoom = getCreateRoom(event)
 
 	// Check guild ID or nonce
 	if (!managed.has(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
@@ -204,24 +239,56 @@ as.router.post("/api/unlink", defineEventHandler(async event => {
 	const guild = discord.guilds.get(guild_id)
 	if (!guild) throw createError({status: 400, message: "Bad Request", data: "Discord guild does not exist or bot has not joined it"})
 
-	// Check that the channel (if it exists) is part of this guild
-	/** @type {any} */
-	let channel = discord.channels.get(channel_id)
-	if (channel) {
-		if (!("guild_id" in channel) || channel.guild_id !== guild_id) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not part of guild ${guild_id}`})
-	} else {
-		// Otherwise, if the channel isn't cached, it must have been deleted.
-		// There's no other authentication here - it's okay for anyone to unlink a deleted channel just by knowing its ID.
-		channel = {id: channel_id}
-	}
-
-	// Check channel is currently bridged
-	const row = select("channel_room", "channel_id", {channel_id: channel_id}).get()
-	if (!row) throw createError({status: 400, message: "Bad Request", data: `Channel ID ${channel_id} is not currently bridged`})
-
-	// Do it
-	await createRoom.unbridgeDeletedChannel(channel, guild_id)
+	await validateAndUnbridgeChannel(event, channel_id, guild_id)
 
 	setResponseHeader(event, "HX-Refresh", "true")
 	return null // 204
+}))
+
+as.router.post("/api/unlink-space", defineEventHandler(async event => {
+	const {guild_id} = await readValidatedBody(event, schema.unlinkSpace.parse)
+	const managed = await auth.getManagedGuilds(event)
+	const api = getAPI(event)
+	const snow = getSnow(event)
+
+	// Check guild ID or nonce
+	if (!managed.has(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
+
+	// Check guild exists
+	const guild = discord.guilds.get(guild_id)
+	if (!guild) throw createError({status: 400, message: "Bad Request", data: "Discord guild does not exist or bot has not joined it"})
+
+	const active = select("guild_active", "guild_id", {guild_id: guild_id}).get()
+	if (!active) {
+		throw createError({status: 400, message: "Bad Request", data: "Discord guild has not been considered for bridging"})
+	}
+
+	// Check if there are Matrix resources
+	const spaceID = select("guild_space", "space_id", {guild_id: guild_id}).pluck().get()
+	if (spaceID) {
+		// Unlink all rooms
+		const linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {guild_id: guild_id}).all()
+		for (const channel of linkedChannels) {
+			await validateAndUnbridgeChannel(event, channel.channel_id, guild_id)
+		}
+
+		// Verify all rooms were unlinked
+		const remainingLinkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {guild_id: guild_id}).all()
+		if (remainingLinkedChannels.length) {
+			throw createError({status: 500, message: "Internal Server Error", data: "Failed to unlink some rooms. Please try doing it manually, or report a bug. The space will not be unlinked until all rooms are."})
+		}
+
+		// Unlink space
+		await utils.setUserPower(spaceID, utils.bot, 0, api)
+		await api.leaveRoom(spaceID)
+		db.prepare("DELETE FROM guild_space WHERE guild_id = ? AND space_id = ?").run(guild_id, spaceID)
+	}
+
+	// Mark as not considered for bridging
+	db.prepare("DELETE FROM guild_active WHERE guild_id = ?").run(guild_id)
+	db.prepare("DELETE FROM invite WHERE room_id = ?").run(spaceID)
+	await snow.user.leaveGuild(guild_id)
+
+	setResponseHeader(event, "HX-Redirect", "/")
+	return null
 }))

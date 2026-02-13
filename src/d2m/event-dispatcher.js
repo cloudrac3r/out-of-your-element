@@ -250,7 +250,7 @@ module.exports = {
 		const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 		if (!roomID) return // channel wasn't being bridged in the first place
 		// @ts-ignore
-		await createRoom.unbridgeDeletedChannel(channel, guildID)
+		await createRoom.unbridgeChannel(channel, guildID)
 	},
 
 	/**

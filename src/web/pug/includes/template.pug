@@ -129,6 +129,13 @@ html(lang="en")
           document.styleSheets[0].insertRule(t, document.styleSheets[0].cssRules.length)
         })
       })
+    //- Prevent default
+    script.
+      document.querySelectorAll("[cx-prevent-default]").forEach(e => {
+        e.addEventListener("click", event => {
+          event.preventDefault()
+        })
+      })
     script(src=rel("/static/htmx.js"))
     //- Error dialog
     aside.s-modal#server-error(aria-hidden="true")

@@ -439,19 +439,11 @@ function syncRoom(channelID) {
 	return _syncRoom(channelID, true)
 }
 
-async function unbridgeChannel(channelID) {
-	/** @ts-ignore @type {DiscordTypes.APIGuildChannel} */
-	const channel = discord.channels.get(channelID)
-	assert.ok(channel)
-	assert.ok(channel.guild_id)
-	return unbridgeDeletedChannel(channel, channel.guild_id)
-}
-
 /**
  * @param {{id: string, topic?: string?}} channel channel-ish (just needs an id, topic is optional)
  * @param {string} guildID
  */
-async function unbridgeDeletedChannel(channel, guildID) {
+async function unbridgeChannel(channel, guildID) {
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	assert.ok(roomID)
 	const row = from("guild_space").join("guild_active", "guild_id").select("space_id", "autocreate").where({guild_id: guildID}).get()
@@ -488,14 +480,13 @@ async function unbridgeDeletedChannel(channel, guildID) {
 
 	if (!botInRoom) return
 
-	// demote admins in room
-	/** @type {Ty.Event.M_Power_Levels} */
-	const powerLevelContent = await api.getStateEvent(roomID, "m.room.power_levels", "")
-	powerLevelContent.users ??= {}
-	for (const mxid of Object.keys(powerLevelContent.users)) {
-		if (powerLevelContent.users[mxid] >= 100 && mUtils.eventSenderIsFromDiscord(mxid) && mxid !== mUtils.bot) {
-			delete powerLevelContent.users[mxid]
-			await api.sendState(roomID, "m.room.power_levels", "", powerLevelContent, mxid)
+	// demote discord sim admins in room
+	const {powerLevels, allCreators} = await mUtils.getEffectivePower(roomID, [], api)
+	const powerLevelsUsers = (powerLevels.users ||= {})
+	for (const mxid of Object.keys(powerLevelsUsers)) {
+		if (powerLevelsUsers[mxid] >= (powerLevels.state_default ?? 50) && !allCreators.includes(mxid) && mUtils.eventSenderIsFromDiscord(mxid) && mxid !== mUtils.bot) {
+			delete powerLevelsUsers[mxid]
+			await api.sendState(roomID, "m.room.power_levels", "", powerLevels, mxid) // done individually because each user must demote themselves
 		}
 	}
 
@@ -526,6 +517,7 @@ async function unbridgeDeletedChannel(channel, guildID) {
 	}
 
 	// leave room
+	await mUtils.setUserPower(roomID, mUtils.bot, 0, api)
 	await api.leaveRoom(roomID)
 }
 
@@ -589,6 +581,5 @@ module.exports.postApplyPowerLevels = postApplyPowerLevels
 module.exports._convertNameAndTopic = convertNameAndTopic
 module.exports._syncSpaceMember = _syncSpaceMember
 module.exports.unbridgeChannel = unbridgeChannel
-module.exports.unbridgeDeletedChannel = unbridgeDeletedChannel
 module.exports.existsOrAutocreatable = existsOrAutocreatable
 module.exports.assertExistsOrAutocreatable = assertExistsOrAutocreatable

@@ -22,7 +22,7 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('176333891320283136', '!qzDBLKlildpzrrOnFZ:cadence.moe', '🌈丨davids-horse_she-took-the-kids', 'wonderland', NULL, 'mxc://cadence.moe/EVvrSkKIRONHjtRJsMLmHWLS', '112760669178241024'),
 ('489237891895768942', '!tnedrGVYKFNUdnegvf:tchncs.de', 'ex-room-doesnt-exist-any-more', NULL, NULL, NULL, '66192955777486848'),
 ('1160894080998461480', '!TqlyQmifxGUggEmdBN:cadence.moe', 'ooyexperiment', NULL, NULL, NULL, '66192955777486848'),
-('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL, '665289423482519565'),
+('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL, '112760669178241024'),
 ('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL, '665289423482519565'),
 ('598707048112193536', '!JBxeGYnzQwLnaooOLD:cadence.moe', 'winners', NULL, NULL, NULL, '1345641201902288987');
 

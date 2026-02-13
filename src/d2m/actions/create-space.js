@@ -203,7 +203,7 @@ async function syncSpaceFully(guildID) {
 		if (discord.channels.has(channelID)) {
 			await createRoom.syncRoom(channelID)
 		} else {
-			await createRoom.unbridgeDeletedChannel({id: channelID}, guildID)
+			await createRoom.unbridgeChannel({id: channelID}, guildID)
 		}
 	}
 

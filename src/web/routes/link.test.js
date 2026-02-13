@@ -613,7 +613,7 @@ test("web unlink room: checks that the channel is part of the guild", async t =>
 	t.equal(error.data, "Channel ID 112760669178241024 is not part of guild 665289423482519565")
 })
 
-test("web unlink room: successfully calls unbridgeDeletedChannel when the channel does exist", async t => {
+test("web unlink room: successfully calls unbridgeChannel when the channel does exist", async t => {
 	let called = 0
 	await router.test("post", "/api/unlink", {
 		sessionData: {
@@ -624,7 +624,7 @@ test("web unlink room: successfully calls unbridgeDeletedChannel when the channe
 			guild_id: "665289423482519565"
 		},
 		createRoom: {
-			async unbridgeDeletedChannel(channel) {
+			async unbridgeChannel(channel) {
 				called++
 				t.equal(channel.id, "665310973967597573")
 			}
@@ -633,7 +633,7 @@ test("web unlink room: successfully calls unbridgeDeletedChannel when the channe
 	t.equal(called, 1)
 })
 
-test("web unlink room: successfully calls unbridgeDeletedChannel when the channel does not exist", async t => {
+test("web unlink room: successfully calls unbridgeChannel when the channel does not exist", async t => {
 	let called = 0
 	await router.test("post", "/api/unlink", {
 		sessionData: {
@@ -644,7 +644,7 @@ test("web unlink room: successfully calls unbridgeDeletedChannel when the channe
 			guild_id: "112760669178241024"
 		},
 		createRoom: {
-			async unbridgeDeletedChannel(channel) {
+			async unbridgeChannel(channel) {
 				called++
 				t.equal(channel.id, "489237891895768942")
 			}
@@ -654,7 +654,9 @@ test("web unlink room: successfully calls unbridgeDeletedChannel when the channe
 })
 
 test("web unlink room: checks that the channel is bridged", async t => {
+	const row = db.prepare("SELECT * FROM channel_room WHERE channel_id = '665310973967597573'").get()
 	db.prepare("DELETE FROM channel_room WHERE channel_id = '665310973967597573'").run()
+
 	const [error] = await tryToCatch(() => router.test("post", "/api/unlink", {
 		sessionData: {
 			managedGuilds: ["665289423482519565"]
@@ -665,4 +667,179 @@ test("web unlink room: checks that the channel is bridged", async t => {
 		}
 	}))
 	t.equal(error.data, "Channel ID 665310973967597573 is not currently bridged")
+
+	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar, last_bridged_pin_timestamp, speedbump_id, speedbump_checked, speedbump_webhook_id, guild_id, custom_topic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(row.channel_id, row.room_id, row.name, row.nick, row.thread_parent, row.custom_avatar, row.last_bridged_pin_timestamp, row.speedbump_id, row.speedbump_checked, row.speedbump_webhook_id, row.guild_id, row.custom_topic)
+	const new_row = db.prepare("SELECT * FROM channel_room WHERE channel_id = '665310973967597573'").get()
+	t.deepEqual(row, new_row)
+})
+
+// *****
+
+test("web unlink space: access denied if not logged in to Discord", async t => {
+	const [error] = await tryToCatch(() => router.test("post", "/api/unlink-space", {
+		body: {
+			guild_id: "665289423482519565"
+		}
+	}))
+	t.equal(error.data, "Can't edit a guild you don't have Manage Server permissions in")
+})
+
+test("web unlink space: checks that guild exists", async t => {
+	const [error] = await tryToCatch(() => router.test("post", "/api/unlink-space", {
+		sessionData: {
+			managedGuilds: ["2"]
+		},
+		body: {
+			guild_id: "2"
+		}
+	}))
+	t.equal(error.data, "Discord guild does not exist or bot has not joined it")
+})
+
+test("web unlink space: checks that a space is linked to the guild before trying to unlink the space", async t => {
+	db.exec("BEGIN TRANSACTION")
+	db.prepare("DELETE FROM guild_active WHERE guild_id = '665289423482519565'").run()
+
+	const [error] = await tryToCatch(() => router.test("post", "/api/unlink-space", {
+		sessionData: {
+			managedGuilds: ["665289423482519565"]
+		},
+		body: {
+			guild_id: "665289423482519565"
+		}
+	}))
+	t.equal(error.data, "Discord guild has not been considered for bridging")
+
+	db.exec("ROLLBACK") // ぬ
+})
+
+test("web unlink space: correctly abort unlinking if some linked channels remain after trying to unlink them all", async t => {
+	let unbridgedChannel = false
+
+	const [error] = await tryToCatch(() => router.test("post", "/api/unlink-space", {
+		sessionData: {
+			managedGuilds: ["665289423482519565"]
+		},
+		body: {
+			guild_id: "665289423482519565",
+		},
+		createRoom: {
+			async unbridgeChannel(channel, guildID) {
+				unbridgedChannel = true
+				t.ok(["1438284564815548418", "665310973967597573"].includes(channel.id))
+				t.equal(guildID, "665289423482519565")
+				// Do not actually delete the link from DB, should trigger error later in check
+			}
+		},
+		api: {
+			async *generateFullHierarchy(spaceID) {
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: [],
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			},
+		}
+	}))
+
+	t.equal(error.data, "Failed to unlink some rooms. Please try doing it manually, or report a bug. The space will not be unlinked until all rooms are.")
+	t.equal(unbridgedChannel, true)
+})
+
+test("web unlink space: successfully calls unbridgeChannel on linked channels in space, self-downgrade power level, leave space, and delete link from DB", async t => {
+	const {reg} = require("../../matrix/read-registration")
+	const me = `@${reg.sender_localpart}:${reg.ooye.server_name}`
+
+	const getLinkRowQuery = "SELECT * FROM guild_space WHERE guild_id = '665289423482519565'"
+
+	const row = db.prepare(getLinkRowQuery).get()
+	t.equal(row.space_id, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+
+	let unbridgedChannel = false
+	let downgradedPowerLevel = false
+	let leftRoom = false
+	await router.test("post", "/api/unlink-space", {
+		sessionData: {
+			managedGuilds: ["665289423482519565"]
+		},
+		body: {
+			guild_id: "665289423482519565",
+		},
+		createRoom: {
+			async unbridgeChannel(channel, guildID) {
+				unbridgedChannel = true
+				t.ok(["1438284564815548418", "665310973967597573"].includes(channel.id))
+				t.equal(guildID, "665289423482519565")
+
+				// In order to not simulate channel deletion and not trigger the post unlink channels, pre-unlink space check
+				db.prepare("DELETE FROM channel_room WHERE channel_id = ?").run(channel.id)
+			}
+		},
+		snow: {
+			user: {
+				// @ts-ignore - snowtransfer or discord-api-types broken, 204 No Content should be mapped to void but is actually mapped to never
+				async leaveGuild(guildID) {
+					t.equal(guildID, "665289423482519565")
+				}
+			}
+		},
+		api: {
+			async *generateFullHierarchy(spaceID) {
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: [],
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			},
+
+			async getStateEvent(roomID, type, key) { // getting power levels from space to apply to room
+				t.equal(type, "m.room.power_levels")
+				t.equal(key, "")
+				return {users: {"@_ooye_bot:cadence.moe": 100, "@example:matrix.org": 50}, events: {"m.room.tombstone": 100}}
+			},
+
+			async getStateEventOuter(roomID, type, key) {
+				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				t.equal(type, "m.room.create")
+				t.equal(key, "")
+				return {
+					type: "m.room.create",
+					state_key: "",
+					sender: "@_ooye_bot:cadence.moe",
+					room_id: "!zTMspHVUBhFLLSdmnS:cadence.moe",
+					event_id: "$create",
+					origin_server_ts: 0,
+					content: {
+						room_version: "11"
+					}
+				}
+			},
+
+			async sendState(roomID, type, key, content) {
+				downgradedPowerLevel = true
+				t.equal(roomID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				t.equal(type, "m.room.power_levels")
+				t.notOk(me in content.users, `got ${JSON.stringify(content)} but expected bot user to not be present`)
+				return ""
+			},
+
+			async leaveRoom(spaceID) {
+				leftRoom = true
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+			},
+		}
+	})
+
+	t.equal(unbridgedChannel, true)
+	t.equal(downgradedPowerLevel, true)
+	t.equal(leftRoom, true)
+
+	const missed_row = db.prepare(getLinkRowQuery).get()
+	t.equal(missed_row, undefined)
 })
