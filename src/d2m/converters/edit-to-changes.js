@@ -153,7 +153,7 @@ async function editToChanges(message, guild, api) {
 	const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 	if (messageReallyOld) {
 		eventsToSend = [] // Only allow edits to change and delete, but not send new.
-	} else if ((messageQuiteOld || !embedsEnabled) && !message.author.bot) {
+	} else if ((messageQuiteOld || !embedsEnabled) && !message.author?.bot) {
 		eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice") // Only send events that aren't embeds.
 	}
 
