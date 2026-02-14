@@ -1,5 +1,7 @@
 # Setup
 
+If you want Docker, [please read this first.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/docker.md)
+
 If you get stuck, you're welcome to message [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe) or [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) to ask for help setting up OOYE!
 
 You'll need:
