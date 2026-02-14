@@ -17,22 +17,6 @@ const {SnowTransfer} = require("snowtransfer")
 const DiscordTypes = require("discord-api-types/v10")
 const {createApp, defineEventHandler, toNodeListener} = require("h3")
 
-// Move database file if it's still in the old location
-if (fs.existsSync("db")) {
-	if (fs.existsSync("db/ooye.db")) {
-		fs.renameSync("db/ooye.db", "ooye.db")
-	}
-	const files = fs.readdirSync("db")
-	if (files.length) {
-		console.error("The db folder is deprecated and must be removed. Your ooye.db database file has already been moved to the root of the repo. You must manually move or delete the remaining files:")
-		for (const file of files) {
-			console.error(file)
-		}
-		process.exit(1)
-	}
-	fs.rmSync("db", {recursive: true})
-}
-
 const passthrough = require("../src/passthrough")
 const db = new sqlite("ooye.db")
 const migrate = require("../src/db/migrate")
