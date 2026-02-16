@@ -42,6 +42,7 @@
     "heatsync": "^2.7.2",
     "htmx.org": "^2.0.4",
     "lru-cache": "^11.0.2",
+    "mime-types": "^2.1.35",
     "prettier-bytes": "^1.0.4",
     "sharp": "^0.34.5",
     "snowtransfer": "^0.17.1",

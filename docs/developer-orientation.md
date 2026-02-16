@@ -89,7 +89,7 @@ Whether you read those or not, I'm more than happy to help you 1-on-1 with codin
 
 # Dependency justification
 
-Total transitive production dependencies: 137
+Total transitive production dependencies: 134
 
 ### <font size="+2">🦕</font>
 
@@ -119,8 +119,8 @@ Total transitive production dependencies: 137
 * (0) entities: Looks fine. No dependencies.
 * (0) get-relative-path: Looks fine. No dependencies.
 * (1) heatsync: Module hot-reloader that I trust.
-* (1) js-yaml: Will be removed in the future after registration.yaml is converted to JSON.
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
+* (0) mime-type: File extension to mime type mapping that's already pulled in by stream-mime-type.
 * (0) prettier-bytes: It does what I want and has no dependencies.
 * (0) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.

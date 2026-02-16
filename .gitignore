@@ -4,6 +4,7 @@ registration.yaml
 ooye.db*
 events.db*
 backfill.db*
+custom-webroot
 
 # Automatically generated
 node_modules

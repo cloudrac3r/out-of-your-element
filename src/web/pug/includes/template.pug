@@ -1,4 +1,10 @@
-mixin guild(guild)
+mixin guild-menuitem(guild)
+  - let bridgedRoomCount = from("channel_room").selectUnsafe("count(*) as count").where({guild_id: guild.id}).and("AND thread_parent IS NULL").get().count
+  li(role="menuitem")
+    a.s-topbar--item.s-user-card.d-flex.p4(href=rel(`/guild?guild_id=${guild.id}`) class={"bg-purple-200": bridgedRoomCount === 0, "h:bg-purple-300": bridgedRoomCount === 0})
+      +guild(guild, bridgedRoomCount)
+
+mixin guild(guild, bridgedRoomCount)
   span.s-avatar.s-avatar__32.s-user-card--avatar
     if guild.icon
       img.s-avatar--image(src=`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=32` alt="")
@@ -6,8 +12,12 @@ mixin guild(guild)
       .s-avatar--letter.bg-silver-400.bar-md(aria-hidden="true")= guild.name[0]
   .s-user-card--info.ai-start
     strong= guild.name
-    ul.s-user-card--awards
-      li #{discord.guildChannelMap.get(guild.id).filter(c => [0, 5, 15, 16].includes(discord.channels.get(c).type)).length} channels
+    if bridgedRoomCount != null
+      ul.s-user-card--awards
+        if bridgedRoomCount
+          li #{bridgedRoomCount} bridged rooms
+        else
+          li.fc-purple Not yet linked
 
 mixin define-theme(name, h, s, l)
   style.
@@ -58,6 +68,8 @@ html(lang="en")
     title Out Of Your Element
     <meta name="viewport" content="width=device-width, initial-scale=1">
     link(rel="stylesheet" type="text/css" href=rel("/static/stacks.min.css"))
+    //- Please use responsibly!!!!!
+    link(rel="stylesheet" type="text/css" href=rel("/custom.css"))
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 80%22><text y=%22.83em%22 font-size=%2283%22>💬</text></svg>">
     meta(name="htmx-config" content='{"requestClass":"is-loading"}')
     style.
@@ -78,6 +90,14 @@ html(lang="en")
       }
       .s-btn__dropdown:has(+ :popover-open) {
         background-color: var(--theme-topbar-item-background-hover, var(--black-200)) !important;
+      }
+      @media (prefers-color-scheme: dark) {
+        body.theme-system .s-popover {
+          --_po-bg: var(--black-100);
+          --_po-bc: var(--bc-light);
+          --_po-bs: var(--bs-lg);
+          --_po-arrow-fc: var(--black-100);
+        }
       }
     +define-themed-button("matrix", "black")
   body.themed.theme-system
@@ -114,9 +134,7 @@ html(lang="en")
                 .s-popover--content.overflow-y-auto.overflow-x-hidden
                   ul.s-menu(role="menu")
                     each guild in [...managed].map(id => discord.guilds.get(id)).filter(g => g).sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1)
-                      li(role="menuitem")
-                        a.s-topbar--item.s-user-card.d-flex.p4(href=rel(`/guild?guild_id=${guild.id}`))
-                          +guild(guild)
+                      +guild-menuitem(guild)
     //- Body
     .mx-auto.w100.wmx9.py24.px8.fs-body1#content
       block body

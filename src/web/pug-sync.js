@@ -31,7 +31,15 @@ function addGlobals(obj) {
  */
 function render(event, filename, locals) {
 	const path = join(__dirname, "pug", filename)
+	return renderPath(event, path, locals)
+}
 
+/**
+ * @param {import("h3").H3Event} event
+ * @param {string} path
+ * @param {Record<string, any>} locals
+ */
+function renderPath(event, path, locals) {
 	function compile() {
 		try {
 			const template = compileFile(path, {pretty})
@@ -89,4 +97,5 @@ function createRoute(router, url, filename) {
 
 module.exports.addGlobals = addGlobals
 module.exports.render = render
+module.exports.renderPath = renderPath
 module.exports.createRoute = createRoute
