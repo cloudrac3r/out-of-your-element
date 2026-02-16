@@ -86,7 +86,7 @@ function defineEchoHandler() {
 			type: "input",
 			name: "server_name",
 			message: "Homeserver name",
-			validate: serverName => !!serverName.match(/[a-z][a-z.]+[a-z]/)
+			validate: serverName => !!serverName.match(/[a-z0-9][.a-z0-9-]+[a-z]/)
 		})
 
 		console.log("What is the URL of your homeserver?")
