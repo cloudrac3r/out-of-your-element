@@ -11,7 +11,7 @@ const registrationFilePath = path.join(process.cwd(), "registration.yaml")
 function checkRegistration(reg) {
 	reg["ooye"].invite = reg.ooye.invite.filter(mxid => mxid.endsWith(`:${reg.ooye.server_name}`)) // one day I will understand why typescript disagrees with dot notation on this line
 	assert(reg.ooye?.max_file_size)
-	assert(reg.ooye?.namespace_prefix)
+	assert(reg.ooye?.namespace_prefix != null)
 	assert(reg.ooye?.server_name)
 	assert(reg.sender_localpart?.startsWith(reg.ooye.namespace_prefix), "appservice's localpart must be in the namespace it controls")
 	assert(reg.ooye?.server_origin.match(/^https?:\/\//), "server origin must start with http or https")
