@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 
+const Ty = require("../src/types")
 const assert = require("assert").strict
 const fs = require("fs")
 const sqlite = require("better-sqlite3")
@@ -285,8 +286,8 @@ function defineEchoHandler() {
 	console.log()
 
 	// Done with user prompts, reg is now guaranteed to be valid
+	const mreq = require("../src/matrix/mreq")
 	const api = require("../src/matrix/api")
-	const file = require("../src/matrix/file")
 	const DiscordClient = require("../src/d2m/discord-client")
 	const discord = new DiscordClient(reg.ooye.discord_token, "no")
 	passthrough.discord = discord
@@ -343,7 +344,13 @@ function defineEchoHandler() {
 	await api.register(reg.sender_localpart)
 
 	// upload initial images...
-	const avatarUrl = await file.uploadDiscordFileToMxc("https://cadence.moe/friends/out_of_your_element.png")
+	const avatarBuffer = await fs.promises.readFile(join(__dirname, "..", "docs", "img", "icon.png"), null)
+	/** @type {Ty.R.FileUploaded} */
+	const root = await mreq.mreq("POST", "/media/v3/upload", avatarBuffer, {
+		headers: {"Content-Type": "image/png"}
+	})
+	const avatarUrl = root.content_uri
+	assert(avatarUrl)
 
 	console.log("✅ Matrix appservice login works...")
 
@@ -352,8 +359,7 @@ function defineEchoHandler() {
 	console.log("✅ Emojis are ready...")
 
 	// set profile data on discord...
-	const avatarImageBuffer = await fetch("https://cadence.moe/friends/out_of_your_element.png").then(res => res.arrayBuffer())
-	await discord.snow.user.updateSelf({avatar: "data:image/png;base64," + Buffer.from(avatarImageBuffer).toString("base64")})
+	await discord.snow.user.updateSelf({avatar: "data:image/png;base64," + avatarBuffer.toString("base64")})
 	console.log("✅ Discord profile updated...")
 
 	// set profile data on homeserver...
