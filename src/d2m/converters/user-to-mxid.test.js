@@ -21,8 +21,12 @@ test("user2name: works on single emoji at the end", t => {
    t.equal(userToSimName({username: "Melody 🎵", discriminator: "2192"}), "melody")
 })
 
-test("user2name: works on crazy name", t => {
-   t.equal(userToSimName({username: "*** D3 &W (89) _7//-", discriminator: "0001"}), "d3_w_89__7//")
+test("user2name: works on really weird name", t => {
+   t.equal(userToSimName({username: "*** D3 &W (89) _7//-", discriminator: "0001"}), "d3_w_89__7")
+})
+
+test("user2name: treats slashes", t => {
+	t.equal(userToSimName({username: "Evil Lillith (she/her)", discriminator: "5892"}), "evil_lillith_she_her")
 })
 
 test("user2name: adds discriminator if name is unavailable (old tag format)", t => {

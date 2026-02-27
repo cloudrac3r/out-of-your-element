@@ -1,0 +1,5 @@
+BEGIN TRANSACTION;
+
+DELETE FROM sim WHERE sim_name like '%/%';
+
+COMMIT;

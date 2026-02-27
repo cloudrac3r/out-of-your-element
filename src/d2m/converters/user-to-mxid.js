@@ -20,10 +20,10 @@ const SPECIAL_USER_MAPPINGS = new Map([
 function downcaseUsername(user) {
 	// First, try to convert the username to the set of allowed characters
 	let downcased = user.username.toLowerCase()
-		// spaces to underscores...
-		.replace(/ /g, "_")
+		// spaces and slashes to underscores...
+		.replace(/[ /]/g, "_")
 		// remove disallowed characters...
-		.replace(/[^a-z0-9._=/-]*/g, "")
+		.replace(/[^a-z0-9._=-]*/g, "")
 		// remove leading and trailing dashes and underscores...
 		.replace(/(?:^[_-]*|[_-]*$)/g, "")
 	// If requested, also make the Discord user ID part of the username
