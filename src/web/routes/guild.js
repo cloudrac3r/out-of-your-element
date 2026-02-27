@@ -115,7 +115,7 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	let removedWrongTypeChannels = dUtils.filterTo(unlinkedChannels, c => c && [0, 5].includes(c.type))
 	let removedPrivateChannels = dUtils.filterTo(unlinkedChannels, c => {
 		const permissions = dUtils.getPermissions(guild.id, roles, guild.roles, botID, c["permission_overwrites"])
-		return dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.ViewChannel)
+		return dUtils.hasSomePermissions(permissions, ["Administrator", "ViewChannel"])
 	})
 	unlinkedChannels.sort((a, b) => getPosition(a, discord.channels) - getPosition(b, discord.channels))
 
