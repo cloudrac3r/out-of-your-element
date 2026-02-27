@@ -136,7 +136,7 @@ async function getEventForTimestamp(roomID, ts) {
  */
 async function getEvents(roomID, dir, pagination = {}, filter) {
 	filter = filter && JSON.stringify(filter)
-	/** @type {Ty.Pagination<Ty.Event.Outer<any>>} */
+	/** @type {Ty.MessagesPagination<Ty.Event.Outer<any>>} */
 	const root = await mreq.mreq("GET", path(`/client/v3/rooms/${roomID}/messages`, null, {...pagination, dir, filter}))
 	return root
 }

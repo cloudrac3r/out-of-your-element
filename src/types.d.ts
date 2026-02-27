@@ -498,7 +498,13 @@ export type Membership = "invite" | "knock" | "join" | "leave" | "ban"
 export type Pagination<T> = {
 	chunk: T[]
 	next_batch?: string
-	prev_match?: string
+	prev_batch?: string
+}
+
+export type MessagesPagination<T> = {
+	chunk: T[]
+	start: string
+	end?: string
 }
 
 export type HierarchyPagination<T> = {
