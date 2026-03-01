@@ -38,6 +38,7 @@ For more information about features, [see the user guide.](https://gitdab.com/ca
 
 * This bridge is not designed for puppetting.
 * Direct Messaging is not supported until I figure out a good way of doing it.
+* Encrypted messages are not supported. Decryption is often unreliable on Matrix, and your messages end up in plaintext on Discord anyway, so there's not much advantage.
 
 ## Get started!
 
