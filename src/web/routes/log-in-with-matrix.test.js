@@ -1,6 +1,6 @@
 // @ts-check
 
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const {router, test} = require("../../../test/web")
 const {MatrixServerError} = require("../../matrix/mreq")
 

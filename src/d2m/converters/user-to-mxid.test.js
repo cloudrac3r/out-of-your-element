@@ -1,5 +1,5 @@
 const {test} = require("supertape")
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const assert = require("assert")
 const data = require("../../../test/data")
 const {userToSimName, webhookAuthorToSimName} = require("./user-to-mxid")

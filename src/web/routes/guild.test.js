@@ -1,7 +1,7 @@
 // @ts-check
 
 const DiscordTypes = require("discord-api-types/v10")
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const {router, test} = require("../../../test/web")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {_getPosition} = require("./guild")

@@ -1,6 +1,6 @@
 // @ts-check
 
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const {test} = require("supertape")
 const {router} = require("../../../test/web")
 

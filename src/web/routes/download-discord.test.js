@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const {test} = require("supertape")
 const {router} = require("../../../test/web")
 const {_cache} = require("./download-discord")

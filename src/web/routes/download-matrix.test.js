@@ -2,7 +2,7 @@
 
 const fs = require("fs")
 const {convertImageStream} = require("../../m2d/converters/emoji-sheet")
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const {test} = require("supertape")
 const {router} = require("../../../test/web")
 const streamWeb = require("stream/web")

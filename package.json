@@ -47,7 +47,7 @@
     "sharp": "^0.34.5",
     "snowtransfer": "^0.17.5",
     "stream-mime-type": "^1.0.2",
-    "try-to-catch": "^3.0.1",
+    "try-to-catch": "^4.0.5",
     "uqr": "^0.1.2",
     "xxhash-wasm": "^1.0.2",
     "zod": "^4.0.17"

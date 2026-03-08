@@ -1,7 +1,7 @@
 // @ts-check
 
 const DiscordTypes = require("discord-api-types/v10")
-const tryToCatch = require("try-to-catch")
+const {tryToCatch} = require("try-to-catch")
 const assert = require("assert/strict")
 const {router, test} = require("../../../test/web")
 
