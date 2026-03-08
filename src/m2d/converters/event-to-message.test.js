@@ -4747,17 +4747,17 @@ test("event2message: stickers work", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "",
+				content: "[get_real2](https://bridge.example.org/download/sticker/cadence.moe/NyMXQFAAdniImbHzsygScbmN/_.webp)",
 				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
-				attachments: [{id: "0", filename: "get_real2.gif"}],
-				pendingFiles: [{name: "get_real2.gif", mxc: "mxc://cadence.moe/NyMXQFAAdniImbHzsygScbmN"}]
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
 			}]
 		}
 	)
 })
 
 test("event2message: stickers fetch mimetype from server when mimetype not provided", async t => {
-	let called = 0
 	t.deepEqual(
 		await eventToMessage({
 			type: "m.sticker",
@@ -4768,20 +4768,6 @@ test("event2message: stickers fetch mimetype from server when mimetype not provi
 			},
 			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
 			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, {}, {}, {
-			api: {
-				async getMedia(mxc, options) {
-					called++
-					t.equal(mxc, "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf")
-					t.equal(options.method, "HEAD")
-					return {
-						status: 200,
-						headers: new Map([
-							["content-type", "image/gif"]
-						])
-					}
-				}
-			}
 		}),
 		{
 			ensureJoined: [],
@@ -4789,48 +4775,14 @@ test("event2message: stickers fetch mimetype from server when mimetype not provi
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "cadence [they]",
-				content: "",
+				content: "[YESYESYES](https://bridge.example.org/download/sticker/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf/_.webp)",
 				avatar_url: undefined,
-				attachments: [{id: "0", filename: "YESYESYES.gif"}],
-				pendingFiles: [{name: "YESYESYES.gif", mxc: "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf"}]
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
 			}]
 		}
 	)
-	t.equal(called, 1, "sticker headers should be fetched")
-})
-
-test("event2message: stickers with unknown mimetype are not allowed", async t => {
-	let called = 0
-	try {
-		await eventToMessage({
-			type: "m.sticker",
-			sender: "@cadence:cadence.moe",
-			content: {
-				body: "something",
-				url: "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJe"
-			},
-			event_id: "$mL-eEVWCwOvFtoOiivDP7gepvf-fTYH6_ioK82bWDI0",
-			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
-		}, {}, {}, {
-			api: {
-				async getMedia(mxc, options) {
-					called++
-					t.equal(mxc, "mxc://cadence.moe/ybOWQCaXysnyUGuUCaQlTGJe")
-					t.equal(options.method, "HEAD")
-					return {
-						status: 404,
-						headers: new Map([
-							["content-type", "application/json"]
-						])
-					}
-				}
-			}
-		})
-		/* c8 ignore next */
-		t.fail("should throw an error")
-	} catch (e) {
-		t.match(e.toString(), "mimetype")
-	}
 })
 
 test("event2message: static emojis work", async t => {

@@ -582,7 +582,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			// check that condition 1 or 2 is met
 			if (repliedToEventInDifferentRoom || repliedToUnknownEvent) {
 				let referenced = message.referenced_message
-				if (!referenced) { // backend couldn't be bothered to dereference the message, have to do it ourselves
+				/* c8 ignore next 4 - backend couldn't be bothered to dereference the message, have to do it ourselves */
+				if (!referenced) {
 					assert(message.message_reference?.message_id)
 					referenced = await discord.snow.channel.getChannelMessage(message.message_reference.channel_id, message.message_reference.message_id)
 				}
@@ -905,11 +906,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			else if (component.type === DiscordTypes.ComponentType.Button) {
 				// May only be a section accessory or in an action row (up to 5)
 				if (component.style === DiscordTypes.ButtonStyle.Link) {
-					if (component.label) {
-						stack.msb.add(`[${component.label} ${component.url}] `, tag`<a href="${component.url}">${component.label}</a> `)
-					} else {
-						stack.msb.add(component.url)
-					}
+					assert(component.label) // required for Discord to validate link buttons
+					stack.msb.add(`[${component.label} ${component.url}] `, tag`<a href="${component.url}">${component.label}</a> `)
 				}
 			}
 

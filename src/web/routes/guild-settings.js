@@ -134,6 +134,6 @@ as.router.post("/api/default-roles", defineEventHandler(async event => {
 	if (getRequestHeader(event, "HX-Request")) {
 		return pugSync.render(event, "fragments/default-roles-list.pug", {guild, guild_id: guildID})
 	} else {
-		return sendRedirect(event, "", 302)
+		return sendRedirect(event, `/guild?guild_id=${guildID}`, 302)
 	}
 }))
