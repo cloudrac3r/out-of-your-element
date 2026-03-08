@@ -1,4 +1,5 @@
 extends includes/template.pug
+include includes/default-roles-list.pug
 
 mixin badge-readonly
   .s-badge.s-badge__xs.s-badge__icon.s-badge__muted
@@ -76,7 +77,7 @@ block body
 
   if space_id
     h2.mt48.fs-headline1 Server settings
-    h3.mt32.fs-category Privacy level
+    h3.mt32.fs-category How Matrix users join
       span#privacy-level-loading
     .s-card
       form(hx-post=rel("/api/privacy-level") hx-trigger="change" hx-indicator="#privacy-level-loading" hx-disabled-elt="input")
@@ -104,6 +105,24 @@ block body
           p.s-description.m0 In-app direct invite from another user
           p.s-description.m0 Shareable invite links, like Discord
           p.s-description.m0 Publicly listed in directory, like Discord server discovery
+
+    h3.mt32.fs-category Default roles
+    .s-card
+      form(method="post" action=rel("/api/default-roles") hx-post=rel("/api/default-roles") hx-indicator="#add-role-loading" hx-target="#default-roles-list" hx-select="#default-roles-list" hx-swap="outerHTML")#default-roles
+        input(type="hidden" name="guild_id" value=guild_id)
+        .d-flex.fw-wrap.g4
+          .s-tag.s-tag__md.fs-body1.s-tag__required @everyone
+
+          +default-roles-list(guild, guild_id)
+
+          button(type="button" popovertarget="role-add").s-btn__dropdown.s-tag.s-tag__md.fs-body1.p0
+            .s-tag--dismiss.m1
+              != icons.Icons.IconPlusSm
+
+          #role-add.s-popover(popover style="display: revert").ws2.px0.py4.bs-lg.overflow-visible
+            .s-popover--arrow.s-popover--arrow__tc
+            +add-roles-menu(guild, guild_id)
+        p.fc-medium.mb0.mt8 Matrix users will start with these roles. If your main channels are gated by a role, use this to let Matrix users skip the gate.
 
     h3.mt32.fs-category Features
     .s-card.d-grid.px0.g16

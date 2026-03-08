@@ -91,6 +91,19 @@ html(lang="en")
       .s-btn__dropdown:has(+ :popover-open) {
         background-color: var(--theme-topbar-item-background-hover, var(--black-200)) !important;
       }
+      .s-btn__dropdown.s-tag:has(+ :popover-open) .s-tag--dismiss {
+        background-color: var(--black-500) !important;
+        color: var(--black-150) !important;
+      }
+      .s-tag .is-loading {
+        margin-right: -4px;
+      }
+      .s-tag .is-loading + .s-tag--dismiss {
+        display: none !important;
+      }
+      a.s-block-link, .s-block-link {
+        --_bl-bs-color: var(--green-400);
+      }
       @media (prefers-color-scheme: dark) {
         body.theme-system .s-popover {
           --_po-bg: var(--black-100);
@@ -141,11 +154,15 @@ html(lang="en")
     //- Guild list popover
     script.
       document.querySelectorAll("[popovertarget]").forEach(e => {
-        e.addEventListener("click", () => {
-          const rect = e.getBoundingClientRect()
-          const t = `:popover-open { position: absolute; top: ${Math.floor(rect.bottom)}px; left: ${Math.floor(rect.left + rect.width / 2)}px; width: ${Math.floor(rect.width)}px; transform: translateX(-50%); box-sizing: content-box; margin: 0 }`
+        const target = document.getElementById(e.getAttribute("popovertarget"))
+        e.addEventListener("click", calculate)
+        target.addEventListener("toggle", calculate)
+        function calculate() {
+          const buttonRect = e.getBoundingClientRect()
+          const targetRect = target.getBoundingClientRect()
+          const t = `:popover-open { position: absolute; top: ${Math.floor(buttonRect.bottom + window.scrollY)}px; left: ${Math.floor(Math.max(targetRect.width / 2, buttonRect.left + buttonRect.width / 2))}px; width: ${Math.floor(buttonRect.width)}px; transform: translateX(-50%); box-sizing: content-box; margin: 0 }`
           document.styleSheets[0].insertRule(t, document.styleSheets[0].cssRules.length)
-        })
+        }
       })
     //- Prevent default
     script.

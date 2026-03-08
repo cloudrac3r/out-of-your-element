@@ -4,10 +4,12 @@ const assert = require("assert/strict")
 const {z} = require("zod")
 const {defineEventHandler, createError, readValidatedBody, getRequestHeader, setResponseHeader, sendRedirect, H3Event} = require("h3")
 
-const {as, db, sync, select} = require("../../passthrough")
+const {as, db, sync, select, discord} = require("../../passthrough")
 
 /** @type {import("../auth")} */
 const auth = sync.require("../auth")
+/** @type {import("../pug-sync")} */
+const pugSync = sync.require("../pug-sync")
 /** @type {import("../../d2m/actions/set-presence")} */
 const setPresence = sync.require("../../d2m/actions/set-presence")
 
@@ -18,6 +20,14 @@ const setPresence = sync.require("../../d2m/actions/set-presence")
 function getCreateSpace(event) {
 	/* c8 ignore next */
 	return event.context.createSpace || sync.require("../../d2m/actions/create-space")
+}
+
+const schema = {
+	defaultRoles: z.object({
+		guild_id: z.string(),
+		toggle_role: z.string().optional(),
+		remove_role: z.string().optional()
+	})
 }
 
 /**
@@ -92,5 +102,38 @@ as.router.post("/api/privacy-level", defineToggle("privacy_level", {
 	async after(event, guildID) {
 		const createSpace = getCreateSpace(event)
 		await createSpace.syncSpaceFully(guildID) // this is inefficient but OK to call infrequently on user request
+	}
+}))
+
+as.router.post("/api/default-roles", defineEventHandler(async event => {
+	const parsedBody = await readValidatedBody(event, schema.defaultRoles.parse)
+
+	const managed = await auth.getManagedGuilds(event)
+	const guildID = parsedBody.guild_id
+	if (!managed.has(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+
+	const roleID = parsedBody.toggle_role || parsedBody.remove_role
+	assert(roleID)
+	assert.notEqual(guildID, roleID) // the @everyone role is always default
+
+	const guild = discord.guilds.get(guildID)
+	assert(guild)
+
+	let shouldRemove = !!parsedBody.remove_role
+	if (!shouldRemove) {
+		shouldRemove = !!select("role_default", "role_id", {guild_id: guildID, role_id: roleID}).get()
+	}
+
+	if (shouldRemove) {
+		db.prepare("DELETE FROM role_default WHERE guild_id = ? AND role_id = ?").run(guildID, roleID)
+	} else {
+		assert(guild.roles.find(r => r.id === roleID))
+		db.prepare("INSERT OR IGNORE INTO role_default (guild_id, role_id) VALUES (?, ?)").run(guildID, roleID)
+	}
+
+	if (getRequestHeader(event, "HX-Request")) {
+		return pugSync.render(event, "fragments/default-roles-list.pug", {guild, guild_id: guildID})
+	} else {
+		return sendRedirect(event, "", 302)
 	}
 }))

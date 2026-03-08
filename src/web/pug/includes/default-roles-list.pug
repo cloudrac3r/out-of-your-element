@@ -1,0 +1,19 @@
+mixin default-roles-list(guild, guild_id)
+  #default-roles-list(style="display: contents")
+    each roleID in select("role_default", "role_id", {guild_id}).pluck().all()
+      - let r = guild.roles.find(r => r.id === roleID)
+      if r
+        .s-tag.s-tag__md.fs-body1= r.name
+          span(id=`role-loading-${roleID}`)
+          button(name="remove_role" value=roleID hx-post="api/default-roles" hx-trigger="click consume" hx-indicator=`#role-loading-${roleID}`).s-tag--dismiss
+            != icons.Icons.IconClearSm
+
+mixin add-roles-menu(guild, guild_id)
+  ul.s-menu(role="menu" hx-swap-oob="true").overflow-y-auto.overflow-x-hidden#add-roles-menu
+    li.s-menu--title.d-flex(role="separator") Select role
+      span#add-role-loading
+    each r in guild.roles.sort((a, b) => b.position - a.position)
+      if r.id !== guild_id && !r.managed
+        - let selected = !!select("role_default", "role_id", {guild_id, role_id: r.id}).get()
+        li(role="menuitem")
+          button(name="toggle_role" value=r.id class={"is-selected": selected}).s-block-link.s-block-link__left= r.name

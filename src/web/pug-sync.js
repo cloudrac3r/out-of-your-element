@@ -77,6 +77,7 @@ function renderPath(event, path, locals) {
 		compile()
 		fs.watch(path, {persistent: false}, compile)
 		fs.watch(join(__dirname, "pug", "includes"), {persistent: false}, compile)
+		fs.watch(join(__dirname, "pug", "fragments"), {persistent: false}, compile)
 	}
 
 	const cb = pugCache.get(path)

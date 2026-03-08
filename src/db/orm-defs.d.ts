@@ -104,6 +104,11 @@ export type Models = {
 		historical_room_index: number
 	}
 
+	role_default: {
+		guild_id: string
+		role_id: string
+	}
+
 	room_upgrade_pending: {
 		new_room_id: string
 		old_room_id: string
