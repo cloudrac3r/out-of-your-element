@@ -6,31 +6,29 @@ const sqlite = require("better-sqlite3")
 const {Writable} = require("stream")
 const migrate = require("../src/db/migrate")
 const HeatSync = require("heatsync")
-const {test, extend} = require("supertape")
+const {test} = require("supertape")
 const data = require("./data")
 const {green} = require("ansi-colors")
+const mixin = require("@cloudrac3r/mixin-deep")
 
 const passthrough = require("../src/passthrough")
 const db = new sqlite(":memory:")
 
-const {reg} = require("../src/matrix/read-registration")
-reg.ooye.discord_token = "Njg0MjgwMTkyNTUzODQ0NzQ3.Xl3zlw.baby"
-reg.ooye.server_origin = "https://matrix.cadence.moe" // so that tests will pass even when hard-coded
-reg.ooye.server_name = "cadence.moe"
-reg.ooye.namespace_prefix = "_ooye_"
-reg.sender_localpart = "_ooye_bot"
-reg.id = "baby"
-reg.as_token = "don't actually take authenticated actions on the server"
-reg.hs_token = "don't actually take authenticated actions on the server"
-reg.namespaces = {
-	users: [{regex: "@_ooye_.*:cadence.moe", exclusive: true}],
-	aliases: [{regex: "#_ooye_.*:cadence.moe", exclusive: true}]
-}
-reg.ooye.bridge_origin = "https://bridge.example.org"
-reg.ooye.time_zone = "Pacific/Auckland"
-reg.ooye.max_file_size = 5000000
-reg.ooye.web_password = "password123"
-reg.ooye.include_user_id_in_mxid = false
+const registration = require("../src/matrix/read-registration")
+registration.reg = mixin(registration.getTemplateRegistration("cadence.moe"), {
+	id: "baby",
+	url: "http://localhost:6693",
+	as_token: "don't actually take authenticated actions on the server",
+	hs_token: "don't actually take authenticated actions on the server",
+	ooye: {
+		server_origin: "https://matrix.cadence.moe",
+		bridge_origin: "https://bridge.example.org",
+		discord_token: "Njg0MjgwMTkyNTUzODQ0NzQ3.Xl3zlw.baby",
+		discord_client_secret: "baby",
+		web_password: "password123",
+		time_zone: "Pacific/Auckland",
+	}
+})
 
 const sync = new HeatSync({watchFS: false})
 

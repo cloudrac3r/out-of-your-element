@@ -770,7 +770,18 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Then scheduled events
 	if (message.content && di?.snow) {
 		for (const match of [...message.content.matchAll(/discord\.gg\/([A-Za-z0-9]+)\?event=([0-9]{18,})/g)]) { // snowflake has minimum 18 because the events feature is at least that old
-			const invite = await di.snow.invite.getInvite(match[1], {guild_scheduled_event_id: match[2]})
+			let invite
+			try {
+				invite = await di.snow.invite.getInvite(match[1], {guild_scheduled_event_id: match[2]})
+			} catch (e) {
+				// Skip expired/invalid invites and events
+				if (e.message === `{"message": "Unknown Invite", "code": 10006}`) {
+					break
+				} else {
+					throw e
+				}
+			}
+
 			const event = invite.guild_scheduled_event
 			if (!event) continue // the event ID provided was not valid
 

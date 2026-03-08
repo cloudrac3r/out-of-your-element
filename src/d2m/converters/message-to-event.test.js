@@ -1538,6 +1538,28 @@ test("message2event: vc invite event renders embed with room link", async t => {
 	])
 })
 
+test("message2event: expired/invalid invites are sent as-is", async t => {
+	const events = await messageToEvent({content: "https://discord.gg/placeholder?event=1381190945646710824"}, {}, {}, {
+		snow: {
+			invite: {
+				async getInvite() {
+					throw new Error(`{"message": "Unknown Invite", "code": 10006}`)
+				}
+			}
+		}
+	})
+	t.deepEqual(events, [
+		{
+			$type: "m.room.message",
+			body: "https://discord.gg/placeholder?event=1381190945646710824",
+			format: "org.matrix.custom.html",
+			formatted_body: "<a href=\"https://discord.gg/placeholder?event=1381190945646710824\">https://discord.gg/placeholder?event=1381190945646710824</a>",
+			"m.mentions": {},
+			msgtype: "m.text",
+		}
+	])
+})
+
 test("message2event: channel links are converted even inside lists (parser post-processer descends into list items)", async t => {
 	let called = 0
 	const events = await messageToEvent({
