@@ -1,6 +1,7 @@
 // @ts-check
 
 const assert = require("assert").strict
+const DiscordTypes = require("discord-api-types/v10")
 const Ty = require("../types")
 const {pipeline} = require("stream").promises
 const sharp = require("sharp")
@@ -260,6 +261,46 @@ const commands = [{
 			}
 
 			await discord.snow.channel.createThreadWithoutMessage(channelID, {type: 11, name: words.slice(1).join(" ")})
+		}
+	)
+}, {
+	aliases: ["invite"],
+	execute: replyctx(
+		async (event, realBody, words, ctx) => {
+			// Guard
+			/** @type {string} */ // @ts-ignore
+			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
+			const guildID = discord.channels.get(channelID)?.["guild_id"]
+			if (!guildID) {
+				return api.sendEvent(event.room_id, "m.room.message", {
+					...ctx,
+					msgtype: "m.text",
+					body: "This room isn't bridged to the other side."
+				})
+			}
+
+			const guild = discord.guilds.get(guildID)
+			assert(guild)
+			const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
+			if (!dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.CreateInstantInvite)) {
+				return api.sendEvent(event.room_id, "m.room.message", {
+					...ctx,
+					msgtype: "m.text",
+					body: "This command creates an invite link to the Discord side. But you aren't allowed to do this, because if you were a Discord user, you wouldn't have the Create Invite permission."
+				})
+			}
+
+			const invite = await discord.snow.channel.createChannelInvite(channelID)
+			const validHours = Math.ceil(invite.max_age / (60 * 60))
+			const validUses =
+				( invite.max_uses === 0 ? "unlimited uses"
+				: invite.max_uses === 1 ? "single-use"
+				: `${invite.max_uses} uses`)
+			return api.sendEvent(event.room_id, "m.room.message", {
+				...ctx,
+				msgtype: "m.text",
+				body: `https://discord.gg/${invite.code}\nValid for next ${validHours} hours, ${validUses}.`
+			})
 		}
 	)
 }]
