@@ -10,7 +10,6 @@ if (!channelID) {
 	process.exit(1)
 }
 
-const assert = require("assert/strict")
 const sqlite = require("better-sqlite3")
 const backfill = new sqlite("scripts/backfill.db")
 backfill.prepare("CREATE TABLE IF NOT EXISTS backfill (channel_id TEXT NOT NULL, message_id INTEGER NOT NULL, PRIMARY KEY (channel_id, message_id))").run()
@@ -38,12 +37,8 @@ passthrough.select = orm.select
 
 /** @type {import("../src/d2m/event-dispatcher")}*/
 const eventDispatcher = sync.require("../src/d2m/event-dispatcher")
-
-const roomID = passthrough.select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
-if (!roomID) {
-	console.error("Please choose a channel that's already bridged.")
-	process.exit(1)
-}
+/** @type {import("../src/d2m/actions/create-room")} */
+const createRoom = sync.require("../src/d2m/actions/create-room")
 
 ;(async () => {
 	await discord.cloud.connect()
@@ -60,23 +55,29 @@ async function event(event) {
 	if (!channel) return
 	const guild_id = event.d.id
 
-	let last = backfill.prepare("SELECT cast(max(message_id) as TEXT) FROM backfill WHERE channel_id = ?").pluck().get(channelID) || "0"
-	console.log(`OK, processing messages for #${channel.name}, continuing from ${last}`)
+	try {
+		await createRoom.syncRoom(channelID)
+		let last = backfill.prepare("SELECT cast(max(message_id) as TEXT) FROM backfill WHERE channel_id = ?").pluck().get(channelID) || "0"
+		console.log(`OK, processing messages for #${channel.name}, continuing from ${last}`)
 
-	while (last) {
-		const messages = await discord.snow.channel.getChannelMessages(channelID, {limit: 50, after: String(last)})
-		messages.reverse() // More recent messages come first -> More recent messages come last
-		for (const message of messages) {
-			const simulatedGatewayDispatchData = {
-				guild_id,
-				backfill: true,
-				...message
+		while (last) {
+			const messages = await discord.snow.channel.getChannelMessages(channelID, {limit: 50, after: String(last)})
+			messages.reverse() // More recent messages come first -> More recent messages come last
+			for (const message of messages) {
+				const simulatedGatewayDispatchData = {
+					guild_id,
+					backfill: true,
+					...message
+				}
+				await eventDispatcher.MESSAGE_CREATE(discord, simulatedGatewayDispatchData)
+				preparedInsert.run(channelID, message.id)
 			}
-			await eventDispatcher.MESSAGE_CREATE(discord, simulatedGatewayDispatchData)
-			preparedInsert.run(channelID, message.id)
+			last = messages.at(-1)?.id
 		}
-		last = messages.at(-1)?.id
-	}
 
-	process.exit()
+		process.exit()
+	} catch (e) {
+		console.error(e)
+		process.exit(1) // won't exit automatically on thrown error due to living discord connection, so manual exit is necessary
+	}
 }
