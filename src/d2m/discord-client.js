@@ -52,7 +52,11 @@ class DiscordClient {
 		/** @type {Map<string, Array<string>>} */
 		this.guildChannelMap = new Map()
 		if (listen !== "no") {
-			this.cloud.on("event", message => discordPackets.onPacket(this, message, listen))
+			this.cloud.on("event", message => {
+				process.nextTick(() => {
+					discordPackets.onPacket(this, message, listen)
+				})
+			})
 		}
 
 		const addEventLogger = (eventName, logName) => {

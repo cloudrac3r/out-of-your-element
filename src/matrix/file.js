@@ -85,6 +85,7 @@ async function _actuallyUploadDiscordFileToMxc(url) {
 			writeRegistration(reg)
 			return root
 		}
+		e.uploadURL = url
 		throw e
 	}
 }
