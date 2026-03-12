@@ -1099,7 +1099,7 @@ test("message2event: multiple attachments are combined into the same event where
 		formatted_body: "hey"
 			+ `<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
 			+ `<br><blockquote>📸 Uploaded SPOILER file: <a href="https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg">https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg</a> (38 KB)</blockquote>`
-			+ `<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
+			+ `📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
 	}, {
 		$type: "m.room.message",
 		"m.mentions": {},

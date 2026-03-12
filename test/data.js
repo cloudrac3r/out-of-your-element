@@ -5067,6 +5067,141 @@ module.exports = {
 			pinned: false,
 			mention_everyone: false,
 			tts: false
+		},
+		four_images: {
+			type: 0,
+			content: "",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2026-03-12T18:00:50.737000+00:00",
+			edited_timestamp: null,
+			flags: 16384,
+			components: [],
+			id: "1481713598278533241",
+			channel_id: "687028734322147344",
+			author: {
+				id: "112760500130975744",
+				username: "minimus",
+				avatar: "a_a354b9eaff512485b49c82b13691b941",
+				discriminator: "0",
+				public_flags: 512,
+				flags: 512,
+				banner: null,
+				accent_color: null,
+				global_name: "minimus",
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: { font_id: 11, effect_id: 5, colors: [ 6106655 ] },
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 1,
+				channel_id: "637339857118822430",
+				message_id: "1481696763483258891",
+				guild_id: "408573045540651009"
+			},
+			message_snapshots: [
+				{
+					message: {
+						type: 0,
+						content: "https://fixupx.com/i/status/2032003668787020046",
+						mentions: [],
+						mention_roles: [],
+						attachments: [],
+						embeds: [
+							{
+								type: "rich",
+								url: "https://fixupx.com/i/status/2032003668787020046",
+								description: "4chan owner Hiroyuki, Evangelion director Hideaki Anno and GACKT to participate in “humanity’s last non\\-AI made social network”\n" +
+								"︀︀\n" +
+								"︀︀[automaton-media.com/en/news/4chan-owner-hiroyuki-evangelion-director-hideaki-anno-and-gackt-to-participate-in-humanitys-last-non-ai-made-social-network/](https://automaton-media.com/en/news/4chan-owner-hiroyuki-evangelion-director-hideaki-anno-and-gackt-to-participate-in-humanitys-last-non-ai-made-social-network/)\n" +
+								"\n" +
+								"**[💬](https://x.com/intent/tweet?in_reply_to=2032003668787020046) 36 [🔁](https://x.com/intent/retweet?tweet_id=2032003668787020046) 212 [❤](https://x.com/intent/like?tweet_id=2032003668787020046) 3\\.0K 👁 131\\.7K **",
+								color: 6513919,
+								timestamp: "2026-03-12T08:00:02+00:00",
+								author: {
+									name: "AUTOMATON WEST (@AUTOMATON_ENG)",
+									url: "https://x.com/AUTOMATON_ENG/status/2032003668787020046",
+									icon_url: "https://pbs.twimg.com/profile_images/1353559126693961729/pz-WVnDc_200x200.jpg",
+									proxy_icon_url: "https://images-ext-1.discordapp.net/external/1OzGhjvZTRstTxM38_7pqHXlmdbMddqh1F8R0-WrKqw/https/pbs.twimg.com/profile_images/1353559126693961729/pz-WVnDc_200x200.jpg"
+								},
+								image: {
+									url: "https://pbs.twimg.com/media/HDMUyf6bQAM3yts.jpg?name=orig",
+									proxy_url: "https://images-ext-1.discordapp.net/external/NkNgp2SyY1OCH9IdS8hqsUqbnbrp3A9oLNwYusVVCVQ/%3Fname%3Dorig/https/pbs.twimg.com/media/HDMUyf6bQAM3yts.jpg",
+									width: 872,
+									height: 886,
+									content_type: "image/jpeg",
+									placeholder: "6vcFFwL6R3lye2V3l1mIl5l3WPN5FZ8H",
+									placeholder_version: 1,
+									flags: 0
+								},
+								footer: {
+									text: "FixupX",
+									icon_url: "https://assets.fxembed.com/logos/fixupx64.png",
+									proxy_icon_url: "https://images-ext-1.discordapp.net/external/LwQ70Uiqfu0OCN4ZbA4f482TGCgQa-xGsnUFYfhIgYA/https/assets.fxembed.com/logos/fixupx64.png"
+								},
+								content_scan_version: 4
+							},
+							{
+								type: "rich",
+								url: "https://fixupx.com/i/status/2032003668787020046",
+								image: {
+									url: "https://pbs.twimg.com/media/HDMUgxybQAE4FtJ.jpg?name=orig",
+									proxy_url: "https://images-ext-1.discordapp.net/external/Rquh1ec-tG9hMqdHqIVSphO7zf5B5Fg_7yTWhCjlsek/%3Fname%3Dorig/https/pbs.twimg.com/media/HDMUgxybQAE4FtJ.jpg",
+									width: 1114,
+									height: 991,
+									content_type: "image/jpeg",
+									placeholder: "JQgKDoL3epZ8ZIdnlmmHZ4d4CIGmUEc=",
+									placeholder_version: 1,
+									flags: 0
+								},
+								content_scan_version: 4
+							},
+							{
+								type: "rich",
+								url: "https://fixupx.com/i/status/2032003668787020046",
+								image: {
+									url: "https://pbs.twimg.com/media/HDMUrPobgAAeb90.jpg?name=orig",
+									proxy_url: "https://images-ext-1.discordapp.net/external/XrkhHNH3CvlZYvjkdykVnf-_xdz6HWX8uwesoAwwSfY/%3Fname%3Dorig/https/pbs.twimg.com/media/HDMUrPobgAAeb90.jpg",
+									width: 944,
+									height: 954,
+									content_type: "image/jpeg",
+									placeholder: "m/cJDwCbV0mfaoZzlihqeXdqCVN9A6oD",
+									placeholder_version: 1,
+									flags: 0
+								},
+								content_scan_version: 4
+							},
+							{
+								type: "rich",
+								url: "https://fixupx.com/i/status/2032003668787020046",
+								image: {
+									url: "https://pbs.twimg.com/media/HDMUuy5bgAAInj5.jpg?name=orig",
+									proxy_url: "https://images-ext-1.discordapp.net/external/lO-5hBMU9bGH13Ax9xum2T2Mg0ATdv0b6BEx_VeVi80/%3Fname%3Dorig/https/pbs.twimg.com/media/HDMUuy5bgAAInj5.jpg",
+									width: 1200,
+									height: 630,
+									content_type: "image/jpeg",
+									placeholder: "tfcJDIK3mIl1eIiPdY23dX9b9w==",
+									placeholder_version: 1,
+									flags: 0
+								},
+								content_scan_version: 4
+							}
+						],
+						timestamp: "2026-03-12T16:53:57.009000+00:00",
+						edited_timestamp: null,
+						flags: 0,
+						components: []
+					}
+				}
+			]
 		}
 	},
 	message_with_components: {

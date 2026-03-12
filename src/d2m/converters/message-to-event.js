@@ -262,6 +262,29 @@ function getFormattedInteraction(interaction, isThinkingInteraction) {
 }
 
 /**
+ * @param {any} newEvents merge into events
+ * @param {any} events will be modified
+ * @param {boolean} forceSameMsgtype whether m.text may only be combined with m.text, etc
+ */
+function mergeTextEvents(newEvents, events, forceSameMsgtype) {
+	let prev = events.at(-1)
+	for (const ne of newEvents) {
+		const isAllText = prev?.body && prev?.formatted_body && ["m.text", "m.notice"].includes(ne.msgtype) && ["m.text", "m.notice"].includes(prev?.msgtype)
+		const typesPermitted = !forceSameMsgtype || ne?.msgtype === prev?.msgtype
+		if (isAllText && typesPermitted) {
+			const rep = new mxUtils.MatrixStringBuilder()
+			rep.body = prev.body
+			rep.formattedBody = prev.formatted_body
+			rep.addLine(ne.body, ne.formatted_body)
+			prev.body = rep.body
+			prev.formatted_body = rep.formattedBody
+		} else {
+			events.push(ne)
+		}
+	}
+}
+
+/**
  * @param {DiscordTypes.APIMessage} message
  * @param {DiscordTypes.APIGuild} guild
  * @param {{includeReplyFallback?: boolean, includeEditFallbackStar?: boolean, alwaysReturnFormattedBody?: boolean, scanTextForMentions?: boolean}} options default values:
@@ -835,15 +858,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Try to merge attachment events with the previous event
 		// This means that if the attachments ended up as a text link, and especially if there were many of them, the events will be joined together.
-		let prev = events.at(-1)
-		for (const atch of attachmentEvents) {
-			if (atch.msgtype === "m.text" && prev?.body && prev?.formatted_body && ["m.text", "m.notice"].includes(prev?.msgtype)) {
-				prev.body = prev.body + "\n" + atch.body
-				prev.formatted_body = prev.formatted_body + "<br>" + atch.formatted_body
-			} else {
-				events.push(atch)
-			}
-		}
+		mergeTextEvents(attachmentEvents, events, false)
 	}
 
 	// Then components
@@ -981,6 +996,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		// Start building up a replica ("rep") of the embed in Discord-markdown format, which we will convert into both plaintext and formatted body at once
 		const rep = new mxUtils.MatrixStringBuilder()
+		let isAdditionalImage = false
 
 		if (isKlipyGIF) {
 			assert(embed.video?.url)
@@ -1047,7 +1063,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 		let chosenImage = embed.image?.url
 		// the thumbnail seems to be used for "article" type but displayed big at the bottom by discord
 		if (embed.type === "article" && embed.thumbnail?.url && !chosenImage) chosenImage = embed.thumbnail.url
-		if (chosenImage) rep.addParagraph(`📸 ${dUtils.getPublicUrlForCdn(chosenImage)}`)
+
+		if (chosenImage) {
+			isAdditionalImage = !rep.body && !!events.length
+			rep.addParagraph(`📸 ${dUtils.getPublicUrlForCdn(chosenImage)}`)
+		}
 
 		if (embed.video?.url) rep.addParagraph(`🎞️ ${dUtils.getPublicUrlForCdn(embed.video.url)}`)
 
@@ -1055,6 +1075,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 		let {body, formatted_body: html} = rep.get()
 		body = body.split("\n").map(l => "| " + l).join("\n")
 		html = `<blockquote>${html}</blockquote>`
+
+		if (isAdditionalImage) {
+			mergeTextEvents([{...rep.get(), body, html, msgtype: "m.notice"}], events, true)
+			continue
+		}
 
 		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
 		await addTextEvent(body, html, "m.notice")

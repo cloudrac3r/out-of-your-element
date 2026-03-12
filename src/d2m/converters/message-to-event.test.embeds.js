@@ -204,6 +204,44 @@ test("message2event embeds: author url without name", async t => {
 	}])
 })
 
+test("message2event embeds: 4 images", async t => {
+	const events = await messageToEvent(data.message_with_embeds.four_images, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "[🔀 Forwarded message]\n» https://fixupx.com/i/status/2032003668787020046",
+		format: "org.matrix.custom.html",
+		formatted_body: "🔀 <em>Forwarded message</em><br><blockquote><a href=\"https://fixupx.com/i/status/2032003668787020046\">https://fixupx.com/i/status/2032003668787020046</a></blockquote>",
+		"m.mentions": {}
+	}, {
+		$type: "m.room.message",
+		msgtype: "m.notice",
+		body: "» | ## ⏺️ AUTOMATON WEST (@AUTOMATON_ENG) https://x.com/AUTOMATON_ENG/status/2032003668787020046"
+			+ "\n» | "
+			+ "\n» | 4chan owner Hiroyuki, Evangelion director Hideaki Anno and GACKT to participate in “humanity’s last non\\-AI made social network”"
+			+ "\n» | ︀︀"
+			+ "\n» | ︀︀[automaton-media.com/en/news/4chan-owner-hiroyuki-evangelion-director-hideaki-anno-and-gackt-to-participate-in-humanitys-last-non-ai-made-social-network/](https://automaton-media.com/en/news/4chan-owner-hiroyuki-evangelion-director-hideaki-anno-and-gackt-to-participate-in-humanitys-last-non-ai-made-social-network/)"
+			+ "\n» | "
+			+ "\n» | **[💬](https://x.com/intent/tweet?in_reply_to=2032003668787020046) 36 [🔁](https://x.com/intent/retweet?tweet_id=2032003668787020046) 212 [❤](https://x.com/intent/like?tweet_id=2032003668787020046) 3\\.0K 👁 131\\.7K **"
+			+ "\n» | "
+			+ "\n» | 📸 https://pbs.twimg.com/media/HDMUyf6bQAM3yts.jpg?name=orig"
+			+ "\n» | — FixupX"
+			+ "\n» | 📸 https://pbs.twimg.com/media/HDMUgxybQAE4FtJ.jpg?name=orig"
+			+ "\n» | 📸 https://pbs.twimg.com/media/HDMUrPobgAAeb90.jpg?name=orig"
+			+ "\n» | 📸 https://pbs.twimg.com/media/HDMUuy5bgAAInj5.jpg?name=orig",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote><blockquote><p><strong><a href=\"https://x.com/AUTOMATON_ENG/status/2032003668787020046\">⏺️ AUTOMATON WEST (@AUTOMATON_ENG)</a></strong></p>"
+			+ "<p>4chan owner Hiroyuki, Evangelion director Hideaki Anno and GACKT to participate in “humanity’s last non-AI made social network”"
+			+ "<br>︀︀<br>︀︀<a href=\"https://automaton-media.com/en/news/4chan-owner-hiroyuki-evangelion-director-hideaki-anno-and-gackt-to-participate-in-humanitys-last-non-ai-made-social-network/\">automaton-media.com/en/news/4chan-owner-hiroyuki-evangelion-director-hideaki-anno-and-gackt-to-participate-in-humanitys-last-non-ai-made-social-network/</a>"
+			+ "<br><br><strong><a href=\"https://x.com/intent/tweet?in_reply_to=2032003668787020046\">💬</a> 36 <a href=\"https://x.com/intent/retweet?tweet_id=2032003668787020046\">🔁</a> 212 <a href=\"https://x.com/intent/like?tweet_id=2032003668787020046\">❤</a> 3.0K 👁 131.7K </strong></p>"
+			+ "<p>📸 https://pbs.twimg.com/media/HDMUyf6bQAM3yts.jpg?name=orig</p>— FixupX</blockquote>"
+			+ "<p>📸 https://pbs.twimg.com/media/HDMUgxybQAE4FtJ.jpg?name=orig</p>"
+			+ "<p>📸 https://pbs.twimg.com/media/HDMUrPobgAAeb90.jpg?name=orig</p>"
+			+ "<p>📸 https://pbs.twimg.com/media/HDMUuy5bgAAInj5.jpg?name=orig</p></blockquote>",
+		"m.mentions": {}
+	}])
+})
+
 test("message2event embeds: vx image", async t => {
 	const events = await messageToEvent(data.message_with_embeds.vx_image, data.guild.general)
 	t.deepEqual(events, [{
