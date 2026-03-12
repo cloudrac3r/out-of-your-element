@@ -146,10 +146,18 @@ function findMention(pjr, maximumWrittenSection, baseOffset, prefix, content) {
 		// Highlight the relevant part of the message
 		const start = baseOffset + best.scored.matchedInputTokens[0].index
 		const end = baseOffset + prefix.length + best.scored.matchedInputTokens.slice(-1)[0].end
-		const newContent = content.slice(0, start) + "[" + content.slice(start, end) + "](https://matrix.to/#/" + best.mxid + ")" + content.slice(end)
+		const newNodes = [{
+			type: "text", content: content.slice(0, start)
+		}, {
+			type: "link", target: `https://matrix.to/#/${best.mxid}`, content: [
+				{type: "text", content: content.slice(start, end)}
+			]
+		}, {
+			type: "text", content: content.slice(end)
+		}]
 		return {
 			mxid: best.mxid,
-			newContent
+			newNodes
 		}
 	}
 }

@@ -519,29 +519,60 @@ async function messageToEvent(message, guild, options = {}, di) {
 			return emojiToKey.emojiToKey({id, name, animated}, message.id) // Register the custom emoji if needed
 		}))
 
-		async function transformParsedVia(parsed) {
-			for (const node of parsed) {
+		async function transformParsedVia(parsed, scanTextForMentions) {
+			for (let n = 0; n < parsed.length; n++) {
+				const node = parsed[n]
 				if (node.type === "discordChannel" || node.type === "discordChannelLink") {
 					node.row = select("channel_room", ["room_id", "name", "nick"], {channel_id: node.id}).get()
 					if (node.row?.room_id) {
 						node.via = await getViaServersMemo(node.row.room_id)
 					}
 				}
+				else if (node.type === "text" && typeof node.content === "string") {
+					// Merge adjacent text nodes into this one
+					while (parsed[n+1]?.type === "text" && typeof parsed[n+1].content === "string") {
+						node.content += parsed[n+1].content
+						parsed.splice(n+1, 1)
+					}
+					// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
+					if (scanTextForMentions) {
+						let content = node.content
+						const matches = [...content.matchAll(/(@ ?)([a-z0-9_.#$][^@\n]+)/gi)]
+						for (let i = matches.length; i--;) {
+							const m = matches[i]
+							const prefix = m[1]
+							const maximumWrittenSection = m[2].toLowerCase()
+							if (m.index > 0 && !content[m.index-1].match(/ |\(|\n/)) continue // must have space before it
+							if (maximumWrittenSection.match(/^everyone\b/) || maximumWrittenSection.match(/^here\b/)) continue // ignore @everyone/@here
+
+							var roomID = roomID ?? select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
+							assert(roomID)
+							var pjr = pjr ?? findMentions.processJoined(Object.entries((await di.api.getJoinedMembers(roomID)).joined).map(([mxid, ev]) => ({mxid, displayname: ev.display_name})))
+
+							const found = findMentions.findMention(pjr, maximumWrittenSection, m.index, prefix, content)
+							if (found) {
+								addMention(found.mxid)
+								parsed.splice(n, 1, ...found.newNodes)
+								content = found.newNodes[0].content
+							}
+						}
+					}
+				}
 				for (const maybeChildNodesArray of [node, node.content, node.items]) {
 					if (Array.isArray(maybeChildNodesArray)) {
-						await transformParsedVia(maybeChildNodesArray)
+						await transformParsedVia(maybeChildNodesArray, scanTextForMentions && ["blockQuote", "list", "paragraph", "em", "strong", "u", "del", "text"].includes(node.type))
 					}
 				}
 			}
 			return parsed
 		}
 
-		let html = await markdown.toHtmlWithPostParser(content, transformParsedVia, {
+		let html = await markdown.toHtmlWithPostParser(content, parsed => transformParsedVia(parsed, customOptions.isTheMessageContent && options.scanTextForMentions !== false), {
 			discordCallback: getDiscordParseCallbacks(message, guild, true, spoilers),
 			...customOptions
 		}, customParser, customHtmlOutput)
 
-		let body = await markdown.toHtmlWithPostParser(content, transformParsedVia, {
+		let body = await markdown.toHtmlWithPostParser(content, parsed => transformParsedVia(parsed, false), { // not scanning plaintext body for mentions as we don't parse whether they're in code
 			discordCallback: getDiscordParseCallbacks(message, guild, false),
 			discordOnly: true,
 			escapeHTML: false,
@@ -735,35 +766,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	// Then text content
 	if (message.content && !isOnlyKlipyGIF && !isThinkingInteraction) {
-		// Mentions scenario 3: scan the message content for written @mentions of matrix users. Allows for up to one space between @ and mention.
-		let content = message.content
-		if (options.scanTextForMentions !== false) {
-			const matches = [...content.matchAll(/(@ ?)([a-z0-9_.#$][^@\n]+)/gi)]
-			for (let i = matches.length; i--;) {
-				const m = matches[i]
-				const prefix = m[1]
-				const maximumWrittenSection = m[2].toLowerCase()
-				if (m.index > 0 && !content[m.index-1].match(/ |\(|\n/)) continue // must have space before it
-				if (maximumWrittenSection.match(/^everyone\b/) || maximumWrittenSection.match(/^here\b/)) continue // ignore @everyone/@here
-
-				var roomID = roomID ?? select("channel_room", "room_id", {channel_id: message.channel_id}).pluck().get()
-				assert(roomID)
-				var pjr = pjr ?? findMentions.processJoined(Object.entries((await di.api.getJoinedMembers(roomID)).joined).map(([mxid, ev]) => ({mxid, displayname: ev.display_name})))
-
-				const found = findMentions.findMention(pjr, maximumWrittenSection, m.index, prefix, content)
-				if (found) {
-					addMention(found.mxid)
-					content = found.newContent
-				}
-			}
-		}
-
 		// Scan the content for emojihax and replace them with real emojis
-		content = content.replaceAll(/\[([a-zA-Z0-9_-]{2,32})(?:~[0-9]+)?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/([0-9]+)\.[^ \n)`]+\)/g, (_, name, id) => {
+		let content = message.content.replaceAll(/\[([a-zA-Z0-9_-]{2,32})(?:~[0-9]+)?\]\(https:\/\/cdn\.discordapp\.com\/emojis\/([0-9]+)\.[^ \n)`]+\)/g, (_, name, id) => {
 			return `<:${name}:${id}>`
 		})
 
-		const {body, html} = await transformContent(content)
+		const {body, html} = await transformContent(content, {isTheMessageContent: true})
 		await addTextEvent(body, html, msgtype)
 	}
 

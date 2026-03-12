@@ -789,7 +789,7 @@ test("message2event: simple written @mention for matrix user", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "[@ash](https://matrix.to/#/@she_who_brings_destruction:cadence.moe) do you need anything from the store btw as I'm heading there after gym",
+		body: "@ash do you need anything from the store btw as I'm heading there after gym",
 		format: "org.matrix.custom.html",
 		formatted_body: `<a href="https://matrix.to/#/@she_who_brings_destruction:cadence.moe">@ash</a> do you need anything from the store btw as I'm heading there after gym`
 	}])
@@ -838,7 +838,7 @@ test("message2event: many written @mentions for matrix users", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "[@Cadence](https://matrix.to/#/@cadence:cadence.moe), tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and [@huck](https://matrix.to/#/@huckleton:cadence.moe)",
+		body: "@Cadence, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and @huck",
 		format: "org.matrix.custom.html",
 		formatted_body: `<a href="https://matrix.to/#/@cadence:cadence.moe">@Cadence</a>, tell me about @Phil, the creator of the Chin Trick, who has become ever more powerful under the mentorship of @botrac4r and <a href="https://matrix.to/#/@huckleton:cadence.moe">@huck</a>`
 	}])
@@ -890,7 +890,7 @@ test("message2event: written @mentions may match part of the name", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "I wonder if [@cadence](https://matrix.to/#/@secret:cadence.moe) saw this?",
+		body: "I wonder if @cadence saw this?",
 		format: "org.matrix.custom.html",
 		formatted_body: `I wonder if <a href="https://matrix.to/#/@secret:cadence.moe">@cadence</a> saw this?`
 	}])
@@ -941,7 +941,7 @@ test("message2event: written @mentions may match part of the mxid", async t => {
 			]
 		},
 		msgtype: "m.text",
-		body: "I wonder if [@huck](https://matrix.to/#/@huckleton:cadence.moe) saw this?",
+		body: "I wonder if @huck saw this?",
 		format: "org.matrix.custom.html",
 		formatted_body: `I wonder if <a href="https://matrix.to/#/@huckleton:cadence.moe">@huck</a> saw this?`
 	}])
@@ -959,6 +959,21 @@ test("message2event: written @mentions do not match in URLs", async t => {
 		body: "the fucking around with pixel composer continues https://pub.mastodon.sleeping.town/@exa/116037641900024965",
 		format: "org.matrix.custom.html",
 		formatted_body: `the fucking around with pixel composer continues <a href="https://pub.mastodon.sleeping.town/@exa/116037641900024965">https://pub.mastodon.sleeping.town/@exa/116037641900024965</a>`
+	}])
+})
+
+test("message2event: written @mentions do not match in inline code", async t => {
+	const events = await messageToEvent({
+		...data.message.advanced_written_at_mention_for_matrix,
+		content: "`public @Nullable EntityType<?>`"
+	}, data.guild.general, {}, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "`public @Nullable EntityType<?>`",
+		format: "org.matrix.custom.html",
+		formatted_body: `<code>public @Nullable EntityType&lt;?&gt;</code>`
 	}])
 })
 
@@ -1007,7 +1022,7 @@ test("message2event: entire message may match elaborate display name", async t =
 			]
 		},
 		msgtype: "m.text",
-		body: "[@Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆](https://matrix.to/#/@wa:cadence.moe)",
+		body: "@Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆",
 		format: "org.matrix.custom.html",
 		formatted_body: `<a href="https://matrix.to/#/@wa:cadence.moe">@Cadence, Maid of Creation, Eye of Clarity, Empress of Hope ☆</a>`
 	}])
