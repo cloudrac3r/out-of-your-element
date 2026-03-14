@@ -26,6 +26,7 @@ const utils = {
 			client.user = message.d.user
 			client.application = message.d.application
 			console.log(`Discord logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
+			interactions.registerInteractions()
 
 		} else if (message.t === "GUILD_CREATE") {
 			message.d.members = message.d.members.filter(m => m.user.id === client.user.id) // only keep the bot's own member - it's needed to determine private channels on web
@@ -47,7 +48,6 @@ const utils = {
 
 			if (listen === "full") {
 				try {
-					interactions.registerInteractions()
 					await eventDispatcher.checkMissedExpressions(message.d)
 					await eventDispatcher.checkMissedPins(client, message.d)
 					await eventDispatcher.checkMissedMessages(client, message.d)

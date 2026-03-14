@@ -131,6 +131,9 @@ as.router.post("/api/default-roles", defineEventHandler(async event => {
 		db.prepare("INSERT OR IGNORE INTO role_default (guild_id, role_id) VALUES (?, ?)").run(guildID, roleID)
 	}
 
+	const createSpace = getCreateSpace(event)
+	await createSpace.syncSpaceFully(guildID) // this is inefficient but OK to call infrequently on user request
+
 	if (getRequestHeader(event, "HX-Request")) {
 		return pugSync.render(event, "fragments/default-roles-list.pug", {guild, guild_id: guildID})
 	} else {
