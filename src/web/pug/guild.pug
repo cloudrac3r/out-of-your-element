@@ -108,7 +108,7 @@ block body
 
     h3.mt32.fs-category Default roles
     .s-card
-      form(method="post" action=rel("/api/default-roles") hx-post=rel("/api/default-roles") hx-indicator="#add-role-loading" hx-target="#default-roles-list" hx-select="#default-roles-list" hx-swap="outerHTML")#default-roles
+      form(method="post" action=rel("/api/default-roles") hx-post=rel("/api/default-roles") hx-sync="this:drop" hx-indicator="#add-role-loading" hx-target="#default-roles-list" hx-select="#default-roles-list" hx-swap="outerHTML")#default-roles
         input(type="hidden" name="guild_id" value=guild_id)
         .d-flex.fw-wrap.g4
           .s-tag.s-tag__md.fs-body1.s-tag__required @everyone
