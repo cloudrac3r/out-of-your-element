@@ -9,7 +9,7 @@ const sharp = require("sharp")
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/mreq")} */
 const mreq = sync.require("../../matrix/mreq")
-const streamMimeType = require("stream-mime-type")
+const {streamType} = require("@cloudrac3r/stream-type")
 
 const WIDTH = 160
 const HEIGHT = 160
@@ -26,13 +26,13 @@ async function getAndResizeSticker(mxc) {
 	}
 
 	const streamIn = Readable.fromWeb(res.body)
-	const { stream, mime } = await streamMimeType.getMimeType(streamIn)
-	const animated = ["image/gif", "image/webp"].includes(mime)
+	const {streamThrough, type} = await streamType(streamIn)
+	const animated = ["image/gif", "image/webp"].includes(type)
 
 	const transformer = sharp({animated: animated})
 		.resize(WIDTH, HEIGHT, {fit: "inside", background: {r: 0, g: 0, b: 0, alpha: 0}})
 		.webp()
-	stream.pipe(transformer)
+	streamThrough.pipe(transformer)
 	return Readable.toWeb(transformer)
 }
 

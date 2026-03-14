@@ -977,6 +977,21 @@ test("message2event: written @mentions do not match in inline code", async t => 
 	}])
 })
 
+test("message2event: written @mentions do not match in code block", async t => {
+	const events = await messageToEvent({
+		...data.message.advanced_written_at_mention_for_matrix,
+		content: "```java\npublic @Nullable EntityType<?>\n```"
+	}, data.guild.general, {}, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "```java\npublic @Nullable EntityType<?>\n```",
+		format: "org.matrix.custom.html",
+		formatted_body: `<pre><code class="language-java">public @Nullable EntityType&lt;?&gt;</code></pre>`
+	}])
+})
+
 test("message2event: entire message may match elaborate display name", async t => {
 	let called = 0
 	const events = await messageToEvent({

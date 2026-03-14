@@ -6,7 +6,7 @@ const {pipeline} = require("stream").promises
 const sharp = require("sharp")
 const {GIFrame} = require("@cloudrac3r/giframe")
 const {PNG} = require("@cloudrac3r/pngjs")
-const streamMimeType = require("stream-mime-type")
+const {streamType} = require("@cloudrac3r/stream-type")
 
 const SIZE = 48
 const RESULT_WIDTH = 400
@@ -54,11 +54,11 @@ async function compositeMatrixEmojis(mxcs, mxcDownloader) {
  * @returns {Promise<Buffer | undefined>} Uncompressed PNG image
  */
 async function convertImageStream(streamIn, stopStream) {
-	const {stream, mime} = await streamMimeType.getMimeType(streamIn)
-	assert(["image/png", "image/jpeg", "image/webp", "image/gif", "image/apng"].includes(mime), `Mime type ${mime} is impossible for emojis`)
+	const {streamThrough, type} = await streamType(streamIn)
+	assert(["image/png", "image/jpeg", "image/webp", "image/gif", "image/apng"].includes(type), `Mime type ${type} is impossible for emojis`)
 
 	try {
-		if (mime === "image/png" || mime === "image/jpeg" || mime === "image/webp") {
+		if (type === "image/png" || type === "image/jpeg" || type === "image/webp") {
 			/** @type {{info: sharp.OutputInfo, buffer: Buffer}} */
 			const result = await new Promise((resolve, reject) => {
 				const transformer = sharp()
@@ -70,15 +70,15 @@ async function convertImageStream(streamIn, stopStream) {
 						resolve({info, buffer})
 					})
 				pipeline(
-					stream,
+					streamThrough,
 					transformer
 				)
 			})
 			return result.buffer
 
-		} else if (mime === "image/gif") {
+		} else if (type === "image/gif") {
 			const giframe = new GIFrame(0)
-			stream.on("data", chunk => {
+			streamThrough.on("data", chunk => {
 				giframe.feed(chunk)
 			})
 			const frame = await giframe.getFrame()
@@ -91,10 +91,10 @@ async function convertImageStream(streamIn, stopStream) {
 				.toBuffer({resolveWithObject: true})
 			return buffer.data
 
-		} else if (mime === "image/apng") {
+		} else if (type === "image/apng") {
 			const png = new PNG({maxFrames: 1})
 			// @ts-ignore
-			stream.pipe(png)
+			streamThrough.pipe(png)
 			/** @type {Buffer} */ // @ts-ignore
 			const frame = await new Promise(resolve => png.on("parsed", resolve))
 			stopStream()

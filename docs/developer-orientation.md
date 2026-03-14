@@ -89,7 +89,7 @@ Whether you read those or not, I'm more than happy to help you 1-on-1 with codin
 
 # Dependency justification
 
-Total transitive production dependencies: 134
+Total transitive production dependencies: 121
 
 ### <font size="+2">🦕</font>
 
@@ -108,6 +108,7 @@ Total transitive production dependencies: 134
 * (0) @cloudrac3r/in-your-element: This is my Matrix Appservice API library. It depends on h3 and zod, which are already pulled in by OOYE.
 * (0) @cloudrac3r/mixin-deep: This is my fork. (It fixes a bug in regular mixin-deep.)
 * (0) @cloudrac3r/pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
+* (0) @cloudrac3r/stream-type: Determine type of Matrix files that don't specify it in info. Switched from stream-mime-type to this.
 * (0) @cloudrac3r/turndown: This HTML-to-Markdown converter looked the most suitable. I forked it to change the escaping logic to match the way Discord works.
 * (3) @stackoverflow/stacks: Stack Overflow design language and icons.
 * (0) ansi-colors: Helps with interactive prompting for the initial setup, and it's already pulled in by enquirer.
