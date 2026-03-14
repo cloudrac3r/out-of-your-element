@@ -105,7 +105,8 @@ const commands = [{
 			// Guard
 			/** @type {string} */ // @ts-ignore
 			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
-			const guildID = discord.channels.get(channelID)?.["guild_id"]
+			const channel = discord.channels.get(channelID)
+			const guildID = channel?.["guild_id"]
 			let matrixOnlyReason = null
 			const matrixOnlyConclusion = "So the emoji will be uploaded on Matrix-side only. It will still be usable over the bridge, but may have degraded functionality."
 			// Check if we can/should upload to Discord, for various causes
@@ -115,7 +116,7 @@ const commands = [{
 				const guild = discord.guilds.get(guildID)
 				assert(guild)
 				const slots = getSlotCount(guild.premium_tier)
-				const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
+				const permissions = dUtils.getDefaultPermissions(guild, channel["permission_overwrites"])
 				if (guild.emojis.length >= slots) {
 					matrixOnlyReason = "CAPACITY"
 				} else if (!(permissions & 0x40000000n)) { // MANAGE_GUILD_EXPRESSIONS (apparently CREATE_GUILD_EXPRESSIONS isn't good enough...)
@@ -240,7 +241,8 @@ const commands = [{
 			// Guard
 			/** @type {string} */ // @ts-ignore
 			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
-			const guildID = discord.channels.get(channelID)?.["guild_id"]
+			const channel = discord.channels.get(channelID)
+			const guildID = channel?.["guild_id"]
 			if (!guildID) {
 				return api.sendEvent(event.room_id, "m.room.message", {
 					...ctx,
@@ -251,7 +253,7 @@ const commands = [{
 
 			const guild = discord.guilds.get(guildID)
 			assert(guild)
-			const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
+			const permissions = dUtils.getDefaultPermissions(guild, channel["permission_overwrites"])
 			if (!(permissions & 0x800000000n)) { // CREATE_PUBLIC_THREADS
 				return api.sendEvent(event.room_id, "m.room.message", {
 					...ctx,
@@ -270,7 +272,8 @@ const commands = [{
 			// Guard
 			/** @type {string} */ // @ts-ignore
 			const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
-			const guildID = discord.channels.get(channelID)?.["guild_id"]
+			const channel = discord.channels.get(channelID)
+			const guildID = channel?.["guild_id"]
 			if (!guildID) {
 				return api.sendEvent(event.room_id, "m.room.message", {
 					...ctx,
@@ -281,7 +284,7 @@ const commands = [{
 
 			const guild = discord.guilds.get(guildID)
 			assert(guild)
-			const permissions = dUtils.getPermissions(guild.id, [], guild.roles)
+			const permissions = dUtils.getDefaultPermissions(guild, channel["permission_overwrites"])
 			if (!dUtils.hasPermission(permissions, DiscordTypes.PermissionFlagsBits.CreateInstantInvite)) {
 				return api.sendEvent(event.room_id, "m.room.message", {
 					...ctx,
@@ -290,7 +293,19 @@ const commands = [{
 				})
 			}
 
-			const invite = await discord.snow.channel.createChannelInvite(channelID)
+			try {
+				var invite = await discord.snow.channel.createChannelInvite(channelID)
+			} catch (e) {
+				if (e.message === `{"message": "Missing Permissions", "code": 50013}`) {
+					return api.sendEvent(event.room_id, "m.room.message", {
+						...ctx,
+						msgtype: "m.text",
+						body: "I don't have permission to create invites to the Discord channel/server."
+					})
+				} else {
+					throw e
+				}
+			}
 			const validHours = Math.ceil(invite.max_age / (60 * 60))
 			const validUses =
 				( invite.max_uses === 0 ? "unlimited uses"

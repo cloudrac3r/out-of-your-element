@@ -154,7 +154,7 @@ function memberToPowerLevel(user, member, guild, channel) {
 	if (!member) return 0
 
 	const permissions = dUtils.getPermissions(guild.id, member.roles, guild.roles, user.id, channel.permission_overwrites)
-	const everyonePermissions = dUtils.getPermissions(guild.id, [], guild.roles, undefined, channel.permission_overwrites)
+	const everyonePermissions = dUtils.getDefaultPermissions(guild, channel.permission_overwrites)
 	/*
 	 * PL 100 = Administrator = People who can brick the room. RATIONALE:
 	 * 	- Administrator.

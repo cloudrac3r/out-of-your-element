@@ -5,7 +5,7 @@ const assert = require("assert").strict
 
 const {reg} = require("../matrix/read-registration")
 
-const {db} = require("../passthrough")
+const {db, select} = require("../passthrough")
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
 let hasher = null
@@ -56,6 +56,15 @@ function getPermissions(guildID, userRoles, guildRoles, userID, channelOverwrite
 		}
 	}
 	return allowed
+}
+
+/**
+ * @param {{id: string, roles: DiscordTypes.APIGuild["roles"]}} guild
+ * @param {DiscordTypes.APIGuildChannel["permission_overwrites"]} [channel]
+ */
+function getDefaultPermissions(guild, channel) {
+	const defaultRoles = select("role_default", "role_id", {guild_id: guild.id}).pluck().all()
+	return getPermissions(guild.id, defaultRoles, guild.roles, undefined, channel)
 }
 
 /**
@@ -174,6 +183,7 @@ function filterTo(xs, fn) {
 }
 
 module.exports.getPermissions = getPermissions
+module.exports.getDefaultPermissions = getDefaultPermissions
 module.exports.hasPermission = hasPermission
 module.exports.hasSomePermissions = hasSomePermissions
 module.exports.hasAllPermissions = hasAllPermissions
