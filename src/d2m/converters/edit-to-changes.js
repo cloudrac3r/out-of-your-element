@@ -151,9 +151,11 @@ async function editToChanges(message, guild, api) {
 	const messageReallyOld = message.timestamp && new Date(message.timestamp).getTime() < Date.now() - 2 * 60 * 1000 // older than 2 minutes ago
 	// Don't post new generated embeds for messages if the setting was disabled.
 	const embedsEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
+	// Bots may rely on embeds to send new content, so the rules may be more lax for them.
+	const botEmbedsApproved = message.author?.bot && !originallyFromMatrix
 	if (messageReallyOld) {
 		eventsToSend = [] // Only allow edits to change and delete, but not send new.
-	} else if ((messageQuiteOld || !embedsEnabled) && !message.author?.bot) {
+	} else if ((messageQuiteOld || !embedsEnabled) && !botEmbedsApproved) {
 		eventsToSend = eventsToSend.filter(e => e.msgtype !== "m.notice") // Only send events that aren't embeds.
 	}
 
