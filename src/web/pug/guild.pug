@@ -249,6 +249,11 @@ block body
             ul.my8.ml24
               each row in removedLinkedRooms
                 li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name
+          h3.mt24 Unavailable rooms: Encryption not supported
+          .s-card.p0
+            ul.my8.ml24
+              each row in removedEncryptedRooms
+                li: a(href=`https://matrix.to/#/${row.room_id}`)= row.name
           h3.mt24 Unavailable rooms: Wrong type
           .s-card.p0
             ul.my8.ml24

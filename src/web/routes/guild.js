@@ -123,13 +123,14 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	let unlinkedRooms = [...rooms]
 	let removedLinkedRooms = dUtils.filterTo(unlinkedRooms, r => !linkedRoomIDs.includes(r.room_id))
 	let removedWrongTypeRooms = dUtils.filterTo(unlinkedRooms, r => !r.room_type)
+	let removedEncryptedRooms = dUtils.filterTo(unlinkedRooms, r => !r.encryption && !r["im.nheko.summary.encryption"])
 	// https://discord.com/developers/docs/topics/threads#active-archived-threads
 	// need to filter out linked archived threads from unlinkedRooms, will just do that by comparing against the name
 	let removedArchivedThreadRooms = dUtils.filterTo(unlinkedRooms, r => r.name && !r.name.match(/^\[(🔒)?⛓️\]/))
 
 	return {
 		linkedChannelsWithDetails, unlinkedChannels, unlinkedRooms,
-		removedUncachedChannels, removedWrongTypeChannels, removedPrivateChannels, removedLinkedRooms, removedWrongTypeRooms, removedArchivedThreadRooms
+		removedUncachedChannels, removedWrongTypeChannels, removedPrivateChannels, removedLinkedRooms, removedWrongTypeRooms, removedArchivedThreadRooms, removedEncryptedRooms
 	}
 }
 

@@ -172,7 +172,7 @@ function getStateEventOuter(roomID, type, key) {
 /**
  * @param {string} roomID
  * @param {{unsigned?: {invite_room_state?: Ty.Event.InviteStrippedState[]}}} [event]
- * @returns {Promise<{name: string?, topic: string?, avatar: string?, type: string?}>}
+ * @returns {Promise<{name: string?, topic: string?, avatar: string?, type: string?, encryption: string?}>}
  */
 async function getInviteState(roomID, event) {
 	function getFromInviteRoomState(strippedState, nskey, key) {
@@ -191,7 +191,8 @@ async function getInviteState(roomID, event) {
 			name: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.name", "name"),
 			topic: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.topic", "topic"),
 			avatar: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.avatar", "url"),
-			type: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.create", "type")
+			type: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.create", "type"),
+			encryption: getFromInviteRoomState(event.unsigned.invite_room_state, "m.room.encryption", "algorithm")
 		}
 	}
 
@@ -227,7 +228,8 @@ async function getInviteState(roomID, event) {
 				name: getFromInviteRoomState(strippedState, "m.room.name", "name"),
 				topic: getFromInviteRoomState(strippedState, "m.room.topic", "topic"),
 				avatar: getFromInviteRoomState(strippedState, "m.room.avatar", "url"),
-				type: getFromInviteRoomState(strippedState, "m.room.create", "type")
+				type: getFromInviteRoomState(strippedState, "m.room.create", "type"),
+				encryption: getFromInviteRoomState(strippedState, "m.room.encryption", "algorithm")
 			}
 		}
 	} catch (e) {}
@@ -240,7 +242,8 @@ async function getInviteState(roomID, event) {
 			name: room.name ?? null,
 			topic: room.topic ?? null,
 			avatar: room.avatar_url ?? null,
-			type: room.room_type ?? null
+			type: room.room_type ?? null,
+			encryption: (room.encryption || room["im.nheko.summary.encryption"]) ?? null
 		}
 	}
 

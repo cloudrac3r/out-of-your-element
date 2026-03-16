@@ -442,8 +442,9 @@ function syncRoom(channelID) {
 /**
  * @param {{id: string, topic?: string?}} channel channel-ish (just needs an id, topic is optional)
  * @param {string} guildID
+ * @param {string} messageBeforeLeave
  */
-async function unbridgeChannel(channel, guildID) {
+async function unbridgeChannel(channel, guildID, messageBeforeLeave = "This room was removed from the bridge.") {
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	assert.ok(roomID)
 	const row = from("guild_space").join("guild_active", "guild_id").select("space_id", "autocreate").where({guild_id: guildID}).get()
@@ -493,7 +494,7 @@ async function unbridgeChannel(channel, guildID) {
 	// send a notification in the room
 	await api.sendEvent(roomID, "m.room.message", {
 		msgtype: "m.notice",
-		body: "⚠️ This room was removed from the bridge."
+		body: `⚠️ ${messageBeforeLeave}`
 	})
 
 	// if it is an easy mode room, clean up the room from the managed space and make it clear it's not being bridged

@@ -157,7 +157,7 @@ export namespace Event {
 		type: string
 		state_key: string
 		sender: string
-		content: Event.M_Room_Create | Event.M_Room_Name | Event.M_Room_Avatar | Event.M_Room_Topic | Event.M_Room_JoinRules | Event.M_Room_CanonicalAlias
+		content: Event.M_Room_Create | Event.M_Room_Name | Event.M_Room_Avatar | Event.M_Room_Topic | Event.M_Room_JoinRules | Event.M_Room_CanonicalAlias | Event.M_Room_Encryption
 	}
 
 	export type M_Room_Create = {
@@ -390,6 +390,12 @@ export namespace Event {
 		body: string
 		replacement_room: string
 	}
+
+	export type M_Room_Encryption = {
+		algorithm: string
+		rotation_period_ms?: number
+		rotation_period_msgs?: number
+	}
 }
 
 export namespace R {
@@ -437,6 +443,7 @@ export namespace R {
 		num_joined_members: number
 		room_id: string
 		room_type?: string
+		encryption?: string
 	}
 
 	export type ResolvedRoom = {

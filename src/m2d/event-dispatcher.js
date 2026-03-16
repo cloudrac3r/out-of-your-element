@@ -413,6 +413,7 @@ async event => {
 			console.error(e)
 			return await api.leaveRoomWithReason(event.room_id, `I wasn't able to find out what this room is. Please report this as a bug. Check console for more details. (${e.toString()})`)
 		}
+		if (inviteRoomState?.encryption) return await api.leaveRoomWithReason(event.room_id, "Encrypted rooms are not supported for bridging. Please use an unencrypted room.")
 		if (!inviteRoomState?.name) return await api.leaveRoomWithReason(event.room_id, `Please only invite me to rooms that have a name/avatar set. Update the room details and reinvite.`)
 		await api.joinRoom(event.room_id)
 		db.prepare("REPLACE INTO invite (mxid, room_id, type, name, topic, avatar) VALUES (?, ?, ?, ?, ?, ?)").run(event.sender, event.room_id, inviteRoomState.type, inviteRoomState.name, inviteRoomState.topic, inviteRoomState.avatar)
@@ -481,6 +482,20 @@ async event => {
 	if (event.state_key !== "") return
 	if (!event.content.replacement_room) return
 	await roomUpgrade.onTombstone(event, api)
+}))
+
+sync.addTemporaryListener(as, "type:m.room.encryption", guard("m.room.encryption",
+/**
+ * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Encryption>} event
+ */
+async event => {
+	// Dramatically unbridge rooms if they become encrypted
+	if (event.state_key !== "") return
+	const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
+	if (!channelID) return
+	const channel = discord.channels.get(channelID)
+	if (!channel) return
+	await createRoom.unbridgeChannel(channel, channel["guild_id"], "Encrypted rooms are not supported. This room was removed from the bridge.")
 }))
 
 module.exports.stringifyErrorStack = stringifyErrorStack

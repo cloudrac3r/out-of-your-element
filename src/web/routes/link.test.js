@@ -435,6 +435,47 @@ test("web link room: check that bridge can join room (uses via for join attempt)
 	t.equal(called, 2)
 })
 
+test("web link room: check that room is not encrypted", async t => {
+let called = 0
+	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
+		sessionData: {
+			managedGuilds: ["665289423482519565"]
+		},
+		body: {
+			discord: "665310973967597573",
+			matrix: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+			guild_id: "665289423482519565"
+		},
+		api: {
+			async joinRoom(roomID) {
+				called++
+				return roomID
+			},
+			async *generateFullHierarchy(spaceID) {
+				called++
+				t.equal(spaceID, "!zTMspHVUBhFLLSdmnS:cadence.moe")
+				yield {
+					room_id: "!NDbIqNpJyPvfKRnNcr:cadence.moe",
+					children_state: [],
+					guest_can_join: false,
+					num_joined_members: 2
+				}
+				/* c8 ignore next */
+			},
+			async getStateEvent(roomID, type, key) {
+				called++
+				t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
+				if (type === "m.room.encryption" && key === "") {
+					return {algorithm: "m.megolm.v1.aes-sha2"}
+				}
+				throw new Error("Unknown state event")
+			}
+		}
+	}))
+	t.equal(error.data, "Encrypted rooms are not supported for bridging. Please replace it with an unencrypted room.")
+	t.equal(called, 3)
+})
+
 test("web link room: check that bridge has PL 100 in target room", async t => {
 	let called = 0
 	const [error] = await tryToCatch(() => router.test("post", "/api/link", {
@@ -465,9 +506,10 @@ test("web link room: check that bridge has PL 100 in target room", async t => {
 			async getStateEvent(roomID, type, key) {
 				called++
 				t.equal(roomID, "!NDbIqNpJyPvfKRnNcr:cadence.moe")
-				t.equal(type, "m.room.power_levels")
-				t.equal(key, "")
-				return {users_default: 50}
+				if (type === "m.room.power_levels" && key === "") {
+					return {users_default: 50}
+				}
+				throw new Error("Unknown state event")
 			},
 			async getStateEventOuter(roomID, type, key) {
 				called++
@@ -489,7 +531,7 @@ test("web link room: check that bridge has PL 100 in target room", async t => {
 		}
 	}))
 	t.equal(error.data, "OOYE needs power level 100 (admin) in the target Matrix room")
-	t.equal(called, 4)
+	t.equal(called, 5)
 })
 
 test("web link room: successfully calls createRoom", async t => {

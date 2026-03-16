@@ -204,6 +204,12 @@ as.router.post("/api/link", defineEventHandler(async event => {
 		throw createError({status: 403, message: e.errcode, data: `${e.errcode} - ${e.message}`})
 	}
 
+	// Check room is not encrypted
+	const encryption = await api.getStateEvent(parsedBody.matrix, "m.room.encryption", "").catch(() => null)
+	if (encryption) {
+		throw createError({status: 400, message: "Bad Request", data: "Encrypted rooms are not supported for bridging. Please replace it with an unencrypted room."})
+	}
+
 	// Check bridge has PL 100
 	const {powerLevels, powers: {[utils.bot]: selfPowerLevel}} = await utils.getEffectivePower(parsedBody.matrix, [utils.bot], api)
 	if (selfPowerLevel < (powerLevels?.state_default ?? 50) || selfPowerLevel < 100) throw createError({status: 400, message: "Bad Request", data: "OOYE needs power level 100 (admin) in the target Matrix room"})
