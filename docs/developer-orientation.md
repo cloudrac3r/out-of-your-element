@@ -89,15 +89,14 @@ Whether you read those or not, I'm more than happy to help you 1-on-1 with codin
 
 # Dependency justification
 
-Total transitive production dependencies: 121
+Total transitive production dependencies: 144
 
 ### <font size="+2">🦕</font>
 
-* (31) better-sqlite3: SQLite is the best database, and this is the best library for it.
-* (27) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
-* (16) stream-mime-type@1: This seems like the best option. Version 1 is used because version 2 is ESM-only.
-* (9) h3: Web server. OOYE needs this for the appservice listener, authmedia proxy, self-service, and more.
-* (11) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets.
+* (35) better-sqlite3: SQLite is the best database, and this is the best library for it.
+* (29) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets. It has libvips prebuilts for each platform.
+* (26) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
+* (9) h3: Web server. OOYE needs this for the web UI, appservice listener, authmedia proxy, and more.
 
 ### <font size="-1">🪱</font>
 
@@ -116,12 +115,12 @@ Total transitive production dependencies: 121
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
 * (0) discord-api-types: Bitfields needed at runtime and types needed for development.
 * (0) domino: DOM implementation that's already pulled in by turndown.
-* (1) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
+* (2) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.
 * (0) entities: Looks fine. No dependencies.
 * (0) get-relative-path: Looks fine. No dependencies.
 * (1) heatsync: Module hot-reloader that I trust.
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
-* (0) mime-type: File extension to mime type mapping that's already pulled in by stream-mime-type.
+* (1) mime-types: List of mime type mappings. Needed to serve static files.
 * (0) prettier-bytes: It does what I want and has no dependencies.
 * (0) snowtransfer: Discord API library with bring-your-own-caching that I trust.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
