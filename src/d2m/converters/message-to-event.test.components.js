@@ -65,7 +65,7 @@ test("message2event components: pk question mark output", async t => {
 			+ "<hr>"
 			+ "<blockquote><p><strong>System:</strong> INX (<code>xffgnx</code>)"
 			+ "<br><strong>Member:</strong> Lillith (<code>pphhoh</code>)"
-			+ "<br><strong>Sent by:</strong> infinidoge1337 (@unknown-user:)"
+			+ "<br><strong>Sent by:</strong> infinidoge1337 (<a href=\"https://matrix.to/#/@_ooye_infinidoge1337:cadence.moe\">@unknown-user</a>)"
 			+ "<br><br><strong>Account Roles (7)</strong>"
 			+ "<br>§b, !, ‼, Ears Port Ping, Ears Update Ping, Yttr Ping, unsup Ping</p>"
 			+ `🖼️ <a href="https://files.inx.moe/p/cdn/lillith.webp">https://files.inx.moe/p/cdn/lillith.webp</a>`

@@ -32,6 +32,8 @@ const speedbump = sync.require("./actions/speedbump")
 const retrigger = sync.require("./actions/retrigger")
 /** @type {import("./actions/set-presence")} */
 const setPresence = sync.require("./actions/set-presence")
+/** @type {import("./actions/remove-member")} */
+const removeMember = sync.require("./actions/remove-member")
 /** @type {import("./actions/poll-vote")} */
 const vote = sync.require("./actions/poll-vote")
 /** @type {import("../m2d/event-dispatcher")} */
@@ -173,6 +175,31 @@ module.exports = {
 	},
 
 	/**
+	 * When logging back in, check if any members left while we were gone.
+	 * Do this by getting the member list from Discord and seeing who we still have locally that isn't there in the response.
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayGuildCreateDispatchData} guild
+	 */
+	async checkMissedLeaves(client, guild) {
+		const maxLimit = 1000
+		if (guild.member_count >= maxLimit) return // too large to want to scan
+		const discordMembers = await client.snow.guild.getGuildMembers(guild.id, {limit: maxLimit})
+		if (discordMembers.length >= maxLimit) return // response was maxed out, there are guild members that weren't listed, can't act safely
+		const discordMembersSet = new Set(discordMembers.map(m => m.user.id))
+		// no indexes on this one but I'll cope
+		const membersAddedOnMatrix = new Set(from("sim").join("sim_member", "mxid").join("channel_room", "room_id")
+			.pluck("user_id").selectUnsafe("DISTINCT user_id").where({guild_id: guild.id}).and("AND user_id not like '%-%' and user_id not like '%\\_%' escape '\\'").all())
+		const userInstalledAppIDs = new Set(from("app_user_install").pluck("app_bot_id").selectUnsafe("DISTINCT app_bot_id").where({guild_id: guild.id}).all())
+		// loop over members added on matrix and if the member does not exist on discord-side then they should be removed
+		for (const userID of membersAddedOnMatrix) {
+			if (userInstalledAppIDs.has(userID)) continue // skip user installed apps here since they're never true members - they'll be removed by removeMember when the associated user is removed
+			if (!discordMembersSet.has(userID)) {
+				await removeMember.removeMember(userID, guild.id)
+			}
+		}
+	},
+
+	/**
 	 * Announces to the parent room that the thread room has been created.
 	 * See notes.md, "Ignore MESSAGE_UPDATE and bridge THREAD_CREATE as the announcement"
 	 * @param {import("./discord-client")} client
@@ -209,6 +236,14 @@ module.exports = {
 		if (data.role.id === data.guild_id) { // @everyone role changed - find a way to do this more efficiently in the future to handle many role updates
 			await createSpace.syncSpaceFully(guild)
 		}
+	},
+
+	/**
+	 * @param {import("./discord-client")} client
+	 * @param {DiscordTypes.GatewayGuildMemberRemoveDispatchData} data
+	 */
+	async GUILD_MEMBER_REMOVE(client, data) {
+		await removeMember.removeMember(data.user.id, data.guild_id)
 	},
 
 	/**

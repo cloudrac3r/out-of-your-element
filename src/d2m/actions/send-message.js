@@ -51,7 +51,7 @@ async function sendMessage(message, channel, guild, row) {
 		if (message.author.id === discord.application.id) {
 			// no need to sync the bot's own user
 		} else {
-			senderMxid = await registerUser.syncUser(message.author, message.member, channel, guild, roomID)
+			senderMxid = await registerUser.syncUser(message.author, message.member, channel, guild, roomID, message.interaction_metadata)
 		}
 	}
 

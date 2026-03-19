@@ -49,8 +49,9 @@ const utils = {
 			if (listen === "full") {
 				try {
 					await eventDispatcher.checkMissedExpressions(message.d)
-					await eventDispatcher.checkMissedPins(client, message.d)
 					await eventDispatcher.checkMissedMessages(client, message.d)
+					await eventDispatcher.checkMissedPins(client, message.d)
+					await eventDispatcher.checkMissedLeaves(client, message.d)
 				} catch (e) {
 					console.error("Failed to sync missed events. To retry, please fix this error and restart OOYE:")
 					console.error(e)

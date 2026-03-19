@@ -1,4 +1,10 @@
 export type Models = {
+	app_user_install: {
+		guild_id: string
+		app_bot_id: string
+		user_id: string
+	}
+
 	auto_emoji: {
 		name: string
 		emoji_id: string

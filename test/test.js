@@ -152,6 +152,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/d2m/converters/message-to-event.test.embeds")
 	require("../src/d2m/converters/message-to-event.test.pk")
 	require("../src/d2m/converters/pins-to-list.test")
+	require("../src/d2m/converters/remove-member-mxids.test")
 	require("../src/d2m/converters/remove-reaction.test")
 	require("../src/d2m/converters/thread-to-announcement.test")
 	require("../src/d2m/converters/user-to-mxid.test")

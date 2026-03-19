@@ -206,14 +206,16 @@ function _hashProfileContent(content, powerLevel) {
  * 3. Calculate the power level the user should get based on their Discord permissions
  * 4. Compare against the previously known state content, which is helpfully stored in the database
  * 5. If the state content or power level have changed, send them to Matrix and update them in the database for next time
+ * 6. If the sim is for a user-installed app, check which user it was added by
  * @param {DiscordTypes.APIUser} user
  * @param {Omit<DiscordTypes.APIGuildMember, "user"> | undefined} member
  * @param {DiscordTypes.APIGuildChannel} channel
  * @param {DiscordTypes.APIGuild} guild
  * @param {string} roomID
+ * @param {DiscordTypes.APIMessageInteractionMetadata} [interactionMetadata]
  * @returns {Promise<string>} mxid of the updated sim
  */
-async function syncUser(user, member, channel, guild, roomID) {
+async function syncUser(user, member, channel, guild, roomID, interactionMetadata) {
 	const mxid = await ensureSimJoined(user, roomID)
 	const content = await memberToStateContent(user, member, guild.id)
 	const powerLevel = memberToPowerLevel(user, member, guild, channel)
@@ -222,6 +224,12 @@ async function syncUser(user, member, channel, guild, roomID) {
 		allowOverwrite: !!member,
 		globalProfile: await userToGlobalProfile(user)
 	})
+
+	const appInstalledByUser = user.bot && interactionMetadata?.authorizing_integration_owners?.[DiscordTypes.ApplicationIntegrationType.UserInstall]
+	if (appInstalledByUser) {
+		db.prepare("INSERT OR IGNORE INTO app_user_install (app_bot_id, user_id, guild_id) VALUES (?, ?, ?)").run(user.id, appInstalledByUser, guild.id)
+	}
+
 	return mxid
 }
 

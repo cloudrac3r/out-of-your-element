@@ -38,14 +38,27 @@ INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('1109360903096369153', 'Amanda', 'amanda', '@_ooye_amanda:cadence.moe'),
 ('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '_pk_zoego', '_pk_zoego', '@_ooye__pk_zoego:cadence.moe'),
 ('320067006521147393', 'papiophidian', 'papiophidian', '@_ooye_papiophidian:cadence.moe'),
-('772659086046658620', 'cadence.worm', 'cadence', '@_ooye_cadence:cadence.moe');
+('772659086046658620', 'cadence.worm', 'cadence', '@_ooye_cadence:cadence.moe'),
+('196188877885538304', 'ampflower', 'ampflower', '@_ooye_ampflower:cadence.moe'),
+('1458668878107381800', 'Evil Lillith (she/her)', 'evil_lillith_sheher', '@_ooye_evil_lillith_sheher:cadence.moe'),
+('197126718400626689', 'infinidoge1337', 'infinidoge1337', '@_ooye_infinidoge1337:cadence.moe');
+
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL),
-('@_ooye_cadence:cadence.moe', '!BnKuBPCvyfOkhcUjEu:cadence.moe', NULL);
+('@_ooye_cadence:cadence.moe', '!BnKuBPCvyfOkhcUjEu:cadence.moe', NULL),
+('@_ooye_cadence:cadence.moe', '!kLRqKKUQXcibIMtOpl:cadence.moe', NULL),
+('@_ooye_cadence:cadence.moe', '!fGgIymcYWOqjbSRUdV:cadence.moe', NULL),
+('@_ooye_ampflower:cadence.moe', '!qzDBLKlildpzrrOnFZ:cadence.moe', NULL),
+('@_ooye__pk_zoego:cadence.moe', '!qzDBLKlildpzrrOnFZ:cadence.moe', NULL),
+('@_ooye_infinidoge1337:cadence.moe', '!BnKuBPCvyfOkhcUjEu:cadence.moe', NULL),
+('@_ooye_evil_lillith_sheher:cadence.moe', '!BnKuBPCvyfOkhcUjEu:cadence.moe', NULL);
 
 INSERT INTO sim_proxy (user_id, proxy_owner_id, displayname) VALUES
 ('43d378d5-1183-47dc-ab3c-d14e21c3fe58', '196188877885538304', 'Azalea &flwr; 🌺');
+
+INSERT INTO app_user_install (guild_id, app_bot_id, user_id) VALUES
+('66192955777486848', '1458668878107381800', '197126718400626689');
 
 INSERT INTO message_room (message_id, historical_room_index)
 WITH a (message_id, channel_id) AS (VALUES
