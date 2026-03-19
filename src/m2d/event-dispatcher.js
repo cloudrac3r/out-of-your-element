@@ -423,7 +423,10 @@ async event => {
 
 	if (event.content.membership === "leave" || event.content.membership === "ban") {
 		// Member is gone
+		// if Matrix member, data was cached in member_cache
 		db.prepare("DELETE FROM member_cache WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
+		// if Discord member (so kicked/banned by Matrix user), data was cached in sim_member
+		db.prepare("DELETE FROM sim_member WHERE room_id = ? and mxid = ?").run(event.room_id, event.state_key)
 
 		// Unregister room's use as a direct chat and/or an invite target if the bot itself left
 		if (event.state_key === utils.bot) {
