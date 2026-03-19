@@ -35,10 +35,10 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 		/** @param {{id: string, type: "discordUser"}} node */
 		user: node => {
 			const mxid = select("sim", "mxid", {user_id: node.id}).pluck().get()
-			const interaction = message.interaction_metadata || message.interaction
+			const interactionMetadata = message.interaction_metadata
 			const username = message.mentions?.find(ment => ment.id === node.id)?.username
 				|| message.referenced_message?.mentions?.find(ment => ment.id === node.id)?.username
-				|| (interaction?.user.id === node.id ? interaction.user.username : null)
+				|| (interactionMetadata?.user.id === node.id ? interactionMetadata.user.username : null)
 				|| (message.author?.id === node.id ? message.author.username : null)
 				|| "unknown-user"
 			if (mxid && useHTML) {
@@ -357,9 +357,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}]
 	}
 
-	const interaction = message.interaction_metadata || message.interaction
-	const isInteraction = message.type === DiscordTypes.MessageType.ChatInputCommand && !!interaction && "name" in interaction
-	const isThinkingInteraction = isInteraction && !!((message.flags || 0) & DiscordTypes.MessageFlags.Loading)
+	let isInteraction = (message.type === DiscordTypes.MessageType.ChatInputCommand || message.type === DiscordTypes.MessageType.ContextMenuCommand) && message.interaction && "name" in message.interaction
+	let isThinkingInteraction = isInteraction && !!((message.flags || 0) & DiscordTypes.MessageFlags.Loading)
 
 	/**
 	   @type {{room?: boolean, user_ids?: string[]}}
@@ -399,6 +398,16 @@ async function messageToEvent(message, guild, options = {}, di) {
 			repliedToEventRow = Object.assign(row, {channel_id: row.reference_channel_id})
 		} else if (message.referenced_message) {
 			repliedToUnknownEvent = true
+		}
+	} else if (message.type === DiscordTypes.MessageType.ContextMenuCommand && message.interaction && message.message_reference?.message_id) {
+		// It could be a /plu/ral emulated reply
+		if (message.interaction.name.startsWith("Reply ") && message.content.startsWith("-# [↪](")) {
+			const row = await getHistoricalEventRow(message.message_reference?.message_id)
+			if (row && "event_id" in row) {
+				repliedToEventRow = Object.assign(row, {channel_id: row.reference_channel_id})
+				message.content = message.content.replace(/^.*\n/, "")
+				isInteraction = false // declutter
+			}
 		}
 	} else if (dUtils.isWebhookMessage(message) && message.embeds[0]?.author?.name?.endsWith("↩️")) {
 		// It could be a PluralKit emulated reply, let's see if it has a message link
@@ -685,8 +694,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		}
 
-		if (isInteraction && !isThinkingInteraction && events.length === 0) {
-			const formattedInteraction = getFormattedInteraction(interaction, false)
+		if (isInteraction && !isThinkingInteraction && message.interaction && events.length === 0) {
+			const formattedInteraction = getFormattedInteraction(message.interaction, false)
 			body = `${formattedInteraction.body}\n${body}`
 			html = `${formattedInteraction.html}${html}`
 		}
@@ -782,8 +791,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 		events.push(...forwardedEvents)
 	}
 
-	if (isThinkingInteraction) {
-		const formattedInteraction = getFormattedInteraction(interaction, true)
+	if (isInteraction && isThinkingInteraction && message.interaction) {
+		const formattedInteraction = getFormattedInteraction(message.interaction, true)
 		await addTextEvent(formattedInteraction.body, formattedInteraction.html, "m.notice")
 	}
 

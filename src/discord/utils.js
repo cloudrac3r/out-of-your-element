@@ -114,7 +114,7 @@ function hasAllPermissions(resolvedPermissions, permissionsToCheckFor) {
  * @param {DiscordTypes.APIMessage} message
  */
 function isWebhookMessage(message) {
-	return message.webhook_id && message.type !== DiscordTypes.MessageType.ChatInputCommand
+	return message.webhook_id && message.type !== DiscordTypes.MessageType.ChatInputCommand && message.type !== DiscordTypes.MessageType.ContextMenuCommand
 }
 
 /**
