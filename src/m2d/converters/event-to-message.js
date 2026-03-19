@@ -471,7 +471,8 @@ async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
 					// @ts-ignore - typescript doesn't know about indices yet
 					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `@everyone` + content.slice(writtenMentionMatch.indices[1][1]),
 					ensureJoined: [],
-					allowedMentionsParse: ["everyone"]
+					allowedMentionsParse: ["everyone"],
+					allowedMentionsUsers: []
 				}
 			}
 		} else if (writtenMentionMatch[1].length < 40) { // the API supports up to 100 characters, but really if you're searching more than 40, something messed up
@@ -482,7 +483,8 @@ async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
 					// @ts-ignore - typescript doesn't know about indices yet
 					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `<@${results[0].user.id}>` + content.slice(writtenMentionMatch.indices[1][1]),
 					ensureJoined: [results[0].user],
-					allowedMentionsParse: []
+					allowedMentionsParse: [],
+					allowedMentionsUsers: [results[0].user.id]
 				}
 			}
 		}
@@ -544,6 +546,7 @@ async function eventToMessage(event, guild, channel, di) {
 	let displayName = event.sender
 	let avatarURL = undefined
 	const allowedMentionsParse = ["users", "roles"]
+	const allowedMentionsUsers = []
 	/** @type {string[]} */
 	let messageIDsToEdit = []
 	let replyLine = ""
@@ -986,16 +989,34 @@ async function eventToMessage(event, guild, channel, di) {
 		}
 	}
 
+	// Complete content
 	content = displayNameRunoff + replyLine + content
-
 	// Split into 2000 character chunks
 	const chunks = chunk(content, 2000)
+
+	// If m.mentions is specified and valid, overwrite allowedMentionsParse with a converted m.mentions
+	let allowed_mentions = {parse: allowedMentionsParse}
+	if (event.content["m.mentions"]) {
+		// Combine requested mentions with detected written mentions to get the full list
+		if (Array.isArray(event.content["m.mentions"].user_ids)) {
+			for (const mxid of event.content["m.mentions"].user_ids) {
+				const user_id = select("sim", "user_id", {mxid}).pluck().get()
+				if (!user_id) continue
+				allowedMentionsUsers.push(
+					select("sim_proxy", "proxy_owner_id", {user_id}).pluck().get() || user_id
+				)
+			}
+		}
+		// Specific mentions were requested, so do not parse users
+		allowed_mentions.parse = allowed_mentions.parse.filter(x => x !== "users")
+		allowed_mentions.users = allowedMentionsUsers
+	}
+
+	// Assemble chunks into Discord messages content
 	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
 	const messages = chunks.map(content => ({
 		content,
-		allowed_mentions: {
-			parse: allowedMentionsParse
-		},
+		allowed_mentions,
 		username: displayNameShortened,
 		avatar_url: avatarURL
 	}))

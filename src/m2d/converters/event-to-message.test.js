@@ -266,7 +266,8 @@ test("event2message: markdown in link text does not attempt to be escaped becaus
 				content: "hey [@mario sports mix [she/her]](<https://matrix.to/#/%40cadence%3Acadence.moe>), is it possible to listen on a unix socket?",
 				avatar_url: undefined,
 				allowed_mentions: {
-					parse: ["users", "roles"]
+					parse: ["roles"],
+					users: []
 				}
 			}]
 		}
@@ -547,7 +548,8 @@ test("event2message: links don't have angle brackets added by accident", async t
 				content: "Wanted to automate WG→AWG config enrichment and ended up basically coding a batch INI processor.\nhttps://github.com/Erquint/wgcbp",
 				avatar_url: undefined,
 				allowed_mentions: {
-					parse: ["users", "roles"]
+					parse: ["roles"],
+					users: []
 				}
 			}]
 		}
@@ -1296,7 +1298,8 @@ test("event2message: lists have appropriate line breaks", async t => {
 				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n* bridgeing specific channels with existing matrix rooms\n  * optionally maybe entire "servers"\n* offering the bridge as a public service`,
 				avatar_url: undefined,
 				allowed_mentions: {
-					parse: ["users", "roles"]
+					parse: ["roles"],
+					users: []
 				}
 			}]
 		}
@@ -1337,7 +1340,8 @@ test("event2message: ordered list start attribute works", async t => {
 				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n1. bridgeing specific channels with existing matrix rooms\n  2. optionally maybe entire "servers"\n2. offering the bridge as a public service`,
 				avatar_url: undefined,
 				allowed_mentions: {
-					parse: ["users", "roles"]
+					parse: ["roles"],
+					users: []
 				}
 			}]
 		}
@@ -1457,6 +1461,118 @@ test("event2message: rich reply to a sim user", async t => {
 				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
 				allowed_mentions: {
 						parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: rich reply to a sim user, explicitly enabling mentions in client", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe> Slow news day.\n\nTesting this reply, ignore",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>Slow news day.</blockquote></mx-reply>Testing this reply, ignore",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				},
+				"m.mentions": {
+					user_ids: ["@_ooye_kyuugryphon:cadence.moe"]
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, data.channel.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					type: "m.room.message",
+					content: {
+						msgtype: "m.text",
+						body: "Slow news day."
+					},
+					sender: "@_ooye_kyuugryphon:cadence.moe"
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ " Slow news day."
+					+ "\nTesting this reply, ignore",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				allowed_mentions: {
+					parse: ["roles"],
+					users: ["111604486476181504"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: rich reply to a sim user, explicitly disabling mentions in client", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_kyuugryphon:cadence.moe> Slow news day.\n\nTesting this reply, ignore",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_kyuugryphon:cadence.moe\">@_ooye_kyuugryphon:cadence.moe</a><br>Slow news day.</blockquote></mx-reply>Testing this reply, ignore",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				},
+				"m.mentions": {}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, data.channel.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					type: "m.room.message",
+					content: {
+						msgtype: "m.text",
+						body: "Slow news day."
+					},
+					sender: "@_ooye_kyuugryphon:cadence.moe"
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 <@111604486476181504>:"
+					+ " Slow news day."
+					+ "\nTesting this reply, ignore",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU",
+				allowed_mentions: {
+					parse: ["roles"],
+					users: []
 				}
 			}]
 		}
