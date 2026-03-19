@@ -193,6 +193,16 @@ async function channelToKState(channel, guild, di) {
 	// Don't overwrite room topic if the topic has been customised
 	if (hasCustomTopic) delete channelKState["m.room.topic/"]
 
+	// Make voice channels be a Matrix voice room (MSC3417)
+	if (channel.type === DiscordTypes.ChannelType.GuildVoice) {
+		creationContent.type = "org.matrix.msc3417.call"
+		channelKState["org.matrix.msc3401.call/"] = {
+			"m.intent": "m.room",
+			"m.type": "m.voice",
+			"m.name": customName || channel.name
+		}
+	}
+
 	// Don't add a space parent if it's self service
 	// (The person setting up self-service has already put it in their preferred space to be able to get this far.)
 	const autocreate = select("guild_active", "autocreate", {guild_id: guild.id}).pluck().get()

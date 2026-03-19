@@ -190,6 +190,17 @@ test("channel2room: read-only discord channel", async t => {
 	t.equal(api.getCalled(), 2)
 })
 
+test("channel2room: voice channel", async t => {
+	const api = mockAPI(t)
+	const state = kstateStripConditionals(await channelToKState(testData.channel.voice, testData.guild.general, {api}).then(x => x.channelKState))
+	t.equal(state["m.room.create/"].type, "org.matrix.msc3417.call")
+	t.deepEqual(state["org.matrix.msc3401.call/"], {
+		"m.intent": "m.room",
+		"m.name": "🍞丨[8user] Piece",
+		"m.type": "m.voice"
+	})
+})
+
 test("convertNameAndTopic: custom name and topic", t => {
 	t.deepEqual(
 		_convertNameAndTopic({id: "123", name: "the-twilight-zone", topic: "Spooky stuff here. :ghost:", type: 0}, {id: "456"}, "hauntings"),

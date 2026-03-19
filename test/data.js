@@ -19,6 +19,26 @@ module.exports = {
 			default_thread_rate_limit_per_user: 0,
 			guild_id: "112760669178241024"
 		},
+		voice: {
+			voice_background_display: null,
+			version: 1774469910848,
+			user_limit: 0,
+			type: 2,
+			theme_color: null,
+			status: null,
+			rtc_region: null,
+			rate_limit_per_user: 0,
+			position: 0,
+			permission_overwrites: [],
+			parent_id: "805261291908104252",
+			nsfw: false,
+			name: "🍞丨[8user] Piece",
+			last_message_id: "1459912691098325137",
+			id: "1036840786093953084",
+			flags: 0,
+			bitrate: 256000,
+			guild_id: "112760669178241024"
+		},
 		updates: {
 			type: 0,
 			topic: "Updates and release announcements for Out Of Your Element.",
