@@ -83,7 +83,13 @@ function tryStatic(event, fallthrough) {
 			// Everything else
 			else {
 				const mime = mimeTypes.lookup(id)
-				if (typeof mime === "string") defaultContentType(event, mime)
+				if (typeof mime === "string") {
+					if (mime.startsWith("text/")) {
+						defaultContentType(event, mime + "; charset=utf-8") // usually wise
+					} else {
+						defaultContentType(event, mime)
+					}
+				}
 				return {
 					size: stats.size
 				}
@@ -94,7 +100,7 @@ function tryStatic(event, fallthrough) {
 				const path = join(publicDir, id)
 				return pugSync.renderPath(event, path, {})
 			} else {
-				return fs.promises.readFile(join(publicDir, id))
+				return fs.createReadStream(join(publicDir, id))
 			}
 		}
 	})
