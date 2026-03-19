@@ -125,6 +125,7 @@ module.exports = {
 			// Send in order
 			for (let i = Math.min(messages.length, latestBridgedMessageIndex)-1; i >= 0; i--) {
 				const message = messages[i]
+				if (message.type === DiscordTypes.MessageType.UserJoin) continue // since join announcements don't become events, it would be a repetition to act on them during backfill
 
 				if (!members.has(message.author.id)) members.set(message.author.id, await client.snow.guild.getGuildMember(guild.id, message.author.id).catch(() => undefined))
 				await module.exports.MESSAGE_CREATE(client, {
