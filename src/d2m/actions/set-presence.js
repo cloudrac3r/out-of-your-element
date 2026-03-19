@@ -1,5 +1,7 @@
 // @ts-check
 
+const assert = require("assert").strict
+
 const passthrough = require("../../passthrough")
 const {sync, select} = passthrough
 /** @type {import("../../matrix/api")} */
@@ -26,7 +28,7 @@ const presenceLoopInterval = 28e3
 
 // Cache the list of enabled guilds rather than accessing it like multiple times per second when any user changes presence
 const guildPresenceSetting = new class {
-	/** @private @type {Set<string>} */ guilds
+	/** @private @type {Set<string>} */ guilds = new Set()
 	constructor() {
 		this.update()
 	}
@@ -40,7 +42,7 @@ const guildPresenceSetting = new class {
 
 class Presence extends sync.reloadClassMethods(() => Presence) {
 	/** @type {string} */ userID
-	/** @type {{presence: "online" | "offline" | "unavailable", status_msg?: string}} */ data
+	/** @type {{presence: "online" | "offline" | "unavailable", status_msg?: string} | undefined} */ data
 	/** @private @type {?string | undefined} */ mxid
 	/** @private @type {number} */ delay = Math.random()
 
@@ -66,6 +68,7 @@ class Presence extends sync.reloadClassMethods(() => Presence) {
 		// I haven't tried, but I assume Synapse explodes if you try to update too many presences at the same time.
 		// This random delay will space them out over the whole 28 second cycle.
 		setTimeout(() => {
+			assert(this.data)
 			api.setPresence(this.data, mxid).catch(() => {})
 		}, this.delay * presenceLoopInterval).unref()
 	}
