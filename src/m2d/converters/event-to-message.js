@@ -766,7 +766,7 @@ async function eventToMessage(event, guild, channel, di) {
 				// Generate a reply preview for a standard message
 				repliedToContent = repliedToContent.replace(/.*<\/mx-reply>/s, "") // Remove everything before replies, so just use the actual message body
 				repliedToContent = repliedToContent.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
-				repliedToContent = repliedToContent.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
+				repliedToContent = repliedToContent.replace(/(?:\n|<br ?>)+/g, " ") // Should all be on one line
 				repliedToContent = repliedToContent.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
 				repliedToContent = repliedToContent.replace(/<img([^>]*)>/g, (_, att) => { // Convert Matrix emoji images into Discord emoji markdown
 					const mxcUrlMatch = att.match(/\bsrc="(mxc:\/\/[^"]+)"/)

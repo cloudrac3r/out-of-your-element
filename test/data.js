@@ -4617,7 +4617,7 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
-		escaping_crazy_html_tags: {
+		extreme_html_escaping: {
 			id: "1158894131322552391",
 			type: 0,
 			content: "",

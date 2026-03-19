@@ -1943,9 +1943,9 @@ test("event2message: should suppress embeds for links in reply preview", async t
 			sender: "@rnl:cadence.moe",
 			content: {
 				msgtype: "m.text",
-				body: `> <@cadence:cadence.moe> https://www.youtube.com/watch?v=uX32idb1jMw\n\nEveryone in the comments is like "you're so ahead of the curve" and "crazy that this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
+				body: `> <@cadence:cadence.moe> https://www.youtube.com/watch?v=uX32idb1jMw\n\nEveryone in the comments is like "you're so ahead of the curve" and "can't believe this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
 				format: "org.matrix.custom.html",
-				formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU?via=cadence.moe">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">@cadence:cadence.moe</a><br>https://www.youtube.com/watch?v=uX32idb1jMw</blockquote></mx-reply>Everyone in the comments is like "you're so ahead of the curve" and "crazy that this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
+				formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU?via=cadence.moe">In reply to</a> <a href="https://matrix.to/#/@cadence:cadence.moe">@cadence:cadence.moe</a><br>https://www.youtube.com/watch?v=uX32idb1jMw</blockquote></mx-reply>Everyone in the comments is like "you're so ahead of the curve" and "can't believe this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
 				"m.relates_to": {
 					"m.in_reply_to": {
 						event_id: "$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU"
@@ -1975,7 +1975,7 @@ test("event2message: should suppress embeds for links in reply preview", async t
 				username: "RNL",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1273204543739396116 **Ⓜcadence [they]**:"
 					+ " <https://www.youtube.com/watch?v=uX32idb1jMw>"
-					+ `\nEveryone in the comments is like "you're so ahead of the curve" and "crazy that this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
+					+ `\nEveryone in the comments is like "you're so ahead of the curve" and "can't believe this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
 				avatar_url: undefined,
 				allowed_mentions: {
 						parse: ["users", "roles"]

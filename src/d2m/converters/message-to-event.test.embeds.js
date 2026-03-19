@@ -125,8 +125,8 @@ test("message2event embeds: blockquote in embed", async t => {
 	t.equal(called, 1, "should call getJoinedMembers once")
 })
 
-test("message2event embeds: crazy html is all escaped", async t => {
-	const events = await messageToEvent(data.message_with_embeds.escaping_crazy_html_tags, data.guild.general)
+test("message2event embeds: extreme html is all escaped", async t => {
+	const events = await messageToEvent(data.message_with_embeds.extreme_html_escaping, data.guild.general)
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",

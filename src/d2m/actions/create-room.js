@@ -256,7 +256,7 @@ async function createRoom(channel, guild, spaceID, kstate, privacyLevel) {
 
 /**
  * Handling power levels separately. The spec doesn't specify what happens, Dendrite differs,
- * and Synapse does an absolutely insane *shallow merge* of what I provide on top of what it creates.
+ * and Synapse does a very poorly thought out *shallow merge* of what I provide on top of what it creates.
  * We don't want the `events` key to be overridden completely.
  * https://github.com/matrix-org/synapse/blob/develop/synapse/handlers/room.py#L1170-L1210
  * https://github.com/matrix-org/matrix-spec/issues/492
