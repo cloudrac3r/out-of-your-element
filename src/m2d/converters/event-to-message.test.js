@@ -5526,6 +5526,108 @@ test("event2message: known and unknown emojis in the end are used for sprite she
 	)
 })
 
+test("event2message: m.per_message_profile overrides displayname and avatar_url", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "hello from a custom profile",
+				"m.per_message_profile": {
+					id: "custom-id",
+					displayname: "Custom Name",
+					avatar_url: "mxc://maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo"
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Custom Name",
+				content: "hello from a custom profile",
+				avatar_url: "https://bridge.example.org/download/matrix/maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: com.beeper.per_message_profile (unstable prefix) overrides displayname and avatar_url", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "hello from unstable profile",
+				"com.beeper.per_message_profile": {
+					id: "custom-id",
+					displayname: "Unstable Name",
+					avatar_url: "mxc://maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo"
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Unstable Name",
+				content: "hello from unstable profile",
+				avatar_url: "https://bridge.example.org/download/matrix/maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: m.per_message_profile takes priority over com.beeper.per_message_profile", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "stable wins",
+				"m.per_message_profile": {
+					id: "stable-id",
+					displayname: "Stable Name"
+				},
+				"com.beeper.per_message_profile": {
+					id: "unstable-id",
+					displayname: "Unstable Name"
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Stable Name",
+				content: "stable wins",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: all unknown chess emojis are used for sprite sheet", async t => {
 	t.deepEqual(
 		await eventToMessage({
