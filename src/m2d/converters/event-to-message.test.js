@@ -5628,6 +5628,75 @@ test("event2message: m.per_message_profile takes priority over com.beeper.per_me
 	)
 })
 
+test("event2message: data-mx-profile-fallback element is stripped from formatted_body when per-message profile is present", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "Tidus Herboren: one more test",
+				format: "org.matrix.custom.html",
+				formatted_body: "<strong data-mx-profile-fallback>Tidus Herboren: </strong>one more test",
+				"com.beeper.per_message_profile": {
+					id: "tidus",
+					displayname: "Tidus Herboren",
+					avatar_url: "mxc://maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo",
+					has_fallback: true
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Tidus Herboren",
+				content: "one more test",
+				avatar_url: "https://bridge.example.org/download/matrix/maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: displayname prefix is stripped from plain body when per-message profile has_fallback", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "Tidus Herboren: one more test",
+				"com.beeper.per_message_profile": {
+					id: "tidus",
+					displayname: "Tidus Herboren",
+					has_fallback: true
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Tidus Herboren",
+				content: "one more test",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: all unknown chess emojis are used for sprite sheet", async t => {
 	t.deepEqual(
 		await eventToMessage({

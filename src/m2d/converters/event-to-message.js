@@ -803,6 +803,10 @@ async function eventToMessage(event, guild, channel, di) {
 		if (shouldProcessTextEvent) {
 			if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
 				let input = event.content.formatted_body
+				if (perMessageProfile?.has_fallback) {
+					// Strip fallback elements added for clients that don't support per-message profiles
+					input = input.replace(/<(\w+)[^>]*\bdata-mx-profile-fallback\b[^>]*>[^<]*<\/\1>/g, "")
+				}
 				if (event.content.msgtype === "m.emote") {
 					input = `* ${displayName} ${input}`
 				}
@@ -948,6 +952,10 @@ async function eventToMessage(event, guild, channel, di) {
 			} else {
 				// Looks like we're using the plaintext body!
 				content = event.content.body
+				if (perMessageProfile?.has_fallback && perMessageProfile.displayname && content.startsWith(perMessageProfile.displayname + ": ")) {
+					// Strip the display name prefix fallback added for clients that don't support per-message profiles
+					content = content.slice(perMessageProfile.displayname.length + 2)
+				}
 
 				if (event.content.msgtype === "m.emote") {
 					content = `* ${displayName} ${content}`
