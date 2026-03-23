@@ -1,4 +1,23 @@
 export type Models = {
+	agi_prior_message: {
+		channel_id: string
+		username: string
+		avatar_url: string
+		use_caps: number
+		use_punct: number
+		use_apos: number
+		timestamp: number
+	}
+
+	agi_optout: {
+		guild_id: string
+	}
+
+	agi_cooldown: {
+		guild_id: string
+		timestamp: number
+	}
+
 	app_user_install: {
 		guild_id: string
 		app_bot_id: string

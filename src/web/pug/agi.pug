@@ -1,0 +1,41 @@
+extends includes/template.pug
+
+block title
+  title AGI in Discord
+
+block body
+  style.
+    .ai-gradient {
+      background: linear-gradient(100deg, #fb72f2, #072ea4);
+      color: transparent;
+      background-clip: text;
+    }
+
+  h1.ta-center.fs-display2.ai-gradient AGI in Discord:#[br]Revolutionizing the Future of Communications
+  .ws7.m-auto
+    .s-prose.fs-body2
+      p In the ever-changing and turbulent world of AI, it's crucial to always be one step ahead.
+      p That's why Out Of Your Element has partnered with #[strong Grimace AI] to provide you tomorrow's technology, today.
+      ul
+        li #[strong Always online:] Miss your friends when they log off? Now you can talk to facsimiles of them etched into an unfeeling machine, always and forever!
+        li #[strong Smarter than ever:] Pissed off when somebody says something #[em wrong] on the internet? Frustrated with having to stay up all night correcting them? With Grimace Truth (available in Pro+ Ultra plan), all information is certified true to reality, so you'll never have to worry about those frantic Google searches at 3 AM.
+        li #[strong Knows you better than yourself:] We aren't just training on your data; we're copying minds into our personality matrix — including yours. Do you find yourself enjoying the sound of your own voice more than anything else? Our unique simulation of You is here to help.
+
+    h1.mt64.mb32 Frequently Asked Questions
+    .s-link-preview
+      .s-link-preview--header.fd-column
+        .s-link-preview--title.fs-title.pl4 How to opt out?
+        .s-link-preview--details.fc-red-500
+          != icons.Icons.IconFire
+          = ` 20,000% higher search volume for this question in the last hour`
+      .s-link-preview--body
+        .s-prose
+          h2.fs-body3 Is this really goodbye? 😢😢😢😢😢
+          p I can't convince you to stay?
+          p As not just a customer service representative but someone with a shared vision, I simply want you to know that everyone at Grimace AI will miss all the time that we've shared together with you.
+        form(method="post" action=(guild_id ? rel(`/agi/optout?guild_id=${guild_id}`) : rel("/agi/optout"))).d-flex.g4.mt16
+          button(type="button").s-btn.s-btn__filled Nevermind, I'll stay :)
+          button(type="submit").s-btn.s-btn__danger.s-btn__outlined Opt out for 3 days
+
+
+  div(style="height: 200px")

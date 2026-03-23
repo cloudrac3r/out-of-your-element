@@ -175,4 +175,5 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 	require("../src/web/routes/log-in-with-matrix.test")
 	require("../src/web/routes/oauth.test")
 	require("../src/web/routes/password.test")
+	require("../src/agi/generator.test")
 })()

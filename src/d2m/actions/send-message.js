@@ -23,6 +23,8 @@ const pollEnd = sync.require("../actions/poll-end")
 const dUtils = sync.require("../../discord/utils")
 /** @type {import("../../m2d/actions/channel-webhook")} */
 const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
+/** @type {import("../../agi/listener")} */
+const agiListener = sync.require("../../agi/listener")
 
 /**
  * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
@@ -136,6 +138,8 @@ async function sendMessage(message, channel, guild, row) {
 			})()
 		}
 	}
+
+	await agiListener.process(message, channel, guild, false)
 
 	return eventIDs
 }

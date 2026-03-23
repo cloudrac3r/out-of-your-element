@@ -1,0 +1,24 @@
+extends includes/template.pug
+
+block body
+  h1.ta-center.fs-display2.fc-green-400 April Fools!
+  .ws7.m-auto
+    .s-prose.fs-body2
+      p Sheesh, wouldn't that be horrible?
+      if guild_id
+        p Fake AI messages have now been #[strong.fc-green-600 deactivated for everyone in your server.]
+      p Hope the prank entertained you. #[a(href="https://cadence.moe/contact") Send love or hate mail here.]
+
+      h2 What actually happened?
+      ul
+        li A secret event was added for the duration of 1st April 2026 (UTC).
+        li If a message matches a preset pattern, a preset response is posted to chat by an AI-ified profile of the previous author.
+        li It only happens at most once per hour in each server.
+        li I tried to design it to not interrupt any serious/sensitive topics. I am deeply sorry if that didn't work out.
+        li No AI generated materials have ever been used in Out Of Your Element: no code, no prose, no images, no jokes.
+        li It'll always deactivate itself on 2nd April, no matter what, and I'll remove the relevant code shortly after.
+    if guild_id
+      .s-prose.fl-grow1.mt16
+        p If you thought it was funny, feel free to opt back in. This affects the entire server, so please be courteous.
+      form(method="post" action=rel(`/agi/optin?guild_id=${guild_id}`))
+        button(type="submit").s-btn.s-btn__muted Opt back in
