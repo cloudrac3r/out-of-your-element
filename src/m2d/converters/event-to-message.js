@@ -557,10 +557,18 @@ async function eventToMessage(event, guild, channel, di) {
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
 	if (member.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(member.avatar_url)
-	// Override display name and avatar from MSC4144 per-message profile if present
+	// MSC4144: Override display name and avatar from per-message profile if present
 	const perMessageProfile = event.content["com.beeper.per_message_profile"]
 	if (perMessageProfile?.displayname) displayName = perMessageProfile.displayname
-	if (perMessageProfile?.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(perMessageProfile.avatar_url)
+	if (perMessageProfile && "avatar_url" in perMessageProfile) {
+		if (perMessageProfile.avatar_url === "") {
+			// empty string avatar_url clears the avatar (use default)
+			avatarURL = undefined
+		} else if (perMessageProfile.avatar_url) {
+			// omitted/null falls back to member avatar
+			avatarURL = mxUtils.getPublicUrlForMxc(perMessageProfile.avatar_url)
+		}
+	}
 	// If the display name is too long to be put into the webhook (80 characters is the maximum),
 	// put the excess characters into displayNameRunoff, later to be put at the top of the message
 	let [displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)

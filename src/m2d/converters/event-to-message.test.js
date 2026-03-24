@@ -5559,6 +5559,39 @@ test("event2message: com.beeper.per_message_profile overrides displayname and av
 	)
 })
 
+test("event2message: com.beeper.per_message_profile empty avatar_url clears avatar", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "hello with cleared avatar",
+				"com.beeper.per_message_profile": {
+					id: "no-avatar",
+					displayname: "No Avatar User",
+					avatar_url: ""
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "No Avatar User",
+				content: "hello with cleared avatar",
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: data-mx-profile-fallback element is stripped from formatted_body when per-message profile is present", async t => {
 	t.deepEqual(
 		await eventToMessage({
