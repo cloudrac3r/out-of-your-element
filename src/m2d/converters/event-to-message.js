@@ -558,7 +558,7 @@ async function eventToMessage(event, guild, channel, di) {
 	if (member.displayname) displayName = member.displayname
 	if (member.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(member.avatar_url)
 	// Override display name and avatar from MSC4144 per-message profile if present
-	const perMessageProfile = event.content["m.per_message_profile"] || event.content["com.beeper.per_message_profile"]
+	const perMessageProfile = event.content["com.beeper.per_message_profile"]
 	if (perMessageProfile?.displayname) displayName = perMessageProfile.displayname
 	if (perMessageProfile?.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(perMessageProfile.avatar_url)
 	// If the display name is too long to be put into the webhook (80 characters is the maximum),
