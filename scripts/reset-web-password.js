@@ -13,5 +13,5 @@ const {prompt} = require("enquirer")
 
 	reg.ooye.web_password = passwordResponse.web_password
 	writeRegistration(reg)
-	console.log("Saved. Restart Out Of Your Element to apply this change.")
+	console.log("Saved. This change should be applied instantly.")
 })()
