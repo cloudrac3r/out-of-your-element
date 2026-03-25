@@ -62,20 +62,29 @@ async function _interact({guild_id, data}, {api}) {
 		.sort((a, b) => webGuild._getPosition(a, discord.channels) - webGuild._getPosition(b, discord.channels))
 		.filter(channel => from("channel_room").join("member_cache", "room_id").select("mxid").where({channel_id: channel.id, mxid: event.sender}).get())
 	const matrixMember = select("member_cache", ["displayname", "avatar_url"], {room_id: message.room_id, mxid: event.sender}).get()
-	// Check for per-message profile
-	const perMessageProfile = event.content?.["com.beeper.per_message_profile"]
 	let name = matrixMember?.displayname || event.sender
 	let avatar = utils.getPublicUrlForMxc(matrixMember?.avatar_url)
+
+	// Check for per-message profile
+	const perMessageProfile = event.content?.["com.beeper.per_message_profile"]
 	let profileNote = ""
 	if (perMessageProfile) {
 		if (perMessageProfile.displayname) {
 			name = perMessageProfile.displayname
 		}
 		if ("avatar_url" in perMessageProfile) {
-			avatar = perMessageProfile.avatar_url ? utils.getPublicUrlForMxc(perMessageProfile.avatar_url) : undefined
+			if (perMessageProfile.avatar_url) {
+				// use provided avatar_url
+				avatar = utils.getPublicUrlForMxc(perMessageProfile.avatar_url)
+			} else if (perMessageProfile.avatar_url === "") {
+				// empty string avatar_url clears the avatar
+				avatar = undefined
+			}
+			// else, omitted/null falls back to member avatar
 		}
-		profileNote = " (sent with a per-message profile)"
+		profileNote = "Sent with a per-message profile.\n"
 	}
+
 	return {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 		data: {
@@ -85,7 +94,7 @@ async function _interact({guild_id, data}, {api}) {
 					url: `https://matrix.to/#/${event.sender}`,
 					icon_url: avatar
 				},
-				description: `This Matrix message was delivered to Discord by **Out Of Your Element**${profileNote}.\n[View on Matrix →](<https://matrix.to/#/${message.room_id}/${message.event_id}?${via}>)\n\n**User ID**: [${event.sender}](<https://matrix.to/#/${event.sender}>)`,
+				description: `This Matrix message was delivered to Discord by **Out Of Your Element**.\n[View on Matrix →](<https://matrix.to/#/${message.room_id}/${message.event_id}?${via}>)\n\n${profileNote}**User ID**: [${event.sender}](<https://matrix.to/#/${event.sender}>)`,
 				color: 0x0dbd8b,
 				fields: [{
 					name: "In Channels",

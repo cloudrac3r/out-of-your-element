@@ -550,25 +550,30 @@ async function eventToMessage(event, guild, channel, di) {
 	/** @type {string[]} */
 	let messageIDsToEdit = []
 	let replyLine = ""
+
 	// Extract a basic display name from the sender
 	const match = event.sender.match(/^@(.*?):/)
 	if (match) displayName = match[1]
+
 	// Try to extract an accurate display name and avatar URL from the member event
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
 	if (member.displayname) displayName = member.displayname
 	if (member.avatar_url) avatarURL = mxUtils.getPublicUrlForMxc(member.avatar_url)
+
 	// MSC4144: Override display name and avatar from per-message profile if present
 	const perMessageProfile = event.content["com.beeper.per_message_profile"]
 	if (perMessageProfile?.displayname) displayName = perMessageProfile.displayname
 	if (perMessageProfile && "avatar_url" in perMessageProfile) {
-		if (perMessageProfile.avatar_url === "") {
-			// empty string avatar_url clears the avatar (use default)
-			avatarURL = undefined
-		} else if (perMessageProfile.avatar_url) {
-			// omitted/null falls back to member avatar
+		if (perMessageProfile.avatar_url) {
+			// use provided avatar_url
 			avatarURL = mxUtils.getPublicUrlForMxc(perMessageProfile.avatar_url)
+		} else if (perMessageProfile.avatar_url === "") {
+			// empty string avatar_url clears the avatar
+			avatarURL = undefined
 		}
+		// else, omitted/null falls back to member avatar
 	}
+
 	// If the display name is too long to be put into the webhook (80 characters is the maximum),
 	// put the excess characters into displayNameRunoff, later to be put at the top of the message
 	let [displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
@@ -812,7 +817,13 @@ async function eventToMessage(event, guild, channel, di) {
 			if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
 				let input = event.content.formatted_body
 				if (perMessageProfile?.has_fallback) {
-					// Strip fallback elements added for clients that don't support per-message profiles
+					// Strip fallback elements added for clients that don't support per-message profiles.
+					// Deviates from recommended regexp in MSC to be less strict. Avoiding an HTML parser for performance reasons.
+					//                     ┌────A────┐                                               Opening HTML tag: capture tag name and stay within tag
+					//                     ┆         ┆┌─────────────B────────────┐                   This text in the tag somewhere, presumably an attribute name
+					//                     ┆         ┆┆                          ┆┌─C──┐             Rest of the opening tag
+					//                     ┆         ┆┆                          ┆┆    ┆┌─D─┐        Tag content (no more tags allowed within)
+					//                     ┆         ┆┆                          ┆┆    ┆┆   ┆┌─E──┐  Closing tag matching opening tag name
 					input = input.replace(/<(\w+)[^>]*\bdata-mx-profile-fallback\b[^>]*>[^<]*<\/\1>/g, "")
 				}
 				if (event.content.msgtype === "m.emote") {

@@ -85,3 +85,118 @@ test("matrix info: shows info for matrix source message", async t => {
 	)
 	t.equal(called, 1)
 })
+
+test("matrix info: shows username for per-message profile", async t => {
+	let called = 0
+	const msg = await _interact({
+		data: {
+			target_id: "1128118177155526666",
+			resolved: {
+				messages: {
+					"1141501302736695316": data.message.simple_reply_to_matrix_user
+				}
+			}
+		},
+		guild_id: "112760669178241024"
+	}, {
+		api: {
+			async getEvent(roomID, eventID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				t.equal(eventID, "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4")
+				return {
+					event_id: eventID,
+					room_id: roomID,
+					type: "m.room.message",
+					content: {
+						msgtype: "m.text",
+						body: "master chief: i like the halo",
+						format: "org.matrix.custom.html",
+						formatted_body: "<strong>master chief: </strong>i like the halo",
+						"com.beeper.per_message_profile": {
+							has_fallback: true,
+							displayname: "master chief",
+							avatar_url: ""
+						}
+					},
+					sender: "@cadence:cadence.moe"
+				}
+			},
+			async getJoinedMembers(roomID) {
+				return {
+					joined: {}
+				}
+			},
+			async getStateEventOuter(roomID, type, key) {
+				return {
+					content: {
+						room_version: "11"
+					}
+				}
+			},
+			async getStateEvent(roomID, type, key) {
+				return {}
+			}
+		}
+	})
+	t.equal(msg.data.embeds[0].author.name, "master chief")
+	t.match(msg.data.embeds[0].description, "Sent with a per-message profile")
+	t.equal(called, 1)
+})
+
+test("matrix info: shows avatar for per-message profile", async t => {
+	let called = 0
+	const msg = await _interact({
+		data: {
+			target_id: "1128118177155526666",
+			resolved: {
+				messages: {
+					"1141501302736695316": data.message.simple_reply_to_matrix_user
+				}
+			}
+		},
+		guild_id: "112760669178241024"
+	}, {
+		api: {
+			async getEvent(roomID, eventID) {
+				called++
+				t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+				t.equal(eventID, "$Ij3qo7NxMA4VPexlAiIx2CB9JbsiGhJeyt-2OvkAUe4")
+				return {
+					event_id: eventID,
+					room_id: roomID,
+					type: "m.room.message",
+					content: {
+						msgtype: "m.text",
+						body: "?",
+						format: "org.matrix.custom.html",
+						formatted_body: "?",
+						"com.beeper.per_message_profile": {
+							avatar_url: "mxc://cadence.moe/HXfFuougamkURPPMflTJRxGc"
+						}
+					},
+					sender: "@mystery:cadence.moe"
+				}
+			},
+			async getJoinedMembers(roomID) {
+				return {
+					joined: {}
+				}
+			},
+			async getStateEventOuter(roomID, type, key) {
+				return {
+					content: {
+						room_version: "11"
+					}
+				}
+			},
+			async getStateEvent(roomID, type, key) {
+				return {}
+			}
+		}
+	})
+	t.equal(msg.data.embeds[0].author.name, "@mystery:cadence.moe")
+	t.equal(msg.data.embeds[0].author.icon_url, "https://bridge.example.org/download/matrix/cadence.moe/HXfFuougamkURPPMflTJRxGc")
+	t.match(msg.data.embeds[0].description, "Sent with a per-message profile")
+	t.equal(called, 1)
+})
