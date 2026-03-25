@@ -23,10 +23,26 @@ const setPresence = sync.require("./d2m/actions/set-presence")
 const channelWebhook = sync.require("./m2d/actions/channel-webhook")
 const guildID = "112760669178241024"
 
+async function ping() {
+	const result = await api.ping().catch(e => ({ok: false, status: "net", root: e.message}))
+	if (result.ok) {
+		return "Ping OK. The homeserver and OOYE are talking to each other fine."
+	} else {
+		if (typeof result.root === "string") {
+			var msg = `Cannot reach homeserver: ${result.root}`
+		} else if (result.root.error) {
+			var msg = `Homeserver said: [${result.status}] ${result.root.error}`
+		} else {
+			var msg = `Homeserver said: [${result.status}] ${JSON.stringify(result.root)}`
+		}
+		return msg + "\nMatrix->Discord won't work until you fix this.\nIf your installation has recently changed, consider `npm run setup` again."
+	}
+}
+
 if (process.stdin.isTTY) {
 	setImmediate(() => {
 		if (!passthrough.repl) {
-			const cli = repl.start({ prompt: "", eval: customEval, writer: s => s })
+			const cli = repl.start({prompt: "", eval: customEval, writer: s => s})
 			Object.assign(cli.context, passthrough)
 			passthrough.repl = cli
 		}
