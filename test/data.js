@@ -6170,6 +6170,37 @@ module.exports = {
 			components: [],
 			position: 12
 		},
+		channel_follow_add: {
+			type: 12,
+			content: "PluralKit #downtime",
+			attachments: [],
+			embeds: [],
+			timestamp: "2026-03-24T23:16:04.097Z",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1486141581047369888",
+			channel_id: "1451125453082591314",
+			author: {
+				id: "154058479798059009",
+				username: "exaptations",
+				discriminator: "0",
+				avatar: "57b5cfe09a48a5902f2eb8fa65bb1b80",
+				bot: false,
+				flags: 0,
+				globalName: "Exa",
+			},
+			pinned: false,
+			mentions: [],
+			mention_roles: [],
+			mention_everyone: false,
+			tts: false,
+			message_reference: {
+				type: 0,
+				channel_id: "1015204661701124206",
+				guild_id: "466707357099884544"
+			}
+		},
 		updated_to_start_thread_from_here: {
 			t: "MESSAGE_UPDATE",
 			s: 19,

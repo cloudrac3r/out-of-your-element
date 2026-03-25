@@ -1142,6 +1142,19 @@ test("message2event: type 4 channel name change", async t => {
 	}])
 })
 
+test("message2event: type 12 channel follow add", async t => {
+	const events = await messageToEvent(data.special_message.channel_follow_add, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.emote",
+		body: "set this room to receive announcements from PluralKit #downtime",
+		format: "org.matrix.custom.html",
+		formatted_body: "set this room to receive announcements from <strong>PluralKit #downtime</strong>",
+		"m.mentions": {}
+	}])
+})
+
 test("message2event: thread start message reference", async t => {
 	const events = await messageToEvent(data.special_message.thread_start_context, data.guild.general, {}, {
 		api: {

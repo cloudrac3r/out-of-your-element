@@ -357,6 +357,17 @@ async function messageToEvent(message, guild, options = {}, di) {
 		}]
 	}
 
+	if (message.type === DiscordTypes.MessageType.ChannelFollowAdd) {
+		return [{
+			$type: "m.room.message",
+			msgtype: "m.emote",
+			body: `set this room to receive announcements from ${message.content}`,
+			format: "org.matrix.custom.html",
+			formatted_body: tag`set this room to receive announcements from <strong>${message.content}</strong>`,
+			"m.mentions": {}
+		}]
+	}
+
 	let isInteraction = (message.type === DiscordTypes.MessageType.ChatInputCommand || message.type === DiscordTypes.MessageType.ContextMenuCommand) && message.interaction && "name" in message.interaction
 	let isThinkingInteraction = isInteraction && !!((message.flags || 0) & DiscordTypes.MessageFlags.Loading)
 
