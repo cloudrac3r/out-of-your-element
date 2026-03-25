@@ -78,6 +78,11 @@ function readRegistration() {
 /** @type {import("../types").AppServiceRegistrationConfig} */ // @ts-ignore
 let reg = readRegistration()
 
+fs.watch(registrationFilePath, {persistent: false}, () => {
+	let newReg = readRegistration()
+	Object.assign(reg, newReg)
+})
+
 module.exports.registrationFilePath = registrationFilePath
 module.exports.readRegistration = readRegistration
 module.exports.getTemplateRegistration = getTemplateRegistration
