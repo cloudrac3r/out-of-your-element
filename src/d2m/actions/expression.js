@@ -34,7 +34,10 @@ async function emojisToState(emojis, guild) {
 			if (e.data?.errcode === "M_TOO_LARGE") { // Very unlikely to happen. Only possible for 3x-series emojis uploaded shortly after animated emojis were introduced, when there was no 256 KB size limit.
 				return
 			}
-			console.error(`Trying to handle emoji ${emoji.name} (${emoji.id}), but...`)
+			e["emoji"] = {
+				name: emoji.name,
+				id: emoji.id
+			}
 			throw e
 		})
 	))
