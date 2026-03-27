@@ -1,6 +1,6 @@
 {
   "name": "out-of-your-element",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "description": "A bridge between Matrix and Discord",
   "main": "index.js",
   "repository": {
@@ -39,7 +39,7 @@
     "enquirer": "^2.4.1",
     "entities": "^5.0.0",
     "get-relative-path": "^1.0.2",
-    "h3": "^1.15.1",
+    "h3": "^1.15.10",
     "heatsync": "^2.7.2",
     "htmx.org": "^2.0.4",
     "lru-cache": "^11.0.2",
