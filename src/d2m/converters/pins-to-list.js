@@ -22,7 +22,7 @@ function pinsToList(pins, kstate) {
 	/** @type {string[]} */
 	const result = []
 	for (const pin of pins.items) {
-		const eventID = select("event_message", "event_id", {message_id: pin.message.id, part: 0}).pluck().get()
+		const eventID = select("event_message", "event_id", {message_id: pin.message.id}, "ORDER BY part ASC").pluck().get()
 		if (eventID && !alreadyPinned.includes(eventID)) result.push(eventID)
 	}
 	result.reverse()
