@@ -816,16 +816,6 @@ async function eventToMessage(event, guild, channel, di) {
 		if (shouldProcessTextEvent) {
 			if (event.content.format === "org.matrix.custom.html" && event.content.formatted_body) {
 				let input = event.content.formatted_body
-				if (perMessageProfile?.has_fallback) {
-					// Strip fallback elements added for clients that don't support per-message profiles.
-					// Deviates from recommended regexp in MSC to be less strict. Avoiding an HTML parser for performance reasons.
-					//                     ┌────A────┐                                               Opening HTML tag: capture tag name and stay within tag
-					//                     ┆         ┆┌─────────────B────────────┐                   This text in the tag somewhere, presumably an attribute name
-					//                     ┆         ┆┆                          ┆┌─C──┐             Rest of the opening tag
-					//                     ┆         ┆┆                          ┆┆    ┆┌─D─┐        Tag content (no more tags allowed within)
-					//                     ┆         ┆┆                          ┆┆    ┆┆   ┆┌─E──┐  Closing tag matching opening tag name
-					input = input.replace(/<(\w+)[^>]*\bdata-mx-profile-fallback\b[^>]*>[^<]*<\/\1>/g, "")
-				}
 				if (event.content.msgtype === "m.emote") {
 					input = `* ${displayName} ${input}`
 				}
@@ -886,8 +876,9 @@ async function eventToMessage(event, guild, channel, di) {
 				const doc = domino.createDocument(
 					// DOM parsers arrange elements in the <head> and <body>. Wrapping in a custom element ensures elements are reliably arranged in a single element.
 					'<x-turndown id="turndown-root">' + input + '</x-turndown>'
-				);
-				const root = doc.getElementById("turndown-root");
+				)
+				const root = doc.getElementById("turndown-root")
+				assert(root)
 				async function forEachNode(event, node) {
 					for (; node; node = node.nextSibling) {
 						// Check written mentions
@@ -940,6 +931,7 @@ async function eventToMessage(event, guild, channel, di) {
 					}
 				}
 				await forEachNode(event, root)
+				if (perMessageProfile?.has_fallback) root.querySelectorAll("[data-mx-profile-fallback]").forEach(x => x.remove())
 
 				// SPRITE SHEET EMOJIS FEATURE: Emojis at the end of the message that we don't know about will be reuploaded as a sprite sheet.
 				// First we need to determine which emojis are at the end.
