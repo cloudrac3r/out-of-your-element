@@ -40,8 +40,6 @@ const vote = sync.require("./actions/poll-vote")
 const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
 /** @type {import("../discord/interactions/matrix-info")} */
 const matrixInfoInteraction = sync.require("../discord/interactions/matrix-info")
-/** @type {import("../agi/listener")} */
-const agiListener = sync.require("../agi/listener")
 
 const {Semaphore} = require("@chriscdn/promise-semaphore")
 const checkMissedPinsSema = new Semaphore()
@@ -305,10 +303,7 @@ module.exports = {
 
 		if (message.webhook_id) {
 			const row = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
-			if (row) { // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
-				await agiListener.process(message, channel, guild, true)
-				return
-			}
+			if (row) return // The message was sent by the bridge's own webhook on discord. We don't want to reflect this back, so just drop it.
 		}
 
 		if (dUtils.isEphemeralMessage(message)) return // Ephemeral messages are for the eyes of the receiver only!
