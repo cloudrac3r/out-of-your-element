@@ -4,6 +4,7 @@ const {MatrixServerError} = require("../../matrix/mreq")
 const data = require("../../../test/data")
 const {mockGetEffectivePower} = require("../../matrix/utils.test")
 const Ty = require("../../types")
+const {db} = require("../../passthrough")
 
 /**
  * @param {string} roomID
@@ -729,6 +730,31 @@ test("message2event: reply to a Discord message that wasn't bridged", async t =>
 			+ `\n\nenigmatic`,
       format: "org.matrix.custom.html",
       formatted_body: `<blockquote>In reply to a 1-day-old unbridged message from Occimyy:<br>BILLY BOB THE GREAT</blockquote>enigmatic`,
+		"m.mentions": {}
+	}])
+})
+
+test("message2event: reply to a Discord member join (who didn't join on Matrix)", async t => {
+	const events = await messageToEvent(data.message.reply_to_member_join, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "> PEASANT!! joined the room\n\nwhen the broke friend who we pay to bring food shows up at the medieval lord party",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote><strong>PEASANT!!</strong> joined the room</blockquote>when the broke friend who we pay to bring food shows up at the medieval lord party",
+		"m.mentions": {}
+	}])
+})
+
+test("message2event: reply to a Discord member join (who did join on Matrix)", async t => {
+	db.prepare("INSERT INTO sim (user_id, username, sim_name, mxid) VALUES ('1461677775554478161', 'peasant321_76775', 'peasant321_76775', '@_ooye_peasant321_76775:cadence.moe')").run()
+	const events = await messageToEvent(data.message.reply_to_member_join, data.guild.general)
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "> PEASANT!! joined the room\n\nwhen the broke friend who we pay to bring food shows up at the medieval lord party",
+		format: "org.matrix.custom.html",
+		formatted_body: `<blockquote><a href="https://matrix.to/#/@_ooye_peasant321_76775:cadence.moe">PEASANT!!</a> joined the room</blockquote>when the broke friend who we pay to bring food shows up at the medieval lord party`,
 		"m.mentions": {}
 	}])
 })

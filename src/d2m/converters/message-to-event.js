@@ -669,7 +669,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 					const match = repliedToEventSenderMxid.match(/^@([^:]*)/)
 					assert(match)
 					repliedToDisplayName = referenced.author.username || match[1] || "a Matrix user" // grab the localpart as the display name, whatever
-					repliedToUserHtml = `<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
+					repliedToUserHtml = tag`<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
 				} else {
 					repliedToDisplayName = referenced.author.global_name || referenced.author.username || "a Discord user"
 					repliedToUserHtml = repliedToDisplayName
@@ -694,6 +694,12 @@ async function messageToEvent(message, guild, options = {}, di) {
 						+ html
 					body = `${repliedToDisplayName}: ${repliedToBody}`.split("\n").map(line => "> " + line).join("\n") // scenario 1 part B for mentions
 						+ "\n\n" + body
+				} else if (referenced.type === DiscordTypes.MessageType.UserJoin) {
+					// Discord user join messages are bridged as joins, not text events. Generate substitute text for reply.
+					const joinerMxid = select("sim", "mxid", {user_id: referenced.author.id}).pluck().get()
+					const joinerHtml = joinerMxid ? tag`<a href="https://matrix.to/#/${joinerMxid}">${repliedToDisplayName}</a>` : tag`<strong>${repliedToDisplayName}</strong>`
+					html = `<blockquote>${joinerHtml} joined the room</blockquote>` + html
+					body = `> ${repliedToDisplayName} joined the room\n\n` + body
 				} else { // repliedToUnknownEvent
 					const dateDisplay = dUtils.howOldUnbridgedMessage(referenced.timestamp, message.timestamp)
 					html = `<blockquote>In reply to ${dateDisplay} from ${repliedToDisplayName}:`
