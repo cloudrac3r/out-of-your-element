@@ -125,7 +125,6 @@ as.router.get("/icon.png", defineEventHandler(async event => {
 
 pugSync.createRoute(as.router, "/ok", "ok.pug")
 
-sync.require("./routes/agi")
 sync.require("./routes/download-matrix")
 sync.require("./routes/download-discord")
 sync.require("./routes/guild-settings")
