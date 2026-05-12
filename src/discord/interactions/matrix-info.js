@@ -54,6 +54,7 @@ async function _interact({guild_id, data}, {api}) {
 	// from Matrix
 	const event = await api.getEvent(message.room_id, message.event_id)
 	const via = await utils.getViaServersQuery(message.room_id, api)
+
 	const channelsInGuild = discord.guildChannelMap.get(guild_id)
 	assert(channelsInGuild)
 	const inChannels = channelsInGuild
@@ -61,6 +62,11 @@ async function _interact({guild_id, data}, {api}) {
 		.map(/** @returns {DiscordTypes.APIGuildChannel} */ cid => discord.channels.get(cid))
 		.sort((a, b) => webGuild._getPosition(a, discord.channels) - webGuild._getPosition(b, discord.channels))
 		.filter(channel => from("channel_room").join("member_cache", "room_id").select("mxid").where({channel_id: channel.id, mxid: event.sender}).get())
+	let inChannelsText = inChannels.map(c => `<#${c.id}>`).join(" • ")
+	if (inChannelsText.length > 1024) {
+		inChannelsText = `In ${inChannels.length} channels`
+	}
+
 	const matrixMember = select("member_cache", ["displayname", "avatar_url"], {room_id: message.room_id, mxid: event.sender}).get()
 	let name = matrixMember?.displayname || event.sender
 	let avatar = utils.getPublicUrlForMxc(matrixMember?.avatar_url)
@@ -98,7 +104,7 @@ async function _interact({guild_id, data}, {api}) {
 				color: 0x0dbd8b,
 				fields: [{
 					name: "In Channels",
-					value: inChannels.map(c => `<#${c.id}>`).join(" • ")
+					value: inChannelsText
 				}, {
 					name: "\u200b",
 					value: idInfo
