@@ -1219,6 +1219,38 @@ test("event2message: code blocks are uploaded as attachments instead if they con
 	)
 })
 
+test("event2message: code blocks are uploaded as attachments instead if they are really long", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: `So if you run code like this<pre><code class="language-js">${"A".repeat(2000)}</code></pre>it should print a markdown formatted code block`
+			},
+			event_id: "$pGkWQuGVmrPNByrFELxhzI6MCBgJecr5I2J3z88Gc2s",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "So if you run code like this `[inline_code.js]` it should print a markdown formatted code block",
+				attachments: [{id: "0", filename: "inline_code.js"}],
+				pendingFiles: [{name: "inline_code.js", buffer: Buffer.from("A".repeat(2000))}],
+				avatar_url: undefined,
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: characters are encoded properly in code blocks", async t => {
 	t.deepEqual(
 		await eventToMessage({

@@ -892,7 +892,9 @@ async function eventToMessage(event, guild, channel, di) {
 						}
 						// Check for incompatible backticks in code blocks
 						let preNode
-						if (node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))) {
+						let isBackticksTextInPre = node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))
+						let isLongPre = node.tagName === "PRE" && node.textContent.length > 1800 && (preNode = node)
+						if (isBackticksTextInPre || isLongPre) {
 							if (preNode.firstChild?.nodeName === "CODE") {
 								let ext = preNode.firstChild.className.match(/language-(\S+)/)?.[1]
 								if (!dUtils.supportedPlaintextPreviewExtensions.has(ext)) ext = "txt"
