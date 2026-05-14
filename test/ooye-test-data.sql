@@ -192,6 +192,7 @@ INSERT INTO member_cache (room_id, mxid, displayname, avatar_url, power_level) V
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@ampflower:matrix.org', 'Ampflower 🌺', 'mxc://cadence.moe/PRfhXYBTOalvgQYtmCLeUXko', 0),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@aflower:syndicated.gay', 'Rose', 'mxc://syndicated.gay/ZkBUPXCiXTjdJvONpLJmcbKP', 0),
 ('!TqlyQmifxGUggEmdBN:cadence.moe', '@cadence:cadence.moe', 'cadence [they]', NULL, 0),
+('!qzDBLKlildpzrrOnFZ:cadence.moe', '@lavender.pet:queer.sh', 'lavender.pet', NULL, 0),
 ('!iSyXgNxQcEuXoXpsSn:pussthecat.org', '@austin:tchncs.de', 'Austin Huang', 'mxc://tchncs.de/090a2b5e07eed2f71e84edad5207221e6c8f8b8e', 0),
 ('!zq94fae5bVKUubZLp7:agiadn.org', '@underscore_x:agiadn.org', 'underscore_x', NULL, 100);
 

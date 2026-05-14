@@ -3425,6 +3425,50 @@ test("event2message: mentioning discord users works", async t => {
 	)
 })
 
+test("event2message: mentioning discord users with extra html attributes works", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@lavender.pet:queer.sh",
+			content: {
+				msgtype: "m.text",
+				body: "also @_ooye_ampflower:cadence.moe fun fact at some point there is plans for FTE to have a built in map editor",
+				"m.mentions": {
+					user_ids: [
+						"@_ooye_ampflower:cadence.moe"
+					]
+				},
+				format: "org.matrix.custom.html",
+				formatted_body: "<p>also <a href=\"https://matrix.to/#/@_ooye_ampflower:cadence.moe\" target=\"_blank\" rel=\"noreferrer noopener\">@Ampflower</a> fun fact at some point there is plans for FTE to have a built in map editor </p>"
+			},
+			room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe",
+			origin_server_ts: 1778616745263,
+			unsigned: {
+				age: 100363692,
+				membership: "join"
+			},
+			event_id: "$AHCkieLEVCrCEA3INTCl0rh44V29fCASlZpBKw7DzQU",
+			user_id: "@lavender.pet:queer.sh",
+			age: 100363692
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "lavender.pet",
+				avatar_url: undefined,
+				content: "also <@196188877885538304> fun fact at some point there is plans for FTE to have a built in map editor",
+				allowed_mentions: {
+					parse: ["roles"],
+					users: ["196188877885538304"]
+				}
+			}]
+		}
+	)
+})
+
+
 test("event2message: mentioning discord users works when URL encoded", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -4260,7 +4304,7 @@ test("event2message: caches the member if the member is not known", async t => {
 		}
 	)
 
-	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe"}).all(), [
+	t.deepEqual(select("member_cache", ["avatar_url", "displayname", "mxid"], {room_id: "!qzDBLKlildpzrrOnFZ:cadence.moe", mxid: "@should_be_newly_cached:cadence.moe"}).all(), [
 		{avatar_url: "mxc://cadence.moe/this_is_the_avatar", displayname: null, mxid: "@should_be_newly_cached:cadence.moe"}
 	])
 	t.equal(called, 1, "getStateEvent should be called once")
