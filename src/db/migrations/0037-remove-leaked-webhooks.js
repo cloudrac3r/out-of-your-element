@@ -18,7 +18,8 @@ module.exports = async function(db) {
 	const affectedChannels = from("message_room").join("historical_channel_room", "historical_room_index")
 		.pluck("reference_channel_id").selectUnsafe("DISTINCT reference_channel_id")
 		.and("WHERE message_id >= ? AND message_id <= ? AND length(message_id) = ?").all(startSnowflake, endSnowflake, startSnowflake.length)
-	const affectedWebhooks = select("webhook", ["channel_id", "webhook_id", "webhook_token"], {channel_id: affectedChannels}).all()
+	let affectedWebhooks = select("webhook", ["channel_id", "webhook_id", "webhook_token"], {channel_id: affectedChannels}).all()
+	affectedWebhooks = affectedWebhooks.filter(w => BigInt(w.webhook_id) < BigInt(endSnowflake)) // if webhook ID is already newly generated then no need to replace
 
 	if (affectedWebhooks.length) {
 		process.stdout.write(`  revoking ${affectedWebhooks.length} possibly compromised webhooks... `)
