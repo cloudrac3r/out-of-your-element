@@ -109,7 +109,7 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
 
 /**
  * @param {{room?: boolean, user_ids?: string[]}} mentions
- * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url">} attachment
+ * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url" | "flags">} attachment
  * @param {boolean} [alwaysLink]
  */
 async function attachmentToEvent(mentions, attachment, alwaysLink) {
@@ -256,8 +256,8 @@ function getFormattedInteraction(interaction, isThinkingInteraction) {
 	const username = interaction.member?.nick || interaction.user.global_name || interaction.user.username
 	const thinkingText = isThinkingInteraction ? " — interaction loading..." : ""
 	return {
-		body: `↪️ ${username} used \`/${interaction.name}\`${thinkingText}`,
-		html: `<blockquote><sub>↪️ ${mxid ? tag`<a href="https://matrix.to/#/${mxid}">${username}</a>` : username} used <code>/${interaction.name}</code>${thinkingText}</sub></blockquote>`
+		body: `❭ ${username} used \`/${interaction.name}\`${thinkingText}`,
+		html: `<blockquote><sub>❭ ${mxid ? tag`<a href="https://matrix.to/#/${mxid}">${username}</a>` : username} used <code>/${interaction.name}</code>${thinkingText}</sub></blockquote>`
 	}
 }
 
@@ -1127,7 +1127,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				}
 			} else {
 				let body = stickerItem.name
-				const sticker = guild.stickers.find(sticker => sticker.id === stickerItem.id)
+				const sticker = guild.stickers?.find(sticker => sticker.id === stickerItem.id)
 				if (sticker && sticker.description) body += ` - ${sticker.description}`
 				return {
 					$type: "m.sticker",
