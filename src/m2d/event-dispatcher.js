@@ -94,6 +94,11 @@ function printError(type, source, e, payload) {
 	console.dir(payload, {depth: null})
 }
 
+/** @param {string} stack */
+function cleanErrorStack(stack) {
+	return stack.replace(/(\/webhooks\/[0-9]+\/)[a-zA-Z0-9_-]+/g, "$1(redacted)")
+}
+
 /**
  * @param {string} roomID
  * @param {"Discord" | "Matrix"} source
@@ -134,7 +139,7 @@ async function sendError(roomID, source, type, e, payload) {
 		builder.addLine(errorIntroLine)
 
 		// Where
-		const stack = stringifyErrorStack(e)
+		const stack = cleanErrorStack(stringifyErrorStack(e))
 		builder.addLine(`Error trace:\n${stack}`, tag`<details><summary>Error trace</summary><pre>${stack}</pre></details>`)
 
 		// How
@@ -502,5 +507,6 @@ async event => {
 }))
 
 module.exports.stringifyErrorStack = stringifyErrorStack
+module.exports.cleanErrorStack = cleanErrorStack
 module.exports.sendError = sendError
 module.exports.printError = printError
