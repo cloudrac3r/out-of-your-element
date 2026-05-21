@@ -209,9 +209,9 @@ test("message2event embeds: 4 images", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.text",
-		body: "[🔀 Forwarded message]\n» https://fixupx.com/i/status/2032003668787020046",
+		body: "[↷ Forwarded message]\n» https://fixupx.com/i/status/2032003668787020046",
 		format: "org.matrix.custom.html",
-		formatted_body: "🔀 <em>Forwarded message</em><br><blockquote><a href=\"https://fixupx.com/i/status/2032003668787020046\">https://fixupx.com/i/status/2032003668787020046</a></blockquote>",
+		formatted_body: "↷ <em>Forwarded message</em><br><blockquote><a href=\"https://fixupx.com/i/status/2032003668787020046\">https://fixupx.com/i/status/2032003668787020046</a></blockquote>",
 		"m.mentions": {}
 	}, {
 		$type: "m.room.message",

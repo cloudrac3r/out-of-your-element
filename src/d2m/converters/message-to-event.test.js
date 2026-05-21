@@ -1273,9 +1273,9 @@ test("message2event: crossposted announcements say where they are crossposted fr
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "[🔀 Chewey Bot Official Server #announcements]\nAll text based commands are now inactive on Chewey Bot\nTo continue using commands you'll need to use them as slash commands",
+		body: "[↷ Chewey Bot Official Server #announcements]\nAll text based commands are now inactive on Chewey Bot\nTo continue using commands you'll need to use them as slash commands",
 		format: "org.matrix.custom.html",
-		formatted_body: "🔀 <strong>Chewey Bot Official Server #announcements</strong><br>All text based commands are now inactive on Chewey Bot<br>To continue using commands you'll need to use them as slash commands"
+		formatted_body: "↷ <strong>Chewey Bot Official Server #announcements</strong><br>All text based commands are now inactive on Chewey Bot<br>To continue using commands you'll need to use them as slash commands"
 	}])
 })
 
@@ -1344,9 +1344,9 @@ test("message2event: forwarded image", async t => {
 	t.deepEqual(events, [
 		{
 			$type: "m.room.message",
-			body: "[🔀 Forwarded message]",
+			body: "[↷ Forwarded message]",
 			format: "org.matrix.custom.html",
-			formatted_body: "🔀 <em>Forwarded message</em>",
+			formatted_body: "↷ <em>Forwarded message</em>",
 			"m.mentions": {},
 			msgtype: "m.notice",
 		},
@@ -1385,10 +1385,10 @@ test("message2event: constructed forwarded message", async t => {
 	t.deepEqual(events, [
 		{
 			$type: "m.room.message",
-			body: "[🔀 Forwarded from #wonderland]"
+			body: "[↷ Forwarded from #wonderland]"
 				+ "\n» What's cooking, good looking? :hipposcope:",
 			format: "org.matrix.custom.html",
-			formatted_body: `🔀 <em>Forwarded from wonderland <a href="https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$tBIT8mO7XTTCgIINyiAIy6M2MSoPAdJenRl_RLyYuaE?via=cadence.moe&amp;via=matrix.org">[jump to event]</a></em>`
+			formatted_body: `↷ <em>Forwarded from wonderland <a href="https://matrix.to/#/!qzDBLKlildpzrrOnFZ:cadence.moe/$tBIT8mO7XTTCgIINyiAIy6M2MSoPAdJenRl_RLyYuaE?via=cadence.moe&amp;via=matrix.org">[jump to event]</a></em>`
 				+ `<br><blockquote>What's cooking, good looking? <img data-mx-emoticon height="32" src="mxc://cadence.moe/WbYqNlACRuicynBfdnPYtmvc" title=":hipposcope:" alt=":hipposcope:"></blockquote>`,
 			"m.mentions": {},
 			msgtype: "m.text",
@@ -1444,10 +1444,10 @@ test("message2event: constructed forwarded text", async t => {
 	t.deepEqual(events, [
 		{
 			$type: "m.room.message",
-			body: "[🔀 Forwarded from #amanda-spam]"
+			body: "[↷ Forwarded from #amanda-spam]"
 				+ "\n» What's cooking, good looking?",
 			format: "org.matrix.custom.html",
-			formatted_body: `🔀 <em>Forwarded from amanda-spam <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe?via=cadence.moe&amp;via=matrix.org">[jump to room]</a></em>`
+			formatted_body: `↷ <em>Forwarded from amanda-spam <a href="https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe?via=cadence.moe&amp;via=matrix.org">[jump to room]</a></em>`
 				+ `<br><blockquote>What's cooking, good looking?</blockquote>`,
 			"m.mentions": {},
 			msgtype: "m.text",
@@ -1467,10 +1467,10 @@ test("message2event: don't scan forwarded messages for mentions", async t => {
 	t.deepEqual(events, [
 		{
 			$type: "m.room.message",
-			body: "[🔀 Forwarded message]"
+			body: "[↷ Forwarded message]"
 				+ "\n» If some folks have spare bandwidth then helping out ArchiveTeam with archiving soon to be deleted research and government data might be worthwhile https://social.luca.run/@luca/113950834185678114",
 			format: "org.matrix.custom.html",
-			formatted_body: `🔀 <em>Forwarded message</em>`
+			formatted_body: `↷ <em>Forwarded message</em>`
 				+ `<br><blockquote>If some folks have spare bandwidth then helping out ArchiveTeam with archiving soon to be deleted research and government data might be worthwhile <a href="https://social.luca.run/@luca/113950834185678114">https://social.luca.run/@luca/113950834185678114</a></blockquote>`,
 			"m.mentions": {},
 			msgtype: "m.text"
@@ -1820,9 +1820,9 @@ test("message2event: forwarded message with unreferenced mention", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.text",
-		body: "[🔀 Forwarded message]\n» @unknown-user:\n» 🎞️ Uploaded file: https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4 (51 MB)",
+		body: "[↷ Forwarded message]\n» @unknown-user:\n» 🎞️ Uploaded file: https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4 (51 MB)",
 		format: "org.matrix.custom.html",
-		formatted_body: "🔀 <em>Forwarded message</em><br><blockquote>@unknown-user:<br>🎞️ Uploaded file: <a href=\"https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4\">2022-10-18_16-49-46.mp4</a> (51 MB)</blockquote>",
+		formatted_body: "↷ <em>Forwarded message</em><br><blockquote>@unknown-user:<br>🎞️ Uploaded file: <a href=\"https://bridge.example.org/download/discordcdn/893634327722721290/1463174815119704114/2022-10-18_16-49-46.mp4\">2022-10-18_16-49-46.mp4</a> (51 MB)</blockquote>",
 		"m.mentions": {}
 	}])
 })

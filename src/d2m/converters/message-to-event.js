@@ -640,8 +640,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		const flags = message.flags || 0
 		if (flags & DiscordTypes.MessageFlags.IsCrosspost) {
-			body = `[🔀 ${message.author.username}]\n` + body
-			html = `🔀 <strong>${message.author.username}</strong><br>` + html
+			body = `[↷ ${message.author.username}]\n` + body
+			html = `↷ <strong>${message.author.username}</strong><br>` + html
 		}
 
 		// Fallback body/formatted_body for replies
@@ -768,20 +768,20 @@ async function messageToEvent(message, guild, options = {}, di) {
 			if (row && "event_id" in row) {
 				const via = await getViaServersMemo(row.room_id)
 				forwardedNotice.addLine(
-					`[🔀 Forwarded from #${roomName}]`,
-					tag`🔀 <em>Forwarded from ${roomName} <a href="https://matrix.to/#/${room.room_id}/${row.event_id}?${via}">[jump to event]</a></em>`
+					`[↷ Forwarded from #${roomName}]`,
+					tag`↷ <em>Forwarded from ${roomName} <a href="https://matrix.to/#/${room.room_id}/${row.event_id}?${via}">[jump to event]</a></em>`
 				)
 			} else {
 				const via = await getViaServersMemo(room.room_id)
 				forwardedNotice.addLine(
-					`[🔀 Forwarded from #${roomName}]`,
-					tag`🔀 <em>Forwarded from ${roomName} <a href="https://matrix.to/#/${room.room_id}?${via}">[jump to room]</a></em>`
+					`[↷ Forwarded from #${roomName}]`,
+					tag`↷ <em>Forwarded from ${roomName} <a href="https://matrix.to/#/${room.room_id}?${via}">[jump to room]</a></em>`
 				)
 			}
 		} else {
 			forwardedNotice.addLine(
-				`[🔀 Forwarded message]`,
-				tag`🔀 <em>Forwarded message</em>`
+				`[↷ Forwarded message]`,
+				tag`↷ <em>Forwarded message</em>`
 			)
 		}
 
