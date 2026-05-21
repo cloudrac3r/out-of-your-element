@@ -84,7 +84,7 @@ Discord display names for normal users are limited to 32 characters. For webhook
 
 If the bridge software was restarted, it will attempt to catch up on messages missed while it was offline.
 
-From Discord, for any given channel, if fewer than 50 messages were missed in that given channel, the bridge will catch up and transfer all of them to Matrix. If more than 50 messages were missed in that given channel, the bridge will only bridge the latest message. Happenings that aren't messages, such as edits and reactions to prior messages, might be missed during catch-up.
+From Discord, for any given channel, if fewer than 100 messages were missed in that given channel, the bridge will catch up and transfer all of them to Matrix. If more than 100 messages were missed in that given channel, the bridge will only bridge the latest message. Happenings that aren't messages, such as edits and reactions to prior messages, might be missed during catch-up.
 
 From Matrix, all events should be bridged to Discord.
 
