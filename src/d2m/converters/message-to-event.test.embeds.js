@@ -8,9 +8,9 @@ test("message2event embeds: interaction loading", async t => {
 	const events = await messageToEvent(data.interaction_message.thinking_interaction, data.guild.general, {})
 	t.deepEqual(events, [{
 		$type: "m.room.message",
-		body: "↪️ Brad used `/stats` — interaction loading...",
+		body: "❭ Brad used `/stats` — interaction loading...",
 		format: "org.matrix.custom.html",
-		formatted_body: "<blockquote><sub>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">Brad</a> used <code>/stats</code> — interaction loading...</sub></blockquote>",
+		formatted_body: "<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">Brad</a> used <code>/stats</code> — interaction loading...</sub></blockquote>",
 		"m.mentions": {},
 		msgtype: "m.notice",
 	}])
@@ -22,12 +22,12 @@ test("message2event embeds: nothing but a field", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.notice",
-		body: "↪️ PapiOphidian used `/stats`"
+		body: "❭ PapiOphidian used `/stats`"
 			+ "\n| ### Amanda 🎵#2192 :online:"
 			+ "\n| willow tree, branch 0"
 			+ "\n| **❯ Uptime:**\n| 3m 55s\n| **❯ Memory:**\n| 64.45MB",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><sub>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
+		formatted_body: '<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
 			+ '<blockquote><p><strong>Amanda 🎵#2192 <img data-mx-emoticon height=\"32\" src=\"mxc://cadence.moe/LCEqjStXCxvRQccEkuslXEyZ\" title=\":online:\" alt=\":online:\">'
 			+ '<br>willow tree, branch 0</strong>'
 			+ '<br><strong>❯ Uptime:</strong><br>3m 55s'
@@ -153,10 +153,10 @@ test("message2event embeds: title without url", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "↪️ PapiOphidian used `/stats`"
+		body: "❭ PapiOphidian used `/stats`"
 			+ "\n| ## Hi, I'm Amanda!\n| \n| I condone pirating music!",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><sub>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
+		formatted_body: '<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
 			+ `<blockquote><p><strong>Hi, I'm Amanda!</strong></p><p>I condone pirating music!</p></blockquote>`,
 		"m.mentions": {}
 	}])
@@ -167,10 +167,10 @@ test("message2event embeds: url without title", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "↪️ PapiOphidian used `/stats`"
+		body: "❭ PapiOphidian used `/stats`"
 			+ "\n| I condone pirating music!",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><sub>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
+		formatted_body: '<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
 			+ `<blockquote><p>I condone pirating music!</p></blockquote>`,
 		"m.mentions": {}
 	}])
@@ -181,10 +181,10 @@ test("message2event embeds: author without url", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "↪️ PapiOphidian used `/stats`"
+		body: "❭ PapiOphidian used `/stats`"
 			+ "\n| ## Amanda\n| \n| I condone pirating music!",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><sub>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
+		formatted_body: '<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
 			+ `<blockquote><p><strong>Amanda</strong></p><p>I condone pirating music!</p></blockquote>`,
 		"m.mentions": {}
 	}])
@@ -195,10 +195,10 @@ test("message2event embeds: author url without name", async t => {
 	t.deepEqual(events, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "↪️ PapiOphidian used `/stats`"
+		body: "❭ PapiOphidian used `/stats`"
 			+ "\n| I condone pirating music!",
 		format: "org.matrix.custom.html",
-		formatted_body: '<blockquote><sub>↪️ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
+		formatted_body: '<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_papiophidian:cadence.moe\">PapiOphidian</a> used <code>/stats</code></sub></blockquote>'
 			+ `<blockquote><p>I condone pirating music!</p></blockquote>`,
 		"m.mentions": {}
 	}])
