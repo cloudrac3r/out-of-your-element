@@ -29,6 +29,8 @@ const pollComponents = sync.require("./poll-components")
 const setupEmojis = sync.require("../actions/setup-emojis")
 /** @type {import("../../d2m/converters/user-to-mxid")} */
 const userToMxid = sync.require("../../d2m/converters/user-to-mxid")
+/** @type {import("../../web/routes/letter-avatar")} */
+const letterAvatar = sync.require("../../web/routes/letter-avatar")
 
 /** @type {[RegExp, string][]} */
 const markdownEscapes = [
@@ -580,6 +582,11 @@ async function eventToMessage(event, guild, channel, di) {
 	// If the message type is m.emote, the full name is already included at the start of the message, so remove any runoff
 	if (event.type === "m.room.message" && event.content.msgtype === "m.emote") {
 		displayNameRunoff = ""
+	}
+
+	// If undefined, generate letter avatar instead of using Discord default
+	if (avatarURL == undefined) {
+		avatarURL = letterAvatar.getLetterAvatarURL(event.sender, displayNameShortened)
 	}
 
 	let content = event.content["body"] || "" // ultimate fallback

@@ -61,7 +61,7 @@ test("event2message: body is used when there is no formatted_body", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "testing plaintext",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -99,7 +99,7 @@ test("event2message: any markdown in body is escaped, except strikethrough", asy
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "testing \\*\\*special\\*\\* ~~things~~ which \\_should\\_ \\*not\\* \\`trigger\\` @any <effects>, except strikethrough",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -134,7 +134,7 @@ test("event2message: links in formatted body are not broken", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<@111604486476181504> I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -167,7 +167,7 @@ test("event2message: links in plaintext body are not broken", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I wonder what the midjourney text description of this photo is https://upload.wikimedia.org/wikipedia/commons/f/f3/After_gay_pride%2C_rainbow_flags_flying_along_Beach_Street_%2814853144744%29.jpg",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -195,7 +195,7 @@ test("event2message: links in plaintext body are not broken when preceded by a n
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "java redstoners will be like \"I hate bedrock edition redstone!!\" meanwhile java edition:\nhttps://youtu.be/g_ORb7bN3CM",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -225,7 +225,7 @@ test("event2message: links in formatted body where the text & href are the same,
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "https://privatebin.net/?9111cb16f28da21b#62CKkEr6WvXZ1gQv2M6agazsA7tGYX8ZP8drETYujYZr",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -264,7 +264,7 @@ test("event2message: markdown in link text does not attempt to be escaped becaus
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "hey [@mario sports mix [she/her]](<https://matrix.to/#/%40cadence%3Acadence.moe>), is it possible to listen on a unix socket?",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["roles"],
 					users: []
@@ -293,7 +293,7 @@ test("event2message: markdown in link url does not attempt to be escaped (plaint
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "the wikimedia commons freaks are gonna love this one https://commons.wikimedia.org/wiki/File:Car_covered_in_traffic_cones.jpg",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -328,7 +328,7 @@ test("event2message: markdown in link url does not attempt to be escaped (plaint
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "the wikimedia commons freaks are gonna love this one <https://commons.wikimedia.org/wiki/File:Car_covered_in_traffic_cones.jpg>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -366,7 +366,7 @@ test("event2message: embeds are suppressed if the guild does not have embed link
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -402,7 +402,7 @@ test("event2message: embeds are suppressed if the guild does not have embed link
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -445,7 +445,7 @@ test("event2message: embeds are suppressed if the channel does not have embed li
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -476,7 +476,7 @@ test("event2message: links retain angle brackets (formatted body)", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -505,7 +505,7 @@ test("event2message: links retain angle brackets (plaintext body)", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "posting one of my favourite songs recently (starts at timestamp) <https://youtu.be/RhV2X7WQMPA?t=364>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -546,7 +546,7 @@ test("event2message: links don't have angle brackets added by accident", async t
 			messagesToSend: [{
 				username: "Erquint",
 				content: "Wanted to automate WG→AWG config enrichment and ended up basically coding a batch INI processor.\nhttps://github.com/Erquint/wgcbp",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=E&hue=180",
 				allowed_mentions: {
 					parse: ["roles"],
 					users: []
@@ -581,7 +581,7 @@ test("event2message: basic html is converted to markdown", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "this **is** a _**test** __of___ ~~_formatting_~~",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -615,7 +615,7 @@ test("event2message: spoilers work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "this **is** a ||_test_|| of ||spoilers||",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -649,7 +649,7 @@ test("event2message: spoiler reasons work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "\\(cw crossword spoilers you'll never believe. don't tell anybody\\) ||zoe kills a 5 letter noun at the end||",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -689,7 +689,7 @@ test("event2message: media spoilers work", async t => {
 			messagesToSend: [{
 				username: "underscore_x",
 				content: "",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=U&hue=270",
 				attachments: [{id: "0", filename: "SPOILER_pitstop.png"}],
 				pendingFiles: [{
 					mxc: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT",
@@ -735,7 +735,7 @@ test("event2message: media spoilers with reason work", async t => {
 					parse: ["users", "roles"]
 				},
 				content: "(Spoiler: golden witch solutions)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=U&hue=270",
 				attachments: [{id: "0", filename: "SPOILER_pitstop.png"}],
 				pendingFiles: [{
 					mxc: "mxc://agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT",
@@ -781,7 +781,7 @@ test("event2message: spoiler files too large for Discord are linked and retain r
 					parse: ["users", "roles"]
 				},
 				content: "(Spoiler: golden witch secrets)\n🖼️ _Uploaded **SPOILER** file: ||[pitstop.png](https://bridge.example.org/download/matrix/agiadn.org/JY5NvEFojTvYDp5znjGIkkQ7Ez7GwsdT )|| (40 MB)_",
-				avatar_url: undefined
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=U&hue=270"
 			}]
 		}
 	)
@@ -812,7 +812,7 @@ test("event2message: markdown syntax is escaped", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "this \\*\\*is\\*\\* an **_extreme_** \\\\\\*test\\\\\\* of",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -846,7 +846,7 @@ test("event2message: html lines are bridged correctly", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "paragraph one\nline _two_\nline three\n\nparagraph two\nline _two_\nline three\n\nparagraph three\n\nparagraph four\nline two\nline three\nline four\n\nparagraph five",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -880,7 +880,7 @@ test("event2message: html lines are bridged correctly", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "line one: test       test\nline two: **test**       **test**\nline three: **test       test**\nline four: test       test\n       line five",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -915,7 +915,7 @@ test("event2message: whitespace is collapsed", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "line one: test test\nline two: **test** **test**\nline three: **test test**\nline four: test test\nline five",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -951,7 +951,7 @@ test("event2message: lists are bridged correctly", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "* line one\n* line two\n* line three\n  * nested one\n  * nested two\n* line four",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -983,14 +983,14 @@ test("event2message: long messages are split", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: (("a".repeat(130) + " ").repeat(15)).slice(0, -1),
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
 			}, {
 				username: "cadence [they]",
 				content: (("a".repeat(130) + " ").repeat(4)).slice(0, -1),
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1024,7 +1024,7 @@ test("event2message: code blocks work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "preceding\n\n```\ncode block\n```\n\nfollowing `code` is inline",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1054,7 +1054,7 @@ test("event2message: code block contents are formatted correctly and not escaped
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "```\ninput = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n_input_ = input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,\n```\n\n`input = input.replace(/(<\\/?([^ >]+)[^>]*>)?\\n(<\\/?([^ >]+)[^>]*>)?/g,`",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1084,7 +1084,7 @@ test("event2message: code blocks use double backtick as delimiter when necessary
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "``backtick in ` the middle``, `` backtick at the edge` ``",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1114,7 +1114,7 @@ test("event2message: inline code is converted to code block if it contains both 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "``` ` one two `` ```",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1146,7 +1146,7 @@ test("event2message: code blocks are uploaded as attachments instead if they con
 				content: "So if you run code like this `[inline_code.java]` it should print a markdown formatted code block",
 				attachments: [{id: "0", filename: "inline_code.java"}],
 				pendingFiles: [{name: "inline_code.java", buffer: Buffer.from('System.out.println("```");')}],
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1178,7 +1178,7 @@ test("event2message: code blocks are uploaded as attachments instead if they con
 				content: "So if you run code like this `[inline_code.txt]` it should print a markdown formatted code block",
 				attachments: [{id: "0", filename: "inline_code.txt"}],
 				pendingFiles: [{name: "inline_code.txt", buffer: Buffer.from('System.out.println("```");')}],
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1210,7 +1210,7 @@ test("event2message: code blocks are uploaded as attachments instead if they con
 				content: "So if you run code like this `[inline_code.txt]` it should print a markdown formatted code block",
 				attachments: [{id: "0", filename: "inline_code.txt"}],
 				pendingFiles: [{name: "inline_code.txt", buffer: Buffer.from('System.out.println("```");')}],
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1242,7 +1242,7 @@ test("event2message: code blocks are uploaded as attachments instead if they are
 				content: "So if you run code like this `[inline_code.js]` it should print a markdown formatted code block",
 				attachments: [{id: "0", filename: "inline_code.js"}],
 				pendingFiles: [{name: "inline_code.js", buffer: Buffer.from("A".repeat(2000))}],
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1285,7 +1285,7 @@ test("event2message: characters are encoded properly in code blocks", async t =>
 					+ '\n        .map(|c| c.get(1).unwrap().as_str())'
 					+ '\n        .collect::<String>();'
 				)}],
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -1319,7 +1319,7 @@ test("event2message: quotes have an appropriate amount of whitespace", async t =
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "> Chancellor of Germany Angela Merkel, on March 17, 2017: they did not shake hands\n🤨",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1360,7 +1360,7 @@ test("event2message: lists have appropriate line breaks", async t => {
 			messagesToSend: [{
 				username: "Milan",
 				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n* bridgeing specific channels with existing matrix rooms\n  * optionally maybe entire "servers"\n* offering the bridge as a public service`,
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=M&hue=210",
 				allowed_mentions: {
 					parse: ["roles"],
 					users: []
@@ -1402,7 +1402,7 @@ test("event2message: ordered list start attribute works", async t => {
 			messagesToSend: [{
 				username: "Milan",
 				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n1. bridgeing specific channels with existing matrix rooms\n  2. optionally maybe entire "servers"\n2. offering the bridge as a public service`,
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=M&hue=210",
 				allowed_mentions: {
 					parse: ["roles"],
 					users: []
@@ -1435,7 +1435,7 @@ test("event2message: m.emote plaintext works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "\\* cadence \\[they\\] tests an m.emote message",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1469,7 +1469,7 @@ test("event2message: m.emote markdown syntax is escaped", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "\\* cadence \\[they\\] shows you \\*\\*her\\*\\* **_extreme_** \\\\\\*test\\\\\\* of",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -1706,7 +1706,7 @@ test("event2message: rich reply to a rich reply to a multi-line message should c
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
 					+ " I just checked in a fix that will probably work..."
 					+ "\nwill try later (tomorrow if I don't forgor)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2040,7 +2040,7 @@ test("event2message: should suppress embeds for links in reply preview", async t
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1273204543739396116 **Ⓜcadence [they]**:"
 					+ " <https://www.youtube.com/watch?v=uX32idb1jMw>"
 					+ `\nEveryone in the comments is like "you're so ahead of the curve" and "can't believe this came out before the scandal" but I thought Mr Beast sucking was a common sentiment`,
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=R&hue=240",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2316,7 +2316,7 @@ test("event2message: reply preview converts emoji formatting when replying to a 
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
 					+ " <:hippo:230201364309868544>"
 					+ "\nreply",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2366,7 +2366,7 @@ test("event2message: reply preview can guess custom emoji based on the name if i
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
 					+ " <:hippo:230201364309868544>"
 					+ "\nreply",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2416,7 +2416,7 @@ test("event2message: reply preview uses emoji title text when replying to an unk
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
 					+ " :svkftngur_gkdne:"
 					+ "\nreply",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2466,7 +2466,7 @@ test("event2message: reply preview ignores garbage image", async t => {
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
 					+ " I am having  a nice day"
 					+ "\nreply",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -2515,7 +2515,7 @@ test("event2message: reply to empty message doesn't show an extra line or anythi
 				username: "cadence [they]",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**"
 					+ "\nreply",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
 				}
@@ -3311,7 +3311,7 @@ test("event2message: rich reply with an image", async t => {
 							id: "0",
 						},
 					],
-					avatar_url: undefined,
+					avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 					pendingFiles: [
 						{
 							mxc: "mxc://cadence.moe/yxMobQMbSqNHpajxgSHtaooG",
@@ -3348,7 +3348,7 @@ test("event2message: raw mentioning discord users in plaintext body works", asyn
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<@114147806469554185> what do you think?",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3382,7 +3382,7 @@ test("event2message: raw mentioning discord users in formatted body works", asyn
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<@114147806469554185> what do you think?",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3416,7 +3416,7 @@ test("event2message: mentioning discord users works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <@114147806469554185> testing mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3457,7 +3457,7 @@ test("event2message: mentioning discord users with extra html attributes works",
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "lavender.pet",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=L&hue=30",
 				content: "also <@196188877885538304> fun fact at some point there is plans for FTE to have a built in map editor",
 				allowed_mentions: {
 					parse: ["roles"],
@@ -3494,7 +3494,7 @@ test("event2message: mentioning discord users works when URL encoded", async t =
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<@771520384671416320> a sample message",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3528,7 +3528,7 @@ test("event2message: mentioning PK discord users works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just **@Azalea &flwr; 🌺** (<@196188877885538304>) testing mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3562,7 +3562,7 @@ test("event2message: mentioning matrix users works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just [@▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3603,7 +3603,7 @@ test("event2message: matrix mentions are not double-escaped when embed links per
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just [@▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3637,7 +3637,7 @@ test("event2message: multiple mentions are both escaped", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "[@cadence:cadence.moe](<https://matrix.to/#/@cadence:cadence.moe>) can you kick my old account over there [@amyiscoolz:matrix.atiusamy.com](<https://matrix.to/#/@amyiscoolz:matrix.atiusamy.com>)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3667,7 +3667,7 @@ test("event2message: mentioning matrix users works even when Element disambiguat
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "[@unascribed](<https://matrix.to/#/@unascribed:sleeping.town>) if you want to run some experimental software, `11864f80cf` branch of OOYE has _vastly_ improved handling of PluralKit users. feel free to try it out, if you find bugs I'd appreciate you letting me know (just tag me at the place in chat where something went wrong)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3701,7 +3701,7 @@ test("event2message: mentioning bridged rooms works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <#1100319550446252084> testing channel mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3733,7 +3733,7 @@ test("event2message: mentioning bridged rooms works (plaintext body)", async t =
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <#1100319550446252084> testing channel mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3776,7 +3776,7 @@ test("event2message: mentioning bridged rooms by alias works", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <#1100319550446252084> testing channel mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3818,7 +3818,7 @@ test("event2message: mentioning bridged rooms by alias works (plaintext body)", 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <#1100319550446252084> testing channel mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3859,7 +3859,7 @@ test("event2message: mentioning bridged rooms by alias skips the link when alias
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "I'm just <https://matrix.to/#/#worm-farm:cadence.moe?via=cadence.moe> and <#1100319550446252084> testing channel mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3892,7 +3892,7 @@ test("event2message: mentioning known bridged events works (plaintext body)", as
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "it was uploaded earlier in https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020, take a look!",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3926,7 +3926,7 @@ test("event2message: mentioning known bridged events works (partially formatted 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "it was uploaded earlier in https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3960,7 +3960,7 @@ test("event2message: mentioning known bridged events works (formatted body)", as
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "it was uploaded earlier in https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -3994,7 +3994,7 @@ test("event2message: mentioning known bridged events followed by line break and 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "https://discord.com/channels/497159726455455754/497161350934560778/1141619794500649020<@114147806469554185>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4040,7 +4040,7 @@ test("event2message: mentioning unknown bridged events can approximate with time
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "it was uploaded years ago in https://discord.com/channels/497159726455455754/497161350934560778/753895613661184000",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4085,7 +4085,7 @@ test("event2message: mentioning events falls back to original link when server d
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "it was uploaded years ago in [amanda-spam](<https://matrix.to/#/!CzvdIdUQXgUjDVKxeU:cadence.moe/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW1?via=cadence.moe>)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4129,7 +4129,7 @@ test("event2message: mentioning events falls back to original link when the chan
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "it was uploaded years ago in [ex-room-doesnt-exist-any-more](<https://matrix.to/#/!tnedrGVYKFNUdnegvf:tchncs.de/$zpzx6ABetMl8BrpsFbdZ7AefVU1Y_-t97bJRJM2JyW2?via=tchncs.de>)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4159,7 +4159,7 @@ test("event2message: link to event in an unknown room (href link)", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "ah yeah, here's where the bug was reported: <https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4189,7 +4189,7 @@ test("event2message: link to event in an unknown room (bare link)", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "PK API failure, tho idk how you'd handle that <https://matrix.to/#/!SeYQChwXBnZaQLoZfI:sleeping.town/$AAPZ56B2P7TfROYPTtuoJjgvXmaBM11NoNceM8GCJ7s>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4217,7 +4217,7 @@ test("event2message: link to event in an unknown room (plaintext)", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "ah yeah, here's where the bug was reported: <https://matrix.to/#/!QtykxKocfZaZOUrTwp:matrix.org/$1542477546853947KGhZL:matrix.org>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4251,7 +4251,7 @@ test("event2message: colon after mentions is stripped", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<@114147806469554185> hey, I'm just [@▲](<https://matrix.to/#/@rnl:cadence.moe>) testing mentions",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4392,7 +4392,7 @@ test("event2message: skips caching the member if the member does not exist, some
 			messagesToSend: [{
 				username: "not_real",
 				content: "should honestly never happen",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=N&hue=180",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4439,7 +4439,7 @@ test("event2message: overly long usernames are shifted into the message content"
 			messagesToSend: [{
 				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS",
 				content: "**IMPORTANT and I DON'T MATTER**\ntesting the member state cache",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=I&hue=270",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -4475,7 +4475,7 @@ test("event2message: overly long usernames are not treated specially when the ms
 			messagesToSend: [{
 				username: "I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS",
 				content: "\\* I am BLACK I am WHITE I am SHORT I am LONG I am EVERYTHING YOU THINK IS IMPORTANT and I DON'T MATTER looks at the start of the message",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=I&hue=270",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5000,7 +5000,7 @@ test("event2message: stickers fetch mimetype from server when mimetype not provi
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "[YESYESYES](https://bridge.example.org/download/sticker/cadence.moe/ybOWQCaXysnyUGuUCaQlTGJf/_.webp)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5030,7 +5030,7 @@ test("event2message: static emojis work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<:hippo:230201364309868544>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5090,7 +5090,7 @@ test("event2message: animated emojis work", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<a:hipposcope:393635038903926784>",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5120,7 +5120,7 @@ test("event2message: unknown emojis in the middle are linked", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "a [:ms_robot_grin:](https://bridge.example.org/download/matrix/cadence.moe/RLMgJGfgTPjIQtvvWZsYjhjy) b",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5169,7 +5169,7 @@ test("event2message: guessed @mentions in plaintext may join members to mention"
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "hey <@321876634777218072>, what food would you like to order?",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5222,7 +5222,7 @@ test("event2message: guessed @mentions in formatted body may join members to men
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "**_HEY <@321876634777218072>, WHAT FOOD WOULD YOU LIKE TO ORDER??_**",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5265,7 +5265,7 @@ test("event2message: guessed @mentions feature will not activate on links or cod
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "in link [view timeline](https://example.com/social/@subtext) in autolink https://example.com/social/@subtext in pre-code```\n@subtext\n```",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5295,7 +5295,7 @@ test("event2message: guessed @mentions work with other matrix bridge old users",
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "<@114147806469554185> <@176943908762006200> back me up on this sentiment, if not necessarily the phrasing",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5352,7 +5352,7 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "@everyone dinner's ready",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles", "everyone"]
 				}
@@ -5409,7 +5409,7 @@ test("event2message: @room converts to @everyone but is not allowed when the roo
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "@room dinner's ready",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5468,7 +5468,7 @@ test("event2message: @room converts to @everyone and is allowed if the user has 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "@everyone dinner's ready",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles", "everyone"]
 				}
@@ -5498,7 +5498,7 @@ test("event2message: @room in the middle of a link is not converted", async t =>
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "https://github.com/@room/repositories https://github.com/@room/repositories",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5534,7 +5534,7 @@ test("event2message: table", async t => {
 				+ "\nAardvark  Bee     Crocodile"
 				+ "\nArgon     Boron   Carbon   ```"
 				+ "more content",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5564,7 +5564,7 @@ test("event2message: unknown emoji at the end is used for sprite sheet", async t
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "a b [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FRLMgJGfgTPjIQtvvWZsYjhjy)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5594,7 +5594,7 @@ test("event2message: known emoji from an unreachable server at the end is used f
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "a b [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FbZFuuUSEebJYXUMSxuuSuLTa)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5624,7 +5624,7 @@ test("event2message: known and unknown emojis in the end are used for sprite she
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "known unknown: <:hippo:230201364309868544> [:ms_robot_dress:](https://bridge.example.org/download/matrix/cadence.moe/wcouHVjbKJJYajkhJLsyeJAA) and known unknown: [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FWbYqNlACRuicynBfdnPYtmvc&e=cadence.moe%2FHYcztccFIPgevDvoaWNsEtGJ)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5691,7 +5691,7 @@ test("event2message: com.beeper.per_message_profile empty avatar_url clears avat
 			messagesToSend: [{
 				username: "No Avatar User",
 				content: "hello with cleared avatar",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=N&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5760,7 +5760,7 @@ test("event2message: displayname prefix is stripped from plain body when per-mes
 			messagesToSend: [{
 				username: "Tidus Herboren",
 				content: "one more test",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=T&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
@@ -5789,7 +5789,7 @@ test("event2message: all unknown chess emojis are used for sprite sheet", async 
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "testing [\u2800](https://bridge.example.org/download/sheet?e=cadence.moe%2FlHfmJpzgoNyNtYHdAmBHxXix&e=cadence.moe%2FMtRdXixoKjKKOyHJGWLsWLNU&e=cadence.moe%2FHXfFuougamkURPPMflTJRxGc&e=cadence.moe%2FikYKbkhGhMERAuPPbsnQzZiX&e=cadence.moe%2FAYPpqXzVJvZdzMQJGjioIQBZ&e=cadence.moe%2FUVuzvpVUhqjiueMxYXJiFEAj&e=cadence.moe%2FlHfmJpzgoNyNtYHdAmBHxXix&e=cadence.moe%2FMtRdXixoKjKKOyHJGWLsWLNU&e=cadence.moe%2FHXfFuougamkURPPMflTJRxGc&e=cadence.moe%2FikYKbkhGhMERAuPPbsnQzZiX&e=cadence.moe%2FAYPpqXzVJvZdzMQJGjioIQBZ&e=cadence.moe%2FUVuzvpVUhqjiueMxYXJiFEAj)",
-				avatar_url: undefined,
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
