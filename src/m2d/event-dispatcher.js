@@ -148,7 +148,7 @@ async function sendError(roomID, source, type, e, payload) {
 
 	// Send
 	try {
-		await api.sendEvent(roomID, "m.room.message", {
+		const errorEventID = await api.sendEvent(roomID, "m.room.message", {
 			...builder.get(),
 			"moe.cadence.ooye.error": {
 				source: source.toLowerCase(),
@@ -156,6 +156,14 @@ async function sendError(roomID, source, type, e, payload) {
 			},
 			"m.mentions": {
 				user_ids: ["@cadence:cadence.moe"]
+			}
+		})
+		// Add reaction indicating that errors may be retried
+		await api.sendEvent(roomID, "m.reaction", {
+			"m.relates_to": {
+				rel_type: "m.annotation",
+				event_id: errorEventID,
+				key: "🔁"
 			}
 		})
 	} catch (e) {}
@@ -177,6 +185,7 @@ const errorRetrySema = new Semaphore()
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} reactionEvent
  */
 async function onRetryReactionAdd(reactionEvent) {
+	if (reactionEvent.sender === `@${reg.sender_localpart}:${reg.ooye.server_name}`) return // Don't respond to the bot's own indicative reaction
 	const roomID = reactionEvent.room_id
 	await errorRetrySema.request(async () => {
 		const event = await api.getEvent(roomID, reactionEvent.content["m.relates_to"]?.event_id)
