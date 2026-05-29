@@ -584,8 +584,10 @@ async function eventToMessage(event, guild, channel, di) {
 		displayNameRunoff = ""
 	}
 
-	// If undefined, generate letter avatar instead of using Discord default
-	if (avatarURL == undefined) {
+	// Avatar post-processing. Use a thumbnail for media, or generate letter avatar if none present.
+	if (avatarURL) {
+		avatarURL = avatarURL + "?preset=avatar"
+	} else {
 		avatarURL = letterAvatar.getLetterAvatarURL(event.sender, displayNameShortened)
 	}
 

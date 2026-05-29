@@ -3,6 +3,9 @@
 const assert = require("assert/strict")
 const {defineEventHandler, getValidatedRouterParams, setResponseStatus, setResponseHeader, createError, H3Event, getValidatedQuery} = require("h3")
 const {z} = require("zod")
+const {ReadableStream} = require("stream/web")
+const {Readable} = require("stream")
+const sharp = require("sharp")
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
 let hasher = null
@@ -19,10 +22,26 @@ const emojiSheetConverter = sync.require("../../m2d/converters/emoji-sheet")
 /** @type {import("../../m2d/actions/sticker")} */
 const sticker = sync.require("../../m2d/actions/sticker")
 
+// Resizing client-side because server-side is too slow, at least with Synapse. Really need it to be fast because webhook avatars show a placeholder in the interim.
+/** @type {{[presetKey: string]: (body: ReadableStream) => ReadableStream}} */
+const MEDIA_THUMBNAIL_PRESETS = {
+	avatar: body =>
+		Readable.toWeb(
+			Readable.fromWeb(body).pipe(
+				sharp()
+				.resize({height: 210, width: 210, fit: "cover"}) // the largest display of the webhook pfp on Discord Android in screen pixels
+				.jpeg({force: false, quality: 90}) // File size works out to up to ~110k for a PNG, less for a JPEG
+			)
+		)
+}
+
 const schema = {
-	params: z.object({
+	media: z.object({
 		server_name: z.string(),
 		media_id: z.string()
+	}),
+	mediaQuery: z.object({
+		preset: z.enum(Object.keys(MEDIA_THUMBNAIL_PRESETS)) // list of possible thumbnail presets
 	}),
 	sheet: z.object({
 		e: z.array(z.string()).or(z.string())
@@ -65,7 +84,8 @@ function verifyMediaHash(serverAndMediaID) {
 }
 
 as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(async event => {
-	const params = await getValidatedRouterParams(event, schema.params.parse)
+	const params = await getValidatedRouterParams(event, schema.media.parse)
+	const query = await getValidatedQuery(event, schema.mediaQuery.safeParse)
 
 	verifyMediaHash(`${params.server_name}/${params.media_id}`)
 	const api = getAPI(event)
@@ -77,7 +97,12 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 	setResponseStatus(event, res.status)
 	setResponseHeader(event, "Content-Type", contentType)
 	setResponseHeader(event, "Transfer-Encoding", "chunked")
-	return res.body
+
+	if (res.ok && query.success) {
+		return MEDIA_THUMBNAIL_PRESETS[query.data.preset](res.body)
+	} else {
+		return res.body
+	}
 }))
 
 as.router.get(`/download/sheet`, defineEventHandler(async event => {
