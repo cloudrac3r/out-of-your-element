@@ -21,6 +21,8 @@ const speedbump = sync.require("./d2m/actions/speedbump")
 const ks = sync.require("./matrix/kstate")
 const setPresence = sync.require("./d2m/actions/set-presence")
 const channelWebhook = sync.require("./m2d/actions/channel-webhook")
+const dUtils = sync.require("./discord/utils")
+const mUtils = sync.require("./matrix/utils")
 const guildID = "112760669178241024"
 
 async function ping() {

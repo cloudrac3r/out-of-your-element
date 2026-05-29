@@ -463,17 +463,29 @@ async function ping() {
 }
 
 /**
- * Given an mxc:// URL, and an optional height for thumbnailing, get the file from the content repository. Returns res.
+ * Given an mxc:// URL, and optional parameters for thumbnailing, get the file from the content repository. Returns res.
+ *
+ * Note that Synapse currently doesn't support animated thumbnails: https://github.com/element-hq/synapse/pull/18831
+ * @see https://spec.matrix.org/v1.18/client-server-api/#get_matrixclientv1mediathumbnailservernamemediaid
  * @param {string} mxc
- * @param {RequestInit & {height?: number | string}} [init]
+ * @param {RequestInit & {thumbnail?: {height?: number | string, width?: number | string, animated?: boolean, method?: "crop" | "scale"}}} [init]
  * @return {Promise<Response & {body: streamWeb.ReadableStream<Uint8Array>}>}
  */
 async function getMedia(mxc, init = {}) {
+	init = {...init}
+
 	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
 	assert(mediaParts)
-	const downloadOrThumbnail = init.height ? "thumbnail" : "download"
-	let url = `${mreq.baseUrl}/client/v1/media/${downloadOrThumbnail}/${mediaParts[1]}/${mediaParts[2]}`
-	if (init.height) url += "?" + new URLSearchParams({height: String(init.height), width: String(init.height)})
+
+	let route = "download"
+	let query = ""
+
+	if (init.thumbnail) {
+		route = "thumbnail"
+		query = "?" + new URLSearchParams(Object.keys(init.thumbnail).map(k => [k, String(init.thumbnail?.[k])]))
+	}
+
+	let url = `${mreq.baseUrl}/client/v1/media/${route}/${mediaParts[1]}/${mediaParts[2]}${query}`
 	const res = await fetch(url, {
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
