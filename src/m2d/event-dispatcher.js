@@ -225,7 +225,7 @@ async event => {
 		// @ts-ignore
 		await matrixCommandHandler.execute(event)
 	}
-	retrigger.messageFinishedBridging(event.event_id)
+	retrigger.finishedBridging(event.event_id)
 	await api.ackEvent(event)
 }))
 
@@ -236,7 +236,7 @@ sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
 async event => {
 	if (utils.eventSenderIsFromDiscord(event.sender)) return
 	const messageResponses = await sendEvent.sendEvent(event)
-	retrigger.messageFinishedBridging(event.event_id)
+	retrigger.finishedBridging(event.event_id)
 	await api.ackEvent(event)
 }))
 

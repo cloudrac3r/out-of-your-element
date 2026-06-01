@@ -15,6 +15,7 @@ const mreq = sync.require("./matrix/mreq")
 const api = sync.require("./matrix/api")
 const file = sync.require("./matrix/file")
 const sendEvent = sync.require("./m2d/actions/send-event")
+const redact = sync.require("./m2d/actions/redact")
 const eventDispatcher = sync.require("./d2m/event-dispatcher")
 const updatePins = sync.require("./d2m/actions/update-pins")
 const speedbump = sync.require("./d2m/actions/speedbump")
@@ -22,7 +23,7 @@ const ks = sync.require("./matrix/kstate")
 const setPresence = sync.require("./d2m/actions/set-presence")
 const channelWebhook = sync.require("./m2d/actions/channel-webhook")
 const dUtils = sync.require("./discord/utils")
-const mUtils = sync.require("./matrix/utils")
+const mxUtils = sync.require("./matrix/utils")
 const guildID = "112760669178241024"
 
 async function ping() {

@@ -68,3 +68,8 @@ test("orm: select unsafe works (to select complex column names that can't be typ
 		.all()
 	t.equal(results[0].power_level, 150)
 })
+
+test("orm: pluck unsafe works (to select complex column names that can't be type verified)", t => {
+	const result = from("channel_room").where({guild_id: "112760669178241024"}).pluckUnsafe("count(*)").get()
+	t.equal(result, 7)
+})

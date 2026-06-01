@@ -104,6 +104,16 @@ class From {
 		return r
 	}
 
+	pluckUnsafe(col) {
+		/** @type {Pluck<Table, any>} */
+		// @ts-ignore
+		const r = this
+		r.cols = [col]
+		r.makeColsSafe = false
+		r.isPluck = true
+		return r
+	}
+
 	/**
 	 * @param {string} sql
 	 */

@@ -17,7 +17,7 @@ const retrigger = sync.require("../../d2m/actions/retrigger")
  */
 async function addReaction(event) {
 	// Wait until the corresponding channel and message have already been bridged
-	if (retrigger.eventNotFoundThenRetrigger(event.content["m.relates_to"].event_id, () => as.emit("type:m.reaction", event))) return
+	if (!await retrigger.waitForEvent(event.content["m.relates_to"].event_id)) return
 
 	// These will exist because it passed retrigger
 	const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
@@ -50,6 +50,8 @@ async function addReaction(event) {
 	}
 
 	db.prepare("REPLACE INTO reaction (hashed_event_id, message_id, encoded_emoji, original_encoding) VALUES (?, ?, ?, ?)").run(utils.getEventIDHash(event.event_id), messageID, discordPreferredEncoding, key)
+
+	retrigger.finishedBridging(event.event_id)
 }
 
 module.exports.addReaction = addReaction

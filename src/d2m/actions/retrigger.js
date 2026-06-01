@@ -2,7 +2,15 @@
 
 const {EventEmitter} = require("events")
 const passthrough = require("../../passthrough")
-const {select} = passthrough
+const {select, sync, from} = passthrough
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
+
+/*
+	Due to Eventual Consistency(TM) an update/delete may arrive before the original message arrives
+	(or before the it has finished being bridged to an event).
+	In this case, wait until the original message has finished bridging, then retrigger the passed function.
+*/
 
 const DEBUG_RETRIGGER = false
 
@@ -12,81 +20,140 @@ function debugRetrigger(message) {
 	}
 }
 
-const paused = new Set()
-const emitter = new EventEmitter()
+const storage = new class {
+	/** @private @type {Set<string>} */
+	paused = new Set()
+	/** @private @type {Map<string, ((found: Boolean) => any)[]>} id -> list of resolvers */
+	resolves = new Map()
+	/** @private @type {Map<string, ReturnType<setTimeout>>} id -> timer */
+	timers = new Map()
 
-/**
- * Due to Eventual Consistency(TM) an update/delete may arrive before the original message arrives
- * (or before the it has finished being bridged to an event).
- * In this case, wait until the original message has finished bridging, then retrigger the passed function.
- * @template {(...args: any[]) => any} T
- * @param {string} inputID
- * @param {T} fn
- * @param {Parameters<T>} rest
- * @returns {boolean} false if the event was found and the function will be ignored, true if the event was not found and the function will be retriggered
- */
-function eventNotFoundThenRetrigger(inputID, fn, ...rest) {
-	if (!paused.has(inputID)) {
-		if (inputID.match(/^[0-9]+$/)) {
-			const eventID = select("event_message", "event_id", {message_id: inputID}).pluck().get()
-			if (eventID) {
-				debugRetrigger(`[retrigger] OK mid <-> eid = ${inputID} <-> ${eventID}`)
-				return false // event was found so don't retrigger
-			}
-		} else if (inputID.match(/^\$/)) {
-			const messageID = select("event_message", "message_id", {event_id: inputID}).pluck().get()
-			if (messageID) {
-				debugRetrigger(`[retrigger] OK eid <-> mid = ${inputID} <-> ${messageID}`)
-				return false // message was found so don't retrigger
-			}
+	/**
+	 * The purpose of storage is to store `resolve` and call it at a later time.
+	 * @param {string} id
+	 * @param {(found: Boolean) => any} resolve
+	 */
+	store(id, resolve) {
+		debugRetrigger(`[retrigger] STORE id = ${id}`)
+		this.resolves.set(id, (this.resolves.get(id) || []).concat(resolve)) // add to list in map value
+		if (!this.timers.has(id)) {
+			debugRetrigger(`[retrigger] SET TIMER id = ${id}`)
+			this.timers.set(id, setTimeout(() => this.resolve(id, false), 60 * 1000).unref()) // 1 minute
 		}
 	}
+	
+	/** @param {string} id */
+	isNotPaused(id) {
+		return !storage.paused.has(id)
+	}
 
-	debugRetrigger(`[retrigger] WAIT id = ${inputID}`)
-	emitter.once(inputID, () => {
-		debugRetrigger(`[retrigger] TRIGGER id = ${inputID}`)
-		fn(...rest)
-	})
-	// if the event never arrives, don't trigger the callback, just clean up
-	setTimeout(() => {
-		if (emitter.listeners(inputID).length) {
-			debugRetrigger(`[retrigger] EXPIRE id = ${inputID}`)
+	/** @param {string} id */
+	pause(id) {
+		debugRetrigger(`[retrigger] PAUSE id = ${id}`)
+		this.paused.add(id)
+	}
+
+	/**
+	 * Go through `resolves` storage and resolve them all. (Also resets timer/paused.)
+	 * @param {string} id
+	 * @param {boolean} value
+	 */
+	resolve(id, value) {
+		if (this.paused.has(id)) {
+			debugRetrigger(`[retrigger] RESUME id = ${id}`)
+			this.paused.delete(id)
 		}
-		emitter.removeAllListeners(inputID)
-	}, 60 * 1000) // 1 minute
-	return true // event was not found, then retrigger
+
+		if (this.resolves.has(id)) {
+			debugRetrigger(`[retrigger] RESOLVE ${value} id = ${id}`)
+			const fns = this.resolves.get(id) || []
+			this.resolves.delete(id)
+			for (const fn of fns) {
+				fn(value)
+			}
+		}
+
+		if (this.timers.has(id)) {
+			clearTimeout(this.timers.get(id))
+			this.timers.delete(id)
+		}
+	}
+}
+
+/**
+ * @param {string} id
+ * @param {(found: Boolean) => any} resolve
+ * @param {boolean} existsInDatabase
+ */
+function waitFor(id, resolve, existsInDatabase) {
+	if (existsInDatabase && storage.isNotPaused(id)) { // if event already exists and isn't paused then resolve immediately
+		debugRetrigger(`[retrigger] EXISTS id = ${id}`)
+		return resolve(true)
+	}
+
+	// doesn't exist. wait for it to exist. storage will resolve true if it exists or false if it timed out
+	return storage.store(id, resolve)
+}
+
+const GET_EVENT_PREPARED = from("event_message").select("event_id").and("WHERE event_id = ?").prepare().raw()
+/**
+ * @param {string} eventID
+ * @returns {Promise<boolean>} if true then the message did not arrive
+ */
+function waitForEvent(eventID) {
+	const {promise, resolve} = Promise.withResolvers()
+	waitFor(eventID, resolve, !!GET_EVENT_PREPARED.get(eventID))
+	return promise
+}
+
+const GET_MESSAGE_PREPARED = from("event_message").select("message_id").and("WHERE message_id = ?").prepare().raw()
+/**
+ * @param {string} messageID
+ * @returns {Promise<boolean>} if true then the message did not arrive
+ */
+function waitForMessage(messageID) {
+	const {promise, resolve} = Promise.withResolvers()
+	waitFor(messageID, resolve, !!GET_MESSAGE_PREPARED.get(messageID))
+	return promise
+}
+
+const GET_REACTION_EVENT_PREPARED = from("reaction").select("hashed_event_id").and("WHERE hashed_event_id = ?").prepare().raw()
+/**
+ * @param {string} eventID
+ * @returns {Promise<boolean>} if true then the message did not arrive
+ */
+function waitForReactionEvent(eventID) {
+	const {promise, resolve} = Promise.withResolvers()
+	waitFor(eventID, resolve, !!GET_REACTION_EVENT_PREPARED.get(utils.getEventIDHash(eventID)))
+	return promise
 }
 
 /**
  * Anything calling retrigger during the callback will be paused and retriggered after the callback resolves.
  * @template T
- * @param {string} messageID
+ * @param {string} id
  * @param {Promise<T>} promise
  * @returns {Promise<T>}
  */
-async function pauseChanges(messageID, promise) {
+async function pauseChanges(id, promise) {
 	try {
-		debugRetrigger(`[retrigger] PAUSE id = ${messageID}`)
-		paused.add(messageID)
+		storage.pause(id)
 		return await promise
 	} finally {
-		debugRetrigger(`[retrigger] RESUME id = ${messageID}`)
-		paused.delete(messageID)
-		messageFinishedBridging(messageID)
+		finishedBridging(id)
 	}
 }
 
 /**
  * Triggers any pending operations that were waiting on the corresponding event ID.
- * @param {string} messageID
+ * @param {string} id
  */
-function messageFinishedBridging(messageID) {
-	if (emitter.listeners(messageID).length) {
-		debugRetrigger(`[retrigger] EMIT id = ${messageID}`)
-	}
-	emitter.emit(messageID)
+function finishedBridging(id) {
+	storage.resolve(id, true)
 }
 
-module.exports.eventNotFoundThenRetrigger = eventNotFoundThenRetrigger
-module.exports.messageFinishedBridging = messageFinishedBridging
+module.exports.waitForMessage = waitForMessage
+module.exports.waitForEvent = waitForEvent
+module.exports.waitForReactionEvent = waitForReactionEvent
 module.exports.pauseChanges = pauseChanges
+module.exports.finishedBridging = finishedBridging

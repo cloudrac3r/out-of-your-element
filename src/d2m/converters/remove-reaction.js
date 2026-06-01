@@ -34,7 +34,7 @@ function removeReaction(data, reactions, key) {
 				// Even though the bridge bot only reacted once on Discord-side, multiple Matrix users may have
 				// reacted on Matrix-side. Semantically, we want to remove the reaction from EVERY Matrix user.
 				// Also need to clean up the database.
-				const hash = utils.getEventIDHash(event.event_id)
+				const hash = utils.getEventIDHash(eventID)
 				removals.push({eventID, mxid: null, hash})
 			}
 			if (!lookingAtMatrixReaction && !wantToRemoveMatrixReaction) {

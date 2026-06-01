@@ -2,6 +2,7 @@
 
 const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
+const {id: botID} = require("../../addbot")
 const {sync, db, select, from} = require("../passthrough")
 
 /** @type {import("./actions/send-message")}) */
@@ -38,6 +39,8 @@ const removeMember = sync.require("./actions/remove-member")
 const vote = sync.require("./actions/poll-vote")
 /** @type {import("../m2d/event-dispatcher")} */
 const matrixEventDispatcher = sync.require("../m2d/event-dispatcher")
+/** @type {import("../m2d/actions/redact.js")} */
+const redact = sync.require("../m2d/actions/redact.js")
 /** @type {import("../discord/interactions/matrix-info")} */
 const matrixInfoInteraction = sync.require("../discord/interactions/matrix-info")
 
@@ -316,7 +319,7 @@ module.exports = {
 		// @ts-ignore
 		await sendMessage.sendMessage(message, channel, guild, row)
 
-		retrigger.messageFinishedBridging(message.id)
+		retrigger.finishedBridging(message.id)
 	},
 
 	/**
@@ -337,7 +340,7 @@ module.exports = {
 
 		if (!row) {
 			// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
-			if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.MESSAGE_UPDATE, client, data)) return
+			if (!await retrigger.waitForMessage(data.id)) return
 		}
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
@@ -375,6 +378,16 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessageReactionRemoveDispatchData | DiscordTypes.GatewayMessageReactionRemoveEmojiDispatchData | DiscordTypes.GatewayMessageReactionRemoveAllDispatchData} data
 	 */
 	async onSomeReactionsRemoved(client, data) {
+		// Don't attempt to double-bridge our own m2d deleted reactions back to Matrix
+		if ("user_id" in data && data.user_id === botID) {
+			const emojiIdOrName = data.emoji.id || data.emoji.name
+			const i = redact.m2dDeletedReactions.findIndex(x => data.message_id === x.messageID && emojiIdOrName === x.emojiIdOrName)
+			if (i !== -1) {
+				redact.m2dDeletedReactions.splice(i, 1)
+				return
+			}
+		}
+
 		await removeReaction.removeSomeReactions(data)
 	},
 
@@ -384,7 +397,7 @@ module.exports = {
 	 */
 	async MESSAGE_DELETE(client, data) {
 		speedbump.onMessageDelete(data.id)
-		if (retrigger.eventNotFoundThenRetrigger(data.id, module.exports.MESSAGE_DELETE, client, data)) return
+		if (!await retrigger.waitForMessage(data.id)) return
 		await deleteMessage.deleteMessage(data)
 	},
 
@@ -432,12 +445,12 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessagePollVoteDispatchData} data
 	 */
 	async MESSAGE_POLL_VOTE_ADD(client, data) {
-		if (retrigger.eventNotFoundThenRetrigger(data.message_id, module.exports.MESSAGE_POLL_VOTE_ADD, client, data)) return
+		if (!await retrigger.waitForMessage(data.message_id)) return
 		await vote.addVote(data)
 	},
 
 	async MESSAGE_POLL_VOTE_REMOVE(client, data) {
-		if (retrigger.eventNotFoundThenRetrigger(data.message_id, module.exports.MESSAGE_POLL_VOTE_REMOVE, client, data)) return
+		if (!await retrigger.waitForMessage(data.message_id)) return
 		await vote.removeVote(data)
 	},
 
