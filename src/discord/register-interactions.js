@@ -91,40 +91,32 @@ function registerInteractions() {
 async function dispatchInteraction(interaction) {
 	const interactionId = interaction.data?.["custom_id"] || interaction.data?.["name"]
 	try {
-		if (interaction.type === DiscordTypes.InteractionType.MessageComponent || interaction.type === DiscordTypes.InteractionType.ModalSubmit) {
-			// All we get is custom_id, don't know which context the button was clicked in.
-			// So we namespace these ourselves in the custom_id. Currently the only existing namespace is POLL_.
-			if (interaction.data.custom_id.startsWith("POLL_")) {
-				await poll.interact(interaction)
+		if (interactionId === "Matrix info") {
+			await matrixInfo.interact(interaction)
+		} else if (interactionId === "invite") {
+			await invite.interact(interaction)
+		} else if (interactionId === "invite_channel") {
+			await invite.interactButton(interaction)
+		} else if (interactionId === "Permissions") {
+			await permissions.interact(interaction)
+		} else if (interactionId === "permissions_edit") {
+			await permissions.interactEdit(interaction)
+		} else if (interactionId === "Responses") {
+			/** @type {DiscordTypes.APIMessageApplicationCommandGuildInteraction} */ // @ts-ignore
+			const messageInteraction = interaction
+			if (select("poll", "message_id", {message_id: messageInteraction.data.target_id}).get()) {
+				await pollResponses.interact(messageInteraction)
 			} else {
-				throw new Error(`Unknown message component ${interaction.data.custom_id}`)
+				await reactions.interact(messageInteraction)
 			}
+		} else if (interactionId === "ping") {
+			await ping.interact(interaction)
+		} else if (interactionId === "privacy") {
+			await privacy.interact(interaction)
+		} else if (interactionId.startsWith("POLL_")) {
+			await poll.interact(interaction)
 		} else {
-			if (interactionId === "Matrix info") {
-				await matrixInfo.interact(interaction)
-			} else if (interactionId === "invite") {
-				await invite.interact(interaction)
-			} else if (interactionId === "invite_channel") {
-				await invite.interactButton(interaction)
-			} else if (interactionId === "Permissions") {
-				await permissions.interact(interaction)
-			} else if (interactionId === "permissions_edit") {
-				await permissions.interactEdit(interaction)
-			} else if (interactionId === "Responses") {
-				/** @type {DiscordTypes.APIMessageApplicationCommandGuildInteraction} */ // @ts-ignore
-				const messageInteraction = interaction
-				if (select("poll", "message_id", {message_id: messageInteraction.data.target_id}).get()) {
-					await pollResponses.interact(messageInteraction)
-				} else {
-					await reactions.interact(messageInteraction)
-				}
-			} else if (interactionId === "ping") {
-				await ping.interact(interaction)
-			} else if (interactionId === "privacy") {
-				await privacy.interact(interaction)
-			} else {
-				throw new Error(`Unknown interaction ${interactionId}`)
-			}
+			throw new Error(`Unknown interaction ${interactionId}`)
 		}
 	} catch (e) {
 		let stackLines = null
