@@ -5473,6 +5473,189 @@ module.exports = {
 					content: '-# Original Message ID: 1466556003645657118 · <t:1769724599:f>'
 				}
 			]
+		},
+		pk_ping_components_v1: {
+			type: 23,
+			content: "Psst, **Red** (<@772659086046658620>), you have been pinged by <@772659086046658620>.",
+			mentions: [
+				{
+					id: "772659086046658620",
+					username: "cadence.worm",
+					avatar: "466df0c98b1af1e1388f595b4c1ad1b9",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "cadence",
+					avatar_decoration_data: null,
+					collectibles: null,
+					display_name_styles: null,
+					banner_color: null,
+					clan: {
+						identity_guild_id: "532245108070809601",
+						identity_enabled: true,
+						tag: "doll",
+						badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+					},
+					primary_guild: {
+						identity_guild_id: "532245108070809601",
+						identity_enabled: true,
+						tag: "doll",
+						badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+					}
+				}
+			],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2026-03-25T07:07:02.626000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [
+				{
+					type: 1,
+					id: 1,
+					components: [
+						{
+							type: 2,
+							id: 2,
+							style: 5,
+							label: "Jump",
+							url: "https://discord.com/channels/1160893336324931584/1160894080998461480/1440549403667468320"
+						}
+					]
+				}
+			],
+			id: "1486260105908457653",
+			channel_id: "1160894080998461480",
+			author: {
+				id: "466378653216014359",
+				username: "PluralKit",
+				avatar: "b78ef67a081737a830b60aa47d9ebcd9",
+				discriminator: "4020",
+				public_flags: 65536,
+				flags: 65536,
+				bot: true,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: null,
+				banner_color: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			application_id: "466378653216014359",
+			interaction: {
+				id: "1486260103928614932",
+				type: 2,
+				name: "🔔 Ping author",
+				user: {
+					id: "772659086046658620",
+					username: "cadence.worm",
+					avatar: "466df0c98b1af1e1388f595b4c1ad1b9",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "cadence",
+					avatar_decoration_data: null,
+					collectibles: null,
+					display_name_styles: null,
+					banner_color: null,
+					clan: {
+						identity_guild_id: "532245108070809601",
+						identity_enabled: true,
+						tag: "doll",
+						badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+					},
+					primary_guild: {
+						identity_guild_id: "532245108070809601",
+						identity_enabled: true,
+						tag: "doll",
+						badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+					}
+				}
+			},
+			webhook_id: "466378653216014359",
+			message_reference: {
+				type: 0,
+				channel_id: "1160894080998461480",
+				message_id: "1440549403667468320",
+				guild_id: "1160893336324931584"
+			},
+			interaction_metadata: {
+				id: "1486260103928614932",
+				type: 2,
+				user: {
+					id: "772659086046658620",
+					username: "cadence.worm",
+					avatar: "466df0c98b1af1e1388f595b4c1ad1b9",
+					discriminator: "0",
+					public_flags: 0,
+					flags: 0,
+					banner: null,
+					accent_color: null,
+					global_name: "cadence",
+					avatar_decoration_data: null,
+					collectibles: null,
+					display_name_styles: null,
+					banner_color: null,
+					clan: {
+						identity_guild_id: "532245108070809601",
+						identity_enabled: true,
+						tag: "doll",
+						badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+					},
+					primary_guild: {
+						identity_guild_id: "532245108070809601",
+						identity_enabled: true,
+						tag: "doll",
+						badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+					}
+				},
+				authorizing_integration_owners: { "0": "1160893336324931584" },
+				name: "🔔 Ping author",
+				command_type: 3,
+				target_message_id: "1440549403667468320"
+			},
+			referenced_message: {
+				type: 0,
+				content: "test",
+				mentions: [],
+				mention_roles: [],
+				attachments: [],
+				embeds: [],
+				timestamp: "2025-11-19T03:49:01.948000+00:00",
+				edited_timestamp: null,
+				flags: 0,
+				components: [],
+				id: "1440549403667468320",
+				channel_id: "1160894080998461480",
+				author: {
+					id: "1195662438662680720",
+					username: "special name",
+					avatar: "a82347890f2739e5880cd82b8c1a708e",
+					discriminator: "0000",
+					public_flags: 0,
+					flags: 0,
+					bot: true,
+					global_name: null,
+					clan: null,
+					primary_guild: null
+				},
+				pinned: false,
+				mention_everyone: false,
+				tts: false,
+				application_id: "466378653216014359",
+				webhook_id: "1195662438662680720"
+			}
 		}
 	},
 	message_update: {

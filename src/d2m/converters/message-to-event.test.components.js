@@ -1,6 +1,7 @@
 const {test} = require("supertape")
 const {messageToEvent} = require("./message-to-event")
 const data = require("../../../test/data")
+const {mockGetEffectivePower} = require("../../matrix/utils.test")
 
 test("message2event components: pk question mark output", async t => {
 	const events = await messageToEvent(data.message_with_components.pk_question_mark_response, data.guild.general, {})
@@ -75,5 +76,26 @@ test("message2event components: pk question mark output", async t => {
 			+ "<p><sub>Original Message ID: 1466556003645657118 · &lt;t:1769724599:f&gt;</sub></p>",
 		"m.mentions": {},
 		msgtype: "m.text",
+	}])
+})
+
+test("message2event components: pk ping message legacy components", async t => {
+	const events = await messageToEvent(data.message_with_components.pk_ping_components_v1, data.guild.general, {}, {
+		api: {
+			async getJoinedMembers() {
+				return {joined: {}}
+			},
+			getEffectivePower: mockGetEffectivePower()
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "❭ cadence used `/🔔 Ping author`"
+			+ "\nPsst, **Red** (@cadence.worm:), you have been pinged by @cadence.worm:."
+			+ "\n[Jump https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$l9FMmsEbh9K0NUReeEpWOMZYGRlUOE8yLcm6P-TYHSM?via=cadence.moe] ",
+		format: "org.matrix.custom.html",
+		formatted_body: "<blockquote><sub>❭ <a href=\"https://matrix.to/#/@_ooye_cadence:cadence.moe\">cadence</a> used <code>/🔔 Ping author</code></sub></blockquote>Psst, <strong>Red</strong> (<a href=\"https://matrix.to/#/@_ooye_cadence:cadence.moe\">@cadence.worm</a>), you have been pinged by <a href=\"https://matrix.to/#/@_ooye_cadence:cadence.moe\">@cadence.worm</a>.<br><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$l9FMmsEbh9K0NUReeEpWOMZYGRlUOE8yLcm6P-TYHSM?via=cadence.moe\">Jump</a> ",
+		"m.mentions": {}
 	}])
 })

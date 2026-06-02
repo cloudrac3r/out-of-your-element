@@ -265,8 +265,9 @@ function getFormattedInteraction(interaction, isThinkingInteraction) {
  * @param {any} newEvents merge into events
  * @param {any} events will be modified
  * @param {boolean} forceSameMsgtype whether m.text may only be combined with m.text, etc
+ * @param {boolean} [forceMerge] if true, must merge event, will error if it had to append
  */
-function mergeTextEvents(newEvents, events, forceSameMsgtype) {
+function mergeTextEvents(newEvents, events, forceSameMsgtype, forceMerge = false) {
 	let prev = events.at(-1)
 	for (const ne of newEvents) {
 		const isAllText = prev?.body && prev?.formatted_body && ["m.text", "m.notice"].includes(ne.msgtype) && ["m.text", "m.notice"].includes(prev?.msgtype)
@@ -278,6 +279,8 @@ function mergeTextEvents(newEvents, events, forceSameMsgtype) {
 			rep.addLine(ne.body, ne.formatted_body)
 			prev.body = rep.body
 			prev.formatted_body = rep.formattedBody
+		} else if (forceMerge) {
+			throw new Error("Unable to merge events")
 		} else {
 			events.push(ne)
 		}
@@ -967,7 +970,8 @@ async function messageToEvent(message, guild, options = {}, di) {
 				// May only be a section accessory or in an action row (up to 5)
 				if (component.style === DiscordTypes.ButtonStyle.Link) {
 					assert(component.label) // required for Discord to validate link buttons
-					stack.msb.add(`[${component.label} ${component.url}] `, tag`<a href="${component.url}">${component.label}</a> `)
+					const link = await transformContentMessageLinks(component.url)
+					stack.msb.add(`[${component.label} ${link}] `, tag`<a href="${link}">${component.label}</a> `)
 				}
 			}
 
@@ -980,7 +984,19 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		const {body, formatted_body} = stack.msb.get()
 		if (body.trim().length) {
-			await addTextEvent(body, formatted_body, "m.text")
+			// Create new message if Components V2 (cannot have regular content)
+			if ((message.flags ?? 0) & DiscordTypes.MessageFlags.IsComponentsV2) {
+				await addTextEvent(body, formatted_body, "m.text")
+			}
+			// Add to existing message if legacy components https://docs.discord.com/developers/components/reference#legacy-message-component-behavior
+			else {
+				mergeTextEvents([{
+					msgtype: "m.text",
+					body,
+					format: "org.matrix.custom.html",
+					formatted_body
+				}], events, false, true)
+			}
 		}
 	}
 

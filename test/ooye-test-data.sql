@@ -95,7 +95,8 @@ WITH a (message_id, channel_id) AS (VALUES
 ('1381212840957972480', '112760669178241024'),
 ('1401760355339862066', '112760669178241024'),
 ('1439351590262800565', '1438284564815548418'),
-('1404133238414376971', '112760669178241024'))
+('1404133238414376971', '112760669178241024'),
+('1440549403667468320', '1160894080998461480'))
 SELECT message_id, max(historical_room_index) as historical_room_index FROM a INNER JOIN historical_channel_room ON historical_channel_room.reference_channel_id = a.channel_id GROUP BY message_id;
 
 INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part, reaction_part, source) VALUES
@@ -143,7 +144,8 @@ INSERT INTO event_message (event_id, event_type, event_subtype, message_id, part
 ('$7P2O_VTQNHvavX5zNJ35DV-dbJB1Ag80tGQP_JzGdhk', 'm.room.message', 'm.text', '1401760355339862066', 0, 0, 0),
 ('$ielAnR6geu0P1Tl5UXfrbxlIf-SV9jrNprxrGXP3v7M', 'm.room.message', 'm.image', '1439351590262800565', 0, 0, 0),
 ('$uUKLcTQvik5tgtTGDKuzn0Ci4zcCvSoUcYn2X7mXm9I', 'm.room.message', 'm.text', '1404133238414376971', 0, 1, 1),
-('$LhmoWWvYyn5_AHkfb6FaXmLI6ZOC1kloql5P40YDmIk', 'm.room.message', 'm.notice', '1404133238414376971', 1, 0, 1);
+('$LhmoWWvYyn5_AHkfb6FaXmLI6ZOC1kloql5P40YDmIk', 'm.room.message', 'm.notice', '1404133238414376971', 1, 0, 1),
+('$l9FMmsEbh9K0NUReeEpWOMZYGRlUOE8yLcm6P-TYHSM', 'm.room.message', 'm.text', '1440549403667468320', 0, 0, 1);
 
 INSERT INTO file (discord_url, mxc_url) VALUES
 ('https://cdn.discordapp.com/attachments/497161332244742154/1124628646431297546/image.png', 'mxc://cadence.moe/qXoZktDqNtEGuOCZEADAMvhM'),
