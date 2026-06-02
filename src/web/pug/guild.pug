@@ -191,14 +191,14 @@ block body
           label.s-btn.s-btn__muted.ta-left.truncate(for=channel.id)
             +discord(channel, true, "Announcement")
         else
-          .s-empty-state.p8 All Discord channels are linked.
+          .s-empty-state.p8 No Discord channels available.
       .fl-grow1.s-btn-group.fd-column.w30
         each room in unlinkedRooms
           input.s-btn--radio(type="radio" name="matrix" required id=room.room_id value=room.room_id)
           label.s-btn.s-btn__muted.ta-left.truncate(for=room.room_id)
             +matrix(room, true)
         else
-          .s-empty-state.p8 All Matrix rooms are linked.
+          .s-empty-state.p8 No Matrix rooms available.
       input(type="hidden" name="guild_id" value=guild_id)
       div
         button.s-btn.s-btn__icon.s-btn__filled#link-button
