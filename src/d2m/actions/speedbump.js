@@ -1,6 +1,5 @@
 // @ts-check
 
-const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../../passthrough")
 const {discord, select, db} = passthrough
 
@@ -70,12 +69,17 @@ async function doSpeedbump(messageID) {
  * Check whether to slow down a message, and do it. After it passes the speedbump, return whether it's okay or if it's been deleted.
  * @param {string} channelID
  * @param {string} messageID
+ * @param {string} [userID] if provided, only slow down the message when the user has used PK before
  * @returns whether it was deleted, and data about the channel's (not thread's) speedbump
  */
-async function maybeDoSpeedbump(channelID, messageID) {
-	let row = select("channel_room", ["thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: channelID}).get()
-	if (row?.thread_parent) row = select("channel_room", ["thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: row.thread_parent}).get() // webhooks belong to the channel, not the thread
-	if (!row?.speedbump_webhook_id) return {affected: false, row: null} // not affected, no speedbump
+async function maybeDoSpeedbump(channelID, messageID, userID) {
+	let row = select("channel_room", ["room_id", "thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: channelID}).get()
+	if (row?.thread_parent) row = select("channel_room", ["room_id", "thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: row.thread_parent}).get() // webhooks belong to the channel, not the thread
+	if (!row?.speedbump_webhook_id) return {affected: false, row: null} // channel not affected, no speedbump
+	if (userID) {
+		const userHasProxy = select("sim_proxy", "user_id", {proxy_owner_id: userID}).pluck().get()
+		if (!userHasProxy) return {affected: false, row: null} // user has not used PK before, no speedbump
+	}
 	const affected = await doSpeedbump(messageID)
 	return {affected, row} // maybe affected, and there is a speedbump
 }

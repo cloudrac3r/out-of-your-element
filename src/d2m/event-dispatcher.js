@@ -313,7 +313,7 @@ module.exports = {
 
 		if (!createRoom.existsOrAutocreatable(channel, guild.id)) return // Check that the sending-to room exists or is autocreatable
 
-		const {affected, row} = await speedbump.maybeDoSpeedbump(message.channel_id, message.id)
+		const {affected, row} = await speedbump.maybeDoSpeedbump(message.channel_id, message.id, message.author.id)
 		if (affected) return
 
 		// @ts-ignore
@@ -335,7 +335,7 @@ module.exports = {
 		if (dUtils.isEphemeralMessage(data)) return // Ephemeral messages are for the eyes of the receiver only!
 
 		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
-		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id)
+		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id, data.author.id)
 		if (affected) return
 
 		if (!row) {
