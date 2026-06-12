@@ -77,8 +77,9 @@ async function maybeDoSpeedbump(channelID, messageID, userID) {
 	if (row?.thread_parent) row = select("channel_room", ["room_id", "thread_parent", "speedbump_id", "speedbump_webhook_id"], {channel_id: row.thread_parent}).get() // webhooks belong to the channel, not the thread
 	if (!row?.speedbump_webhook_id) return {affected: false, row: null} // channel not affected, no speedbump
 	if (userID) {
+		if (row.speedbump_webhook_id === userID) return {affected: false, row} // shortcut
 		const userHasProxy = select("sim_proxy", "user_id", {proxy_owner_id: userID}).pluck().get()
-		if (!userHasProxy) return {affected: false, row: null} // user has not used PK before, no speedbump
+		if (!userHasProxy) return {affected: false, row} // user has not used PK before, no speedbump
 	}
 	const affected = await doSpeedbump(messageID)
 	return {affected, row} // maybe affected, and there is a speedbump
