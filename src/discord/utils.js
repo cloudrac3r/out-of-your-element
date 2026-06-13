@@ -182,6 +182,18 @@ function filterTo(xs, fn) {
 	return filtered
 }
 
+/**
+ * The parameters correspond to the columns of the channel_room table.
+ * @param {string} rowChannelID thread ID, OR channel ID if there is no thread
+ * @param {string | null | undefined} rowThreadParent channel ID if there is a thread
+ */
+function swapThreadID(rowChannelID, rowThreadParent) {
+	return {
+		channelID: rowThreadParent ? rowThreadParent : rowChannelID,
+		threadID: rowThreadParent ? rowChannelID : undefined
+	}
+}
+
 const supportedPlaintextPreviewExtensions = new Set([
 	"4d",
 	"abnf",
@@ -582,4 +594,5 @@ module.exports.timestampToSnowflakeInexact = timestampToSnowflakeInexact
 module.exports.getPublicUrlForCdn = getPublicUrlForCdn
 module.exports.howOldUnbridgedMessage = howOldUnbridgedMessage
 module.exports.filterTo = filterTo
+module.exports.swapThreadID = swapThreadID
 module.exports.supportedPlaintextPreviewExtensions = supportedPlaintextPreviewExtensions

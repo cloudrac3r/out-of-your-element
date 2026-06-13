@@ -60,8 +60,7 @@ async function sendMessage(message, channel, guild, row) {
 		const detailedResultsMessage = await pollEnd.endPoll(message)
 		if (detailedResultsMessage) {
 			const threadParent = select("channel_room", "thread_parent", {channel_id: message.channel_id}).pluck().get()
-			const channelID = threadParent ? threadParent : message.channel_id
-			const threadID = threadParent ? message.channel_id : undefined
+			const {channelID, threadID} = dUtils.swapThreadID(message.channel_id, threadParent)
 			sentResultsMessage = await channelWebhook.sendMessageWithWebhook(channelID, detailedResultsMessage, threadID)
 		}
 	}

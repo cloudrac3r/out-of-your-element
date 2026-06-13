@@ -1,18 +1,12 @@
 // @ts-check
 
 const Ty = require("../../types")
-const DiscordTypes = require("discord-api-types/v10")
-const {Readable} = require("stream")
 const assert = require("assert").strict
-const crypto = require("crypto")
 const passthrough = require("../../passthrough")
-const {sync, discord, db, select} = passthrough
+const {sync, db, select} = passthrough
 
-const {reg} = require("../../matrix/read-registration")
-/** @type {import("../../matrix/api")} */
-const api = sync.require("../../matrix/api")
-/** @type {import("../../matrix/utils")} */
-const utils = sync.require("../../matrix/utils")
+/** @type {import("../../discord/utils")} */
+const dUtils = sync.require("../../discord/utils")
 /** @type {import("../converters/poll-components")} */
 const pollComponents = sync.require("../converters/poll-components")
 /** @type {import("./channel-webhook")} */
@@ -33,9 +27,10 @@ async function updateVote(event) {
 
 	// If poll was started on Matrix, the Discord version is using components, so we can update that to the current status
 	if (messageRow.source === 0) {
-		const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
-		assert(channelID)
-		await webhook.editMessageWithWebhook(channelID, messageID, pollComponents.getPollComponentsFromDatabase(messageID))
+		const row = select("channel_room", ["channel_id", "thread_parent"], {room_id: event.room_id}).get()
+		assert(row)
+		const {channelID, threadID} = dUtils.swapThreadID(row.channel_id, row.thread_parent)
+		await webhook.editMessageWithWebhook(channelID, messageID, pollComponents.getPollComponentsFromDatabase(messageID), threadID)
 	}
 }
 
