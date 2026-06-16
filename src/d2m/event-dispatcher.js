@@ -338,10 +338,8 @@ module.exports = {
 		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id, data.author.id)
 		if (affected) return
 
-		if (!row) {
-			// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
-			if (!await retrigger.waitForMessage(data.id)) return
-		}
+		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
+		if (!await retrigger.waitForMessage(data.id)) return
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
 		// @ts-ignore
