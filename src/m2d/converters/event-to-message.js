@@ -10,6 +10,7 @@ const domino = require("domino")
 const assert = require("assert").strict
 const entities = require("entities")
 const pb = require("prettier-bytes")
+const mimeTypes = require("mime-types")
 const {tag} = require("@cloudrac3r/html-template-tag")
 
 const passthrough = require("../../passthrough")
@@ -622,13 +623,20 @@ async function eventToMessage(event, guild, channel, di) {
 			captionContent.addLine(`(Spoiler: ${fileSpoilerReason})`)
 		}
 
+		// If filename is not specified, create one from mimetype
+		let filename = event.content.filename || event.content.body
+		if (!filename) {
+			const extension = mimeTypes.extension(event.content.info?.mimetype)
+			if (!extension) throw new Error("Filename and mimetype missing. Please report this bug to your client.")
+			filename = `file.${extension}`
+		}
+
 		// File link as alternative to uploading
 		if (!("file" in event.content) && event.content.info?.size > getFileSizeForGuild(guild)) {
 			// Upload (unencrypted) file as link, because it's too large for Discord
 			// Do this by constructing a sample Matrix message with the link and then use the text processor to convert that + the original caption.
 			const url = mxUtils.getPublicUrlForMxc(event.content.url)
 			assert(url)
-			const filename = event.content.filename || event.content.body
 			const emoji = attachmentEmojis.has(event.content.msgtype) ? attachmentEmojis.get(event.content.msgtype) + " " : ""
 			if (fileIsSpoiler) {
 				captionContent.addLine(`${emoji}Uploaded SPOILER file: <${url}> (${pb(event.content.info.size)})`, tag`${emoji}<em>Uploaded <strong>SPOILER</strong> file: <span data-mx-spoiler><a href="${url} ">${filename}</a></span> (${pb(event.content.info.size)})</em>`) // the space is necessary to work around a bug in Discord's URL previewer. the preview still gets blurred in the client.
@@ -637,7 +645,6 @@ async function eventToMessage(event, guild, channel, di) {
 			}
 		} else {
 			// Upload file as file
-			let filename = event.content.filename || event.content.body
 			if (fileIsSpoiler) filename = "SPOILER_" + filename
 			if ("file" in event.content) {
 				// Encrypted
