@@ -24,7 +24,7 @@ class DiscordClient {
 		const intents = [
 			"DIRECT_MESSAGES", "DIRECT_MESSAGE_REACTIONS", "DIRECT_MESSAGE_TYPING",
 			"GUILDS", "GUILD_EMOJIS_AND_STICKERS", "GUILD_MESSAGES", "GUILD_MESSAGE_REACTIONS", "GUILD_MESSAGE_TYPING", "GUILD_WEBHOOKS", "GUILD_MESSAGE_POLLS",
-			"MESSAGE_CONTENT"
+			"MESSAGE_CONTENT", "GUILD_MEMBERS"
 		]
 		if (reg.ooye.receive_presences !== false) intents.push("GUILD_PRESENCES")
 		this.discordToken = discordToken
