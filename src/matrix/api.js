@@ -474,7 +474,7 @@ async function ping() {
 async function getMedia(mxc, init = {}) {
 	init = {...init}
 
-	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/([a-zA-Z0-9_-]+)$/)
 	assert(mediaParts)
 
 	let route = "download"

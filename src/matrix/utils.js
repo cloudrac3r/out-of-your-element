@@ -250,7 +250,7 @@ function getPublicUrlForMxc(mxc) {
  */
 function makeMxcPublic(mxc) {
 	assert(hasher, "xxhash is not ready yet")
-	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/(\w+)$/)
+	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/([a-zA-Z0-9_-]+)$/)
 	if (!mediaParts) return undefined
 
 	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
