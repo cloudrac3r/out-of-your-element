@@ -98,15 +98,6 @@ turndownService.addRule("underline", {
 	}
 })
 
-turndownService.addRule("blockquote", {
-	filter: "blockquote",
-	replacement: function (content) {
-		content = content.replace(/^\n+|\n+$/g, "")
-		content = content.replace(/^/gm, "> ")
-		return content
-	}
-})
-
 turndownService.addRule("spoiler", {
 	filter: function (node, options) {
 		return node.tagName === "SPAN" && node.hasAttribute("data-mx-spoiler")
@@ -862,7 +853,7 @@ async function eventToMessage(event, guild, channel, di) {
 				input = input.replace(/("https:\/\/matrix.to.*?<\/a>):?/g, "$1")
 
 				// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
-				input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>/g, "</blockquote>")
+				input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>(?:\n|<br ?\/?>\s*)*/g, "</blockquote>")
 
 				// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
 				// But I should not count it if it's between block elements.

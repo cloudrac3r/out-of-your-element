@@ -855,6 +855,40 @@ test("event2message: html lines are bridged correctly", async t => {
 	)
 })
 
+test("event2message: breaks between consecutive blockquotes are preserved", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "this was inspired by someone telling me\n\n>betrothed is an insane vocab pull\n\n> i think thats part of why im so scared of cadence\n\n> if an insult comes my way, not only do i not know when, but i'll have to humiliate myself and look it up",
+				format: "org.matrix.custom.html",
+				formatted_body: "<p>this was inspired by someone telling me</p>\n<blockquote>\n<p>betrothed is an insane vocab pull</p>\n</blockquote>\n<blockquote>\n<p>i think thats part of why im so scared of cadence</p>\n</blockquote>\n<blockquote>\n<p>if an insult comes my way, not only do i not know when, but i'll have to humiliate myself and look it up</p>\n</blockquote>"
+			},
+			origin_server_ts: 1783571303430,
+			event_id: "$cdltlkLTUp-ma2uYmLKy7o3RkDgpDbtdYfngST_igWE",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				},
+				username: "cadence [they]",
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
+				content: "this was inspired by someone telling me"
+					+ "\n\n> betrothed is an insane vocab pull"
+					+ "\n\n> i think thats part of why im so scared of cadence"
+					+ "\n\n> if an insult comes my way, not only do i not know when, but i'll have to humiliate myself and look it up"
+			}]
+		}
+	)
+})
+
 /*test("event2message: whitespace is retained", async t => {
 	t.deepEqual(
 		await eventToMessage({
@@ -1294,7 +1328,7 @@ test("event2message: characters are encoded properly in code blocks", async t =>
 	)
 })
 
-test("event2message: quotes have an appropriate amount of whitespace", async t => {
+test("event2message: quotes have an appropriate amount of whitespace (br following)", async t => {
 	t.deepEqual(
 		await eventToMessage({
 			content: {
@@ -1319,6 +1353,40 @@ test("event2message: quotes have an appropriate amount of whitespace", async t =
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "> Chancellor of Germany Angela Merkel, on March 17, 2017: they did not shake hands\n🤨",
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
+				allowed_mentions: {
+						parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: quotes have an appropriate amount of whitespace (p following)", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				msgtype: "m.text",
+				body: "wrong body",
+				format: "org.matrix.custom.html",
+				formatted_body: "<blockquote>\n<p>short story</p>\n</blockquote>\n<p>by whose standards? LOL</p><blockquote>\n<p>I basically went all the way back to childhood (which analysts always like you to do)</p>\n</blockquote>\n<p>laughed out loud</p>"
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			origin_server_ts: 1688301929913,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {
+				age: 405299
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> short story\nby whose standards? LOL\n\n> I basically went all the way back to childhood (which analysts always like you to do)\nlaughed out loud",
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 						parse: ["users", "roles"]
