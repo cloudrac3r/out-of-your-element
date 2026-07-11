@@ -31,8 +31,9 @@ sync.require("./src/m2d/event-dispatcher")
 
 ;(async () => {
 	await migrate.migrate(db)
+	process.stdout.write("Connecting to Discord... ")
 	await discord.cloud.connect()
-	console.log("Discord gateway started")
+	console.log("ok.")
 	sync.require("./src/web/server")
 	await power.applyPower()
 

@@ -11,7 +11,7 @@ const discordPackets = sync.require("../d2m/discord-packets")
 /** @type {import("../matrix/api")} */
 const api = sync.require("../matrix/api")
 
-const DEBUG_HOMESERVER_STATUS = true
+const DEBUG_HOMESERVER_STATUS = false
 
 function debugHomeserverStatus(message) {
 	if (DEBUG_HOMESERVER_STATUS) {
@@ -30,6 +30,19 @@ const homeserverStatus = new class HomeserverStatus {
 		/** @private */
 		this.sm = new StateMachine("online")
 			.defineState("online")
+
+			.defineState("checking", {
+				onEnter: [async () => {
+					const pingResult = await api.ping().catch(e => ({ok: false}))
+					if (pingResult.ok) {
+						this.sm.doTransition("check ok")
+					} else {
+						this.sm.doTransition("check fail")
+					}
+				}],
+				onLeave: [],
+				transitions: new Map()
+			})
 
 			.defineState("offline", {
 				onEnter: [() => {
@@ -64,14 +77,41 @@ const homeserverStatus = new class HomeserverStatus {
 			.defineUniversalTransition("error", "offline")
 			.defineTransition("offline", "ping ok", "recovering")
 			.defineTransition("recovering", "recovered", "online")
+			.defineTransition("online", "check", "checking")
+			.defineTransition("checking", "check ok", "recovering")
+			.defineTransition("checking", "check fail", "offline")
 
 		this.sm.on("enter", st => debugHomeserverStatus(`homeserver status: ${st}`))
-
+		this.sm.setMaxListeners(101)
 		this.sm.freeze()
 	}
 
 	isRealTime() {
 		return this.sm.currentStateName === "online"
+	}
+
+	/** @param {boolean} forceCheck */
+	waitForOnline(forceCheck) {
+		const onlinePromise = new Promise(resolve => {
+			// Already online? Start check or just done
+			if (this.sm.currentStateName === "online") {
+				if (forceCheck) {
+					this.sm.doTransition("check")
+				} else {
+					return resolve(null)
+				}
+			}
+
+			// Checking or not online. Wait for online.
+			const onlineListener = stateName => {
+				if (stateName === "online") {
+					this.sm.removeListener("enter", onlineListener)
+					resolve(null)
+				}
+			}
+			this.sm.on("enter", onlineListener)
+		})
+		return onlinePromise
 	}
 
 	/**

@@ -14,6 +14,8 @@ const {sync} = passthrough
 /** @type {import("./discord-packets")} */
 const discordPackets = sync.require("./discord-packets")
 
+const CONNECTION_DEBUG = false
+
 class DiscordClient {
 	/**
 	 * @param {string} discordToken
@@ -59,15 +61,17 @@ class DiscordClient {
 			})
 		}
 
-		const addEventLogger = (eventName, logName) => {
-			this.cloud.on(eventName, (...args) => {
-				const d = new Date().toISOString().slice(0, 19)
-				console.error(`[${d} Client ${logName}]`, ...args)
-			})
+		if (CONNECTION_DEBUG) {
+			const addEventLogger = (eventName, logName) => {
+				this.cloud.on(eventName, (...args) => {
+					const d = new Date().toISOString().slice(0, 19)
+					console.error(`[${d} Client ${logName}]`, ...args)
+				})
+			}
+			addEventLogger("error", "Error")
+			addEventLogger("disconnected", "Disconnected")
+			addEventLogger("ready", "Ready")
 		}
-		addEventLogger("error", "Error")
-		addEventLogger("disconnected", "Disconnected")
-		addEventLogger("ready", "Ready")
 	}
 }
 

@@ -1,11 +1,14 @@
 // @ts-check
 
 const assert = require("assert")
+const {scheduler} = require("timers/promises")
 const passthrough = require("../passthrough")
 const {sync} = passthrough
 
 /** @type {import("../matrix/homeserver-status")} */
 const homeserverStatus = sync.require("../matrix/homeserver-status")
+
+let checkedHomeserver = false
 
 /**
  * @param {import("./discord-client")} client
@@ -48,6 +51,31 @@ async function onPacket(client, message, listen) {
 
 		if (listen === "full") {
 			try {
+				/*
+					Info about guilds is populated one guild at a time.
+					For m->d bridging to work, the guild needs to be populated, so we need to have GUILD_CREATE for the guild.
+					If we ping the homeserver, it will send us any pending events, so we need to wait for all GUILD_CREATES before we ping.
+					We must attempt a ping because we don't want to try sending missed d->m messages to an offline homeserver.
+					This delay can be removed if ONE of the following is done:
+						1. m->d can queue incoming events until their guild exists in memory
+						2. d->m missed messages can have their errors handled and added to queue, rather than pinging first
+				*/
+				let isMainCharacter = false
+				if (!checkedHomeserver) {
+					checkedHomeserver = true
+					isMainCharacter = true
+					console.log("Warming up guilds~")
+				}
+				await scheduler.wait(5000)
+				if (isMainCharacter) {
+					checkedHomeserver = true
+					process.stdout.write("Connecting to homeserver... ")
+					await homeserverStatus.homeserverStatus.waitForOnline(true)
+					console.log("ok.\nReplaying past events. Welcome to Out Of Your Element.")
+				} else {
+					await homeserverStatus.homeserverStatus.waitForOnline(false)
+				}
+
 				await eventDispatcher.checkMissedExpressions(message.d)
 				await eventDispatcher.checkMissedMessages(client, message.d)
 				await eventDispatcher.checkMissedPins(client, message.d)
