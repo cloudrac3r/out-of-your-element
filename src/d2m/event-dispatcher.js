@@ -60,7 +60,7 @@ module.exports = {
 
 		matrixEventDispatcher.printError(gatewayMessage.t, "Discord", e, gatewayMessage)
 
-		const channelID = gatewayMessage.d["channel_id"]
+		const channelID = gatewayMessage.d?.["channel_id"]
 		if (!channelID) return
 		const roomID = select("channel_room", "room_id", {channel_id: channelID}).pluck().get()
 		if (!roomID) return

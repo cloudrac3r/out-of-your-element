@@ -16,9 +16,9 @@ async function updatePins(pins, prev) {
 			.select("reference_channel_id", "message_id").where({event_id}).and("ORDER BY part ASC").get()
 		if (!row) continue
 		if (added) {
-			discord.snow.channel.addChannelPinnedMessage(row.reference_channel_id, row.message_id, "Message pinned on Matrix")
+			discord.snow.channel.createChannelPinnedMessage(row.reference_channel_id, row.message_id, "Message pinned on Matrix")
 		} else {
-			discord.snow.channel.removeChannelPinnedMessage(row.reference_channel_id, row.message_id, "Message unpinned on Matrix")
+			discord.snow.channel.deleteChannelPinnedMessage(row.reference_channel_id, row.message_id, "Message unpinned on Matrix")
 		}
 	}
 }

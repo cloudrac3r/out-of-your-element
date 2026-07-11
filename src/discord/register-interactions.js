@@ -16,7 +16,7 @@ const ping = sync.require("./interactions/ping.js")
 // User must have EVERY permission in default_member_permissions to be able to use the command
 
 function registerInteractions() {
-	discord.snow.interaction.bulkOverwriteApplicationCommands(id, [{
+	discord.snow.interaction.editApplicationCommands(id, [{
 		name: "Matrix info",
 		contexts: [DiscordTypes.InteractionContextType.Guild],
 		type: DiscordTypes.ApplicationCommandType.Message,
