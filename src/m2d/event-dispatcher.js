@@ -24,6 +24,8 @@ const vote = sync.require("./actions/vote")
 const matrixCommandHandler = sync.require("../matrix/matrix-command-handler")
 /** @type {import("../matrix/utils")} */
 const utils = sync.require("../matrix/utils")
+/** @type {import("../matrix/mreq")}) */
+const mreq = sync.require("../matrix/mreq")
 /** @type {import("../matrix/api")}) */
 const api = sync.require("../matrix/api")
 /** @type {import("../d2m/actions/create-room")} */
@@ -32,6 +34,8 @@ const createRoom = sync.require("../d2m/actions/create-room")
 const roomUpgrade = require("../matrix/room-upgrade")
 /** @type {import("../d2m/actions/retrigger")} */
 const retrigger = sync.require("../d2m/actions/retrigger")
+/** @type {import("../matrix/homeserver-status")} */
+const homeserverStatus = sync.require("../matrix/homeserver-status")
 const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
@@ -166,7 +170,12 @@ async function sendError(roomID, source, type, e, payload) {
 				key: "🔁"
 			}
 		})
-	} catch (e) {}
+	} catch (e) {
+		if (e instanceof mreq.MatrixServerError && [502, 503].includes(e.httpStatus)) {
+			// Matrix homeserver is down (reverse proxy indicated failure; synapse doesn't generate 502/503 when posting an event to a room)
+			homeserverStatus.homeserverStatus.setErrorWithPacket(payload)
+		}
+	}
 }
 
 function guard(type, fn) {

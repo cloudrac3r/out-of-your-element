@@ -8,6 +8,8 @@ const {reg} = require("../../matrix/read-registration")
 
 const passthrough = require("../../passthrough")
 const {discord, sync, db, select} = passthrough
+/** @type {import("../../matrix/mreq")} */
+const mreq = sync.require("../../matrix/mreq")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/file")} */
@@ -237,8 +239,12 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 			try {
 				existing = await api.getStateEvent(spaceID, "im.ponies.room_emotes", eventKey)
 			} catch (e) {
-				// State event not found. This space doesn't have any existing emojis. We create a dummy empty event for comparison's sake.
-				existing = fn([], guild)
+				if (e instanceof mreq.MatrixServerError && e.httpStatus < 400) {
+					// State event not found. This space doesn't have any existing emojis. We create a dummy empty event for comparison's sake.
+					existing = fn([], guild)
+				} else {
+					throw e
+				}
 			}
 			if (isDeepStrictEqual(existing, content)) return
 		}

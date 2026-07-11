@@ -113,6 +113,7 @@ Total transitive production dependencies: 144
 * (0) ansi-colors: Helps with interactive prompting for the initial setup, and it's already pulled in by enquirer.
 * (1) chunk-text: It does what I want.
 * (0) cloudstorm: Discord gateway library with bring-your-own-caching that I trust.
+* (0) denque: Much faster than using arrays as a queue.
 * (0) discord-api-types: Bitfields needed at runtime and types needed for development.
 * (0) domino: DOM implementation that's already pulled in by turndown.
 * (2) enquirer: Interactive prompting for the initial setup rather than forcing users to edit YAML non-interactively.

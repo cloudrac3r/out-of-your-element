@@ -452,7 +452,8 @@ async function ping() {
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
 		},
-		body: "{}"
+		body: "{}",
+		signal: AbortSignal.timeout(15e3)
 	})
 	const root = await res.json()
 	return {
