@@ -23,7 +23,7 @@ async function getAndConvertEmoji(mxc) {
 	const res = await api.getMedia(mxc, {signal: abortController.signal})
 	if (res.status !== 200) {
 		const root = await res.json()
-		throw new mreq.MatrixServerError(root, {mxc})
+		throw new mreq.MatrixServerError(root, res.status, {mxc})
 	}
 	const readable = stream.Readable.fromWeb(res.body)
 	return emojiSheetConverter.convertImageStream(readable, () => {

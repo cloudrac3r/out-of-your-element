@@ -22,7 +22,7 @@ async function getAndResizeSticker(mxc) {
 	const res = await api.getMedia(mxc)
 	if (res.status !== 200) {
 		const root = await res.json()
-		throw new mreq.MatrixServerError(root, {mxc})
+		throw new mreq.MatrixServerError(root, res.status, {mxc})
 	}
 
 	const streamIn = Readable.fromWeb(res.body)
