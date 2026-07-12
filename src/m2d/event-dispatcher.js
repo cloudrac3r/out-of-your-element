@@ -171,8 +171,8 @@ async function sendError(roomID, source, type, e, payload) {
 			}
 		})
 	} catch (e) {
-		if (e instanceof mreq.MatrixServerError && [502, 503].includes(e.httpStatus)) {
-			// Matrix homeserver is down (reverse proxy indicated failure; synapse doesn't generate 502/503 when posting an event to a room)
+		if (e instanceof mreq.MatrixServerError && [502, 503].includes(e.httpStatus) && e.errcode === "CX_SERVER_ERROR") {
+			// Matrix homeserver is down (reverse proxy indicated failure)
 			homeserverStatus.homeserverStatus.setErrorWithPacket(payload)
 		}
 	}
