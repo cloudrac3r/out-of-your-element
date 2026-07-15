@@ -181,9 +181,14 @@ async function onPacket(client, message, listen) {
 	// Event dispatcher for OOYE bridge operations
 	if (listen === "full" && message.t) {
 		const alwaysRealTimeEvents = ["PRESENCE_UPDATE"]
+		const optionalEvents = ["TYPING_START"]
 		if (alwaysRealTimeEvents.includes(message.t) || homeserverStatus.homeserverStatus.isRealTime()) {
+			// real time
 			dispatchPacketToBridge(client, message)
+		} else if (optionalEvents.includes(message.t)) {
+			// when not real time, skip optional events
 		} else {
+			// queue required events
 			homeserverStatus.homeserverStatus.queuePacket(message)
 		}
 	}

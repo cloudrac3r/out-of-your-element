@@ -171,7 +171,10 @@ async function sendError(roomID, source, type, e, payload) {
 			}
 		})
 	} catch (e) {
-		if (e instanceof mreq.MatrixServerError && [502, 503].includes(e.httpStatus) && e.errcode === "CX_SERVER_ERROR") {
+		if (
+			e.toString().includes("fetch failed")
+			|| (e instanceof mreq.MatrixServerError && [502, 503].includes(e.httpStatus) && e.errcode === "CX_SERVER_ERROR")
+		) {
 			// Matrix homeserver is down (reverse proxy indicated failure)
 			homeserverStatus.homeserverStatus.setErrorWithPacket(payload)
 		}
