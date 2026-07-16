@@ -30,12 +30,13 @@ test("web download matrix: works if a known attachment", async t => {
 		api: {
 			// @ts-ignore
 			async getMedia(mxc, init) {
-				return new Response("", {status: 200, headers: {"content-type": "image/png"}})
+				return new Response("", {status: 200, headers: {"content-type": "image/png", "content-disposition": `attachment; filename="wa.png"`}})
 			}
 		}
 	})
 	t.equal(event.node.res.statusCode, 200)
 	t.equal(event.node.res.getHeader("content-type"), "image/png")
+	t.equal(event.node.res.getHeader("content-disposition"), `attachment; filename="wa.png"`)
 })
 
 /**

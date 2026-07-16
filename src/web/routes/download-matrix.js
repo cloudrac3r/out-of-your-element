@@ -98,6 +98,11 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 	setResponseHeader(event, "Content-Type", contentType)
 	setResponseHeader(event, "Transfer-Encoding", "chunked")
 
+	const contentDisposition = res.headers.get("content-disposition")
+	if (contentDisposition) {
+		setResponseHeader(event, "Content-Disposition", contentDisposition)
+	}
+
 	if (res.ok && query.success) {
 		return MEDIA_THUMBNAIL_PRESETS[query.data.preset](res.body)
 	} else {
