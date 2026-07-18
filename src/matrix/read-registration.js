@@ -17,6 +17,10 @@ function checkRegistration(reg) {
 	assert(reg.ooye?.server_origin.match(/^https?:\/\//), "server origin must start with http or https")
 	assert.notEqual(reg.ooye?.server_origin.slice(-1), "/", "server origin must not end in slash")
 	assert.match(reg.url, /^https?:/, "url must start with http:// or https://")
+	if (!reg.receive_ephemeral) {
+		reg.receive_ephemeral = true
+		writeRegistration(reg)
+	}
 }
 
 /* c8 ignore next 4 */
@@ -50,6 +54,7 @@ function getTemplateRegistration(serverName) {
 		],
 		sender_localpart: `${namespace_prefix}bot`,
 		rate_limited: false,
+		receive_ephemeral: true,
 		socket: 6693,
 		ooye: {
 			namespace_prefix,

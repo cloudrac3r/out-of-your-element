@@ -18,6 +18,7 @@ export type AppServiceRegistrationConfig = {
 	}
 	protocols: [string]
 	rate_limited: boolean
+	receive_ephemeral: boolean
 	socket?: string | number,
 	ooye: {
 		namespace_prefix: string
@@ -59,6 +60,7 @@ export type InitialAppServiceRegistrationConfig = {
 	}
 	protocols: [string]
 	rate_limited: boolean
+	receive_ephemeral: boolean
 	socket?: string | number,
 	ooye: {
 		namespace_prefix: string
@@ -395,6 +397,14 @@ export namespace Event {
 		algorithm: string
 		rotation_period_ms?: number
 		rotation_period_msgs?: number
+	}
+
+	export type Outer_M_Typing = {
+		content: {
+			user_ids: string[]
+		}
+		room_id: string
+		type: "m.typing"
 	}
 }
 

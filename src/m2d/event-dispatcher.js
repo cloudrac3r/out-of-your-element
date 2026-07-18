@@ -36,6 +36,8 @@ const roomUpgrade = require("../matrix/room-upgrade")
 const retrigger = sync.require("../d2m/actions/retrigger")
 /** @type {import("../matrix/homeserver-status")} */
 const homeserverStatus = sync.require("../matrix/homeserver-status")
+/** @type {import("./actions/typing")} */
+const typing = sync.require("./actions/typing")
 const {reg} = require("../matrix/read-registration")
 
 let lastReportedEvent = 0
@@ -525,6 +527,20 @@ async event => {
 	const channel = discord.channels.get(channelID)
 	if (!channel) return
 	await createRoom.unbridgeChannel(channel, channel["guild_id"], "Encrypted rooms are not supported. This room was removed from the bridge.")
+}))
+
+sync.addTemporaryListener(as, "ephemeral_type:m.typing", guard("m.typing",
+/**
+ * @param {Ty.Event.Outer_M_Typing} event
+ */
+async event => {
+	const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
+	if (!channelID) return
+	if (event.content.user_ids.length) {
+		typing.startTyping(channelID)
+	} else {
+		typing.stopTyping(channelID)
+	}
 }))
 
 module.exports.stringifyErrorStack = stringifyErrorStack
