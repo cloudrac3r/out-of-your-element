@@ -31,10 +31,8 @@ function refreshTyping(channelID) {
 
 /** @param {string} channelID */
 function stopTyping(channelID) {
-	if (isTyping.has(channelID)) {
-		// Schedule typing session to end
-		isTyping.delete(channelID)
-	}
+	// Schedule typing session to end
+	isTyping.delete(channelID)
 }
 
 module.exports.startTyping = startTyping

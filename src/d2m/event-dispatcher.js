@@ -412,6 +412,7 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayTypingStartDispatchData} data
 	 */
 	async TYPING_START(client, data) {
+		if (data.user_id === client.user.id) return
 		const roomID = select("channel_room", "room_id", {channel_id: data.channel_id}).pluck().get()
 		if (!roomID) return
 		const mxid = from("sim").join("sim_member", "mxid").where({user_id: data.user_id, room_id: roomID}).pluck("mxid").get()

@@ -536,7 +536,7 @@ sync.addTemporaryListener(as, "ephemeral_type:m.typing", guard("m.typing",
 async event => {
 	const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
 	if (!channelID) return
-	if (event.content.user_ids.length) {
+	if (event.content.user_ids.some(mxid => !utils.eventSenderIsFromDiscord(mxid))) {
 		typing.startTyping(channelID)
 	} else {
 		typing.stopTyping(channelID)
