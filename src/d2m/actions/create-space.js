@@ -239,7 +239,7 @@ async function syncSpaceExpressions(data, checkBeforeSync) {
 			try {
 				existing = await api.getStateEvent(spaceID, "im.ponies.room_emotes", eventKey)
 			} catch (e) {
-				if (e instanceof mreq.MatrixServerError && e.httpStatus < 400) {
+				if (e instanceof mreq.MatrixServerError && e.httpStatus < 500) {
 					// State event not found. This space doesn't have any existing emojis. We create a dummy empty event for comparison's sake.
 					existing = fn([], guild)
 				} else {
