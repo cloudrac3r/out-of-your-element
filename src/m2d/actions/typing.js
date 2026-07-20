@@ -9,9 +9,9 @@ const intervals = new Map()
 
 /** @param {string} channelID */
 function startTyping(channelID) {
-	if (!isTyping.has(channelID)) {
-		// Start a new typing session
-		isTyping.add(channelID)
+	isTyping.add(channelID)
+	// Start a new typing session if needed
+	if (!intervals.has(channelID)) {
 		intervals.set(channelID, setInterval(refreshTyping, 8e3, channelID))
 		discord.snow.channel.startChannelTyping(channelID).catch(() => {})
 	}
