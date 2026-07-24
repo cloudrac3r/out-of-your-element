@@ -16,9 +16,9 @@ const utils = sync.require("../../matrix/utils")
  * @returns {AsyncGenerator<{[k in keyof InteractionMethods]?: Parameters<InteractionMethods[k]>[2]}>}
  */
 async function* _interact({data}, {api}) {
-	const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
-		.select("event_id", "room_id").where({message_id: data.target_id}).get()
-	if (!row) {
+	const events = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+		.select("event_id", "room_id").where({message_id: data.target_id}).and("ORDER BY reaction_part").all()
+	if (!events.length) {
 		return yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {
@@ -35,17 +35,23 @@ async function* _interact({data}, {api}) {
 		}
 	}}
 
-	const reactions = await api.getFullRelations(row.room_id, row.event_id, "m.annotation")
+	const reactions = []
+	for (const event of events) {
+		const reactionsOnEvent = await api.getFullRelations(event.room_id, event.event_id, "m.annotation")
+		reactions.push(...reactionsOnEvent)
+	}
 
-	/** @type {Map<string, string[]>} */
+	/** @type {Map<string, Set<string>>} reaction key (the emoji) -> displaynames */
 	const inverted = new Map()
 	for (const reaction of reactions) {
 		if (utils.eventSenderIsFromDiscord(reaction.sender)) continue
 		const key = reaction.content["m.relates_to"].key
-		const displayname = select("member_cache", "displayname", {mxid: reaction.sender, room_id: row.room_id}).pluck().get() || reaction.sender
-		if (!inverted.has(key)) inverted.set(key, [])
+		const displayname = select("member_cache", "displayname", {mxid: reaction.sender, room_id: events[0].room_id}).pluck().get() || reaction.sender
+		if (!inverted.has(key)) {
+			inverted.set(key, new Set())
+		}
 		// @ts-ignore
-		inverted.get(key).push(displayname)
+		inverted.get(key).add(displayname)
 	}
 
 	if (inverted.size === 0) {
@@ -55,7 +61,7 @@ async function* _interact({data}, {api}) {
 	}
 
 	return yield {editOriginalInteractionResponse: {
-		content: [...inverted.entries()].map(([key, value]) => `${key} ⮞ ${value.join(" ⬩ ")}`).join("\n"),
+		content: [...inverted.entries()].sort((a, b) => b[1].size - a[1].size).map(([key, value]) => `${key} ⮞ ${[...value].join(" ⬩ ")}`).join("\n"),
 	}}
 }
 
