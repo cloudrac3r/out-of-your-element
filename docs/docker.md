@@ -66,7 +66,7 @@ I had no hand in creating these and have not used or tested them whatsoever. I m
 
 ***The following list is distributed for your information, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.***
 
-- by melody: https://git.shork.ch/docker-images/out-of-your-element
+- by melody: https://git.shork.ch/oci-images/out-of-your-element
 - by sim2kid: https://github.com/sim2kid/ooye-docker
 - by Katharos Technology: https://github.com/katharostech/docker_ooye
 - by Emma: https://cgit.rory.gay/nix/OOYE-module.git/tree
