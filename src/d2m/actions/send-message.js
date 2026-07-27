@@ -28,9 +28,9 @@ const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
  * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
  * @param {DiscordTypes.APIGuildChannel} channel
  * @param {DiscordTypes.APIGuild} guild
- * @param {{speedbump_id: string, speedbump_webhook_id: string} | null} row data about the webhook which is proxying messages in this channel
+ * @param {{userID: string, webhookID: string} | null} proxyWebhook data about the webhook which is proxying messages in this channel
  */
-async function sendMessage(message, channel, guild, row) {
+async function sendMessage(message, channel, guild, proxyWebhook) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: roomID}).pluck().get()
 	assert(historicalRoomIndex)
@@ -38,9 +38,9 @@ async function sendMessage(message, channel, guild, row) {
 	let senderMxid = null
 	if (dUtils.isWebhookMessage(message)) {
 		const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guild.id}).pluck().get() ?? 0
-		if (row && row.speedbump_webhook_id === message.webhook_id) {
+		if (proxyWebhook && proxyWebhook.webhookID === message.webhook_id) {
 			// Handle the PluralKit public instance
-			if (row.speedbump_id === "466378653216014359") {
+			if (proxyWebhook.userID === "466378653216014359") {
 				senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
 			}
 		} else if (useWebhookProfile) {

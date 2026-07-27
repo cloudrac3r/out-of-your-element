@@ -16,9 +16,9 @@ const mreq = sync.require("../../matrix/mreq")
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{speedbump_id: string, speedbump_webhook_id: string} | null} row data about the webhook which is proxying messages in this channel
+ * @param {{userID: string, webhookID: string} | null} proxyWebhook data about the webhook which is proxying messages in this channel
  */
-async function editMessage(message, guild, row) {
+async function editMessage(message, guild, proxyWebhook) {
 	const historicalRoomOfMessage = from("message_room").join("historical_channel_room", "historical_room_index").where({message_id: message.id}).select("room_id").get()
 	const currentRoom = from("channel_room").join("historical_channel_room", "room_id").where({channel_id: message.channel_id}).select("room_id", "historical_room_index").get()
 	if (!currentRoom) return
@@ -27,9 +27,9 @@ async function editMessage(message, guild, row) {
 
 	let {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promotions} = await editToChanges.editToChanges(message, guild, api)
 
-	if (row && row.speedbump_webhook_id === message.webhook_id) {
+	if (proxyWebhook && proxyWebhook.webhookID === message.webhook_id) {
 		// Handle the PluralKit public instance
-		if (row.speedbump_id === "466378653216014359") {
+		if (proxyWebhook.userID === "466378653216014359") {
 			senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
 		}
 	}

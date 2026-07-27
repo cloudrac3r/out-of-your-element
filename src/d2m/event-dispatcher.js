@@ -288,7 +288,6 @@ module.exports = {
 		if (!guildID) return // channel must have been a DM channel or something
 		const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 		if (!roomID) return // channel wasn't being bridged in the first place
-		// @ts-ignore
 		await createRoom.unbridgeChannel(channel, guildID)
 	},
 
@@ -313,11 +312,10 @@ module.exports = {
 
 		if (!createRoom.existsOrAutocreatable(channel, guild.id)) return // Check that the sending-to room exists or is autocreatable
 
-		const {affected, row} = await speedbump.maybeDoSpeedbump(message.channel_id, message.id, message.author.id)
-		if (affected) return
+		const {skip, proxyWebhook} = await speedbump.maybeDoSpeedbump("create", message)
+		if (skip) return
 
-		// @ts-ignore
-		await sendMessage.sendMessage(message, channel, guild, row)
+		await sendMessage.sendMessage(message, channel, guild, proxyWebhook)
 
 		retrigger.finishedBridging(message.id)
 	},
@@ -335,22 +333,27 @@ module.exports = {
 		if (dUtils.isEphemeralMessage(data)) return // Ephemeral messages are for the eyes of the receiver only!
 
 		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
-		const {affected, row} = await speedbump.maybeDoSpeedbump(data.channel_id, data.id, data.author.id)
-		if (affected) return
-
-		// Check that the sending-to room exists, and deal with Eventual Consistency(TM)
-		if (!await retrigger.waitForMessage(data.id)) return
+		const {skip, hasCreate, proxyWebhook} = await speedbump.maybeDoSpeedbump("update", data)
+		if (skip) return
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
-		// @ts-ignore
 		const message = data
 		const channel = client.channels.get(message.channel_id)
 		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 		const guild = client.guilds.get(channel.guild_id)
 		assert(guild)
 
-		// @ts-ignore
-		await retrigger.pauseChanges(message.id, editMessage.editMessage(message, guild, row))
+		if (!hasCreate) {
+			// Standard path for most message updates
+			// Check that the target message already exists, and deal with Eventual Consistency(TM)
+			if (!await retrigger.waitForMessage(data.id)) return
+			await retrigger.pauseChanges(message.id, editMessage.editMessage(message, guild, proxyWebhook))
+		}
+		else {
+			// Path for edit packets that were speedbumped into the latest copy of a message that needs to be created
+			// Just pretend to be MESSAGE_CREATE
+			await sendMessage.sendMessage(message, channel, guild, proxyWebhook)
+		}
 	},
 
 	/**
