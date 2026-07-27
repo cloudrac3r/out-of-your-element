@@ -56,8 +56,16 @@ After that, to get into the rooms on your Matrix account, use the invite form on
 
 I hope you enjoy Out Of Your Element!
 
-----
-<br><br><br><br><br>
+# Extras
+
+## /plu/ral support
+
+To support /plu/ral webhook proxying, OOYE needs to call the /plu/ral API authenticated. I can't provide an API key for everyone to share, so you have to make your own. Here's how:
+
+1. Open the [/plu/ral app on Discord](https://discord.com/discovery/applications/1291501048493768784) and "Add App" -> "Add to My Apps (use everywhere)"
+2. Go to any text channel on Discord and use the new `/api` command from /plu/ral.
+3. Create a new application named Out Of Your Element. Copy the displayed token.
+3. Run `node scripts/plu-ral-api.js` and paste the token.
 
 # Appendix
 

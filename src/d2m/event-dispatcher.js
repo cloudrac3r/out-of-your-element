@@ -312,10 +312,10 @@ module.exports = {
 
 		if (!createRoom.existsOrAutocreatable(channel, guild.id)) return // Check that the sending-to room exists or is autocreatable
 
-		const {skip, proxyWebhook} = await speedbump.maybeDoSpeedbump("create", message)
+		const {skip} = await speedbump.maybeDoSpeedbump(true, message)
 		if (skip) return
 
-		await sendMessage.sendMessage(message, channel, guild, proxyWebhook)
+		await sendMessage.sendMessage(message, channel, guild)
 
 		retrigger.finishedBridging(message.id)
 	},
@@ -333,7 +333,7 @@ module.exports = {
 		if (dUtils.isEphemeralMessage(data)) return // Ephemeral messages are for the eyes of the receiver only!
 
 		// Edits need to go through the speedbump as well. If the message is delayed but the edit isn't, we don't have anything to edit from.
-		const {skip, hasCreate, proxyWebhook} = await speedbump.maybeDoSpeedbump("update", data)
+		const {skip, hasCreate} = await speedbump.maybeDoSpeedbump(false, data)
 		if (skip) return
 
 		/** @type {DiscordTypes.GatewayMessageCreateDispatchData} */
@@ -347,12 +347,12 @@ module.exports = {
 			// Standard path for most message updates
 			// Check that the target message already exists, and deal with Eventual Consistency(TM)
 			if (!await retrigger.waitForMessage(data.id)) return
-			await retrigger.pauseChanges(message.id, editMessage.editMessage(message, guild, proxyWebhook))
+			await retrigger.pauseChanges(message.id, editMessage.editMessage(message, guild))
 		}
 		else {
 			// Path for edit packets that were speedbumped into the latest copy of a message that needs to be created
 			// Just pretend to be MESSAGE_CREATE
-			await sendMessage.sendMessage(message, channel, guild, proxyWebhook)
+			await sendMessage.sendMessage(message, channel, guild)
 		}
 	},
 

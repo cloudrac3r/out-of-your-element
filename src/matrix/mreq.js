@@ -9,8 +9,10 @@ const {reg} = require("./read-registration.js")
 const baseUrl = `${reg.ooye.server_origin}/_matrix`
 
 class MatrixServerError extends Error {
-	/** @param {number} httpStatus} */
-	constructor(data, httpStatus, opts) {
+	/**
+	 * @param {number} httpStatus}
+	 */
+	constructor(data, httpStatus, opts = {}) {
 		super(data.error || data.errcode)
 		this.data = data
 		/** @type {number} */

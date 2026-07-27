@@ -73,7 +73,7 @@ test("web link space: check that OOYE is joined", async t => {
 		api: {
 			async joinRoom(roomID) {
 				called++
-				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"})
+				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"}, 400)
 			}
 		}
 	}))
@@ -368,7 +368,7 @@ test("web link room: check that bridge can join room (notices lack of via and as
 		api: {
 			async joinRoom(roomID) {
 				called++
-				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"})
+				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"}, 400)
 			},
 			async *generateFullHierarchy(spaceID) {
 				called++
@@ -402,7 +402,7 @@ test("web link room: check that bridge can join room (uses via for join attempt)
 			async joinRoom(roomID, _, via) {
 				called++
 				t.deepEqual(via, ["cadence.moe", "hashi.re"])
-				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"})
+				throw new MatrixServerError({errcode: "M_FORBIDDEN", error: "not allowed to join I guess"}, 400)
 			},
 			async *generateFullHierarchy(spaceID) {
 				called++
@@ -710,7 +710,7 @@ test("web unlink room: checks that the channel is bridged", async t => {
 	}))
 	t.equal(error.data, "Channel ID 665310973967597573 is not currently bridged")
 
-	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar, last_bridged_pin_timestamp, speedbump_id, speedbump_checked, speedbump_webhook_id, guild_id, custom_topic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(row.channel_id, row.room_id, row.name, row.nick, row.thread_parent, row.custom_avatar, row.last_bridged_pin_timestamp, row.speedbump_id, row.speedbump_checked, row.speedbump_webhook_id, row.guild_id, row.custom_topic)
+	db.prepare("INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom_avatar, last_bridged_pin_timestamp, speedbump_checked, guild_id, custom_topic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").run(row.channel_id, row.room_id, row.name, row.nick, row.thread_parent, row.custom_avatar, row.last_bridged_pin_timestamp, row.speedbump_checked, row.guild_id, row.custom_topic)
 	const new_row = db.prepare("SELECT * FROM channel_room WHERE channel_id = '665310973967597573'").get()
 	t.deepEqual(row, new_row)
 })

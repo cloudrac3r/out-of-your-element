@@ -1,24 +1,24 @@
 // @ts-check
 
-const assert = require("assert").strict
-
 const passthrough = require("../../passthrough")
 const {sync, db, select, from} = passthrough
+const {reg} = require("../../matrix/read-registration")
 /** @type {import("../converters/edit-to-changes")} */
 const editToChanges = sync.require("../converters/edit-to-changes")
-/** @type {import("./register-pk-user")} */
-const registerPkUser = sync.require("./register-pk-user")
+/** @type {import("./speedbump")} */
+const speedbump = sync.require("./speedbump")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/mreq")} */
 const mreq = sync.require("../../matrix/mreq")
+/** @type {import("../../discord/utils")} */
+const dUtils = sync.require("../../discord/utils")
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessageCreateDispatchData} message
  * @param {import("discord-api-types/v10").APIGuild} guild
- * @param {{userID: string, webhookID: string} | null} proxyWebhook data about the webhook which is proxying messages in this channel
  */
-async function editMessage(message, guild, proxyWebhook) {
+async function editMessage(message, guild) {
 	const historicalRoomOfMessage = from("message_room").join("historical_channel_room", "historical_room_index").where({message_id: message.id}).select("room_id").get()
 	const currentRoom = from("channel_room").join("historical_channel_room", "room_id").where({channel_id: message.channel_id}).select("room_id", "historical_room_index").get()
 	if (!currentRoom) return
@@ -27,11 +27,9 @@ async function editMessage(message, guild, proxyWebhook) {
 
 	let {roomID, eventsToRedact, eventsToReplace, eventsToSend, senderMxid, promotions} = await editToChanges.editToChanges(message, guild, api)
 
-	if (proxyWebhook && proxyWebhook.webhookID === message.webhook_id) {
-		// Handle the PluralKit public instance
-		if (proxyWebhook.userID === "466378653216014359") {
-			senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
-		}
+	// Sync proxy user profile (if sent by proxy)
+	if (dUtils.isWebhookMessage(message)) {
+		senderMxid = await speedbump.getWebhookSenderId(message, guild.id, roomID)
 	}
 
 	// 1. Replace all the things.

@@ -36,6 +36,7 @@ export type AppServiceRegistrationConfig = {
 		web_password: string
 		time_zone?: string
 		receive_presences: boolean
+		plu_ral_api_key?: string
 	}
 	old_bridge?: {
 		as_token: string
@@ -122,6 +123,28 @@ export type PkMessage = {
 	system: PkSystem
 	member: PkMember
 	sender: string
+}
+
+export type PluRalWebhookMessage = {
+	original_id: string | null
+	proxy_id: string
+	author_id: string
+	channel_id: string
+	member_id: string
+	reason: string
+	webhook_id: string
+	member: PluRalMember
+}
+
+export type PluRalMember = {
+	id: string
+	name: string
+	pronouns: string
+	bio: string
+	birthday: string
+	color: number | null
+	avatar_url: string
+	private: boolean
 }
 
 export namespace Event {

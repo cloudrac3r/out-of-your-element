@@ -18,11 +18,15 @@ export type Models = {
 		thread_parent: string | null
 		custom_avatar: string | null
 		last_bridged_pin_timestamp: number | null
-		speedbump_id: string | null
-		speedbump_webhook_id: string | null
 		speedbump_checked: number | null
 		guild_id: string | null
 		custom_topic: number
+	}
+
+	channel_speedbump: {
+		channel_id: string
+		speedbump_webhook_id: string
+		speedbump_user_id: string
 	}
 
 	direct: {
@@ -44,6 +48,7 @@ export type Models = {
 		event_subtype: string | null
 		part: number
 		reaction_part: number
+		/** 0 = Matrix, 1 = Discord */
 		source: number
 	}
 
@@ -137,6 +142,8 @@ export type Models = {
 		user_id: string
 		proxy_owner_id: string
 		displayname: string
+		/** 0 = PluralKit, 1 = /plu/ral */
+		proxy_app: number
 	}
 
 	webhook: {

@@ -4,17 +4,16 @@ const assert = require("assert").strict
 const DiscordTypes = require("discord-api-types/v10")
 
 const passthrough = require("../../passthrough")
-const { discord, sync, db, select, from} = passthrough
+const {discord, sync, db, select, from} = passthrough
+const {reg} = require("../../matrix/read-registration")
 /** @type {import("../converters/message-to-event")} */
 const messageToEvent = sync.require("../converters/message-to-event")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
 /** @type {import("./register-user")} */
 const registerUser = sync.require("./register-user")
-/** @type {import("./register-pk-user")} */
-const registerPkUser = sync.require("./register-pk-user")
-/** @type {import("./register-webhook-user")} */
-const registerWebhookUser = sync.require("./register-webhook-user")
+/** @type {import("./speedbump")} */
+const speedbump = sync.require("./speedbump")
 /** @type {import("../actions/create-room")} */
 const createRoom = sync.require("../actions/create-room")
 /** @type {import("../actions/poll-end")} */
@@ -28,24 +27,15 @@ const channelWebhook = sync.require("../../m2d/actions/channel-webhook")
  * @param {DiscordTypes.GatewayMessageCreateDispatchData} message
  * @param {DiscordTypes.APIGuildChannel} channel
  * @param {DiscordTypes.APIGuild} guild
- * @param {{userID: string, webhookID: string} | null} proxyWebhook data about the webhook which is proxying messages in this channel
  */
-async function sendMessage(message, channel, guild, proxyWebhook) {
+async function sendMessage(message, channel, guild) {
 	const roomID = await createRoom.ensureRoom(message.channel_id)
 	const historicalRoomIndex = select("historical_channel_room", "historical_room_index", {room_id: roomID}).pluck().get()
 	assert(historicalRoomIndex)
 
 	let senderMxid = null
 	if (dUtils.isWebhookMessage(message)) {
-		const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guild.id}).pluck().get() ?? 0
-		if (proxyWebhook && proxyWebhook.webhookID === message.webhook_id) {
-			// Handle the PluralKit public instance
-			if (proxyWebhook.userID === "466378653216014359") {
-				senderMxid = await registerPkUser.syncUser(message.id, message.author, roomID, true)
-			}
-		} else if (useWebhookProfile) {
-			senderMxid = await registerWebhookUser.syncUser(message.author, roomID, true)
-		}
+		senderMxid = await speedbump.getWebhookSenderId(message, guild.id, roomID)
 	} else {
 		// not a webhook
 		if (message.author.id === discord.application.id) {
