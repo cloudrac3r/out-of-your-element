@@ -364,7 +364,7 @@ function defineEchoHandler() {
 
 	// set profile data on homeserver...
 	console.log("⏩ Updating Matrix profile... (If you've joined lots of rooms, this is slow. Please allow at least 30 seconds.)")
-	await api.profileSetDisplayname(mxid, "Out Of Your Element")
+	await api.profileSetDisplayname(mxid, "Out Of Your Element (bot)")
 	await api.profileSetAvatarUrl(mxid, avatarUrl)
 	console.log("✅ Matrix profile updated...")
 
