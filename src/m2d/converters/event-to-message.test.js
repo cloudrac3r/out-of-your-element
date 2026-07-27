@@ -2117,6 +2117,57 @@ test("event2message: should suppress embeds for links in reply preview", async t
 	)
 })
 
+test("event2message: truncated links in reply preview should be unlinked to prevent broken links", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: `> <@_ooye_.wing.:cadence.moe> https://huggingface.co/blog/security-incident-july-2026\n\nthis is either written by claude or somebody who's too claude-brained and I just can't get through it`,
+				format: "org.matrix.custom.html",
+				formatted_body: `<mx-reply><blockquote><a href="https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU?via=cadence.moe">In reply to</a> <a href="https://matrix.to/#/@_ooye_.wing.:cadence.moe">@_ooye_.wing.:cadence.moe</a><br>https://huggingface.co/blog/security-incident-july-2026</blockquote></mx-reply>this is either written by claude or somebody who's too claude-brained and I just can't get through it`,
+				"m.relates_to": {
+					"m.in_reply_to": {
+						event_id: "$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU"
+					}
+				}
+			},
+			event_id: "$0Bs3rbsXaeZmSztGMx1NIsqvOrkXOpIWebN-dqr09i4",
+			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, data.channel.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$qmyjr-ISJtnOM5WTWLI0fT7uSlqRLgpyin2d2NCglCU", {
+					"type": "m.room.message",
+					"sender": "@_ooye_.wing.:cadence.moe",
+					"content": {
+						"m.mentions": {},
+						"msgtype": "m.text",
+						"body": "<https://huggingface.co/blog/security-incident-july-2026>",
+						"format": "org.matrix.custom.html",
+						"formatted_body": "<a href=\"https://huggingface.co/blog/security-incident-july-2026\">https://huggingface.co/blog/security-incident-july-2026</a>"
+					}
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1273204543739396116 <@112890272819507200>:"
+					+ " <via huggingface.co>..."
+					+ `\nthis is either written by claude or somebody who's too claude-brained and I just can't get through it`,
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU?preset=avatar",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: should include a reply preview when message ends with a blockquote", async t => {
 	t.deepEqual(
 		await eventToMessage({

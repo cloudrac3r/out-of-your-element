@@ -773,14 +773,14 @@ async function eventToMessage(event, guild, channel, di) {
 				repliedToEvent.content = repliedToEvent.content["m.new_content"]
 			}
 			/** @type {string} */
-			let repliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
+			let originalRepliedToContent = repliedToEvent.content.formatted_body || repliedToEvent.content.body
 			const fileReplyContentAlternative = attachmentEmojis.get(repliedToEvent.content.msgtype)
 			let contentPreview
 			if (fileReplyContentAlternative) {
 				contentPreview = " " + fileReplyContentAlternative
 			} else if (repliedToEvent.unsigned?.redacted_because) {
 				contentPreview = " (in reply to a deleted message)"
-			} else if (typeof repliedToContent !== "string") {
+			} else if (typeof originalRepliedToContent !== "string") {
 				// in reply to a weird metadata event like m.room.name, m.room.member...
 				// I'm not implementing text fallbacks for arbitrary room events. this should cover most cases
 				// this has never ever happened in the wild anyway
@@ -788,6 +788,7 @@ async function eventToMessage(event, guild, channel, di) {
 				contentPreview = " (channel details edited)"
 			} else {
 				// Generate a reply preview for a standard message
+				let repliedToContent = originalRepliedToContent
 				repliedToContent = repliedToContent.replace(/.*<\/mx-reply>/s, "") // Remove everything before replies, so just use the actual message body
 				repliedToContent = repliedToContent.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
 				repliedToContent = repliedToContent.replace(/(?:\n|<br ?\/?>)+/g, " ") // Should all be on one line
@@ -802,7 +803,18 @@ async function eventToMessage(event, guild, channel, di) {
 				const contentPreviewChunks = chunk(repliedToContent, 50)
 				if (contentPreviewChunks.length) {
 					contentPreview = ": " + contentPreviewChunks[0]
-					contentPreview = contentPreview.replace(/\bhttps?:\/\/[^ )]*/g, "<$&>")
+					contentPreview = contentPreview.replace(/\bhttps?:\/\/[^ )]*/g, url => {
+						const originalUrlIndex = originalRepliedToContent.indexOf(url)
+						if (originalUrlIndex !== -1 && originalRepliedToContent[originalUrlIndex + url.length]?.match(/[^ )>"'`]/)) { // URL was truncated by chunking, replace it
+							try {
+								const u = new URL(url)
+								return `<via ${u.hostname}>`
+							} catch (e) {
+								return `<url>`
+							}
+						}
+						return `<${url}>` // Full URL is present, escape it
+					})
 					if (contentPreviewChunks.length > 1) contentPreview = contentPreview.replace(/[,.']$/, "") + "..."
 				} else {
 					contentPreview = ""
