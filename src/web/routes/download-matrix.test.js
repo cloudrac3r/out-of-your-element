@@ -65,7 +65,7 @@ test("web sheet: single emoji", async t => {
 		mxcDownloader: mockGetAndConvertEmoji
 	})
 	t.equal(event.node.res.statusCode, 200)
-	t.equal(sheet.subarray(0, 90).toString("base64"), "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALoklEQVR4nM1ZaVBU2RU+LZSIGnAvFUtcRkSk6abpbkDH")
+	t.equal(sheet.subarray(0, 90).toString("base64"), "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAPoAAAD6AG1e1JrAAALoklEQVRogc1ZaVBU2RU+LZSIGnAvFUtcRkSk6abpbkDH")
 })
 
 test("web sheet: multiple sources", async t => {
