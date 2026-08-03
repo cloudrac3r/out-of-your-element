@@ -158,13 +158,13 @@ as.router.get("/guild", defineEventHandler(async event => {
 
 	// Permission problems
 	if (!guild_id || !guild || !managed.has(guild_id) || !row) {
-		return pugSync.render(event, "guild_access_denied.pug", {guild_id, row})
+		return pugSync.render(event, "guild-access-denied.pug", {guild_id, row})
 	}
 
 	// Self-service guild that hasn't been linked yet - needs a special page encouraging the link flow
 	if (!row.space_id && row.autocreate === 0) {
 		const spaces = session.data.mxid ? getInviteTargetSpaces(session.data.mxid) : []
-		return pugSync.render(event, "guild_not_linked.pug", {guild, guild_id, spaces})
+		return pugSync.render(event, "guild-not-linked.pug", {guild, guild_id, spaces})
 	}
 
 	const roles = guild.members?.find(m => m.user.id === botID)?.roles || []
@@ -191,7 +191,7 @@ as.router.get("/qr", defineEventHandler(async event => {
 
 	// Permission problems
 	if (!guild_id || !guild || !managed.has(guild_id) || !row) {
-		return pugSync.render(event, "guild_access_denied.pug", {guild_id, row})
+		return pugSync.render(event, "guild-access-denied.pug", {guild_id, row})
 	}
 
 	const nonce = randomUUID()
