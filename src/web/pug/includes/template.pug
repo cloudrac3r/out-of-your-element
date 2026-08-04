@@ -157,6 +157,10 @@ html(lang="en")
     //- Body
     .mx-auto.w100.wmx9.py24.px8.fs-body1#content
       block body
+
+      if reg.ooye.bridge_admin_contact
+        aside.fs-body0.mt48.pt8.bt.bc-black-350.d-inline-block
+          a(href=rel("/privacy-policy")) Privacy policy
     //- Guild list popover
     script.
       document.querySelectorAll("[popovertarget]").forEach(e => {

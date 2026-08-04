@@ -1,0 +1,65 @@
+extends includes/template.pug
+
+block body
+  .s-page-title.mb24
+    h1.s-page-title--header Privacy Policy
+    p.s-page-title--description Last updated 4 August 2026
+
+  .s-prose
+    h2 Summary
+
+    p Out Of Your Element bridges messages between Matrix and Discord. It does this by forwarding all the messages from one platform to the other. Your messages aren't used for any other purpose.
+
+    p Matrix and Discord will store these messages until you delete them, but Out Of Your Element doesn't keep its own copy.
+
+    h2 Important information about the Matrix network
+
+    p The public Matrix Network is a decentralised and openly federated communication network. This means that user messages are replicated on each participant's homeserver, and messages posted to a room are visible to all participants, including new joiners. Anybody can run their own homeserver, so your messages may be widely replicated onto many servers. Out Of Your Element does not control these servers.
+
+    p Out Of Your Element does endeavour to remove the corresponding data from all of these servers when you delete a particular message, opt out, or request erasure. Due to the nature of decentralised systems, deletion might not be immediate or thorough. For example, some servers could be offline and catch up later, or they may have backups of old data.
+
+    p Please keep this in mind when using chatrooms with Out Of Your Element, or any other bridge software.
+
+    h2 What data is collected
+
+    p Data provided by you in the chatroom: Your messages, edits, uploaded files, username, profile picture, emojis, reactions, commands used, online indicator, typing indicator, and generally any other information written in chat will be copied to the other platform. This happens in all chatrooms where you see the Out Of Your Element bot.
+
+    p There is also a non-identifiable #[a(href=rel("/api/stats")) counter of how many people and chatrooms are active].
+
+    h2 What data isn't collected
+
+    p No tracking here. Out Of Your Element #[strong does not] automatically access or share your IP address, device fingerprint, location, read receipts, or your real-world identity.
+
+    h2 How long data is stored for
+
+    p Out Of Your Element doesn't store your message content directly. It only stores non-identifiable metadata, such as message IDs and room IDs.
+
+    p However, the messages are stored forever by Discord and Matrix, or until you delete them. Your messages will remain in the chat even if you leave the chat later.
+
+    p Your online indicator and typing indicator are only stored briefly to show your real-time status. They can't be viewed as history.
+
+    h2 Who can access this data
+
+    ul
+      li Anybody participating in the chatroom (on either platform) can see your messages attributed to your username
+      li Discord, Inc., and their hosting providers, can access that too
+      li People running a Matrix homeserver in the room, and their hosting providers, can access that too (see #[a(href="https://matrix.org/legal/privacy-notice/") Matrix.org privacy policy])
+      li Your data isn't shared with any other third parties (no analytics or monitoring)
+
+    h2 How to control access to your data
+
+    p To remove data in a specific message, you can delete that message. Deletions are bridged across all platforms. Discord and Matrix will discard the message.
+
+    p However, we can't stop people in the chatroom from independently saving or sharing a screenshot of your messages.
+
+    h3 Broad opt-out for Discord account holders
+    p If you don't want any future messages to be bridged across platforms, #[a(href=rel("/opt-out")) opt out (of your element) here]. Keep in mind this could make conversations confusing because people will see different things.
+    p Your old messages will stick around, but if you want those deleted as well, please contact the operator !{reg.ooye.bridge_admin_contact} to request erasure.
+
+    h2 Questions
+
+    p Out Of Your Element is open source, freely available software that anyone can run. The person running this version you're using is probably a different person from the software author.
+
+    p For questions about #[em your] data and how #[em this] version handles it, please contact the operator !{reg.ooye.bridge_admin_contact} to discuss.
+
+    p For general questions and clarifications about how the software handles data more broadly, please contact #[a(href="https://cadence.moe/contact") the author of the Out Of Your Element software.]

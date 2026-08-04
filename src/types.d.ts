@@ -37,6 +37,7 @@ export type AppServiceRegistrationConfig = {
 		time_zone?: string
 		receive_presences: boolean
 		plu_ral_api_key?: string
+		bridge_admin_contact?: string
 	}
 	old_bridge?: {
 		as_token: string

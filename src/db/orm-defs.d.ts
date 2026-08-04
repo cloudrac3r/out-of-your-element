@@ -115,6 +115,11 @@ export type Models = {
 		historical_room_index: number
 	}
 
+	opt_out: {
+		user_id: string
+		opted_out_at: number
+	}
+
 	role_default: {
 		guild_id: string
 		role_id: string

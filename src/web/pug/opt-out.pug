@@ -1,0 +1,31 @@
+extends includes/template.pug
+
+block body
+  if !session.data.userID
+    .s-empty-state.wmx4.p48
+      != icons.Spots.SpotKeyXL
+      p Please log in to access the opt-out page.
+      .d-flex.jc-center.g8
+        a.s-btn.s-btn__icon.s-btn__featured.s-btn__filled(href=rel("/oauth?next=/opt-out"))
+          != icons.Icons.IconDiscord
+          = ` Log in with Discord`
+
+  else
+    .s-page-title.mb24
+      h1.s-page-title--header Opt Out
+
+    - let value = !select("opt_out", "user_id", {user_id: session.data.userID}).pluck().get()
+
+    #opt-in-msg(hx-swap-oob="true")
+      if msg
+        .s-notice.s-notice__info.mb16= msg
+      else if !value
+        .s-notice.s-notice__warning.mb16 You are currently opted out.
+
+    .s-card.d-grid.px0.g16
+      form.d-flex.ai-center.g16
+        #opt-in-loading.p8
+        input.s-toggle-switch#opt-in(name="opt_in" type="checkbox" hx-post=rel("/api/opt-out") hx-indicator="#opt-in-loading" hx-disabled-elt="this" checked=value autocomplete="off" hx-swap="none")
+        label.s-label.fl-grow1(for="opt-in")
+          | Bridge my messages to Matrix
+          p.s-description Turn it off to opt out. This applies to all servers.

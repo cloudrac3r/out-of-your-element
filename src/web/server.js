@@ -123,7 +123,11 @@ as.router.get("/icon.png", defineEventHandler(async event => {
 
 // Routes
 
-pugSync.createRoute(as.router, "/ok", "ok.pug")
+if (reg.reg.ooye.bridge_admin_contact) {
+	pugSync.createRoute(as.router, "/ok", "ok.pug")
+}
+pugSync.createRoute(as.router, "/opt-out", "opt-out.pug")
+pugSync.createRoute(as.router, "/privacy-policy", "privacy-policy.pug")
 
 sync.require("./routes/download-matrix")
 sync.require("./routes/download-discord")
@@ -134,5 +138,6 @@ sync.require("./routes/letter-avatar")
 sync.require("./routes/link")
 sync.require("./routes/log-in-with-matrix")
 sync.require("./routes/oauth")
+sync.require("./routes/opt-out")
 sync.require("./routes/password")
 sync.require("./routes/stats")

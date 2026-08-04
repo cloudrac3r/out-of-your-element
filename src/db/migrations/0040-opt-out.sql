@@ -1,0 +1,9 @@
+BEGIN TRANSACTION;
+
+CREATE TABLE "opt_out" (
+	"user_id"	TEXT NOT NULL,
+	"opted_out_at"	INTEGER NOT NULL,
+	PRIMARY KEY("user_id")
+) WITHOUT ROWID;
+
+COMMIT;

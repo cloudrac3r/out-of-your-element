@@ -297,6 +297,7 @@ module.exports = {
 	 */
 	async MESSAGE_CREATE(client, message) {
 		if (message.author.username === "Deleted User") return // Nothing we can do for deleted users.
+		if (select("opt_out", "user_id", {user_id: message.author.id}).pluck().get()) return // This user opted out.
 		const channel = client.channels.get(message.channel_id)
 		if (!channel || !("guild_id" in channel) || !channel.guild_id) return // Nothing we can do in direct messages.
 
@@ -361,6 +362,7 @@ module.exports = {
 	 * @param {DiscordTypes.GatewayMessageReactionAddDispatchData} data
 	 */
 	async MESSAGE_REACTION_ADD(client, data) {
+		if (select("opt_out", "user_id", {user_id: data.user_id}).pluck().get()) return // This user opted out.
 		if (data.user_id === client.user.id) return // m2d reactions are added by the discord bot user - do not reflect them back to matrix.
 		if (data.emoji.name === "❓" && select("event_message", "message_id", {message_id: data.message_id, source: 0, part: 0}).get()) { // source 0 = matrix
 			const guild_id = data.guild_id ?? client.channels.get(data.channel_id)?.["guild_id"]
