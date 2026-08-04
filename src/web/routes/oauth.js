@@ -17,7 +17,8 @@ const redirect_uri = `${reg.ooye.bridge_origin}/oauth`
 
 const schema = {
 	first: z.object({
-		action: z.string().optional()
+		action: z.string().optional(),
+		next: z.string().optional()
 	}),
 	code: z.object({
 		state: z.string(),
@@ -53,10 +54,10 @@ function getOauth2Token(event) {
 
 as.router.get("/oauth", defineEventHandler(async event => {
 	const session = await auth.useSession(event)
+	const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)
 	let scope = "guilds"
 
 	if (!reg.ooye.web_password || reg.ooye.web_password === session.data.password) {
-		const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)
 		if (parsedFirstQuery.data?.action === "add") {
 			scope = "bot+guilds"
 			await session.update({selfService: false})
@@ -69,6 +70,9 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	async function tryAgain() {
 		const newState = randomUUID()
 		await session.update({state: newState})
+		if (parsedFirstQuery.data?.next) {
+			await session.update({next: parsedFirstQuery.data?.next})
+		}
 		return sendRedirect(event, `https://discord.com/oauth2/authorize?client_id=${id}&scope=${scope}&permissions=${permissions}&response_type=code&redirect_uri=${redirect_uri}&state=${newState}`)
 	}
 
@@ -86,8 +90,10 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	const client = getClient(event)(parsedToken.access_token)
 
 	const guilds = await client.user.getGuilds()
-	var managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
-	await session.update({managedGuilds, userID, state: undefined})
+	const managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
+
+	const savedNext = session.data.next
+	await session.update({managedGuilds, userID, state: undefined, next: undefined})
 
 	// Set auto-create for the guild
 	// @ts-ignore
@@ -100,5 +106,5 @@ as.router.get("/oauth", defineEventHandler(async event => {
 		return sendRedirect(event, getRelativePath(event.path, `/guild?guild_id=${parsedQuery.data.guild_id}`), 302)
 	}
 
-	return sendRedirect(event, getRelativePath(event.path, "/"), 302)
+	return sendRedirect(event, getRelativePath(event.path, savedNext || "/"), 302)
 }))
