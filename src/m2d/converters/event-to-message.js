@@ -384,7 +384,7 @@ function linkEndOfMessageSpriteSheet(content) {
  */
 async function handleRoomOrMessageLinks(input, di) {
 	let offset = 0
-	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/((?:#|%23|!)[^"/, ?)]+)(?:\/(\$[^"/ ?)]+))?(?:\?[^",:!? )]*?)?)(">|[,<\n )]|$)/g)]) {
+	for (const match of [...input.matchAll(/("?https:\/\/matrix.to\/#\/((?:#|%23|!|%21)[^"/, ?)]+)(?:\/((?:\$|%24)[^"/ ?)]+))?(?:\?[^",:!? )]*?)?)(">|[,<\n )]|$)/g)]) {
 		assert(typeof match.index === "number")
 		let [_, attributeValue, roomID, eventID, endMarker] = match
 		let result
