@@ -343,19 +343,18 @@ test("edit2changes: generated embed", async t => {
 	t.deepEqual(eventsToSend, [{
 		$type: "m.room.message",
 		msgtype: "m.notice",
-		body: "| via hthrflwrs on cohost"
-			+ "\n| \n| ## This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO https://cohost.org/jkap/post/4794219-empty"
+		body: "| ## This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO https://cohost.org/jkap/post/4794219-empty"
 			+ "\n| \n| 1v1 physical card game. Each player gets one standard deck of cards with a different backing to differentiate. Every turn proceeds as follows:"
 			+ "\n| \n|  * Both players draw eight cards"
 			+ "\n|  * Both players may choose up to eight cards to discard, then draw that number of cards to put back in their hand"
-			+ "\n|  * Both players present their best five-or-less-card pok...",
+			+ "\n|  * Both players present their best five-or-less-card pok..."
+			+ "\n| via hthrflwrs on cohost",
 		format: "org.matrix.custom.html",
-		formatted_body: `<blockquote><p><sub>hthrflwrs on cohost</sub>`
-			+ `</p><p><strong><a href="https://cohost.org/jkap/post/4794219-empty">This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO</a></strong>`
+		formatted_body: `<blockquote><p><strong><a href="https://cohost.org/jkap/post/4794219-empty">This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO</a></strong>`
 			+ `</p><p>1v1 physical card game. Each player gets one standard deck of cards with a different backing to differentiate. Every turn proceeds as follows:`
 			+ `<br><br><ul><li>Both players draw eight cards`
 			+ `</li><li>Both players may choose up to eight cards to discard, then draw that number of cards to put back in their hand`
-			+ `</li><li>Both players present their best five-or-less-card pok...</li></ul></p></blockquote>`,
+			+ `</li><li>Both players present their best five-or-less-card pok...</li></ul></p><sub>hthrflwrs on cohost</sub></blockquote>`,
 		"m.mentions": {}
 	}])
 	t.deepEqual(promotions, [{

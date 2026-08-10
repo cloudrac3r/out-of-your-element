@@ -5296,6 +5296,60 @@ module.exports = {
 					}
 				}
 			]
+		},
+		embed_provider_and_footer: {
+			type: 0,
+			content: "https://cohost.org/jkap/post/4794219-empty",
+			author: {
+				id: "113340068197859328",
+				username: "kumaccino",
+				avatar: "b48302623a12bc7c59a71328f72ccb39",
+				discriminator: "0",
+				public_flags: 128,
+				premium_type: 0,
+				flags: 128,
+				banner: null,
+				accent_color: null,
+				global_name: "kumaccino",
+				avatar_decoration_data: null,
+				banner_color: null
+			},
+			attachments: [],
+			channel_id: "112760669178241024",
+			embeds: [
+				{
+					color: 8594767,
+					description: "1v1 physical card game. Each player gets one standard deck of cards with a different backing to differentiate. Every turn proceeds as follows:\n\n * Both players draw eight cards\n * Both players may choose up to eight cards to discard, then draw that number of cards to put back in their hand\n * Both players present their best five-or-less-card pok...",
+					provider: {
+						name: "hthrflwrs on cohost"
+					},
+					footer: {
+						text: "29/2/2024, 2:17 PM"
+					},
+					thumbnail: {
+						height: 1587,
+						placeholder: "GpoKP5BJZphshnhwmmmYlmh3l7+m+mwJ",
+						placeholder_version: 1,
+						proxy_url: "https://images-ext-2.discordapp.net/external/9vTXIzlXU4wyUZvWfmlmQkck8nGLUL-A090W4lWsZ48/https/staging.cohostcdn.org/avatar/292-6b64b03c-4ada-42f6-8452-109275bfe68d-profile.png",
+						url: "https://staging.cohostcdn.org/avatar/292-6b64b03c-4ada-42f6-8452-109275bfe68d-profile.png",
+						width: 1644
+					},
+					title: "This post nerdsniped me, so here's some RULES FOR REAL-LIFE BALATRO",
+					type: "link",
+					url: "https://cohost.org/jkap/post/4794219-empty"
+				}
+			],
+			guild_id: "112760669178241024",
+			id: "1210387798297682020",
+			mentions: [],
+			mention_roles: [],
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			timestamp: "2024-02-21T18:15:43.353000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: []
 		}
 	},
 	message_with_components: {

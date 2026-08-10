@@ -1055,15 +1055,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue
 		}
 
-		// Provider
-		if (embed.provider?.name && embed.provider.name !== "Tenor") {
-			if (embed.provider.url) {
-				rep.addParagraph(`via ${embed.provider.name} ${embed.provider.url}`, tag`<sub><a href="${embed.provider.url}">${embed.provider.name}</a></sub>`)
-			} else {
-				rep.addParagraph(`via ${embed.provider.name}`, tag`<sub>${embed.provider.name}</sub>`)
-			}
-		}
-
 		// Author and URL into a paragraph
 		let authorNameText = embed.author?.name || ""
 		if (authorNameText && embed.author?.icon_url) authorNameText = `⏺️ ${authorNameText}` // using the emoji instead of an image
@@ -1113,7 +1104,18 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		if (embed.video?.url) rep.addParagraph(`🎞️ ${dUtils.getPublicUrlForCdn(embed.video.url)}`)
 
-		if (embed.footer?.text) rep.addLine(`— ${embed.footer.text}`, tag`— ${embed.footer.text}`)
+		// Provider and footer (moved to bottom, below author/title, to improve room preview line)
+		if (embed.provider?.name && embed.provider.name !== "Tenor" && embed.provider.name !== "YouTube") {
+			const insertableFooterText = embed.footer?.text ? ` — ${embed.footer.text}` : ""
+			if (embed.provider.url) {
+				rep.addLine(`via ${embed.provider.name}${insertableFooterText || " " + embed.provider.url}`, tag`<sub><a href="${embed.provider.url}">${embed.provider.name}</a>${insertableFooterText}</sub>`)
+			} else {
+				rep.addLine(`via ${embed.provider.name}${insertableFooterText}`, tag`<sub>${embed.provider.name}${insertableFooterText}</sub>`)
+			}
+		} else if (embed.footer?.text) {
+			rep.addLine(`— ${embed.footer.text}`, tag`— ${embed.footer.text}`)
+		}
+
 		let {body, formatted_body: html} = rep.get()
 		body = body.split("\n").map(l => "| " + l).join("\n")
 		html = `<blockquote>${html}</blockquote>`
