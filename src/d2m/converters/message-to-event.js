@@ -109,7 +109,7 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
 
 /**
  * @param {{room?: boolean, user_ids?: string[]}} mentions
- * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url" | "flags">} attachment
+ * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url">} attachment
  * @param {boolean} [alwaysLink]
  */
 async function attachmentToEvent(mentions, attachment, alwaysLink) {
@@ -122,7 +122,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink) {
 		: attachment.content_type?.startsWith("audio/") ? "🎶"
 		: "📄"
 	// no native media spoilers in Element, so we'll post a link instead, forcing it to not preview using a blockquote
-	if (attachment.filename.startsWith("SPOILER_")) {
+	if (attachment.filename.startsWith("SPOILER_") || !!((attachment.flags || 0) & DiscordTypes.AttachmentFlags.IsSpoiler)) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -907,7 +907,14 @@ async function messageToEvent(message, guild, options = {}, di) {
 				/** @type {{[k in keyof DiscordTypes.APIUnfurledMediaItem]-?: NonNullable<DiscordTypes.APIUnfurledMediaItem[k]>}} */ // @ts-ignore
 				const file = component.file
 				assert(component.name && component.size && file.content_type)
-				const ev = await attachmentToEvent({}, {...file, filename: component.name, size: component.size}, true)
+				const ev = await attachmentToEvent({}, {
+					filename: component.name,
+					content_type: file.content_type,
+					size: component.size,
+					url: file.url,
+					height: file.height,
+					width: file.width,
+				}, true)
 				stack.msb.addLine(ev.body, ev.formatted_body)
 			}
 			else if (component.type === DiscordTypes.ComponentType.MediaGallery) {
