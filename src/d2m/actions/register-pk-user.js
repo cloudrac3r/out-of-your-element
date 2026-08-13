@@ -103,6 +103,7 @@ async function memberToStateContent(pkMessage, author) {
 	// We prefer to use the member's avatar URL data since the image upload can be cached across channels,
 	// unlike the userAvatar URL which is unique per channel, due to the webhook ID being in the URL.
 	const avatar = pkMessage.member.avatar_url || pkMessage.member.webhook_avatar_url || pkMessage.system.avatar_url || file.userAvatar(author)
+	const color = pkMessage.member.color ?? pkMessage.system.color
 
 	const content = {
 		displayname: author.username,
@@ -110,6 +111,12 @@ async function memberToStateContent(pkMessage, author) {
 		"moe.cadence.ooye.pk_member": pkMessage.member
 	}
 	if (avatar) content.avatar_url = await file.uploadDiscordFileToMxc(avatar)
+	if (color) {
+		content["eu.she-a.color"] = {
+			on_dark: `#${color}`,
+			on_light: `#${color}`
+		}
+	}
 
 	return content
 }

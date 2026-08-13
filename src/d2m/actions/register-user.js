@@ -194,7 +194,9 @@ function memberToPowerLevel(user, member, guild, channel) {
  * @param {number} powerLevel
  */
 function _hashProfileContent(content, powerLevel) {
-	const unsignedHash = hasher.h64(`${content.displayname}\u0000${content.avatar_url}\u0000${powerLevel}`)
+	let toHash = `${content.displayname}\u0000${content.avatar_url}\u0000${powerLevel}`
+	if (content["eu.she-a.color"]?.on_dark) toHash += `\u0000${content["eu.she-a.color"].on_dark}`
+	const unsignedHash = hasher.h64(toHash)
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 	return signedHash
 }
@@ -243,6 +245,7 @@ async function syncUser(user, member, channel, guild, roomID, interactionMetadat
 async function _sendSyncUser(roomID, mxid, content, powerLevel, options) {
 	const currentHash = _hashProfileContent(content, powerLevel ?? 0)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
+	console.log(roomID, mxid, existingHash, currentHash)
 	// only do the actual sync if the hash has changed since we last looked
 	const hashHasChanged = existingHash !== currentHash
 	// always okay to add new data. for overwriting, restrict based on options.allowOverwrite, if present
