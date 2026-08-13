@@ -641,8 +641,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			html = "* " + html
 		}
 
-		const flags = message.flags || 0
-		if (flags & DiscordTypes.MessageFlags.IsCrosspost) {
+		if (((message.flags || 0) & DiscordTypes.MessageFlags.IsCrosspost) && message.author?.username) {
 			body = `[↷ ${message.author.username}]\n` + body
 			html = `↷ <strong>${message.author.username}</strong><br>` + html
 		}
