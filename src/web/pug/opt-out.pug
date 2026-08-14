@@ -16,6 +16,9 @@ block body
 
     - let value = !select("opt_out", "user_id", {user_id: session.data.userID}).pluck().get()
 
+    noscript
+      .s-notice.s-notice__danger.mb16 You must enable JavaScript to use this form. Please do that now!
+
     #opt-in-msg(hx-swap-oob="true")
       if msg
         .s-notice.s-notice__info.mb16= msg
