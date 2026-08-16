@@ -14,7 +14,7 @@ const setupEmojis = sync.require("../actions/setup-emojis")
  */
 function getMedal(topAnswers, count) {
 	const winningOrTied = count && topAnswers[0].count === count
-	const secondOrTied = !winningOrTied && count && topAnswers[1]?.count === count && topAnswers.slice(-1)[0].count !== count 
+	const secondOrTied = !winningOrTied && count && topAnswers[1]?.count === count && topAnswers.slice(-1)[0].count !== count
 	const thirdOrTied = !winningOrTied && !secondOrTied && count && topAnswers[2]?.count === count && topAnswers.slice(-1)[0].count !== count
 	const medal =
 		( winningOrTied ? "🥇"

@@ -55,10 +55,10 @@ async function* _interact({data, message, member, user}, {api}) {
 				title: "Poll",
 				components: [{
 					type: DiscordTypes.ComponentType.TextDisplay,
-					content: `-# ${pollComponents.getMultiSelectString(pollRow.max_selections, options.length)}`
+					content: `## ${pollRow.question_text}`
 				}, {
 					type: DiscordTypes.ComponentType.Label,
-					label: pollRow.question_text,
+					label: pollComponents.getMultiSelectString(pollRow.max_selections, options.length),
 					component: {
 						type: DiscordTypes.ComponentType.RadioGroup,
 						custom_id: "POLL_MODAL_SELECTION",
