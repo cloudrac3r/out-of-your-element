@@ -900,6 +900,12 @@ async function eventToMessage(event, guild, channel, di) {
 				assert(root)
 				async function forEachNode(event, node) {
 					for (; node; node = node.nextSibling) {
+						// Don't process mx-reply further
+						if (node.nodeType === 1 && node.tagName === "MX-REPLY") {
+							node.remove()
+							continue
+						}
+
 						// Check written mentions
 						if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
 							const result = await checkWrittenMentions(node.nodeValue, event.sender, event.room_id, guild, di)
