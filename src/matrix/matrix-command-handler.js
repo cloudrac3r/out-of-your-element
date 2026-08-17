@@ -296,7 +296,7 @@ const commands = [{
 			try {
 				var invite = await discord.snow.channel.createChannelInvite(channelID)
 			} catch (e) {
-				if (e.message === `{"message": "Missing Permissions", "code": 50013}`) {
+				if (e.message === "Missing Permissions") {
 					return api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
 						msgtype: "m.text",

@@ -107,7 +107,7 @@ module.exports = {
 			try {
 				messages = await client.snow.channel.getChannelMessages(channel.id, {limit: 100})
 			} catch (e) {
-				if (e.message === `{"message": "Missing Access", "code": 50001}`) { // pathetic error handling from SnowTransfer
+				if (e.message === "Missing Access") {
 					console.log(`[check missed messages] no permissions to look back in channel ${channel.name} (${channel.id})`)
 					continue // Sucks.
 				} else {

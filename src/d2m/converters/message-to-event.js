@@ -834,7 +834,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				invite = await di.snow.invite.getInvite(match[1], {guild_scheduled_event_id: match[2]})
 			} catch (e) {
 				// Skip expired/invalid invites and events
-				if (e.message === `{"message": "Unknown Invite", "code": 10006}`) {
+				if (e.message === "Unknown Invite") {
 					break
 				} else {
 					throw e

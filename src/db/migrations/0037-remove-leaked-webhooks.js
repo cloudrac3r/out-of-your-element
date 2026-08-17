@@ -27,7 +27,7 @@ module.exports = async function(db) {
 			const webhook = affectedWebhooks[counter-1]
 
 			await discord.snow.webhook.deleteWebhookToken(webhook.webhook_id, webhook.webhook_token, "Webhook token possibly compromised during 8th May 2026 outage").catch(e => {
-				if (e.message === `{"message": "Unknown Webhook", "code": 10015}`) {
+				if (e.message === "Unknown Webhook") {
 					// OK
 				} else {
 					throw e

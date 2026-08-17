@@ -45,7 +45,7 @@ async function ensureWebhook(channelID, forceCreate = false) {
 async function withWebhook(channelID, callback) {
 	const webhook = await ensureWebhook(channelID, false)
 	return callback(webhook).catch(async e => {
-		if (e.message === `{"message": "Unknown Webhook", "code": 10015}`) { // pathetic error handling from SnowTransfer
+		if (e.message === "Unknown Webhook") {
 			// Our webhook is gone. Maybe somebody deleted it, or removed and re-added OOYE from the guild.
 			const newWebhook = await ensureWebhook(channelID, true)
 			return callback(newWebhook) // not caught; if the error happens again just throw it instead of looping
