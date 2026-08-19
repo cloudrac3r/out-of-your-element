@@ -14,6 +14,10 @@ const sync = new HeatSync({watchFunction: fs.watchFile})
 
 Object.assign(passthrough, {sync, db})
 
+const orm = sync.require("./src/db/orm")
+passthrough.from = orm.from
+passthrough.select = orm.select
+
 const DiscordClient = require("./src/d2m/discord-client")
 
 const discord = new DiscordClient(reg.ooye.discord_token)
@@ -21,10 +25,6 @@ passthrough.discord = discord
 
 const {as} = require("./src/matrix/appservice")
 passthrough.as = as
-
-const orm = sync.require("./src/db/orm")
-passthrough.from = orm.from
-passthrough.select = orm.select
 
 const power = require("./src/matrix/power.js")
 sync.require("./src/m2d/event-dispatcher")
