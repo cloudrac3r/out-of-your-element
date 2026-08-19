@@ -245,7 +245,7 @@ async function syncUser(user, member, channel, guild, roomID, interactionMetadat
 async function _sendSyncUser(roomID, mxid, content, powerLevel, options) {
 	const currentHash = _hashProfileContent(content, powerLevel ?? 0)
 	const existingHash = select("sim_member", "hashed_profile_content", {room_id: roomID, mxid}).safeIntegers().pluck().get()
-	console.log(roomID, mxid, existingHash, currentHash)
+	// console.log(roomID, mxid, existingHash, currentHash)
 	// only do the actual sync if the hash has changed since we last looked
 	const hashHasChanged = existingHash !== currentHash
 	// always okay to add new data. for overwriting, restrict based on options.allowOverwrite, if present
