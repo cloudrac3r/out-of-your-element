@@ -129,6 +129,8 @@ function onMessageDelete(messageID) {
  * @param {string} roomID
  */
 async function getWebhookSenderId(message, guildID, roomID) {
+	const isMatrixWebhook = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
+	if (isMatrixWebhook) return null
 	const speedbumpUserID = select("channel_speedbump", "speedbump_user_id", {channel_id: message.channel_id, speedbump_webhook_id: message.webhook_id}).pluck().get()
 	const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guildID}).pluck().get() ?? 0
 	if (speedbumpUserID === "466378653216014359") { // PluralKit public instance

@@ -1612,7 +1612,7 @@ test("message2event: expired/invalid invites are sent as-is", async t => {
 		snow: {
 			invite: {
 				async getInvite() {
-					throw new Error(`{"message": "Unknown Invite", "code": 10006}`)
+					throw new Error(`Unknown Invite`)
 				}
 			}
 		}
