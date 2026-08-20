@@ -163,6 +163,7 @@ async function channelToKState(channel, guild, di) {
 			events_default: everyoneCanSend ? 0 : READ_ONLY_ROOM_EVENTS_DEFAULT_POWER,
 			events: {
 				"m.reaction": 0,
+				"org.matrix.msc3381.poll.response": 0,
 				"m.room.redaction": 0, // only affects redactions of own events, required to be able to un-react
 				...pollStartPowerLevel
 			},

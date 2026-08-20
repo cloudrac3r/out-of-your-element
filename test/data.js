@@ -144,6 +144,7 @@ module.exports = {
 				events_default: 0,
 				events: {
 					"m.reaction": 0,
+					"org.matrix.msc3381.poll.response": 0,
 					"m.room.redaction": 0
 				},
 				users: {
