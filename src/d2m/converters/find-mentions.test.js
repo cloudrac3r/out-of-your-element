@@ -117,6 +117,47 @@ test("score name: finds match location", t => {
 	t.equal(message.slice(startLocation, endLocation), "evil lillith")
 })
 
+test("score name: matches the correct jan", t => {
+	const names = [
+		"jan Kanoli",
+		"jan Mijawi",
+		"jan Mukin"
+	]
+	t.deepEqual(names.map(n => scoreName(tokenise(n), tokenise("jan Mijawi")).score), [
+		6,
+		18.4,
+		6
+	])
+})
+
+test("find mention: highlights nothing if a Discord user scored highest", t => {
+	const found = findMention(processJoined([{
+		mxid: "@jankanoli:matrix.org",
+		displayname: "jan Kanoli"
+	}, {
+		mxid: "@_ooye_jan_mijawi:cadence.moe",
+		displayname: "jan Mijawi"
+	}, {
+		mxid: "@_ooye_jan_mukin:cadence.moe",
+		displayname: "jan Mukin"
+	}]), "jan Mijawi, run this\n.def", 0, "@", "jan Mijawi, run this\n.def")
+	t.equal(found, undefined)
+})
+
+test("find mention: highlights nothing if all tied", t => {
+	const found = findMention(processJoined([{
+		mxid: "@jankanoli:matrix.org",
+		displayname: "jan Kanoli"
+	}, {
+		mxid: "@_ooye_jan_mijawi:cadence.moe",
+		displayname: "jan Mijawi"
+	}, {
+		mxid: "@_ooye_jan_mukin:cadence.moe",
+		displayname: "jan Mukin"
+	}]), "jan Misali, run this\n.def", 0, "@", "jan Misali, run this\n.def")
+	t.equal(found, undefined)
+})
+
 test("find mention: test various tiebreakers", t => {
 	const found = findMention(processJoined([{
 		mxid: "@emma:conduit.rory.gay",
