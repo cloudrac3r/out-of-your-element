@@ -509,7 +509,7 @@ function getFileSizeForGuild(guild) {
 	if (fileSizeFeature) {
 		return fileSizeFeature * 1024 * 1024 // discord uses big megabytes
 	} else {
-		return 10 * 1024 * 1024 // default file size is 10 MB
+		return 20 * 1024 * 1024 // default file size is 20 MB
 	}
 }
 
