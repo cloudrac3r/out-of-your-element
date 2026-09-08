@@ -762,11 +762,6 @@ async function eventToMessage(event, guild, channel, di) {
 			}
 
 			replyLine = await getL1L2ReplyLine()
-			const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
-				.select("reference_channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
-			if (row) {
-				replyLine += `https://discord.com/channels/${guild.id}/${row.reference_channel_id}/${row.message_id} `
-			}
 			// If the event has been edited, the homeserver will include the relation in `unsigned`.
 			if (repliedToEvent.unsigned?.["m.relations"]?.["m.replace"]?.content?.["m.new_content"]) {
 				repliedToEvent = repliedToEvent.unsigned["m.relations"]["m.replace"] // Note: this changes which event_id is in repliedToEvent.
@@ -777,15 +772,15 @@ async function eventToMessage(event, guild, channel, di) {
 			const fileReplyContentAlternative = attachmentEmojis.get(repliedToEvent.content.msgtype)
 			let contentPreview
 			if (fileReplyContentAlternative) {
-				contentPreview = " " + fileReplyContentAlternative
+				contentPreview = fileReplyContentAlternative
 			} else if (repliedToEvent.unsigned?.redacted_because) {
-				contentPreview = " (in reply to a deleted message)"
+				contentPreview = "(in reply to a deleted message)"
 			} else if (typeof originalRepliedToContent !== "string") {
 				// in reply to a weird metadata event like m.room.name, m.room.member...
 				// I'm not implementing text fallbacks for arbitrary room events. this should cover most cases
 				// this has never ever happened in the wild anyway
 				repliedToEvent.sender = ""
-				contentPreview = " (channel details edited)"
+				contentPreview = "(channel details edited)"
 			} else {
 				// Generate a reply preview for a standard message
 				let repliedToContent = originalRepliedToContent
@@ -802,7 +797,7 @@ async function eventToMessage(event, guild, channel, di) {
 				repliedToContent = entities.decodeHTML5Strict(repliedToContent) // Remove entities like &amp; &quot;
 				const contentPreviewChunks = chunk(repliedToContent, 50)
 				if (contentPreviewChunks.length) {
-					contentPreview = ": " + contentPreviewChunks[0]
+					contentPreview = contentPreviewChunks[0]
 					contentPreview = contentPreview.replace(/\bhttps?:\/\/[^ )]*/g, url => {
 						const originalUrlIndex = originalRepliedToContent.indexOf(url)
 						if (originalUrlIndex !== -1 && originalRepliedToContent[originalUrlIndex + url.length]?.match(/[^ )>"'`]/)) { // URL was truncated by chunking, replace it
@@ -829,7 +824,12 @@ async function eventToMessage(event, guild, channel, di) {
 				if (!senderName) senderName = sender.match(/@([^:]*)/)?.[1]
 				if (senderName) replyLine += `**Ⓜ${senderName}**`
 			}
-			replyLine = `-# > ${replyLine}${contentPreview}\n`
+			const row = from("event_message").join("message_room", "message_id").join("historical_channel_room", "historical_room_index")
+				.select("reference_channel_id", "message_id").where({event_id: repliedToEventId}).and("ORDER BY part").get()
+			if (row) {
+				contentPreview = `[${contentPreview}](<https://discord.com/channels/${guild.id}/${row.reference_channel_id}/${row.message_id}>)`
+			}
+			replyLine = `-# > ${replyLine} ${contentPreview}\n`
 		})()
 
 		if (shouldProcessTextEvent) {
