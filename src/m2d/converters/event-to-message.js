@@ -754,7 +754,7 @@ async function eventToMessage(event, guild, channel, di) {
 							.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
 							.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
 							.replace(/<[^>]+>/g, "") // Completely strip all HTML tags and formatting.
-					), 50)
+					), 65)
 				replyLine = "-# > " + contentPreviewChunks[0]
 				if (contentPreviewChunks.length > 1) replyLine = replyLine.replace(/[,.']$/, "") + "..."
 				replyLine += "\n"
