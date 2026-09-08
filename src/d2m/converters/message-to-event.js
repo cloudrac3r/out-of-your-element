@@ -1168,7 +1168,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Rich replies
-	if (repliedToEventRow && !repliedToEventInDifferentRoom) {
+	if (repliedToEventRow && !repliedToEventInDifferentRoom && events[0]) {
 		Object.assign(events[0], {
 			"m.relates_to": {
 				"m.in_reply_to": {
