@@ -1711,6 +1711,63 @@ test("event2message: rich reply to a sim user, explicitly disabling mentions in 
 	)
 })
 
+test("event2message: rich reply to a webhook with m.mentions", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			"type": "m.room.message",
+			"sender": "@cadence:cadence.moe",
+			"content": {
+				"msgtype": "m.text",
+				"body": "> <@_ooye_webhook_spidey_bot:cadence.moe:cadence.moe> Slow news day.\n\nTesting this reply, ignore",
+				"format": "org.matrix.custom.html",
+				"formatted_body": "<mx-reply><blockquote><a href=\"https://matrix.to/#/!fGgIymcYWOqjbSRUdV:cadence.moe/$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04?via=cadence.moe&via=feather.onl\">In reply to</a> <a href=\"https://matrix.to/#/@_ooye_webhook_spidey_bot:cadence.moe:cadence.moe\">@_ooye_webhook_spidey_bot:cadence.moe:cadence.moe</a><br>Slow news day.</blockquote></mx-reply>Testing this reply, ignore",
+				"m.relates_to": {
+					"m.in_reply_to": {
+						"event_id": "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04"
+					}
+				},
+				"m.mentions": {
+					user_ids: ["@_ooye_webhook_spidey_bot:cadence.moe"]
+				}
+			},
+			"origin_server_ts": 1693029683016,
+			"unsigned": {
+				"age": 91,
+				"transaction_id": "m1693029682894.510"
+			},
+			"event_id": "$v_Gtr-bzv9IVlSLBO5DstzwmiDd-GSFaNfHX66IupV8",
+			"room_id": "!fGgIymcYWOqjbSRUdV:cadence.moe"
+		}, data.guild.general, data.channel.general, {
+			api: {
+				getEvent: mockGetEvent(t, "!fGgIymcYWOqjbSRUdV:cadence.moe", "$Fxy8SMoJuTduwReVkHZ1uHif9EuvNx36Hg79cltiA04", {
+					type: "m.room.message",
+					content: {
+						msgtype: "m.text",
+						body: "Slow news day."
+					},
+					sender: "@_ooye_webhook_spidey_bot:cadence.moe"
+				})
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 **@Spidey Bot**:"
+					+ " Slow news day."
+					+ "\nTesting this reply, ignore",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU?preset=avatar",
+				allowed_mentions: {
+					parse: ["roles"],
+					users: []
+				}
+			}]
+		}
+	)
+})
+
 test("event2message: rich reply to a rich reply to a multi-line message should correctly strip reply fallback", async t => {
 	t.deepEqual(
 		await eventToMessage({

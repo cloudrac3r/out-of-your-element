@@ -1051,11 +1051,11 @@ async function eventToMessage(event, guild, channel, di) {
 		// Combine requested mentions with detected written mentions to get the full list
 		if (Array.isArray(event.content["m.mentions"].user_ids)) {
 			for (const mxid of event.content["m.mentions"].user_ids) {
-				const user_id = select("sim", "user_id", {mxid}).pluck().get()
-				if (!user_id) continue
-				allowedMentionsUsers.push(
-					select("sim_proxy", "proxy_owner_id", {user_id}).pluck().get() || user_id
-				)
+				let user_id = select("sim", "user_id", {mxid}).pluck().get()
+				if (!user_id) continue // only for discord users
+				user_id = select("sim_proxy", "proxy_owner_id", {user_id}).pluck().get() || user_id // convert to sim proxy owner's ID
+				if (!user_id.match(/^[0-9]+$/)) continue // mentioned sim does not have a real discord user ID (i.e. it's a webhook)
+				allowedMentionsUsers.push(user_id)
 			}
 		}
 		// Specific mentions were requested, so do not parse users
