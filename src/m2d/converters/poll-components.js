@@ -34,6 +34,7 @@ function optionsToComponents(isClosed, pollOptions) {
 	/** @type {DiscordTypes.APIMessageTopLevelComponent[]} */
 	return pollOptions.map(option => {
 		const medal = getMedal(topAnswers, option.count)
+		const label = option.count === 1 ? `${option.count} vote\u2002\u200b` : `${option.count} votes`
 		return {
 			type: DiscordTypes.ComponentType.Container,
 			components: [{
@@ -45,7 +46,7 @@ function optionsToComponents(isClosed, pollOptions) {
 				accessory: {
 					type: DiscordTypes.ComponentType.Button,
 					style: medal === "🥇" && isClosed ? DiscordTypes.ButtonStyle.Success : DiscordTypes.ButtonStyle.Secondary,
-					label: option.count.toString(),
+					label: label,
 					custom_id: `POLL_OPTION#${option.matrix_option}`,
 					disabled: isClosed
 				}

@@ -41,8 +41,8 @@ INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('772659086046658620', 'cadence.worm', 'cadence', '@_ooye_cadence:cadence.moe'),
 ('196188877885538304', 'ampflower', 'ampflower', '@_ooye_ampflower:cadence.moe'),
 ('1458668878107381800', 'Evil Lillith (she/her)', 'evil_lillith_sheher', '@_ooye_evil_lillith_sheher:cadence.moe'),
-('197126718400626689', 'infinidoge1337', 'infinidoge1337', '@_ooye_infinidoge1337:cadence.moe');
-
+('197126718400626689', 'infinidoge1337', 'infinidoge1337', '@_ooye_infinidoge1337:cadence.moe'),
+('webhook_spidey_bot', 'Spidey Bot', 'webhook_spidey_bot', '@_ooye_webhook_spidey_bot:cadence.moe');
 
 INSERT INTO sim_member (mxid, room_id, hashed_profile_content) VALUES
 ('@_ooye_bojack_horseman:cadence.moe', '!hYnGGlPHlbujVVfktC:cadence.moe', NULL),
