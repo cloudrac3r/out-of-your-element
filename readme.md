@@ -8,6 +8,10 @@ Modern Matrix-to-Discord appservice bridge, created by [@cadence:cadence.moe](ht
 
 ![](https://cadence.moe/i/f42a3f)
 
+## AI policy
+
+Out Of Your Element is 100% organically cultivated ethical hand-fed code. Let's work together to conserve that!
+
 ## Why a new bridge?
 
 * Modern: Supports new Discord features like replies, threads and stickers, and new Matrix features like edits, spaces and space membership.
