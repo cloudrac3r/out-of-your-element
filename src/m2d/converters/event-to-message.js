@@ -32,6 +32,8 @@ const setupEmojis = sync.require("../actions/setup-emojis")
 const userToMxid = sync.require("../../d2m/converters/user-to-mxid")
 /** @type {import("../../web/routes/letter-avatar")} */
 const letterAvatar = sync.require("../../web/routes/letter-avatar")
+/** @type {import("../../d2m/actions/retrigger")} */
+const retrigger = sync.require("../../d2m/actions/retrigger")
 
 /** @type {[RegExp, string][]} */
 const markdownEscapes = [
@@ -696,6 +698,7 @@ async function eventToMessage(event, guild, channel, di) {
 			// Check if we have a pointer to what was edited
 			const originalEventId = relatesTo.event_id
 			if (!originalEventId) return
+			if (!await retrigger.waitForEvent(originalEventId)) return
 			messageIDsToEdit = select("event_message", "message_id", {event_id: originalEventId}, "ORDER BY part").pluck().all()
 			if (!messageIDsToEdit.length) return
 

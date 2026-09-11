@@ -41,7 +41,7 @@ const storage = new class {
 			this.timers.set(id, setTimeout(() => this.resolve(id, false), 60 * 1000).unref()) // 1 minute
 		}
 	}
-	
+
 	/** @param {string} id */
 	isNotPaused(id) {
 		return !storage.paused.has(id)
@@ -98,7 +98,7 @@ function waitFor(id, resolve, existsInDatabase) {
 const GET_EVENT_PREPARED = from("event_message").select("event_id").and("WHERE event_id = ?").prepare().raw()
 /**
  * @param {string} eventID
- * @returns {Promise<boolean>} if true then the message did not arrive
+ * @returns {Promise<boolean>} if false then the message did not arrive
  */
 function waitForEvent(eventID) {
 	const {promise, resolve} = Promise.withResolvers()
@@ -109,7 +109,7 @@ function waitForEvent(eventID) {
 const GET_MESSAGE_PREPARED = from("event_message").select("message_id").and("WHERE message_id = ?").prepare().raw()
 /**
  * @param {string} messageID
- * @returns {Promise<boolean>} if true then the message did not arrive
+ * @returns {Promise<boolean>} if false then the message did not arrive
  */
 function waitForMessage(messageID) {
 	const {promise, resolve} = Promise.withResolvers()
@@ -120,7 +120,7 @@ function waitForMessage(messageID) {
 const GET_REACTION_EVENT_PREPARED = from("reaction").select("hashed_event_id").and("WHERE hashed_event_id = ?").prepare().raw()
 /**
  * @param {string} eventID
- * @returns {Promise<boolean>} if true then the message did not arrive
+ * @returns {Promise<boolean>} if false then the message did not arrive
  */
 function waitForReactionEvent(eventID) {
 	const {promise, resolve} = Promise.withResolvers()

@@ -153,7 +153,7 @@ async function sendEvent(event) {
 					channel_id: messageResponse.channel_id,
 					guild_id: guild.id,
 					embeds: messageResponse.embeds
-				}, guild, null)
+				}, guild)
 			)
 		}
 	}
