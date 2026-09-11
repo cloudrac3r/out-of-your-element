@@ -3,6 +3,7 @@
 const assert = require("assert").strict
 const {reg} = require("../../matrix/read-registration")
 const Ty = require("../../types")
+const {scheduler} = require("timers/promises")
 
 const passthrough = require("../../passthrough")
 const {sync, db, select, from} = passthrough
@@ -14,14 +15,21 @@ const file = sync.require("../../matrix/file")
 const registerUser = sync.require("./register-user")
 
 /** @returns {Promise<Ty.PkMessage>} */
-async function fetchMessage(messageID) {
+async function fetchMessage(messageID, attempt = 1) {
 	try {
 		var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
 	} catch (networkError) {
 		// Network issue, raise a more readable message
 		throw new Error(`Failed to connect to PK API: ${networkError.toString()}`)
 	}
-	if (!res.ok) throw new Error(`PK API returned an error: ${await res.text()}`)
+	if (!res.ok) {
+		if (attempt < 2) {
+			await scheduler.wait(5000)
+			return fetchMessage(messageID, attempt + 1)
+		} else {
+			throw new Error(`PK API returned an error: ${await res.text()}`)
+		}
+	}
 	/** @type {any} */
 	const root = await res.json()
 	if (!root.member) throw new Error(`PK API didn't return member data: ${JSON.stringify(root)}`)
