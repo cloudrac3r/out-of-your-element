@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const {scheduler} = require("timers/promises")
 const passthrough = require("../passthrough")
 const {sync} = passthrough
@@ -8,7 +8,32 @@ const {sync} = passthrough
 /** @type {import("../matrix/homeserver-status")} */
 const homeserverStatus = sync.require("../matrix/homeserver-status")
 
-let checkedHomeserver = false
+const guildReadyStatus = new class {
+	/** @type {Set<string> | null} */
+	unavailableGuilds = null
+	_allReady = Promise.withResolvers()
+
+	/**
+	 * @param {string} guildID
+	 * @returns {boolean} true if it was the last one
+	 */
+	makeReady(guildID) {
+		assert(this.unavailableGuilds)
+		if (this.unavailableGuilds.delete(guildID) && this.unavailableGuilds.size === 0) {
+			this._allReady.resolve(null)
+			return true
+		}
+		return false
+	}
+
+	allReady() {
+		return this.unavailableGuilds && this.unavailableGuilds.size === 0
+	}
+
+	waitForAllReady() {
+		return this._allReady.promise
+	}
+}
 
 /**
  * @param {import("./discord-client")} client
@@ -28,12 +53,27 @@ async function onPacket(client, message, listen) {
 		client.ready = true
 		client.user = message.d.user
 		client.application = message.d.application
+		guildReadyStatus.unavailableGuilds = new Set(message.d.guilds.filter(g => g.unavailable).map(g => g.id))
 		console.log(`Discord logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
+		process.stdout.write("Waiting for guilds to warm up... ")
 		interactions.registerInteractions()
 
 	} else if (message.t === "GUILD_CREATE") {
-		message.d.members = message.d.members.filter(m => m.user.id === client.user.id) // only keep the bot's own member - it's needed to determine private channels on web
+		message.d.members = message.d.members.filter(m => m.user.id === client.user.id) // only keep the bot account's member - it's needed for roles to determine private channels on web
 		client.guilds.set(message.d.id, message.d)
+
+		/*
+			Info about guilds is populated one guild at a time.
+			For m->d bridging to work, the guild needs to be populated, so we need to have GUILD_CREATE for the guild.
+			If we ping the homeserver, it will send us any pending events, so we need to wait for all GUILD_CREATES before we ping.
+			We must attempt a ping because we don't want to try sending missed d->m messages to an offline homeserver.
+			The "all guilds ready" delay can be removed if ONE of the following is done:
+				1. m->d can queue incoming events until their guild exists in memory
+				2. d->m missed messages can have their errors handled and added to queue, rather than pinging first
+		*/
+		const firstReady = guildReadyStatus.allReady()
+		const lastGuildReady = guildReadyStatus.makeReady(message.d.id)
+
 		const arr = []
 		client.guildChannelMap.set(message.d.id, arr)
 		for (const channel of message.d.channels || []) {
@@ -51,28 +91,14 @@ async function onPacket(client, message, listen) {
 
 		if (listen === "full") {
 			try {
-				/*
-					Info about guilds is populated one guild at a time.
-					For m->d bridging to work, the guild needs to be populated, so we need to have GUILD_CREATE for the guild.
-					If we ping the homeserver, it will send us any pending events, so we need to wait for all GUILD_CREATES before we ping.
-					We must attempt a ping because we don't want to try sending missed d->m messages to an offline homeserver.
-					This delay can be removed if ONE of the following is done:
-						1. m->d can queue incoming events until their guild exists in memory
-						2. d->m missed messages can have their errors handled and added to queue, rather than pinging first
-				*/
-				let isMainCharacter = false
-				if (!checkedHomeserver) {
-					checkedHomeserver = true
-					isMainCharacter = true
-					console.log("Warming up guilds~")
-				}
-				await scheduler.wait(5000)
-				if (isMainCharacter) {
-					checkedHomeserver = true
-					process.stdout.write("Connecting to homeserver... ")
+				// Wait for guilds to be connected and homeserver to be online. If this is the last guild, a different code path is used to trigger the homeserver check.
+				if (lastGuildReady) {
+					process.stdout.write(`ok, ${client.guilds.size} available.\nConnecting to homeserver... `)
+					// await guildReadyStatus.waitForAllReady() - no need, we already checked this is the last guild
 					await homeserverStatus.homeserverStatus.waitForOnline(true)
 					console.log("ok.\nReplaying past events. Welcome to Out Of Your Element.")
 				} else {
+					await guildReadyStatus.waitForAllReady()
 					await homeserverStatus.homeserverStatus.waitForOnline(false)
 				}
 
@@ -81,7 +107,9 @@ async function onPacket(client, message, listen) {
 				await eventDispatcher.checkMissedPins(client, message.d)
 				await eventDispatcher.checkMissedLeaves(client, message.d)
 			} catch (e) {
-				console.error("Failed to sync missed events. To retry, please fix this error and restart OOYE:")
+				if (firstReady) {
+					console.error("Failed to sync missed events. To retry, please fix this error and restart OOYE:")
+				}
 				console.error(e)
 			}
 		}
@@ -225,3 +253,4 @@ async function dispatchPacketToBridge(client, message) {
 
 module.exports.onPacket = onPacket
 module.exports.dispatchPacketToBridge = dispatchPacketToBridge
+module.exports.guildReadyStatus = guildReadyStatus
