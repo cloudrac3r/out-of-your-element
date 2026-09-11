@@ -55,9 +55,7 @@ class DiscordClient {
 		this.guildChannelMap = new Map()
 		if (listen !== "no") {
 			this.cloud.on("event", message => {
-				process.nextTick(() => {
-					discordPackets.onPacket(this, message, listen)
-				})
+				discordPackets.onPacket(this, message, listen)
 			})
 		}
 
