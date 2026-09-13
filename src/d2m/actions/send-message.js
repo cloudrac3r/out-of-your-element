@@ -55,7 +55,7 @@ async function sendMessage(message, channel, guild) {
 		}
 	}
 
-	const events = await messageToEvent.messageToEvent(message, guild, {}, {api, snow: discord.snow})
+	const events = await messageToEvent.messageToEvent(message, guild, {}, {api, snow: discord.snow, fetch})
 	const eventIDs = []
 	if (events.length) {
 		db.prepare("INSERT OR IGNORE INTO message_room (message_id, historical_room_index) VALUES (?, ?)").run(message.id, historicalRoomIndex)

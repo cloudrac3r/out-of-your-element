@@ -15,10 +15,15 @@ const IMAGE_SIZE = 1024
 const inflight = new Map()
 
 /**
- * @param {string} url
+ * @param {string} urlString
  */
-function _removeExpiryParams(url) {
-	return url.replace(/\?(?:(?:ex|is|sg|hm)=[a-f0-9]+&?)*$/, "")
+function _removeExpiryParams(urlString) {
+	const url = new URL(urlString)
+	url.searchParams.delete("ex")
+	url.searchParams.delete("is")
+	url.searchParams.delete("sg")
+	url.searchParams.delete("hm")
+	return url.toString()
 }
 
 /**

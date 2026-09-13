@@ -109,10 +109,11 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
 
 /**
  * @param {{room?: boolean, user_ids?: string[]}} mentions
- * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url">} attachment
+ * @param {Omit<DiscordTypes.APIAttachment, "id" | "proxy_url"> & {proxy_url?: string}} attachment
  * @param {boolean} [alwaysLink]
+ * @param {{fetch?: typeof fetch}} [di]
  */
-async function attachmentToEvent(mentions, attachment, alwaysLink) {
+async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 	const external_url = dUtils.getPublicUrlForCdn(attachment.url)
 	const emoji =
 		attachment.content_type?.startsWith("image/jp") ? "📸"
@@ -132,8 +133,37 @@ async function attachmentToEvent(mentions, attachment, alwaysLink) {
 			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${external_url}">${external_url}</a> (${pb(attachment.size)})</blockquote>`
 		}
 	}
+	// attempt to convert large PNG image files to JPEG, since it's almost certainly a photo that was forced into PNG by the user copy-pasting.
+	if (
+		attachment.content_type === "image/png" && attachment.size > reg.ooye.max_file_size
+		&& !alwaysLink && attachment.proxy_url && attachment.width && attachment.height && di?.fetch
+	) {
+		const proxyUrl = new URL(attachment.proxy_url)
+		proxyUrl.searchParams.set("format", "jpeg")
+		const jpegUrl = proxyUrl.toString()
+		const res = await di.fetch(jpegUrl, {method: "HEAD"})
+		const newFilename = attachment.filename.replace(/\.png$/, ".jpg")
+		const newSize = Number(res.headers.get("content-length"))
+		if (res.ok && res.headers.get("content-type") === "image/jpeg" && !res.headers.has("content-encoding") && newSize <= reg.ooye.max_file_size) {
+			return {
+				$type: "m.room.message",
+				"m.mentions": mentions,
+				msgtype: "m.image",
+				url: await file.uploadDiscordFileToMxc(jpegUrl),
+				external_url,
+				body: attachment.description || newFilename,
+				filename: newFilename,
+				info: {
+					mimetype: "image/jpeg",
+					w: attachment.width,
+					h: attachment.height,
+					size: newSize
+				}
+			}
+		}
+	}
 	// for large files, always link them instead of uploading so I don't use up all the space in the content repo
-	else if (alwaysLink || attachment.size > reg.ooye.max_file_size) {
+	if (alwaysLink || attachment.size > reg.ooye.max_file_size) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -142,7 +172,8 @@ async function attachmentToEvent(mentions, attachment, alwaysLink) {
 			format: "org.matrix.custom.html",
 			formatted_body: `${emoji} Uploaded file: <a href="${external_url}">${attachment.filename}</a> (${pb(attachment.size)})`
 		}
-	} else if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
+	}
+	if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -158,7 +189,8 @@ async function attachmentToEvent(mentions, attachment, alwaysLink) {
 				size: attachment.size
 			}
 		}
-	} else if (attachment.content_type?.startsWith("video/") && attachment.width && attachment.height) {
+	}
+	if (attachment.content_type?.startsWith("video/") && attachment.width && attachment.height) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -174,7 +206,8 @@ async function attachmentToEvent(mentions, attachment, alwaysLink) {
 				size: attachment.size
 			}
 		}
-	} else if (attachment.content_type?.startsWith("audio/")) {
+	}
+	if (attachment.content_type?.startsWith("audio/")) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
@@ -189,19 +222,19 @@ async function attachmentToEvent(mentions, attachment, alwaysLink) {
 				duration: attachment.duration_secs && Math.round(attachment.duration_secs * 1000)
 			}
 		}
-	} else {
-		return {
-			$type: "m.room.message",
-			"m.mentions": mentions,
-			msgtype: "m.file",
-			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url,
-			body: attachment.description || attachment.filename,
-			filename: attachment.filename,
-			info: {
-				mimetype: attachment.content_type,
-				size: attachment.size
-			}
+	}
+	// else
+	return {
+		$type: "m.room.message",
+		"m.mentions": mentions,
+		msgtype: "m.file",
+		url: await file.uploadDiscordFileToMxc(attachment.url),
+		external_url,
+		body: attachment.description || attachment.filename,
+		filename: attachment.filename,
+		info: {
+			mimetype: attachment.content_type,
+			size: attachment.size
 		}
 	}
 }
@@ -295,7 +328,7 @@ function mergeTextEvents(newEvents, events, forceSameMsgtype, forceMerge = false
  * - includeEditFallbackStar: false
  * - alwaysReturnFormattedBody: false - formatted_body will be skipped if it is the same as body because the message is plaintext. if you want the formatted_body to be returned anyway, for example to merge it with another message, then set this to true.
  * - scanTextForMentions: true - needs to be set to false when converting forwarded messages etc which may be from a different channel that can't be scanned.
- * @param {{api: import("../../matrix/api"), snow?: import("snowtransfer").SnowTransfer}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow?: import("snowtransfer").SnowTransfer, fetch?: typeof fetch}} di simple-as-nails dependency injection for the matrix API
  * @returns {Promise<{$type: string, $sender?: string, [x: string]: any}[]>}
  */
 async function messageToEvent(message, guild, options = {}, di) {
@@ -882,7 +915,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	// Then attachments
 	if (message.attachments) {
-		const attachmentEvents = await Promise.all(message.attachments.map(attachment => attachmentToEvent(mentions, attachment)))
+		const attachmentEvents = await Promise.all(message.attachments.map(attachment => attachmentToEvent(mentions, attachment, false, {fetch: di?.fetch})))
 
 		// Try to merge attachment events with the previous event
 		// This means that if the attachments ended up as a text link, and especially if there were many of them, the events will be joined together.
@@ -913,7 +946,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 					url: file.url,
 					height: file.height,
 					width: file.width,
-				}, true)
+				}, true, {fetch: di?.fetch})
 				stack.msb.addLine(ev.body, ev.formatted_body)
 			}
 			else if (component.type === DiscordTypes.ComponentType.MediaGallery) {

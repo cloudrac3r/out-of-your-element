@@ -20,3 +20,9 @@ test("removeExpiryParams: rearranged params are removed", t => {
 	const result = file._removeExpiryParams(url)
 	t.equal(result, "https://cdn.discordapp.com/attachments/112760669178241024/1157363960518029322/image.png")
 })
+
+test("removeExpiryParams: works on media proxy and keeps quality", t => {
+	const url = "https://media.discordapp.net/attachments/1160894080998461480/1548665030898094240/855064e9-bdae-487a-a497-c662bd510487.png?ex=6aa7e234&is=6aa690b4&hm=7c153efcdd1feb1d36d0bb99955a2bfe12f26abea377fed02980521766f51620&format=jpeg"
+	const result = file._removeExpiryParams(url)
+	t.equal(result, "https://media.discordapp.net/attachments/1160894080998461480/1548665030898094240/855064e9-bdae-487a-a497-c662bd510487.png?format=jpeg")
+})

@@ -69,8 +69,8 @@ async function editToChanges(message, guild, api) {
 
 	// Figure out what we will be replacing them with
 
-	const newFallbackContent = await messageToEvent.messageToEvent(message, guild, {includeEditFallbackStar: true}, {api})
-	const newInnerContent = await messageToEvent.messageToEvent(message, guild, {includeReplyFallback: false}, {api})
+	const newFallbackContent = await messageToEvent.messageToEvent(message, guild, {includeEditFallbackStar: true}, {api, fetch})
+	const newInnerContent = await messageToEvent.messageToEvent(message, guild, {includeReplyFallback: false}, {api, fetch})
 	assert.ok(newFallbackContent.length === newInnerContent.length)
 
 	// Match the new events to the old events
