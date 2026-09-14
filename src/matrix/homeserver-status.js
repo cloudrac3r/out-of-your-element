@@ -28,12 +28,20 @@ const homeserverStatus = new class HomeserverStatus {
 		this.pingInterval = undefined
 
 		/** @private */
+		this.checkingWhileOnline = true
+
+		/** @private */
+		this.lastCheck = 0
+
+		/** @private */
 		this.sm = new StateMachine("online")
 			.defineState("online")
 
 			.defineState("checking", {
-				onEnter: [async () => {
+				onEnter: [async (event) => {
+					this.checkingWhileOnline = event === "check while online"
 					const pingResult = await api.ping().catch(e => ({ok: false}))
+					this.lastCheck = Date.now()
 					if (pingResult.ok) {
 						this.sm.doTransition("check ok")
 					} else {
@@ -48,6 +56,7 @@ const homeserverStatus = new class HomeserverStatus {
 				onEnter: [() => {
 					this.pingInterval = setInterval(async () => {
 						const pingResult = await api.ping().catch(e => ({ok: false, status: "net", root: e.message}))
+						this.lastCheck = Date.now()
 						if (pingResult.ok) {
 							this.sm.doTransition("ping ok")
 						}
@@ -77,7 +86,8 @@ const homeserverStatus = new class HomeserverStatus {
 			.defineUniversalTransition("error", "offline")
 			.defineTransition("offline", "ping ok", "recovering")
 			.defineTransition("recovering", "recovered", "online")
-			.defineTransition("online", "check", "checking")
+			.defineTransition("online", "check assume online", "checking")
+			.defineTransition("online", "check assume offline", "checking")
 			.defineTransition("checking", "check ok", "recovering")
 			.defineTransition("checking", "check fail", "offline")
 
@@ -87,7 +97,7 @@ const homeserverStatus = new class HomeserverStatus {
 	}
 
 	isRealTime() {
-		return this.sm.currentStateName === "online"
+		return this.sm.currentStateName === "online" || (this.sm.currentStateName === "checking" && this.checkingWhileOnline)
 	}
 
 	/** @param {boolean} forceCheck */
@@ -96,7 +106,9 @@ const homeserverStatus = new class HomeserverStatus {
 			// Already online? Start check or just done
 			if (this.sm.currentStateName === "online") {
 				if (forceCheck) {
-					this.sm.doTransition("check")
+					this.sm.doTransition("check assume offline")
+				} else if (this.lastCheck < Date.now() - 15e3) {
+					this.sm.doTransition("check assume online")
 				} else {
 					return resolve(null)
 				}
