@@ -620,7 +620,7 @@ async function eventToMessage(event, guild, channel, di) {
 		let filename = event.content.filename || event.content.body
 		if (!filename) {
 			const extension = mimeTypes.extension(event.content.info?.mimetype)
-			if (!extension) throw new Error("Filename and mimetype missing. Please report this bug to your client.")
+			assert(extension, "Filename and mimetype missing. Please report this bug to your client.")
 			filename = `file.${extension}`
 		}
 

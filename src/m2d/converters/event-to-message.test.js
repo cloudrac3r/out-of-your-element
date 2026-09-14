@@ -4816,6 +4816,39 @@ test("event2message: image attachments can have a formatted caption", async t =>
 	)
 })
 
+test("event2message: attachments have a generated filename if it was missing", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				body: "",
+				filename: "",
+				info: {
+					mimetype: "image/png",
+					size: 50832
+				},
+				msgtype: "m.image",
+				url: "mxc://agiadn.org/3SvzETkab3XBDM6HCMJxpOryIDxMO31j"
+			},
+			event_id: "$CXQy3Wmg1A-gL_xAesC1HQcQTEXwICLdSwwUx55FBTI",
+			room_id: "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU?preset=avatar",
+				attachments: [{id: "0", filename: "file.png"}],
+				pendingFiles: [{name: "file.png", mxc: "mxc://agiadn.org/3SvzETkab3XBDM6HCMJxpOryIDxMO31j"}]
+			}]
+		}
+	)
+})
+
 test("event2message: encrypted image attachments work", async t => {
 	t.deepEqual(
 		await eventToMessage({

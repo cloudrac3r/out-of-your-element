@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const stream = require("stream")
 const {PNG} = require("@cloudrac3r/pngjs")
 

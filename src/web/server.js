@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const fs = require("fs")
 const {join} = require("path")
 const h3 = require("h3")

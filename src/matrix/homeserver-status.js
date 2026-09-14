@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const Denque = require("denque")
 const StateMachine = require("snowtransfer").StateMachine
 

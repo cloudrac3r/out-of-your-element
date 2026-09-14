@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const {reg} = require("../../matrix/read-registration")
 const Ty = require("../../types")
 
@@ -66,7 +66,7 @@ function userToSimName(user) {
 
 	// 1. Is sim user already registered?
 	const existing = select("sim", "user_id", {user_id: user.id}).pluck().get()
-	assert.equal(existing, null, "Shouldn't try to create a new name for an existing sim")
+	assert.equal(existing, undefined, "Shouldn't try to create a new name for an existing sim")
 
 	// 2. Register based on username (could be new or old format)
 	// (Unless it's a special user, in which case copy their provided mappings.)
@@ -113,7 +113,7 @@ function webhookAuthorToSimName(author) {
 	// 1. Is sim user already registered?
 	const fakeUserID = webhookAuthorToFakeUserID(author)
 	const existing = select("sim", "user_id", {user_id: fakeUserID}).pluck().get()
-	assert.equal(existing, null, "Shouldn't try to create a new name for an existing sim")
+	assert.equal(existing, undefined, "Shouldn't try to create a new name for an existing sim")
 
 	// 2. Register based on username (could be new or old format)
 	const downcased = "webhook_" + downcaseUsername(author)

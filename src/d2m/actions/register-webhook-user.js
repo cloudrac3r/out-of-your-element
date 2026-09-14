@@ -1,6 +1,6 @@
 // @ts-check
 
-const assert = require("assert")
+const assert = require("assert").strict
 const {reg} = require("../../matrix/read-registration")
 const Ty = require("../../types")
 

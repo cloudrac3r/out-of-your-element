@@ -74,6 +74,10 @@ async function onPacket(client, message, listen) {
 		const firstReady = guildReadyStatus.allReady()
 		const lastGuildReady = guildReadyStatus.makeReady(message.d.id)
 
+		if (lastGuildReady) {
+			console.log(`ok, ${client.guilds.size} available.`)
+		}
+
 		const arr = []
 		client.guildChannelMap.set(message.d.id, arr)
 		for (const channel of message.d.channels || []) {
@@ -93,7 +97,7 @@ async function onPacket(client, message, listen) {
 			try {
 				// Wait for guilds to be connected and homeserver to be online. If this is the last guild, a different code path is used to trigger the homeserver check.
 				if (lastGuildReady) {
-					process.stdout.write(`ok, ${client.guilds.size} available.\nConnecting to homeserver... `)
+					process.stdout.write(`Connecting to homeserver... `)
 					// await guildReadyStatus.waitForAllReady() - no need, we already checked this is the last guild
 					await homeserverStatus.homeserverStatus.waitForOnline(true)
 					console.log("ok.\nReplaying past events. Welcome to Out Of Your Element.")

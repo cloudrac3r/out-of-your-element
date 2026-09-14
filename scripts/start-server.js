@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 // @ts-check
 
-const {createServer} = require("http")
-const EventEmitter = require("events")
-const {createApp, createRouter, toNodeListener} = require("h3")
 const sqlite = require("better-sqlite3")
 const migrate = require("../src/db/migrate")
 const HeatSync = require("heatsync")

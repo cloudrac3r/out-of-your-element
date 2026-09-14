@@ -7,6 +7,7 @@ const {addbot} = require("../addbot")
 const passthrough = require("./passthrough")
 const {discord, sync, db, select, from, as} = passthrough
 
+const reg = require("./matrix/read-registration")
 const data = sync.require("../test/data")
 const createSpace = sync.require("./d2m/actions/create-space")
 const createRoom = sync.require("./d2m/actions/create-room")

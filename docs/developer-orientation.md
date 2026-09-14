@@ -89,14 +89,14 @@ Whether you read those or not, I'm more than happy to help you 1-on-1 with codin
 
 # Dependency justification
 
-Total transitive production dependencies: 144
+Total transitive production dependencies: 112
 
 ### <font size="+2">🦕</font>
 
-* (35) better-sqlite3: SQLite is the best database, and this is the best library for it.
 * (29) sharp: Image resizing and compositing. OOYE needs this for the emoji sprite sheets. It has libvips prebuilts for each platform.
 * (26) @cloudrac3r/pug: Language for dynamic web pages. This is my fork. (I released code that hadn't made it to npm, and removed the heavy pug-filters feature.)
 * (9) h3: Web server. OOYE needs this for the web UI, appservice listener, authmedia proxy, and more.
+* (1) better-sqlite3: SQLite is the best database, and this is the best library for it.
 
 ### <font size="-1">🪱</font>
 
@@ -120,6 +120,7 @@ Total transitive production dependencies: 144
 * (0) entities: Looks fine. No dependencies.
 * (0) get-relative-path: Looks fine. No dependencies.
 * (1) heatsync: Module hot-reloader that I trust.
+* (0) htmx.org: Declarative partial page reloads that do just enough. I'm not totally happy with this one, but not sure what I'd do instead.
 * (0) lru-cache: For holding unused nonce in memory and letting them be overwritten later if never used.
 * (1) mime-types: List of mime type mappings. Needed to serve static files.
 * (0) prettier-bytes: It does what I want and has no dependencies.
@@ -128,3 +129,18 @@ Total transitive production dependencies: 144
 * (0) uqr: QR code SVG generator. Used on the website to scan in an invite link.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
 * (0) zod: Input validation for the web server. It's popular and easy to use.
+
+### Outdated versions
+
+* @chriscdn/promise-semaphore
+    * Highest usable version is 3.1.3 because the author **dropped CJS** in 4.0.0.
+* @stackoverflow/stacks
+    * Highest usable version is 2.9.0 (and 6.9.0 for stacks-icons) because the company **ruined their design** in 3.0.0.
+* cross-env
+    * Highest usable version is 7.0.3 because the author **dropped CJS** in 10.0.0.
+* entities
+    * Using version 5.0.0. The author messed things up in 6.0.0, started using LLMs in 7.0.0, and **dropped CJS** in 8.0.0.
+* h3
+    * Using major version 1. Version 2 has been stuck as **release candidates for months**, and all the code comments are Claude.
+* htmx.org
+    * Using major version 2. Version 4 exists, and **I'd be okay updating to it**, but the author changed a lot and the entire site would need to be re-tested.
