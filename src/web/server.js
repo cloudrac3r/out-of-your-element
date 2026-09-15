@@ -98,7 +98,7 @@ function tryStatic(event, fallthrough) {
 		getContents: id => {
 			if (id.match(/\.pug$/)) {
 				const path = join(publicDir, id)
-				return pugSync.renderPath(event, path, {})
+				return pugSync.renderPath(event, path, null, {})
 			} else {
 				return fs.createReadStream(join(publicDir, id))
 			}

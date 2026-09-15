@@ -13,6 +13,10 @@ const sync = new HeatSync()
 
 Object.assign(passthrough, {sync, db})
 
+const orm = sync.require("../src/db/orm")
+passthrough.from = orm.from
+passthrough.select = orm.select
+
 const DiscordClient = require("../src/d2m/discord-client")
 
 const discord = new DiscordClient(reg.ooye.discord_token, "half")
@@ -20,10 +24,6 @@ passthrough.discord = discord
 
 const {as} = require("../src/matrix/appservice")
 passthrough.as = as
-
-const orm = sync.require("../src/db/orm")
-passthrough.from = orm.from
-passthrough.select = orm.select
 
 ;(async () => {
 	await migrate.migrate(db)

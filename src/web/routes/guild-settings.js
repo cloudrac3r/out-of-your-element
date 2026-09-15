@@ -135,7 +135,7 @@ as.router.post("/api/default-roles", defineEventHandler(async event => {
 	await createSpace.syncSpaceFully(guildID) // this is inefficient but OK to call infrequently on user request
 
 	if (getRequestHeader(event, "HX-Request")) {
-		return pugSync.render(event, "fragments/default-roles-list.pug", {guild, guild_id: guildID})
+		return pugSync.renderFragments(event, "guild.pug", ["default-roles-list", "add-roles-menu"], {guild, guild_id: guildID})
 	} else {
 		return sendRedirect(event, `/guild?guild_id=${guildID}`, 302)
 	}

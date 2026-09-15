@@ -130,6 +130,7 @@ file._actuallyUploadDiscordFileToMxc = function(url, res) { throw new Error(`Not
 
 	require("./addbot.test")
 	require("../src/db/orm.test")
+	require("../src/js/errors.test")
 	require("../src/web/server.test")
 	require("../src/discord/utils.test")
 	require("../src/matrix/kstate.test")
