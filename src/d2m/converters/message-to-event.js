@@ -785,7 +785,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	// Send Klipy GIFs in customised form
 	let isKlipyGIF = false
 	let isOnlyKlipyGIF = false
-	if (message.embeds?.length === 1 && message.embeds[0].provider?.name === "Klipy" && message.embeds[0].video?.url) {
+	if (message.content && message.embeds?.length === 1 && message.embeds[0].provider?.name === "Klipy" && message.embeds[0].video?.url) {
 		isKlipyGIF = true
 		if (message.content.match(/^https?:\/\/klipy\.com[^ \n]+$/)) {
 			isOnlyKlipyGIF = true
