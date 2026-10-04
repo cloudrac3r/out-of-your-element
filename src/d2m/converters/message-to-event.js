@@ -1076,6 +1076,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue // If discord creates an embed preview for a discord channel link, don't copy that embed
 		}
 
+		if (embed.provider?.name === "GitHub") {
+			continue // GitHub url previews are very large and fairly useless
+		}
+
 		if (embed.url && spoilers.some(sp => sp.match(/\bhttps?:\/\/[a-z]/))) {
 			// If the original message had spoilered URLs, don't generate any embeds for links.
 			// This logic is the same as the Discord desktop client. It doesn't match specific embeds to specific spoilered text, it's all or nothing.
