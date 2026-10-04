@@ -192,6 +192,16 @@ test("message2event: manually constructed unknown roles should use fallback", as
 	}])
 })
 
+test("message2event: simple game mentions", async t => {
+	const events = await messageToEvent(data.message.simple_game_mention, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		"m.mentions": {},
+		msgtype: "m.text",
+		body: "do you play Minecraft"
+	}])
+})
+
 test("message2event: simple message link", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {}, {

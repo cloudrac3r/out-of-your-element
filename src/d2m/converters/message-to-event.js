@@ -86,6 +86,14 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 				return `@${role.name}:`
 			}
 		},
+		game: node => {
+			const game = message.mention_games?.find(g => g.id === node.id)
+			if (!game?.name) {
+				return "@$" + node.id
+			} else {
+				return game.name
+			}
+		},
 		everyone: () => {
 			if (message.mention_everyone) return "@room"
 			return "@everyone"

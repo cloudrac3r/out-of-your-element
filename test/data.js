@@ -1680,6 +1680,58 @@ module.exports = {
 			flags: 0,
 			components: []
 		},
+		simple_game_mention: {
+			type: 0,
+			content: "do you play <@$1402418491272986635>",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2026-09-28T21:01:56.749000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1554236746756268077",
+			channel_id: "1160894080998461480",
+			author: {
+				id: "177438227563675648",
+				username: "owlbot",
+				avatar: "bafbcafcc0a6c2698d59a2cb567a9ecf",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: null,
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: null,
+				vad_colors: null,
+				banner_color: null,
+				clan: {
+					identity_guild_id: "773319828295385108",
+					identity_enabled: true,
+					tag: "puzl",
+					badge: "1935451f265a42d57241c7bcc9555abe"
+				},
+				primary_guild: {
+					identity_guild_id: "773319828295385108",
+					identity_enabled: true,
+					tag: "puzl",
+					badge: "1935451f265a42d57241c7bcc9555abe"
+				}
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			mention_games: [
+				{
+					id: "1402418491272986635",
+					name: "Minecraft",
+					aliases: [ "Minecraft Windows 10 Edition", "Minecraft Launcher" ],
+				}
+			]
+		},
 		unknown_role: {
 			id: "1162374402785153106",
 			type: 0,
