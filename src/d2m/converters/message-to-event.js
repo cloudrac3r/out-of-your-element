@@ -783,9 +783,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Send Klipy GIFs in customised form
+	const urlPreviewEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 	let isKlipyGIF = false
 	let isOnlyKlipyGIF = false
-	if (message.embeds?.length === 1 && message.embeds[0].provider?.name === "Klipy" && message.embeds[0].video?.url) {
+	if (message.embeds?.length === 1 && message.embeds[0].provider?.name === "Klipy" && message.embeds[0].video?.url && urlPreviewEnabled) {
 		isKlipyGIF = true
 		if (message.content?.match(/^https?:\/\/klipy\.com[^ \n]+$/)) {
 			isOnlyKlipyGIF = true
@@ -1046,7 +1047,6 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Then embeds
-	const urlPreviewEnabled = select("guild_space", "url_preview", {guild_id: guild?.id}).pluck().get() ?? 1
 	for (const embed of message.embeds || []) {
 		if (!urlPreviewEnabled && !message.author?.bot) {
 			continue // show embeds for everyone if enabled, or bot users only if disabled (bots often send content in embeds)
