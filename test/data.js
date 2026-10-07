@@ -1732,6 +1732,56 @@ module.exports = {
 				}
 			]
 		},
+		timestamps: {
+			type: 0,
+			content: "<t:1791106413:S>\n" +
+			"<t:1791106436:f>\n" +
+			"<t:1791106440:F>\n" +
+			"<t:1791106448:T>\n" +
+			"<t:1791019800:R>\n" +
+			"<t:1798153200:R>",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [],
+			timestamp: "2026-10-04T09:34:27.909000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1556238063774990499",
+			channel_id: "1160894080998461480",
+			author: {
+				id: "772659086046658620",
+				username: "cadence.worm",
+				avatar: "466df0c98b1af1e1388f595b4c1ad1b9",
+				discriminator: "0",
+				public_flags: 0,
+				flags: 0,
+				banner: null,
+				accent_color: null,
+				global_name: "cadence",
+				avatar_decoration_data: null,
+				collectibles: null,
+				display_name_styles: null,
+				vad_colors: null,
+				banner_color: null,
+				clan: {
+					identity_guild_id: "532245108070809601",
+					identity_enabled: true,
+					tag: "doll",
+					badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+				},
+				primary_guild: {
+					identity_guild_id: "532245108070809601",
+					identity_enabled: true,
+					tag: "doll",
+					badge: "dba08126b4e810a0e096cc7cd5bc37f0"
+				}
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false
+		},
 		unknown_role: {
 			id: "1162374402785153106",
 			type: 0,

@@ -1,0 +1,143 @@
+//- requires timestamp, text, style
+
+- const WIDTH = 600
+
+doctype html
+html(lang="en")
+  head
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 80%22><text y=%22.83em%22 font-size=%2283%22>⏰</text></svg>">
+    title= `Converting time ${text}...`
+    style.
+      body {
+        font-family: "Segoe UI", sans-serif;
+        margin: 0 auto;
+        padding: 4px;
+        font-size: 18px;
+        background-color: #f0f2f5; /* element compound tertiary off-white */
+        max-width: !{WIDTH}px;
+      }
+      .only-script {
+        display: none;
+      }
+      .yes-script .only-script {
+        display: revert;
+      }
+      .local {
+        line-height: 1;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+      }
+      .original {
+        color: #004c84;
+      }
+      .remaining {
+        font-weight: bold;
+      }
+      .primary-remaining {
+        font-size: 25px;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          color: #e3e3e3;
+          background-color: #131416; /* element compound bg but desaturated */
+        }
+        .original {
+          color: #99c9ec;
+        }
+        .local {
+          fill: #fff;
+        }
+        .remaining {
+          color: #fff;
+        }
+      }
+  body
+    noscript
+      | You must enable JavaScript to convert to your local time.
+    .only-script
+      p In your local time, #[span.original= text] is...
+      if style === "R"
+        p.primary-remaining #[span#remaining.remaining]#[span#direction] #[span#tick.tick]
+      svg.local(viewBox=`0 -130 ${WIDTH} 253`)
+        text(style="font-size: 160px; font-weight: bold;")#localTime
+        text(y=70 style="font-size: 45px; font-weight: bold;")#localDate
+        text(y=115 style="font-size: 22px;")#localTz
+      if style !== "R"
+        p #[span#remaining.remaining]#[span#direction] #[span#tick.tick]
+    script.
+      document.body.classList.add("yes-script")
+      const WIDTH = !{WIDTH}
+      const timestamp = !{timestamp}
+      const style = "!{style}"
+      const formatOptions = !{JSON.stringify(formatOptions)}
+      const d = new Date(timestamp * 1000)
+      const UNITS = [
+        ["week", 7*24*60*60*1000],
+        ["day", 24*60*60*1000],
+        ["hour", 60*60*1000],
+        ["minute", 60*1000],
+      ]
+      const showSeconds = formatOptions.timeStyle === "medium" || style === "R"
+      if (showSeconds) UNITS.push(["second", 1000])
+
+      if (formatOptions.timeStyle) {
+        localTime.textContent = new Intl.DateTimeFormat(undefined, {timeStyle: formatOptions.timeStyle}).format(d)
+      } else {
+        localTime.textContent = "Any time on"
+        localTime.style.fill = "#888"
+      }
+      if (formatOptions.dateStyle) {
+        localDate.textContent = new Intl.DateTimeFormat(undefined, {dateStyle: formatOptions.dateStyle}).format(d)
+      } else {
+        localDate.textContent = "On any date"
+        localDate.style.fill = "#888"
+      }
+      const localTzText = new Intl.DateTimeFormat(undefined, {timeZoneName: "long"}).formatToParts(d).find(p => p.type === "timeZoneName").value
+      const localTitleText = new Intl.DateTimeFormat(undefined, {...formatOptions, timeZone: undefined}).format(d)
+      document.title = localTitleText
+      localTz.textContent = localTzText
+      for (const st of [localTime, localDate, localTz]) {
+        const l = st.getComputedTextLength()
+        if (l > WIDTH) {
+          st.style.fontSize = Math.floor(parseInt(st.style.fontSize) * WIDTH / l) + "px";
+        }
+      }
+
+      let frame = 0
+      function updateTimeRemaining() {
+        const now = new Date()
+        const timeForRemaining = new Date(d)
+        if (!formatOptions.dateStyle) {
+          timeForRemaining.setFullYear(now.getFullYear())
+          timeForRemaining.setMonth(now.getMonth())
+          timeForRemaining.setDate(now.getDate())
+        }
+        let difference = Math.abs(timeForRemaining.getTime() - now.getTime())
+
+        let foundSignificantField = false
+        let remainingText = UNITS.map(([unit, duration], index) => {
+          const multiplier = Math.floor(difference / duration)
+          difference -= multiplier * duration
+          if (multiplier > 0 || foundSignificantField) {
+            foundSignificantField = true
+            return multiplier + "\u00a0" + unit + (multiplier !== 1 ? "s" : "")
+          }
+        }).filter(s => s).join(", ")
+        if (remainingText) {
+          remaining.textContent = remainingText
+          direction.textContent =
+            ( timeForRemaining.getTime() > now.getTime()
+            ? "\u00a0from\u00a0now."
+            : "\u00a0ago.")
+        } else {
+          remaining.textContent = "Right now!"
+          direction.textContent = ""
+        }
+        if (!showSeconds) {
+          tick.textContent = String.fromCodePoint(11028 + ++frame % 2)
+        }
+      }
+      updateTimeRemaining()
+      setInterval(updateTimeRemaining, 1000)

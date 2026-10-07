@@ -44,7 +44,7 @@ test("message2event components: pk question mark output", async t => {
 			+ "\n| Same hat"
 			+ "\n| 🖼️ Image: https://bridge.example.org/download/discordcdn/934955898965729280/1466556006527012987/image.png"
 			+ "\n"
-			+ "\n-# Original Message ID: 1466556003645657118 · <t:1769724599:f>",
+			+ "\n-# Original Message ID: 1466556003645657118 · 29 January 2026 at 10:09 pm (UTC)",
 		format: "org.matrix.custom.html",
 		formatted_body: "<blockquote>"
 			+ "<h3>Lillith (INX)</h3>"
@@ -73,7 +73,7 @@ test("message2event components: pk question mark output", async t => {
 			+ "<hr>"
 			+ "<p>Same hat</p>"
 			+ `🖼️ Image: <a href="https://bridge.example.org/download/discordcdn/934955898965729280/1466556006527012987/image.png">image.png</a></blockquote>`
-			+ "<p><sub>Original Message ID: 1466556003645657118 · &lt;t:1769724599:f&gt;</sub></p>",
+			+ "<p><sub>Original Message ID: 1466556003645657118 · <a href=\"https://bridge.example.org/time/1769724599/f\">29 January 2026 at 10:09 pm (UTC)</a></sub></p>",
 		"m.mentions": {},
 		msgtype: "m.text",
 	}])

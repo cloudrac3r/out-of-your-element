@@ -18,6 +18,8 @@ const lottie = sync.require("../actions/lottie")
 const mxUtils = sync.require("../../matrix/utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
+/** @type {import("../../discord/time")} */
+const discordTime = sync.require("../../discord/time")
 /** @type {import("./find-mentions")} */
 const findMentions = sync.require("./find-mentions")
 /** @type {import("../../discord/interactions/poll-responses")} */
@@ -70,6 +72,17 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 				return `<img data-mx-emoticon height="32" src="${mxc}" title=":${node.name}:" alt=":${node.name}:">`
 			} else {
 				return `:${node.name}:`
+			}
+		},
+		/** @param {{timestamp: number, style: string | null}} node */
+		timestamp: node => {
+			const text = discordTime.convertDiscordTime(node.timestamp, node.style)
+			if (useHTML) {
+				let url = `${reg.ooye.bridge_origin}/time/${node.timestamp}`
+				if (node.style) url += `/${node.style}`
+				return tag`<a href="${url}">${text}</a>`
+			} else {
+				return text
 			}
 		},
 		role: node => {

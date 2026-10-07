@@ -202,6 +202,28 @@ test("message2event: simple game mentions", async t => {
 	}])
 })
 
+test("message2event: timestamps", async t => {
+	const events = await messageToEvent(data.message.timestamps, data.guild.general, {})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		body: "4 Oct 2026, 9:33:33 am (UTC)"
+			+ "\n4 October 2026 at 9:33 am (UTC)"
+			+ "\nSunday, 4 October 2026 at 9:34 am (UTC)"
+			+ "\n9:34:08 am (UTC)"
+			+ "\n3 October 2026 at 9:30 am (UTC)"
+			+ "\n24 December 2026 at 11:00 pm (UTC)",
+		format: "org.matrix.custom.html",
+		formatted_body: `<a href="https://bridge.example.org/time/1791106413/S">4 Oct 2026, 9:33:33 am (UTC)</a>`
+			+ `<br><a href="https://bridge.example.org/time/1791106436/f">4 October 2026 at 9:33 am (UTC)</a>`
+			+ `<br><a href="https://bridge.example.org/time/1791106440/F">Sunday, 4 October 2026 at 9:34 am (UTC)</a>`
+			+ `<br><a href="https://bridge.example.org/time/1791106448/T">9:34:08 am (UTC)</a>`
+			+ `<br><a href="https://bridge.example.org/time/1791019800/R">3 October 2026 at 9:30 am (UTC)</a>`
+			+ `<br><a href="https://bridge.example.org/time/1798153200/R">24 December 2026 at 11:00 pm (UTC)</a>`,
+		"m.mentions": {}
+	}])
+})
+
 test("message2event: simple message link", async t => {
 	let called = 0
 	const events = await messageToEvent(data.message.simple_message_link, data.guild.general, {}, {
