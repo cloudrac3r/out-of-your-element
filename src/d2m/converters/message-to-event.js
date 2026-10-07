@@ -883,32 +883,47 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 	// Then scheduled events
 	if (message.content && di?.snow) {
-		for (const match of [...message.content.matchAll(/discord\.gg\/([A-Za-z0-9]+)\?event=([0-9]{18,})/g)]) { // snowflake has minimum 18 because the events feature is at least that old
+		for (const match of [...message.content.matchAll(/discord\.gg\/([A-Za-z0-9]+)\?event=([0-9]{18,})|\/events\/([0-9]+)\/([0-9]{18,})/g)]) { // snowflake has minimum 18 because the events feature is at least that old
+			/** @type {DiscordTypes.APIGuildScheduledEvent | undefined} */
+			let event
 			let invite
-			try {
-				invite = await di.snow.invite.getInvite(match[1], {guild_scheduled_event_id: match[2]})
-			} catch (e) {
-				// Skip expired/invalid invites and events
-				if (e.message === "Unknown Invite") {
-					break
-				} else {
+
+			if (match[1]) {
+				try {
+					invite = await di.snow.invite.getInvite(match[1], {guild_scheduled_event_id: match[2]})
+					event = invite.guild_scheduled_event
+				} catch (e) {
+					// Skip expired/invalid invites and events
+					if (e.message === "Unknown Invite") {
+						break
+					} else {
+						throw e
+					}
+				}
+			} else if (match[3]) {
+				try {
+					event = await di.snow.guildScheduledEvent.getGuildScheduledEvent(match[3], match[4])
+				} catch (e) {
 					throw e
 				}
 			}
 
-			const event = invite.guild_scheduled_event
 			if (!event) continue // the event ID provided was not valid
 
-			const formatter = new Intl.DateTimeFormat("en-NZ", {month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "shortGeneric", timeZone: reg.ooye.time_zone}) // 9 June at 3:00 pm NZT
 			const rep = new mxUtils.MatrixStringBuilder()
+			const unixSeconds = Math.floor(new Date(event.scheduled_start_time).getTime() / 1000)
 
 			// Add time
 			if (event.scheduled_end_time) {
-				// @ts-ignore - no definition available for formatRange
-				rep.addParagraph(`Scheduled Event - ${formatter.formatRange(new Date(event.scheduled_start_time), new Date(event.scheduled_end_time))}`)
+				const formatter = new Intl.DateTimeFormat("en-NZ", {month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "shortGeneric", timeZone: reg.ooye.time_zone}) // 9 June at 3:00 pm NZT
+				var displayTime = formatter.formatRange(new Date(event.scheduled_start_time), new Date(event.scheduled_end_time))
 			} else {
-				rep.addParagraph(`Scheduled Event - ${formatter.format(new Date(event.scheduled_start_time))}`)
+				var displayTime = discordTime.convertDiscordTime(unixSeconds, "F")
 			}
+			rep.addParagraph(
+				`Scheduled Event - ${displayTime}`,
+				tag`Scheduled Event - <a href="${reg.ooye.bridge_origin}/time/${unixSeconds.toString()}/F">${displayTime}</a>`
+			)
 
 			// Add details
 			rep.addLine(`## ${event.name}`, tag`<strong>${event.name}</strong>`)
@@ -917,7 +932,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			// Add location
 			if (event.entity_metadata?.location) {
 				rep.addParagraph(`📍 ${event.entity_metadata.location}`)
-			} else if (invite.channel?.name) {
+			} else if (invite?.channel?.name) {
 				const roomID = select("channel_room", "room_id", {channel_id: invite.channel.id}).pluck().get()
 				if (roomID) {
 					const via = await getViaServersMemo(roomID)
