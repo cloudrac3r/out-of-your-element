@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 // @ts-check
 
+// Temporal API stabilised in Node.js 26. Previous versions can use `--harmony-temporal`, but that's jank, so have a polyfill.
+if (!("Temporal" in globalThis)) {
+	require("temporal-polyfill-lite/global")
+}
+
 const fs = require("fs")
 const sqlite = require("better-sqlite3")
 const migrate = require("./src/db/migrate")

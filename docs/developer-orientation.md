@@ -89,7 +89,7 @@ Whether you read those or not, I'm more than happy to help you 1-on-1 with codin
 
 # Dependency justification
 
-Total transitive production dependencies: 112
+Total transitive production dependencies: 114
 
 ### <font size="+2">🦕</font>
 
@@ -108,6 +108,7 @@ Total transitive production dependencies: 112
 * (0) @cloudrac3r/mixin-deep: This is my fork. (It fixes a bug in regular mixin-deep.)
 * (0) @cloudrac3r/pngjs: Lottie stickers are converted to bitmaps with the vendored Rlottie WASM build, then the bitmaps are converted to PNG with pngjs.
 * (0) @cloudrac3r/stream-type: Determine type of Matrix files that don't specify it in info. Switched from stream-mime-type to this.
+* (0) @cloudrac3r/tell-me-when: Parse English natural language dates and times for the m->d //time command.
 * (0) @cloudrac3r/turndown: This HTML-to-Markdown converter looked the most suitable. I forked it to change the escaping logic to match the way Discord works.
 * (3) @stackoverflow/stacks: Stack Overflow design language and icons.
 * (0) ansi-colors: Helps with interactive prompting for the initial setup, and it's already pulled in by enquirer.
@@ -125,6 +126,7 @@ Total transitive production dependencies: 112
 * (1) mime-types: List of mime type mappings. Needed to serve static files.
 * (0) prettier-bytes: It does what I want and has no dependencies.
 * (0) snowtransfer: Discord API library with bring-your-own-caching that I trust.
+* (0) temporal-polyfill-lite: Needed for the //time command. The Temporal API has only been stabilised as of Node.js v26.
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
 * (0) uqr: QR code SVG generator. Used on the website to scan in an invite link.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
