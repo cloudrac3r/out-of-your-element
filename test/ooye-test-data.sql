@@ -25,6 +25,7 @@ INSERT INTO channel_room (channel_id, room_id, name, nick, thread_parent, custom
 ('1161864271370666075', '!mHmhQQPwXNananMUqq:cadence.moe', 'updates', NULL, NULL, NULL, '112760669178241024'),
 ('1438284564815548418', '!MHxNpwtgVqWOrmyoTn:cadence.moe', 'sin-cave', NULL, NULL, NULL, '665289423482519565'),
 ('598707048112193536', '!JBxeGYnzQwLnaooOLD:cadence.moe', 'winners', NULL, NULL, NULL, '1345641201902288987');
+UPDATE channel_room SET room_mention_role = '123456' WHERE room_id = '!fGgIymcYWOqjbSRUdV:cadence.moe';
 
 INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) SELECT channel_id, room_id, 0 FROM channel_room;
 

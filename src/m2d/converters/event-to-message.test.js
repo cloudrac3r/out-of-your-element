@@ -5521,6 +5521,9 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 			type: "m.room.message",
 			sender: "@cadence:cadence.moe",
 			content: {
+				"m.mentions": {
+					room: true
+				},
 				msgtype: "m.text",
 				body: "@room dinner's ready",
 			},
@@ -5563,7 +5566,124 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 				content: "@everyone dinner's ready",
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
-					parse: ["users", "roles", "everyone"]
+					users: [],
+					parse: ["roles", "everyone"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
+test("event2message: @room is converted to a role in configured rooms", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				msgtype: "m.text",
+				body: "@room dinner's ready",
+			},
+			room_id: "!fGgIymcYWOqjbSRUdV:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}, data.guild.general, data.channel.general, {
+			api: {
+				async getStateEvent(roomID, type, key) {
+					called++
+					t.equal(roomID, "!fGgIymcYWOqjbSRUdV:cadence.moe")
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					return {
+						users: {},
+						notifications: {
+							room: 0
+						}
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					t.equal(roomID, "!fGgIymcYWOqjbSRUdV:cadence.moe")
+					t.equal(type, "m.room.create")
+					t.equal(key, "")
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						content: {
+							room_version: "11"
+						}
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "<@&123456> dinner's ready",
+				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU?preset=avatar",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
+test("event2message: @room is not allowed with mismatched m.mentions", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: {
+				"m.mentions": {},
+				msgtype: "m.text",
+				body: "@room dinner's ready",
+			},
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			event_id: "$SiXetU9h9Dg-M9Frcw_C6ahnoXZ3QPZe3MVJR5tcB9A"
+		}, data.guild.general, data.channel.general, {
+			api: {
+				async getStateEvent(roomID, type, key) {
+					called++
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					return {
+						users: {},
+						notifications: {
+							room: 0
+						}
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.create")
+					t.equal(key, "")
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						content: {
+							room_version: "11"
+						}
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "@room dinner's ready",
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
+				allowed_mentions: {
+					users: [],
+					parse: ["roles"]
 				}
 			}],
 			ensureJoined: []
