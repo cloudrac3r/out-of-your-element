@@ -916,7 +916,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 			// Add time
 			if (event.scheduled_end_time) {
 				const formatter = new Intl.DateTimeFormat("en-NZ", {weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC"}) // 9 June at 3:00 pm NZT
-				var displayTime = formatter.formatRange(new Date(event.scheduled_start_time), new Date(event.scheduled_end_time)) + " (UTC)"
+				var displayTime = (formatter.formatRange(new Date(event.scheduled_start_time), new Date(event.scheduled_end_time)) + " (UTC)").replaceAll(/\p{Zs}/gv, " ")
 			} else {
 				var displayTime = discordTime.convertDiscordTime(unixSeconds, "F")
 			}

@@ -1589,12 +1589,12 @@ test("message2event: irl invite event renders embed", async t => {
 		{
 			$type: "m.room.message",
 			msgtype: "m.notice",
-			body: `| Scheduled Event - Sunday, 8 June, 10:00 am – 12:00 pm (UTC)`
+			body: `| Scheduled Event - Sunday, 8 June, 10:00 am – 12:00 pm (UTC)`
 				+ `\n| ## forest exploration`
 				+ `\n| `
 				+ `\n| 📍 the dark forest`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote><p>Scheduled Event - <a href=\"https://bridge.example.org/time/1749376800/F\">Sunday, 8 June, 10:00 am – 12:00 pm (UTC)</a></p>`
+			formatted_body: `<blockquote><p>Scheduled Event - <a href=\"https://bridge.example.org/time/1749376800/F\">Sunday, 8 June, 10:00 am – 12:00 pm (UTC)</a></p>`
 				+ `<strong>forest exploration</strong>`
 				+ `<p>📍 the dark forest</p></blockquote>`,
 			"m.mentions": {}

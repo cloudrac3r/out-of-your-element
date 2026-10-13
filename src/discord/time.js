@@ -44,7 +44,7 @@ function getFormatOptions(style) {
 function convertDiscordTime(timestamp, style) {
 	const formatter = new Intl.DateTimeFormat("en-NZ", getFormatOptions(style))
 	const d = new Date(timestamp * 1000)
-	return formatter.format(d) + " (UTC)"
+	return (formatter.format(d) + " (UTC)").replaceAll(/\p{Zs}/gv, " ")
 }
 
 module.exports.getFormatOptions = getFormatOptions
