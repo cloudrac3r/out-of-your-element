@@ -140,3 +140,22 @@ as.router.post("/api/default-roles", defineEventHandler(async event => {
 		return sendRedirect(event, `/guild?guild_id=${guildID}`, 302)
 	}
 }))
+
+// An empty role restores @everyone
+as.router.post("/api/room-mention-role", defineEventHandler(async event => {
+	const body = await readValidatedBody(event, z.object({
+		guild_id: z.string(),
+		channel_id: z.string(),
+		room_mention_role: z.string().regex(/^(?:[0-9]+)?$/)
+	}).parse)
+	const managed = await auth.getManagedGuilds(event)
+	if (!managed.has(body.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
+	const room = select("channel_room", "room_id", {channel_id: body.channel_id, guild_id: body.guild_id}).get()
+	if (!room) throw createError({status: 404, message: "Linked channel not found"})
+	const guild = discord.guilds.get(body.guild_id)
+	if (body.room_mention_role && (!guild?.roles.some(role => role.id === body.room_mention_role) || body.room_mention_role === body.guild_id)) {
+		throw createError({status: 400, message: "Choose a role from this server"})
+	}
+	db.prepare("UPDATE channel_room SET room_mention_role = ? WHERE channel_id = ? AND guild_id = ?").run(body.room_mention_role || null, body.channel_id, body.guild_id)
+	return sendRedirect(event, `/guild?guild_id=${body.guild_id}#room-notifications`, 302)
+}))

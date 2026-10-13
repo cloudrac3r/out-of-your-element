@@ -188,6 +188,72 @@ block body
               td(colspan="3")
                 .s-empty-state No channels linked between Discord and Matrix yet...
 
+  if space_id && linkedChannelsWithDetails.length
+    - const customMentionRooms = linkedChannelsWithDetails.filter(row => row.room_mention_role)
+    - const defaultMentionRooms = linkedChannelsWithDetails.filter(row => !row.room_mention_role)
+    - const mentionRoles = [...guild.roles].filter(role => role.id !== guild_id).sort((a, b) => b.position - a.position)
+    h3.mt32.fs-category#room-notifications Room notifications
+    .s-card.p0
+      p.s-description.m12 Choose which Discord role receives Matrix @room notifications
+      if customMentionRooms.length
+        .s-table-container(style="container-type: inline-size")
+          table.s-table.s-table__bx-simple(style="table-layout: fixed")
+            thead
+              tr
+                th(scope="col" style="width: calc(50cqw - 40px)") Channel
+                th.pr12(scope="col") Notify role
+            tbody
+              each row in customMentionRooms
+                tr
+                  td.va-middle
+                    +discord(row.channel)
+                  td.pr12
+                    .d-flex.ai-start.g8
+                      form.fl-grow1.wmn0.d-flex.ai-stretch.g8(method="post" action=rel("/api/room-mention-role"))
+                        input(type="hidden" name="guild_id" value=guild_id)
+                        input(type="hidden" name="channel_id" value=row.channel.id)
+                        .s-select.fl-grow1.wmn0
+                          select.w100(name="room_mention_role" id="mention-role-" + row.channel.id aria-label="Notify role for #" + row.channel.name onchange="this.form.requestSubmit()" style="height: 32px")
+                            if !mentionRoles.some(role => role.id === row.room_mention_role)
+                              option(value=row.room_mention_role selected disabled) Deleted role (choose a replacement)
+                            each role in mentionRoles
+                              option(value=role.id selected=row.room_mention_role === role.id)= "@" + role.name
+                        button.s-btn.s-btn__outlined.py0.box-border(type="submit" data-room-mention-save style="height: 32px; min-height: 0") Save
+                      form.d-flex.ai-stretch(method="post" action=rel("/api/room-mention-role"))
+                        input(type="hidden" name="guild_id" value=guild_id)
+                        input(type="hidden" name="channel_id" value=row.channel.id)
+                        input(type="hidden" name="room_mention_role" value="")
+                        button.s-btn.s-btn__danger.s-btn__outlined.py0(type="submit" aria-label="Remove custom role for #" + row.channel.name style="height: 32px") Remove
+
+        script.
+          document.querySelectorAll('[data-room-mention-save]').forEach(button => button.remove())
+
+      if defaultMentionRooms.length && mentionRoles.length
+        details.mt16.mx12.mb12
+          summary.s-label.cursor-pointer Add custom role
+          form.mt16(method="post" action=rel("/api/room-mention-role"))
+            input(type="hidden" name="guild_id" value=guild_id)
+            .d-flex.fw-wrap.ai-end.g16
+              .fl-grow1.wmn0(style="flex-basis: 0; min-width: 180px")
+                label.s-label(for="mention-role-channel") Channel
+                .s-select
+                  select.w100.box-border#mention-role-channel(name="channel_id" required style="height: 32px")
+                    option(value="" selected disabled) Choose a channel
+                    each row in defaultMentionRooms
+                      - const parent = discord.channels.get(row.channel.parent_id)
+                      option(value=row.channel.id)= "#" + row.channel.name + (parent ? " - " + parent.name : "")
+              .fl-grow1.wmn0(style="flex-basis: 0; min-width: 180px")
+                label.s-label(for="mention-role-new") Notify role
+                .s-select
+                  select.w100.box-border#mention-role-new(name="room_mention_role" required style="height: 32px")
+                    option(value="" selected disabled) Choose a role
+                    each role in mentionRoles
+                      option(value=role.id)= "@" + role.name
+              .d-flex.ai-stretch(style="height: 32px")
+                button.s-btn.s-btn__icon.s-btn__filled.d-inline-flex.ai-center.g4.py0.box-border(type="submit" style="min-height: 0")
+                  != icons.Icons.IconPlusSm
+                  span Add
+
   h3.fs-category.mt32 Auto-create
   .s-card.d-grid.px0
     form.d-flex.ai-center.g16

@@ -460,14 +460,15 @@ async function handleRoomOrMessageLinks(input, di) {
 async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
 	let writtenMentionMatch = content.match(/(?:^|[^"[<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // /d flag for indices requires node.js 16+
 	if (writtenMentionMatch) {
-		if (writtenMentionMatch[1] === "room") { // convert @room to @everyone
+		if (writtenMentionMatch[1] === "room") { // convert @room to discord
 			const {powers: {[senderMxid]: userPower}, powerLevels} = await mxUtils.getEffectivePower(roomID, [senderMxid], di.api)
 			if (userPower >= (powerLevels.notifications?.room ?? 50)) {
+				const roleID = select("channel_room", "room_mention_role", {room_id: roomID}).pluck().get()
 				return {
 					// @ts-ignore - typescript doesn't know about indices yet
-					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + `@everyone` + content.slice(writtenMentionMatch.indices[1][1]),
+					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + (roleID ? `<@&${roleID}>` : "@everyone") + content.slice(writtenMentionMatch.indices[1][1]),
 					ensureJoined: [],
-					allowedMentionsParse: ["everyone"],
+					allowedMentionsParse: roleID ? [] : ["everyone"],
 					allowedMentionsUsers: []
 				}
 			}
@@ -859,6 +860,8 @@ async function eventToMessage(event, guild, channel, di) {
 						return whole
 					}
 				})
+
+				input = input.replace(/<a\s[^>]*href="https:\/\/matrix\.to\/#\/(?:!|%21|#|%23)[^"\/]*"[^>]*>@room<\/a>/g, "@room")
 
 				// Handling mentions of rooms and room-messages
 				input = await handleRoomOrMessageLinks(input, di)

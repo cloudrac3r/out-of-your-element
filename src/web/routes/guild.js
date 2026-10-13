@@ -99,7 +99,7 @@ function getChannelRoomsLinks(guild, rooms, roles) {
 	let channelIDs = discord.guildChannelMap.get(guild.id)
 	assert(channelIDs)
 
-	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick"], {channel_id: channelIDs}).all()
+	let linkedChannels = select("channel_room", ["channel_id", "room_id", "name", "nick", "room_mention_role"], {channel_id: channelIDs}).all()
 	let linkedChannelsWithDetails = linkedChannels.map(c => ({
 		// @ts-ignore
 		/** @type {DiscordTypes.APIGuildChannel} */ channel: discord.channels.get(c.channel_id),

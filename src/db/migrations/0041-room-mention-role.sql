@@ -1,0 +1,5 @@
+BEGIN TRANSACTION;
+
+ALTER TABLE channel_room ADD COLUMN room_mention_role TEXT;
+
+COMMIT;

@@ -2,7 +2,7 @@
 
 const {tryToCatch} = require("try-to-catch")
 const {router, test} = require("../../../test/web")
-const {select} = require("../../passthrough")
+const {select, discord} = require("../../passthrough")
 const {MatrixServerError} = require("../../matrix/mreq")
 
 test("web autocreate: checks permissions", async t => {

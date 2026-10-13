@@ -21,6 +21,7 @@ export type Models = {
 		speedbump_checked: number | null
 		guild_id: string | null
 		custom_topic: number
+		room_mention_role: string | null
 	}
 
 	channel_speedbump: {

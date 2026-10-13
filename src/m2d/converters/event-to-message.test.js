@@ -4,7 +4,7 @@ const DiscordTypes = require("discord-api-types/v10")
 const {eventToMessage} = require("./event-to-message")
 const data = require("../../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
-const {select, discord} = require("../../passthrough")
+const {select, discord, db} = require("../../passthrough")
 
 /**
  * @param {string} roomID
