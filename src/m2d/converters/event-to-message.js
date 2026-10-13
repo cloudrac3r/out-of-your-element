@@ -452,18 +452,18 @@ async function handleRoomOrMessageLinks(input, di) {
 
 /**
  * @param {string} content
- * @param {string} senderMxid
- * @param {string} roomID
+ * @param {{content: any, room_id: string, sender: string}} event
  * @param {DiscordTypes.APIGuild} guild
  * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer}} di
  */
-async function checkWrittenMentions(content, senderMxid, roomID, guild, di) {
+async function checkWrittenMentions(content, event, guild, di) {
 	let writtenMentionMatch = content.match(/(?:^|[^"[<>/A-Za-z0-9])@([A-Za-z][A-Za-z0-9._\[\]\(\)-]+):?/d) // /d flag for indices requires node.js 16+
 	if (writtenMentionMatch) {
 		if (writtenMentionMatch[1] === "room") { // convert @room to discord
-			const {powers: {[senderMxid]: userPower}, powerLevels} = await mxUtils.getEffectivePower(roomID, [senderMxid], di.api)
+			if (("m.mentions" in event.content) && !event.content["m.mentions"].room) return // check it's allowed by m.mentions if present
+			const {powers: {[event.sender]: userPower}, powerLevels} = await mxUtils.getEffectivePower(event.room_id, [event.sender], di.api)
 			if (userPower >= (powerLevels.notifications?.room ?? 50)) {
-				const roleID = select("channel_room", "room_mention_role", {room_id: roomID}).pluck().get()
+				const roleID = select("channel_room", "room_mention_role", {room_id: event.room_id}).pluck().get()
 				return {
 					// @ts-ignore - typescript doesn't know about indices yet
 					content: content.slice(0, writtenMentionMatch.indices[1][0]-1) + (roleID ? `<@&${roleID}>` : "@everyone") + content.slice(writtenMentionMatch.indices[1][1]),
@@ -914,7 +914,7 @@ async function eventToMessage(event, guild, channel, di) {
 
 						// Check written mentions
 						if (node.nodeType === 3 && node.nodeValue.includes("@") && !nodeIsChildOf(node, ["A", "CODE", "PRE"])) {
-							const result = await checkWrittenMentions(node.nodeValue, event.sender, event.room_id, guild, di)
+							const result = await checkWrittenMentions(node.nodeValue, event, guild, di)
 							if (result) {
 								node.nodeValue = result.content
 								ensureJoined.push(...result.ensureJoined)
@@ -1032,7 +1032,7 @@ async function eventToMessage(event, guild, channel, di) {
 					}
 				}
 
-				const result = await checkWrittenMentions(content, event.sender, event.room_id, guild, di)
+				const result = await checkWrittenMentions(content, event, guild, di)
 				if (result) {
 					content = result.content
 					ensureJoined.push(...result.ensureJoined)
