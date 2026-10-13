@@ -67,7 +67,6 @@ html(lang="en")
       if style !== "R"
         p #[span#remaining.remaining]#[span#direction] #[span#tick.tick]
     script.
-      document.body.classList.add("yes-script")
       const WIDTH = !{WIDTH}
       const timestamp = !{timestamp}
       const style = "!{style}"
@@ -104,6 +103,7 @@ html(lang="en")
           st.style.fontSize = Math.floor(parseInt(st.style.fontSize) * WIDTH / l) + "px";
         }
       }
+      document.body.classList.add("yes-script")
 
       let frame = 0
       function updateTimeRemaining() {
@@ -116,15 +116,17 @@ html(lang="en")
         }
         let difference = Math.abs(timeForRemaining.getTime() - now.getTime())
 
+        // Temporal.Duration isn't Baseline https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal/Duration
         let foundSignificantField = false
-        let remainingText = UNITS.map(([unit, duration], index) => {
+        const remainingTextParts = UNITS.map(([unit, duration], index) => {
           const multiplier = Math.floor(difference / duration)
           difference -= multiplier * duration
           if (multiplier > 0 || foundSignificantField) {
             foundSignificantField = true
             return multiplier + "\u00a0" + unit + (multiplier !== 1 ? "s" : "")
           }
-        }).filter(s => s).join(", ")
+        }).filter(s => s)
+        const remainingText = remainingTextParts.length === 2 ? remainingTextParts.join(" and ") : remainingTextParts.join(", ")
         if (remainingText) {
           remaining.textContent = remainingText
           direction.textContent =
