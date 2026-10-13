@@ -1589,12 +1589,12 @@ test("message2event: irl invite event renders embed", async t => {
 		{
 			$type: "m.room.message",
 			msgtype: "m.notice",
-			body: `| Scheduled Event - 8 June at 10:00 pm NZT – 9 June at 12:00 am NZT`
+			body: `| Scheduled Event - Sunday, 8 June, 10:00 am – 12:00 pm (UTC)`
 				+ `\n| ## forest exploration`
 				+ `\n| `
 				+ `\n| 📍 the dark forest`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote><p>Scheduled Event - 8 June at 10:00 pm NZT – 9 June at 12:00 am NZT</p>`
+			formatted_body: `<blockquote><p>Scheduled Event - <a href=\"https://bridge.example.org/time/1749376800/F\">Sunday, 8 June, 10:00 am – 12:00 pm (UTC)</a></p>`
 				+ `<strong>forest exploration</strong>`
 				+ `<p>📍 the dark forest</p></blockquote>`,
 			"m.mentions": {}
@@ -1622,13 +1622,13 @@ test("message2event: vc invite event renders embed", async t => {
 		{
 			$type: "m.room.message",
 			msgtype: "m.notice",
-			body: `| Scheduled Event - 9 June at 3:00 pm NZT`
+			body: `| Scheduled Event - Monday, 9 June 2025 at 3:00 am (UTC)`
 				+ `\n| ## Cooking (Netrunners)`
 				+ `\n| Short circuited brain interfaces actually just means your brain is medium rare, yum.`
 				+ `\n| `
 				+ `\n| 🔊 Cooking`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote><p>Scheduled Event - 9 June at 3:00 pm NZT</p>`
+			formatted_body: `<blockquote><p>Scheduled Event - <a href=\"https://bridge.example.org/time/1749438000/F\">Monday, 9 June 2025 at 3:00 am (UTC)</a></p>`
 				+ `<strong>Cooking (Netrunners)</strong><br>Short circuited brain interfaces actually just means your brain is medium rare, yum.`
 				+ `<p>🔊 Cooking</p></blockquote>`,
 			"m.mentions": {}
@@ -1664,13 +1664,13 @@ test("message2event: vc invite event renders embed with room link", async t => {
 		{
 			$type: "m.room.message",
 			msgtype: "m.notice",
-			body: `| Scheduled Event - 9 June at 3:00 pm NZT`
+			body: `| Scheduled Event - Monday, 9 June 2025 at 3:00 am (UTC)`
 				+ `\n| ## Cooking (Netrunners)`
 				+ `\n| Short circuited brain interfaces actually just means your brain is medium rare, yum.`
 				+ `\n| `
 				+ `\n| 🔊 Hey. - https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe?via=cadence.moe`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote><p>Scheduled Event - 9 June at 3:00 pm NZT</p>`
+			formatted_body: `<blockquote><p>Scheduled Event - <a href=\"https://bridge.example.org/time/1749438000/F\">Monday, 9 June 2025 at 3:00 am (UTC)</a></p>`
 				+ `<strong>Cooking (Netrunners)</strong><br>Short circuited brain interfaces actually just means your brain is medium rare, yum.`
 				+ `<p>🔊 Hey. - <a href="https://matrix.to/#/!FuDZhlOAtqswlyxzeR:cadence.moe?via=cadence.moe">Hey.</a></p></blockquote>`,
 			"m.mentions": {}
