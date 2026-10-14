@@ -5456,6 +5456,58 @@ module.exports = {
 		}
 	},
 	message_with_components: {
+		wikipedia_component_url_preview: {
+			type: 0,
+			content: "https://en.wikipedia.org/wiki/HTTP/2",
+			mentions: [],
+			mention_roles: [],
+			attachments: [],
+			embeds: [
+				{
+					type: "components",
+					url: "https://en.wikipedia.org/wiki/HTTP/2",
+					content_scan_version: 4,
+					components: [
+						{
+							type: 17,
+							id: 1,
+							accent_color: null,
+							components: [
+								{
+									type: 10,
+									id: 2,
+									content: "### [HTTP/2](https://en.wikipedia.org/wiki/HTTP/2?wprov=diim1)\n\nHTTP/2 (originally named HTTP/2.0) is a major revision of the HTTP network protocol used by the World Wide Web. It was derived from the earlier experimental SPDY protocol, originally developed by Google. HTTP/2 was developed by the HTTP Working Group (also called httpbis, where \"bis\" means \"twice\" in Latin) of the Internet Engineering Task Force (…"
+								}
+							],
+							spoiler: false
+						}
+					]
+				}
+			],
+			timestamp: "2026-10-14T02:52:14.399000+00:00",
+			edited_timestamp: null,
+			flags: 0,
+			components: [],
+			id: "1559760719153602600",
+			channel_id: "1160893337029586956",
+			author: {
+				id: "1506959407827779736",
+				username: "dollmoder",
+				avatar: "37f1b0457fc28bccad57bf5baefa0b1b",
+				discriminator: "0000",
+				public_flags: 0,
+				flags: 0,
+				bot: true,
+				global_name: null,
+				clan: null,
+				primary_guild: null
+			},
+			pinned: false,
+			mention_everyone: false,
+			tts: false,
+			application_id: "684280192553844747",
+			webhook_id: "1506959407827779736"
+		},
 		pk_question_mark_response: {
 			type: 0,
 			content: '',

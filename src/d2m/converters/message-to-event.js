@@ -960,6 +960,10 @@ async function messageToEvent(message, guild, options = {}, di) {
 	}
 
 	// Then components
+	// Shift component-type URL embeds here too
+	const componentEmbeds = dUtils.filterTo(message.embeds || [], e => e.type !== "components")
+	message.components ??= []
+	message.components.push(...componentEmbeds.map(e => e.components).flat(1))
 	if (message.components?.length) {
 		const stack = new mxUtils.MatrixStringBuilderStack()
 		/** @param {DiscordTypes.APIMessageComponent} component */
@@ -1063,6 +1067,16 @@ async function messageToEvent(message, guild, options = {}, di) {
 			// Create new message if Components V2 (cannot have regular content)
 			if ((message.flags ?? 0) & DiscordTypes.MessageFlags.IsComponentsV2) {
 				await addTextEvent(body, formatted_body, "m.text")
+			}
+			// Add as m.notice if component URL preview
+			else if (componentEmbeds.length) {
+				mergeTextEvents([{
+					msgtype: "m.notice",
+					body,
+					format: "org.matrix.custom.html",
+					formatted_body,
+					"m.mentions": mentions
+				}], events, true, false)
 			}
 			// Add to existing message if legacy components https://docs.discord.com/developers/components/reference#legacy-message-component-behavior
 			else {

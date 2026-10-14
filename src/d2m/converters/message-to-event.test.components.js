@@ -3,6 +3,29 @@ const {messageToEvent} = require("./message-to-event")
 const data = require("../../../test/data")
 const {mockGetEffectivePower} = require("../../matrix/utils.test")
 
+test("message2event url preview components: wikipedia", async t => {
+	const events = await messageToEvent(data.message_with_components.wikipedia_component_url_preview, data.guild.general, {})
+	t.deepEqual(events, [
+		{
+		  $type: "m.room.message",
+		  body: "https://en.wikipedia.org/wiki/HTTP/2",
+		  format: "org.matrix.custom.html",
+		  formatted_body: "<a href=\"https://en.wikipedia.org/wiki/HTTP/2\">https://en.wikipedia.org/wiki/HTTP/2</a>",
+		  "m.mentions": {},
+		  msgtype: "m.text"
+		},
+		{
+		  body: "| ### [HTTP/2](https://en.wikipedia.org/wiki/HTTP/2?wprov=diim1)"
+			+ "\n| "
+			+ "\n| HTTP/2 (originally named HTTP/2.0) is a major revision of the HTTP network protocol used by the World Wide Web. It was derived from the earlier experimental SPDY protocol, originally developed by Google. HTTP/2 was developed by the HTTP Working Group (also called httpbis, where \"bis\" means \"twice\" in Latin) of the Internet Engineering Task Force (…",
+		  format: "org.matrix.custom.html",
+		  formatted_body: "<blockquote><h3><a href=\"https://en.wikipedia.org/wiki/HTTP/2?wprov=diim1\">HTTP/2</a></h3>HTTP/2 (originally named HTTP/2.0) is a major revision of the HTTP network protocol used by the World Wide Web. It was derived from the earlier experimental SPDY protocol, originally developed by Google. HTTP/2 was developed by the HTTP Working Group (also called httpbis, where \"bis\" means \"twice\" in Latin) of the Internet Engineering Task Force (…</blockquote>",
+		  msgtype: "m.notice",
+		  "m.mentions": {}
+		}
+	])
+})
+
 test("message2event components: pk question mark output", async t => {
 	const events = await messageToEvent(data.message_with_components.pk_question_mark_response, data.guild.general, {})
 	t.deepEqual(events, [{
