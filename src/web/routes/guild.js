@@ -15,8 +15,8 @@ const {discord, as, sync, select, from, db} = require("../../passthrough")
 const pugSync = sync.require("../pug-sync")
 /** @type {import("../../d2m/actions/create-space")} */
 const createSpace = sync.require("../../d2m/actions/create-space")
-/** @type {import("../auth")} */
-const auth = require("../auth")
+/** @type {import("../web-utils")} */
+const webUtils = require("../web-utils")
 /** @type {import("../../discord/utils")} */
 const dUtils = sync.require("../../discord/utils")
 /** @type {import("../../matrix/utils")} */
@@ -150,8 +150,8 @@ function getInviteTargetSpaces(mxid) {
 
 as.router.get("/guild", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.guild.parse)
-	const session = await auth.useSession(event)
-	const managed = await auth.getManagedGuilds(event)
+	const session = await webUtils.useSession(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const row = from("guild_active").join("guild_space", "guild_id", "left").select("space_id", "privacy_level", "autocreate").where({guild_id}).get()
 	// @ts-ignore
 	const guild = discord.guilds.get(guild_id)
@@ -184,7 +184,7 @@ as.router.get("/guild", defineEventHandler(async event => {
 
 as.router.get("/qr", defineEventHandler(async event => {
 	const {guild_id} = await getValidatedQuery(event, schema.qr.parse)
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const row = from("guild_active").join("guild_space", "guild_id", "left").select("space_id", "privacy_level", "autocreate").where({guild_id}).get()
 	// @ts-ignore
 	const guild = discord.guilds.get(guild_id)
@@ -217,7 +217,7 @@ as.router.get("/invite", defineEventHandler(async event => {
 
 as.router.post("/api/invite", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.invite.parse)
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)
 
 	// Check guild ID or nonce

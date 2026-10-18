@@ -9,8 +9,8 @@ const getRelativePath = require("get-relative-path")
 
 const {as, db, sync} = require("../../passthrough")
 const {id, permissions} = require("../../../addbot")
-/** @type {import("../auth")} */
-const auth = sync.require("../auth")
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 const {reg} = require("../../matrix/read-registration")
 
 const redirect_uri = `${reg.ooye.bridge_origin}/oauth`
@@ -53,7 +53,7 @@ function getOauth2Token(event) {
 }
 
 as.router.get("/oauth", defineEventHandler(async event => {
-	const session = await auth.useSession(event)
+	const session = await webUtils.useSession(event)
 	const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)
 	let scope = "guilds"
 

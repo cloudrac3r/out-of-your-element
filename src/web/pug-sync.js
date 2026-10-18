@@ -12,8 +12,8 @@ const walkAST = require("pug-walk")
 const pretty = process.argv.join(" ").includes("test")
 
 const {sync} = require("../passthrough")
-/** @type {import("./auth")} */
-const auth = sync.require("./auth")
+/** @type {import("./web-utils")} */
+const webUtils = sync.require("./web-utils")
 /** @type {import("../js/errors")} */
 const errors = sync.require("../js/errors")
 
@@ -88,8 +88,8 @@ function renderPath(event, path, fragments, locals) {
 			const requiredVars = []
 			const template = compileFile(path, {pretty, plugins: fragmentSelectorPlugins(fragments, requiredVars)})
 			pugCache.set(cacheKey, async (event, locals) => {
-				const session = await auth.useSession(event)
-				const managed = await auth.getManagedGuilds(event)
+				const session = await webUtils.useSession(event)
+				const managed = await webUtils.getManagedGuilds(event)
 				const rel = (to, paramsObject) => {
 					let result = getRelativePath(event.path, to)
 					if (paramsObject) {

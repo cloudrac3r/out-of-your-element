@@ -6,8 +6,8 @@ const {defineEventHandler, createError, readValidatedBody, getRequestHeader, set
 
 const {as, db, sync, select, discord} = require("../../passthrough")
 
-/** @type {import("../auth")} */
-const auth = sync.require("../auth")
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
 /** @type {import("../../d2m/actions/set-presence")} */
@@ -56,7 +56,7 @@ function defineToggle(key, inputOptions) {
 		})
 		/** @type {Record<T, string?> & Record<"guild_id", string> & Record<string, unknown>} */ // @ts-ignore
 		const parsedBody = await readValidatedBody(event, bodySchema.parse)
-		const managed = await auth.getManagedGuilds(event)
+		const managed = await webUtils.getManagedGuilds(event)
 		if (!managed.has(parsedBody.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
 		const value = options.transform(parsedBody[key])
@@ -108,7 +108,7 @@ as.router.post("/api/privacy-level", defineToggle("privacy_level", {
 as.router.post("/api/default-roles", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.defaultRoles.parse)
 
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const guildID = parsedBody.guild_id
 	if (!managed.has(guildID)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 
@@ -148,7 +148,7 @@ as.router.post("/api/room-mention-role", defineEventHandler(async event => {
 		channel_id: z.string(),
 		room_mention_role: z.string().regex(/^(?:[0-9]+)?$/)
 	}).parse)
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	if (!managed.has(body.guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't change settings for a guild you don't have Manage Server permissions in"})
 	const room = select("channel_room", "room_id", {channel_id: body.channel_id, guild_id: body.guild_id}).get()
 	if (!room) throw createError({status: 404, message: "Linked channel not found"})

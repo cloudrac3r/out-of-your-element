@@ -6,10 +6,8 @@ const {defineEventHandler, createError, readValidatedBody, getRequestHeader, set
 
 const {as, db, sync, select, discord} = require("../../passthrough")
 
-/** @type {import("../auth")} */
-const auth = sync.require("../auth")
-/** @type {import("../pug-sync")} */
-const pugSync = sync.require("../pug-sync")
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 
 const schema = {
 	optOut: z.object({
@@ -23,7 +21,7 @@ as.router.post("/api/opt-out", defineEventHandler(async event => {
 		throw createError({status: 403, message: "Forbidden", data: "JavaScript is required for the opt-out form."})
 	}
 
-	const session = await auth.useSession(event)
+	const session = await webUtils.useSession(event)
 	if (!session.data.userID) {
 		throw createError({status: 401, message: "Unauthorised", data: "Log in first."})
 	}

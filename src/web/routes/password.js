@@ -4,8 +4,8 @@ const {z} = require("zod")
 const {defineEventHandler, readValidatedBody, sendRedirect} = require("h3")
 const {as, sync} = require("../../passthrough")
 
-/** @type {import("../auth")} */
-const auth = sync.require("../auth")
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 
 const schema = {
 	password: z.object({
@@ -15,7 +15,7 @@ const schema = {
 
 as.router.post("/api/password", defineEventHandler(async event => {
 	const {password} = await readValidatedBody(event, schema.password.parse)
-	const session = await auth.useSession(event)
+	const session = await webUtils.useSession(event)
 	await session.update({password})
 	return sendRedirect(event, "../")
 }))

@@ -12,8 +12,8 @@ const {sync} = require("../../passthrough")
 const assert = require("assert").strict
 /** @type {import("../pug-sync")} */
 const pugSync = sync.require("../pug-sync")
-/** @type {import("../auth")} */
-const auth = sync.require("../auth")
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 
 const schema = {
 	form: z.object({
@@ -53,11 +53,11 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 	}
 
 	const userAgent = getRequestHeader(event, "User-Agent")
-	if (userAgent?.match(/bot|matrix/)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
+	if (userAgent?.match(/bot|matrix|tuwunel/i)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
 
 	if (!validToken.has(token)) return sendRedirect(event, `${reg.ooye.bridge_origin}/log-in-with-matrix`, 302)
 
-	const session = await auth.useSession(event)
+	const session = await webUtils.useSession(event)
 	const mxid = validToken.get(token)
 	assert(mxid)
 	validToken.delete(token)

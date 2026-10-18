@@ -7,8 +7,8 @@ const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
 
 const {discord, db, as, sync, select, from} = require("../../passthrough")
-/** @type {import("../auth")} */
-const auth = sync.require("../auth")
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 /** @type {import("../../matrix/utils")}*/
 const utils = sync.require("../../matrix/utils")
 /** @type {import("./guild")}*/
@@ -98,8 +98,8 @@ async function validateAndUnbridgeChannel(event, channel_id, guild_id) {
 
 as.router.post("/api/link-space", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.linkSpace.parse)
-	const session = await auth.useSession(event)
-	const managed = await auth.getManagedGuilds(event)
+	const session = await webUtils.useSession(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)
 
 	// Check guild ID
@@ -148,7 +148,7 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 
 as.router.post("/api/link", defineEventHandler(async event => {
 	const parsedBody = await readValidatedBody(event, schema.link.parse)
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)
 	const createRoom = getCreateRoom(event)
 	const createSpace = getCreateSpace(event)
@@ -240,7 +240,7 @@ as.router.post("/api/link", defineEventHandler(async event => {
 
 as.router.post("/api/unlink", defineEventHandler(async event => {
 	const {channel_id, guild_id} = await readValidatedBody(event, schema.unlink.parse)
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 
 	// Check guild ID or nonce
 	if (!managed.has(guild_id)) throw createError({status: 403, message: "Forbidden", data: "Can't edit a guild you don't have Manage Server permissions in"})
@@ -257,7 +257,7 @@ as.router.post("/api/unlink", defineEventHandler(async event => {
 
 as.router.post("/api/unlink-space", defineEventHandler(async event => {
 	const {guild_id} = await readValidatedBody(event, schema.unlinkSpace.parse)
-	const managed = await auth.getManagedGuilds(event)
+	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)
 	const snow = getSnow(event)
 
