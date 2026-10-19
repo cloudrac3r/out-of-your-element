@@ -537,7 +537,7 @@ async function getL1L2ReplyLine(called = false) {
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_End} event
  * @param {DiscordTypes.APIGuild} guild
  * @param {DiscordTypes.APIGuildTextChannel} channel
- * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, pollEnd?: {messageID: string}}} di simple-as-nails dependency injection for the matrix API
+ * @param {{api: import("../../matrix/api"), snow: import("snowtransfer").SnowTransfer, pollEnd?: {messageID: string}, noRunoff: boolean}} di simple-as-nails dependency injection for the matrix API
  */
 async function eventToMessage(event, guild, channel, di) {
 	let displayName = event.sender
@@ -584,7 +584,7 @@ async function eventToMessage(event, guild, channel, di) {
 	// put the excess characters into displayNameRunoff, later to be put at the top of the message
 	let [displayNameShortened, displayNameRunoff] = splitDisplayName(displayName)
 	// If the message type is m.emote, the full name is already included at the start of the message, so remove any runoff
-	if (event.type === "m.room.message" && event.content.msgtype === "m.emote") {
+	if (di?.noRunoff || (event.type === "m.room.message" && event.content.msgtype === "m.emote")) {
 		displayNameRunoff = ""
 	}
 

@@ -182,15 +182,19 @@ sync.addTemporaryListener(as, "type:m.room.message", guard("m.room.message",
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File} event it is a m.room.message because that's what this listener is filtering for
  */
 async event => {
-	if (utils.eventSenderIsFromDiscord(event.sender)) return
-	const messageResponses = await sendEvent.sendEvent(event)
-	if (!messageResponses.length) return
-	if (event.type === "m.room.message" && event.content.msgtype === "m.text") {
-		// @ts-ignore
-		await matrixCommandHandler.execute(event)
+	if (!utils.eventSenderIsFromDiscord(event.sender)) {
+		const messageResponses = await sendEvent.sendEvent(event)
+		if (!messageResponses.length) return
+		if (event.type === "m.room.message" && event.content.msgtype === "m.text") {
+			// @ts-ignore
+			await matrixCommandHandler.execute(event)
+		}
+		retrigger.finishedBridging(event.event_id)
+		await api.ackEvent(event)
 	}
-	retrigger.finishedBridging(event.event_id)
-	await api.ackEvent(event)
+	if (!event.content["m.relates_to"]) { // Ignore edits since they don't update the timeline on Discord
+		sendEvent.latestSenderPerRoom.set(event.room_id, event.sender)
+	}
 }))
 
 sync.addTemporaryListener(as, "type:m.sticker", guard("m.sticker",
