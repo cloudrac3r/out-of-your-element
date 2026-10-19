@@ -52,8 +52,7 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 		return pugSync.render(event, "log-in-with-matrix.pug", {next})
 	}
 
-	const userAgent = getRequestHeader(event, "User-Agent")
-	if (userAgent?.match(/bot|matrix|tuwunel/i)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
+	webUtils.rejectUrlPreviewer(event)
 
 	if (!validToken.has(token)) return sendRedirect(event, `${reg.ooye.bridge_origin}/log-in-with-matrix`, 302)
 

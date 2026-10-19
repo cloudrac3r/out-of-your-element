@@ -1,6 +1,7 @@
 // @ts-check
 
 const h3 = require("h3")
+const {getRequestHeader, createError} = require("h3")
 const {db} = require("../passthrough")
 const {reg} = require("../matrix/read-registration")
 
@@ -29,5 +30,15 @@ function useSession(event) {
 	return h3.useSession(event, {password: reg.as_token, maxAge: 365 * 24 * 60 * 60})
 }
 
+/**
+ * Rejects by throwing createError.
+ * @param {h3.H3Event} event
+ */
+function rejectUrlPreviewer(event) {
+	const userAgent = getRequestHeader(event, "User-Agent")
+	if (userAgent?.match(/bot|matrix|tuwunel/i)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
+}
+
 module.exports.getManagedGuilds = getManagedGuilds
 module.exports.useSession = useSession
+module.exports.rejectUrlPreviewer = rejectUrlPreviewer
