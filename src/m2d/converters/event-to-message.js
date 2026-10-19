@@ -559,7 +559,16 @@ async function eventToMessage(event, guild, channel, di) {
 
 	// MSC4144: Override display name and avatar from per-message profile if present
 	const perMessageProfile = event.content["com.beeper.per_message_profile"]
-	if (perMessageProfile?.displayname) displayName = perMessageProfile.displayname
+	if (perMessageProfile?.displayname) {
+		// TODO: Ideally this should filter on the "language" key, rather than just picking the first, once we're aware of the guild's preferred locale.
+		// Regardless, these are intended to be in preference order, and the PMP user could always choose to reorder them if the wrong choice is made here.
+		const pronouns = perMessageProfile["io.fsky.nyx.pronouns"]?.[0]?.summary
+		let pronounsSuffix = ""
+		if (pronouns) {
+			pronounsSuffix = ` (${pronouns})`
+		}
+		displayName = `${perMessageProfile.displayname}${pronounsSuffix} | ${displayName}`
+	}
 	if (perMessageProfile && "avatar_url" in perMessageProfile) {
 		if (perMessageProfile.avatar_url) {
 			// use provided avatar_url
