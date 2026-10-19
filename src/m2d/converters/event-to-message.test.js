@@ -5985,7 +5985,7 @@ test("event2message: com.beeper.per_message_profile overrides displayname and av
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "Unstable Name",
+				username: "Unstable Name | cadence [they]",
 				content: "hello from unstable profile",
 				avatar_url: "https://bridge.example.org/download/matrix/maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo?preset=avatar",
 				allowed_mentions: {
@@ -6018,7 +6018,7 @@ test("event2message: com.beeper.per_message_profile empty avatar_url clears avat
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "No Avatar User",
+				username: "No Avatar User | cadence [they]",
 				content: "hello with cleared avatar",
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=N&hue=90",
 				allowed_mentions: {
@@ -6054,7 +6054,7 @@ test("event2message: data-mx-profile-fallback element is stripped from formatted
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "Tidus Herboren",
+				username: "Tidus Herboren | cadence [they]",
 				content: "one more test",
 				avatar_url: "https://bridge.example.org/download/matrix/maunium.net/hgXsKqlmRfpKvCZdUoWDkFQo?preset=avatar",
 				allowed_mentions: {
@@ -6087,9 +6087,60 @@ test("event2message: displayname prefix is stripped from plain body when per-mes
 			messagesToDelete: [],
 			messagesToEdit: [],
 			messagesToSend: [{
-				username: "Tidus Herboren",
+				username: "Tidus Herboren | cadence [they]",
 				content: "one more test",
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=T&hue=90",
+				allowed_mentions: {
+					parse: ["users", "roles"]
+				}
+			}]
+		}
+	)
+})
+
+test("event2message: pronouns can be displayed with per-message profile", async t => {
+	t.deepEqual(
+		await eventToMessage({
+			type: "m.room.message",
+			sender: "@exa:sleeping.town",
+			content: {
+				msgtype: "m.text",
+				body: "Well, I can't really do it now...",
+				"com.beeper.per_message_profile": {
+					id: "Kryn",
+					displayname: "Kryn",
+					"eu.she-a.color": {
+						on_dark: "#FFCC00",
+						on_light: "#976800"
+					},
+					"io.fsky.nyx.pronouns": [{
+						language: "en",
+						summary: "fae/she"
+					}]
+				}
+			},
+			event_id: "$g07oYSZFWBkxohNEfywldwgcWj1hbhDzQ1sBAKvqOOU",
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe"
+		}, {}, {}, {
+			api: {
+				async getStateEvent(roomID, type, key) {
+					t.equal(type, "m.room.member")
+					t.equal(key, "@exa:sleeping.town")
+					return {
+						displayname: "Exa",
+						membership: "join"
+					}
+				}
+			}
+		}),
+		{
+			ensureJoined: [],
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "Kryn (fae/she) | Exa",
+				content: "Well, I can't really do it now...",
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=K&hue=150",
 				allowed_mentions: {
 					parse: ["users", "roles"]
 				}
