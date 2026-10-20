@@ -1,6 +1,6 @@
 // @ts-check
 
-const {Readable} = require("stream")
+const {Transform} = require("stream")
 const {ReadableStream} = require("stream/web")
 
 const {sync} = require("../../passthrough")
@@ -9,7 +9,6 @@ const sharp = require("sharp")
 const api = sync.require("../../matrix/api")
 /** @type {import("../../matrix/mreq")} */
 const mreq = sync.require("../../matrix/mreq")
-const {streamType} = require("@cloudrac3r/stream-type")
 
 const WIDTH = 160
 const HEIGHT = 160
@@ -20,20 +19,14 @@ const HEIGHT = 160
  */
 async function getAndResizeSticker(mxc) {
 	const res = await api.getMedia(mxc)
-	if (res.status !== 200) {
-		const root = await res.json()
-		throw new mreq.MatrixServerError(root, res.status, {mxc})
-	}
 
-	const streamIn = Readable.fromWeb(res.body)
-	const {streamThrough, type} = await streamType(streamIn)
-	const animated = ["image/gif", "image/webp"].includes(type)
-
-	const transformer = sharp({animated: animated})
-		.resize(WIDTH, HEIGHT, {fit: "inside", background: {r: 0, g: 0, b: 0, alpha: 0}})
-		.webp()
-	streamThrough.pipe(transformer)
-	return Readable.toWeb(transformer)
+	return res.body.pipeThrough(
+		Transform.toWeb(
+			sharp({animated: true})
+				.resize(WIDTH, HEIGHT, {fit: "inside", background: {r: 0, g: 0, b: 0, alpha: 0}})
+				.webp()
+		)
+	)
 }
 
 

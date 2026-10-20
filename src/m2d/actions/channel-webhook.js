@@ -57,7 +57,7 @@ async function withWebhook(channelID, callback) {
 
 /**
  * @param {string} channelID
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}} data
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Blob}[]}} data
  * @param {string} [threadID]
  */
 async function sendMessageWithWebhook(channelID, data, threadID) {
@@ -70,7 +70,7 @@ async function sendMessageWithWebhook(channelID, data, threadID) {
 /**
  * @param {string} channelID
  * @param {string} messageID
- * @param {DiscordTypes.RESTPatchAPIWebhookWithTokenMessageJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}} data
+ * @param {DiscordTypes.RESTPatchAPIWebhookWithTokenMessageJSONBody & {files?: {name: string, file: Buffer | Blob}[]}} data
  * @param {string} [threadID]
  */
 async function editMessageWithWebhook(channelID, messageID, data, threadID) {

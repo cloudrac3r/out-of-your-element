@@ -28,8 +28,8 @@ const emojiSheet = sync.require("../actions/emoji-sheet")
 const latestSenderPerRoom = sync.remember(() => new Map())
 
 /**
- * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | stream.Readable})[]}} message
- * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]}>}
+ * @param {DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Blob}[], pendingFiles?: ({name: string, mxc: string} | {name: string, mxc: string, key: string, iv: string} | {name: string, buffer: Buffer | Blob})[]}} message
+ * @returns {Promise<DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Blob}[]}>}
  */
 async function resolvePendingFiles(message) {
 	if (!message.pendingFiles) return message
@@ -42,18 +42,22 @@ async function resolvePendingFiles(message) {
 		}
 		if ("key" in p) {
 			// Encrypted file
+			const res = await api.getMedia(p.mxc)
 			const d = crypto.createDecipheriv("aes-256-ctr", Buffer.from(p.key, "base64url"), Buffer.from(p.iv, "base64url"))
-			await api.getMedia(p.mxc).then(res => stream.Readable.fromWeb(res.body).pipe(d))
+			/** @type {ReadableStream} */ // @ts-ignore - close enough
+			const piped = res.body.pipeThrough(stream.Transform.toWeb(d))
+			const blob = await new Response(piped).blob()
 			return {
 				name: p.name,
-				file: d
+				file: blob
 			}
 		} else {
 			// Unencrypted file
-			const body = await api.getMedia(p.mxc).then(res => stream.Readable.fromWeb(res.body))
+			const res = await api.getMedia(p.mxc)
+			const blob = await res.blob()
 			return {
 				name: p.name,
-				file: body
+				file: blob
 			}
 		}
 	}))

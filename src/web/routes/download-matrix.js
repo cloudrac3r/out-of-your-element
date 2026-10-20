@@ -4,7 +4,7 @@ const assert = require("assert/strict")
 const {defineEventHandler, getValidatedRouterParams, setResponseStatus, setResponseHeader, createError, H3Event, getValidatedQuery} = require("h3")
 const {z} = require("zod")
 const {ReadableStream} = require("stream/web")
-const {Readable} = require("stream")
+const {Transform} = require("stream")
 const sharp = require("sharp")
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
@@ -26,8 +26,8 @@ const sticker = sync.require("../../m2d/actions/sticker")
 /** @type {{[presetKey: string]: (body: ReadableStream) => ReadableStream}} */
 const MEDIA_THUMBNAIL_PRESETS = {
 	avatar: body =>
-		Readable.toWeb(
-			Readable.fromWeb(body).pipe(
+		body.pipeThrough(
+			Transform.toWeb(
 				sharp()
 				.resize({height: 210, width: 210, fit: "cover"}) // the largest display of the webhook pfp on Discord Android in screen pixels
 				.jpeg({force: false, quality: 90}) // File size works out to up to ~110k for a PNG, less for a JPEG

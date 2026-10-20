@@ -1079,7 +1079,7 @@ async function eventToMessage(event, guild, channel, di) {
 	}
 
 	// Assemble chunks into Discord messages content
-	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | stream.Readable}[]})[]} */
+	/** @type {(DiscordTypes.RESTPostAPIWebhookWithTokenJSONBody & {files?: {name: string, file: Buffer | Blob}[]})[]} */
 	const messages = chunks.map(content => ({
 		content,
 		allowed_mentions,
