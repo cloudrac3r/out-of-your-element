@@ -128,7 +128,7 @@ async function sendError(roomID, source, type, e, payload) {
 			|| (e instanceof mreq.MatrixServerError && [502, 503].includes(e.httpStatus) && e.errcode === "CX_SERVER_ERROR")
 		) {
 			// Matrix homeserver is down (reverse proxy indicated failure)
-			homeserverStatus.homeserverStatus.setErrorWithPacket(payload)
+			homeserverStatus.homeserverStatus.setErrorWithPacket([source, payload])
 		}
 	}
 }
@@ -266,7 +266,7 @@ async event => {
 		// Try to bridge a failed event again?
 		await onRetryReactionAdd(event)
 	} else {
-		matrixCommandHandler.onReactionAdd(event)
+		if (matrixCommandHandler.onReactionAdd(event)) return
 		await addReaction.addReaction(event)
 	}
 }))

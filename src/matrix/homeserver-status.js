@@ -54,6 +54,7 @@ const homeserverStatus = new class HomeserverStatus {
 
 			.defineState("offline", {
 				onEnter: [() => {
+					console.log("[homeserver status] Offline. The failed event and further events will be queued.")
 					this.pingInterval = setInterval(async () => {
 						const pingResult = await api.ping().catch(e => ({ok: false, status: "net", root: e.message}))
 						this.lastCheck = Date.now()
@@ -70,13 +71,22 @@ const homeserverStatus = new class HomeserverStatus {
 
 			.defineState("recovering", {
 				onEnter: [async () => { // Drain queue.
-					while (!this.queue.isEmpty()) {
-						const packet = this.queue.peekFront() // same position as .shift()
-						debugHomeserverStatus(`homeserver status: ${new Date().toISOString()} dq packet ${packet.t} ${packet.d?.content}`)
-						await discordPackets.dispatchPacketToBridge(passthrough.discord, packet)
-						if (this.sm.currentStateName !== "recovering") return // got kicked out due to another error
-						this.queue.shift()
+					if (!this.queue.isEmpty()) {
+						console.log(`[homeserver status] Online, playing ${this.queue.length} events from queue...`)
+						while (!this.queue.isEmpty()) {
+							const [source, packet] = this.queue.peekFront() // same position as .shift()
+							debugHomeserverStatus(`homeserver status: ${new Date().toISOString()} dq sourceAndPacket ${packet.t} ${packet.d?.content}`)
+							if (source === "Discord") {
+								await discordPackets.dispatchPacketToBridge(passthrough.discord, packet)
+							} else {
+								// Unfortunately cannot await this, just have to trust it
+								passthrough.as.emit(`type:${packet.type}`, packet)
+							}
+							if (this.sm.currentStateName !== "recovering") return // got kicked out due to another error
+							this.queue.shift()
+						}
 					}
+					console.log("[homeserver status] Back to real-time operation.")
 					this.sm.doTransition("recovered")
 				}],
 				onLeave: [],
@@ -88,7 +98,7 @@ const homeserverStatus = new class HomeserverStatus {
 			.defineTransition("recovering", "recovered", "online")
 			.defineTransition("online", "check assume online", "checking")
 			.defineTransition("online", "check assume offline", "checking")
-			.defineTransition("checking", "check ok", "recovering")
+			.defineTransition("checking", "check ok", "online")
 			.defineTransition("checking", "check fail", "offline")
 
 		this.sm.on("enter", st => debugHomeserverStatus(`homeserver status: ${st}`))
@@ -129,16 +139,16 @@ const homeserverStatus = new class HomeserverStatus {
 	/**
 	 * When offline or recovering, call this for incoming packets to queue them to be sent in order later.
 	 */
-	queuePacket(packet) {
+	queuePacket(sourceAndPacket) {
 		assert(["offline", "recovering"].includes(this.sm.currentStateName))
-		this.queue.push(packet)
+		this.queue.push(sourceAndPacket)
 	}
 
-	setErrorWithPacket(packet) {
+	setErrorWithPacket(sourceAndPacket) {
 		const wasRecovering = this.sm.currentStateName === "recovering"
 		this.sm.doTransition("error")
-		if (!wasRecovering) { // if was recovering then packet is already in the right place in queue
-			this.queuePacket(packet)
+		if (!wasRecovering) { // if was recovering then sourceAndPacket is already in the right place in queue
+			this.queuePacket(sourceAndPacket)
 		}
 	}
 }

@@ -77,6 +77,10 @@ async function mreq(method, url, bodyIn, extra = {}) {
 	}, extra)
 
 	const res = await fetch(baseUrl + url, opts)
+	if (!res.ok) {
+		throw await makeMatrixServerError(res, {baseUrl, url, ...opts})
+	}
+
 	const text = await res.text()
 	try {
 		/** @type {any} */

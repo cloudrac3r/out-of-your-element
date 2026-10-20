@@ -221,7 +221,7 @@ async function onPacket(client, message, listen) {
 			// when not real time, skip optional events
 		} else {
 			// queue required events
-			homeserverStatus.homeserverStatus.queuePacket(message)
+			homeserverStatus.homeserverStatus.queuePacket(["Discord", message])
 		}
 	}
 }

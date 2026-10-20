@@ -222,7 +222,7 @@ const commands = [{
 						b.add("", `<img data-mx-emoticon height="48" src="${e.url}" title=":${e.name}:" alt=":${e.name}:">`)
 					}
 					await api.sendState(event.room_id, type, key, pack)
-					api.sendEvent(event.room_id, "m.room.message", {
+					await api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
 						...b.get()
 					})
@@ -238,7 +238,7 @@ const commands = [{
 						console.log(`uploading emoji ${resizeOutput.data.length} bytes to :${e.name}:`)
 						await discord.snow.assets.createGuildEmoji(guildID, {name: e.name, image: "data:image/png;base64," + resizeOutput.data.toString("base64")})
 					}
-					api.sendEvent(event.room_id, "m.room.message", {
+					await api.sendEvent(event.room_id, "m.room.message", {
 						...ctx,
 						msgtype: "m.text",
 						body: `Created ${toUpload.length} emojis`

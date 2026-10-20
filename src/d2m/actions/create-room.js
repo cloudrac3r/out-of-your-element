@@ -497,8 +497,17 @@ async function unbridgeChannel(channel, guildID, messageBeforeLeave = "This room
 	const powerLevelsUsers = (powerLevels.users ||= {})
 	for (const mxid of Object.keys(powerLevelsUsers)) {
 		if (powerLevelsUsers[mxid] >= (powerLevels.state_default ?? 50) && !allCreators.includes(mxid) && mUtils.eventSenderIsFromDiscord(mxid) && mxid !== mUtils.bot) {
-			delete powerLevelsUsers[mxid]
-			await api.sendState(roomID, "m.room.power_levels", "", powerLevels, mxid) // done individually because each user must demote themselves
+			// can OOYE bot demote them?
+			if (allCreators.includes(mUtils.bot) || powerLevelsUsers[mxid] < powerLevelsUsers[mUtils.bot]) {
+				delete powerLevelsUsers[mxid]
+				await api.sendState(roomID, "m.room.power_levels", "", powerLevels) // bot can demote them
+			} else {
+				// check user is still in room and can send events
+				if (select("sim_member", "mxid", {mxid, room_id: roomID}).get()) {
+					delete powerLevelsUsers[mxid]
+					await api.sendState(roomID, "m.room.power_levels", "", powerLevels, mxid) // done individually because each user must demote themselves
+				}
+			}
 		}
 	}
 
