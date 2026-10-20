@@ -96,7 +96,7 @@ test("message2event components: pk question mark output", async t => {
 			+ "<hr>"
 			+ "<p>Same hat</p>"
 			+ `🖼️ Image: <a href="https://bridge.example.org/download/discordcdn/934955898965729280/1466556006527012987/image.png">image.png</a></blockquote>`
-			+ "<p><sub>Original Message ID: 1466556003645657118 · <a href=\"https://bridge.example.org/time/1769724599/f\">29 January 2026 at 10:09 pm (UTC)</a></sub></p>",
+			+ "<p><sub>Original Message ID: 1466556003645657118 · <a href=\"https://bridge.example.org/time/1769724599/f\"><time data-style=\"f\" datetime=\"2026-01-29T22:09:59.000Z\">29 January 2026 at 10:09 pm (UTC)</time></a></sub></p>",
 		"m.mentions": {},
 		msgtype: "m.text",
 	}])

@@ -79,8 +79,13 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 			const text = discordTime.convertDiscordTime(node.timestamp, node.style)
 			if (useHTML) {
 				let url = `${reg.ooye.bridge_origin}/time/${node.timestamp}`
-				if (node.style) url += `/${node.style}`
-				return tag`<a href="${url}">${text}</a>`
+				let dataStyle = ""
+				if (node.style) {
+					url += `/${node.style}`
+					dataStyle = tag`data-style="${node.style}" `
+				}
+				const iso = new Date(node.timestamp * 1000).toISOString()
+				return tag`<a href="${url}"><time $${dataStyle}datetime="${iso}">${text}</time></a>`
 			} else {
 				return text
 			}

@@ -214,12 +214,12 @@ test("message2event: timestamps", async t => {
 			+ "\n3 October 2026 at 9:30 am (UTC)"
 			+ "\n24 December 2026 at 11:00 pm (UTC)",
 		format: "org.matrix.custom.html",
-		formatted_body: `<a href="https://bridge.example.org/time/1791106413/S">4 Oct 2026, 9:33:33 am (UTC)</a>`
-			+ `<br><a href="https://bridge.example.org/time/1791106436/f">4 October 2026 at 9:33 am (UTC)</a>`
-			+ `<br><a href="https://bridge.example.org/time/1791106440/F">Sunday, 4 October 2026 at 9:34 am (UTC)</a>`
-			+ `<br><a href="https://bridge.example.org/time/1791106448/T">9:34:08 am (UTC)</a>`
-			+ `<br><a href="https://bridge.example.org/time/1791019800/R">3 October 2026 at 9:30 am (UTC)</a>`
-			+ `<br><a href="https://bridge.example.org/time/1798153200/R">24 December 2026 at 11:00 pm (UTC)</a>`,
+		formatted_body: `<a href="https://bridge.example.org/time/1791106413/S"><time data-style="S" datetime="2026-10-04T09:33:33.000Z">4 Oct 2026, 9:33:33 am (UTC)</time></a>`
+			+ `<br><a href="https://bridge.example.org/time/1791106436/f"><time data-style="f" datetime="2026-10-04T09:33:56.000Z">4 October 2026 at 9:33 am (UTC)</time></a>`
+			+ `<br><a href="https://bridge.example.org/time/1791106440/F"><time data-style="F" datetime="2026-10-04T09:34:00.000Z">Sunday, 4 October 2026 at 9:34 am (UTC)</time></a>`
+			+ `<br><a href="https://bridge.example.org/time/1791106448/T"><time data-style="T" datetime="2026-10-04T09:34:08.000Z">9:34:08 am (UTC)</time></a>`
+			+ `<br><a href="https://bridge.example.org/time/1791019800/R"><time data-style="R" datetime="2026-10-03T09:30:00.000Z">3 October 2026 at 9:30 am (UTC)</time></a>`
+			+ `<br><a href="https://bridge.example.org/time/1798153200/R"><time data-style="R" datetime="2026-12-24T23:00:00.000Z">24 December 2026 at 11:00 pm (UTC)</time></a>`,
 		"m.mentions": {}
 	}])
 })
