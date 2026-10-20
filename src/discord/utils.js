@@ -134,14 +134,19 @@ function timestampToSnowflakeInexact(timestamp) {
 	return String((timestamp - EPOCH) * 2**22)
 }
 
-/** @param {string} url */
-function getPublicUrlForCdn(url) {
+/**
+ * @param {string} url
+ * @param {boolean} [spoiler]
+ */
+function getPublicUrlForCdn(url, spoiler = false) {
 	const match = url.match(/https:\/\/(cdn|media)\.discordapp\.(?:com|net)\/attachments\/([0-9]+)\/([0-9]+)\/([-A-Za-z0-9_.,]+)/)
 	if (!match) return url
 	const unsignedHash = hasher.h64(match[3]) // attachment ID
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
-	return `${reg.ooye.bridge_origin}/download/discord${match[1]}/${match[2]}/${match[3]}/${match[4]}`
+	const transformedUrl = new URL(`${reg.ooye.bridge_origin}/download/discord${match[1]}/${match[2]}/${match[3]}/${match[4]}`)
+	if (spoiler) transformedUrl.searchParams.set("spoiler", "yes")
+	return transformedUrl.toString()
 }
 
 /**

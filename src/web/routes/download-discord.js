@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require("assert/strict")
-const {defineEventHandler, getValidatedRouterParams, sendRedirect, createError, H3Event} = require("h3")
+const {defineEventHandler, getValidatedRouterParams, sendRedirect, createError, H3Event, getValidatedQuery} = require("h3")
 const {z} = require("zod")
 
 /** @type {import("xxhash-wasm").XXHashAPI} */ // @ts-ignore
@@ -9,13 +9,19 @@ let hasher = null
 // @ts-ignore
 require("xxhash-wasm")().then(h => hasher = h)
 
-const {discord, as, select} = require("../../passthrough")
+const {discord, as, select, sync} = require("../../passthrough")
+
+/** @type {import("../web-utils")} */
+const webUtils = sync.require("../web-utils")
 
 const schema = {
 	params: z.object({
 		channel_id: z.string().regex(/^[0-9]+$/),
 		attachment_id: z.string().regex(/^[0-9]+$/),
 		file_name: z.string().regex(/^[-A-Za-z0-9_.,]+$/)
+	}),
+	query: z.object({
+		spoiler: z.string().optional()
 	})
 }
 
@@ -40,9 +46,15 @@ function timeUntilExpiry(url) {
 	if (time > 0) return time
 }
 
+/**
+ * @param {string} domain
+ */
 function defineMediaProxyHandler(domain) {
 	return defineEventHandler(async event => {
 		const params = await getValidatedRouterParams(event, schema.params.parse)
+		const query = await getValidatedQuery(event, schema.query.parse)
+
+		if (query.spoiler) webUtils.rejectUrlPreviewer(event)
 
 		const unsignedHash = hasher.h64(params.attachment_id)
 		const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range

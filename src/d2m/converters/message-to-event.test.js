@@ -366,9 +366,9 @@ test("message2event: spoiler attachment", async t => {
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.text",
-		body: "📄 Uploaded SPOILER file: https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci (74 KB)",
+		body: "📄 Uploaded SPOILER file: https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci?spoiler=yes (74 KB)",
 		format: "org.matrix.custom.html",
-		formatted_body: "<blockquote>📄 Uploaded SPOILER file: <a href=\"https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci\">https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci</a> (74 KB)</blockquote>"
+		formatted_body: "📄 Uploaded <strong>SPOILER</strong> file: <a href=\"https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci?spoiler=yes\">https://bridge.example.org/download/discordcdn/1100319550446252084/1147465564307079258/SPOILER_69-GNDP-CADENCE.nfs.gci?spoiler=yes</a> (74 KB)"
 	}])
 })
 
@@ -1205,13 +1205,13 @@ test("message2event: multiple attachments are combined into the same event where
 		msgtype: "m.text",
 		body: "hey"
 			+ "\n📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)"
-			+ "\n📸 Uploaded SPOILER file: https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg (38 KB)"
+			+ "\n📸 Uploaded SPOILER file: https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg?spoiler=yes (38 KB)"
 			+ "\n📄 Uploaded file: https://bridge.example.org/download/discordcdn/123/456/789.mega (100 MB)",
 		format: "org.matrix.custom.html",
 		formatted_body: "hey"
 			+ `<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
-			+ `<br><blockquote>📸 Uploaded SPOILER file: <a href="https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg">https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg</a> (38 KB)</blockquote>`
-			+ `📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
+			+ `<br>📸 Uploaded <strong>SPOILER</strong> file: <a href=\"https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg?spoiler=yes\">https://bridge.example.org/download/discordcdn/123/456/SPOILER_secret.jpg?spoiler=yes</a> (38 KB)`
+			+ `<br>📄 Uploaded file: <a href="https://bridge.example.org/download/discordcdn/123/456/789.mega">hey.jpg</a> (100 MB)`
 	}, {
 		$type: "m.room.message",
 		"m.mentions": {},

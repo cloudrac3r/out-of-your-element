@@ -140,7 +140,6 @@ const embedTitleParser = markdown.markdownEngine.parserFor({
  * @param {{fetch?: typeof fetch}} [di]
  */
 async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
-	const external_url = dUtils.getPublicUrlForCdn(attachment.url)
 	const emoji =
 		attachment.content_type?.startsWith("image/jp") ? "📸"
 		: attachment.content_type?.startsWith("image/") ? "🖼️"
@@ -148,15 +147,17 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 		: attachment.content_type?.startsWith("text/") ? "📝"
 		: attachment.content_type?.startsWith("audio/") ? "🎶"
 		: "📄"
-	// no native media spoilers in Element, so we'll post a link instead, forcing it to not preview using a blockquote
-	if (attachment.filename.startsWith("SPOILER_") || !!((attachment.flags || 0) & DiscordTypes.AttachmentFlags.IsSpoiler)) {
+	// no native media spoilers in Element, so we'll post an unpreviewable link instead
+	const spoiler = attachment.filename.startsWith("SPOILER_") || !!((attachment.flags || 0) & DiscordTypes.AttachmentFlags.IsSpoiler);
+	const externalURL = dUtils.getPublicUrlForCdn(attachment.url, spoiler)
+	if (spoiler) {
 		return {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype: "m.text",
-			body: `${emoji} Uploaded SPOILER file: ${external_url} (${pb(attachment.size)})`,
+			body: `${emoji} Uploaded SPOILER file: ${externalURL} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `<blockquote>${emoji} Uploaded SPOILER file: <a href="${external_url}">${external_url}</a> (${pb(attachment.size)})</blockquote>`
+			formatted_body: `${emoji} Uploaded <strong>SPOILER</strong> file: <a href="${externalURL}">${externalURL}</a> (${pb(attachment.size)})`
 		}
 	}
 	// attempt to convert large PNG image files to JPEG, since it's almost certainly a photo that was forced into PNG by the user copy-pasting.
@@ -176,7 +177,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 				"m.mentions": mentions,
 				msgtype: "m.image",
 				url: await file.uploadDiscordFileToMxc(jpegUrl),
-				external_url,
+				external_url: externalURL,
 				body: attachment.description || newFilename,
 				filename: newFilename,
 				info: {
@@ -194,9 +195,9 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 			$type: "m.room.message",
 			"m.mentions": mentions,
 			msgtype: "m.text",
-			body: `${emoji} Uploaded file: ${external_url} (${pb(attachment.size)})`,
+			body: `${emoji} Uploaded file: ${externalURL} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `${emoji} Uploaded file: <a href="${external_url}">${attachment.filename}</a> (${pb(attachment.size)})`
+			formatted_body: `${emoji} Uploaded file: <a href="${externalURL}">${attachment.filename}</a> (${pb(attachment.size)})`
 		}
 	}
 	if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
@@ -205,7 +206,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 			"m.mentions": mentions,
 			msgtype: "m.image",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url,
+			external_url: externalURL,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -222,7 +223,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 			"m.mentions": mentions,
 			msgtype: "m.video",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url,
+			external_url: externalURL,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -239,7 +240,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 			"m.mentions": mentions,
 			msgtype: "m.audio",
 			url: await file.uploadDiscordFileToMxc(attachment.url),
-			external_url,
+			external_url: externalURL,
 			body: attachment.description || attachment.filename,
 			filename: attachment.filename,
 			info: {
@@ -255,7 +256,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 		"m.mentions": mentions,
 		msgtype: "m.file",
 		url: await file.uploadDiscordFileToMxc(attachment.url),
-		external_url,
+		external_url: externalURL,
 		body: attachment.description || attachment.filename,
 		filename: attachment.filename,
 		info: {
