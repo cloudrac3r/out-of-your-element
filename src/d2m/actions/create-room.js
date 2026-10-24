@@ -43,7 +43,7 @@ const DEFAULT_PRIVACY_LEVEL = 0
 const READ_ONLY_ROOM_EVENTS_DEFAULT_POWER = 50
 
 /** @type {Map<string, Promise<string>>} channel ID -> Promise<room ID> */
-const inflightRoomCreate = new Map()
+const inflightRoomCreate = sync.remember(() => new Map())
 
 /**
  * @param {{id: string, name: string, topic?: string?, type: number, parent_id?: string?}} channel

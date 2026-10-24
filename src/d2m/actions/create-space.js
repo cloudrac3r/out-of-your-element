@@ -22,7 +22,7 @@ const expression = sync.require("./expression")
 const ks = sync.require("../../matrix/kstate")
 
 /** @type {Map<string, Promise<string>>} guild ID -> Promise<space ID> */
-const inflightSpaceCreate = new Map()
+const inflightSpaceCreate = sync.remember(() => new Map())
 
 /**
  * @param {DiscordTypes.RESTGetAPIGuildResult} guild

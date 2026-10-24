@@ -42,7 +42,7 @@ const typing = sync.require("./actions/typing")
 const errors = sync.require("../js/errors")
 const {reg} = require("../matrix/read-registration")
 
-let lastReportedEvent = 0
+const errorReportStatus = sync.remember(() => ({lastReportedEvent: 0}))
 
 function printError(type, source, e, payload) {
 	console.error(`Error while processing a ${type} ${source} event:`)
@@ -67,8 +67,8 @@ async function sendError(roomID, source, type, e, payload) {
 		printError(type, source, e, payload)
 	}
 
-	if (Date.now() - lastReportedEvent < 5000) return null
-	lastReportedEvent = Date.now()
+	if (Date.now() - errorReportStatus.lastReportedEvent < 5000) return null
+	errorReportStatus.lastReportedEvent = Date.now()
 
 	let errorIntroLine = e.toString()
 	if (e.cause) {
@@ -143,7 +143,7 @@ function guard(type, fn) {
 	}
 }
 
-const errorRetrySema = new Semaphore()
+const errorRetrySema = sync.remember(() => new Semaphore())
 
 /**
  * @param {Ty.Event.Outer<Ty.Event.M_Reaction>} reactionEvent

@@ -45,7 +45,7 @@ const redact = sync.require("../m2d/actions/redact.js")
 const matrixInfoInteraction = sync.require("../discord/interactions/matrix-info")
 
 const {Semaphore} = require("@chriscdn/promise-semaphore")
-const checkMissedPinsSema = new Semaphore()
+const checkMissedPinsSema = sync.remember(() => new Semaphore())
 
 // Grab Discord events we care about for the bridge, check them, and pass them on
 

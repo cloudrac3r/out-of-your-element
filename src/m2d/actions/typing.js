@@ -1,11 +1,11 @@
 // @ts-check
 
-const {discord} = require("../../passthrough")
+const {discord, sync} = require("../../passthrough")
 
 /** @type {Set<string>} channel ids that are currently typing */
-const isTyping = new Set()
+const isTyping = sync.remember(() => new Set())
 /** @type {Map<string, NodeJS.Timeout>} channel id -> interval */
-const intervals = new Map()
+const intervals = sync.remember(() => new Map())
 
 /** @param {string} channelID */
 function startTyping(channelID) {

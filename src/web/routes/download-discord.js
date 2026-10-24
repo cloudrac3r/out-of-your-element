@@ -35,7 +35,7 @@ function getSnow(event) {
 }
 
 /** @type {Map<string, Promise<string>>} */
-const cache = new Map()
+const cache = sync.remember(() => new Map())
 
 /** @param {string} url */
 function timeUntilExpiry(url) {

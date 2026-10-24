@@ -36,7 +36,7 @@ function getAPI(event) {
 }
 
 /** @type {LRUCache<string, string>} token to mxid */
-const validToken = new LRUCache({max: 200})
+const validToken = sync.remember(() => new LRUCache({max: 200}))
 
 /*
 	1st request, GET, they clicked the button, need to input their mxid

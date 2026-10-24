@@ -19,7 +19,7 @@ function debugHomeserverStatus(message) {
 	}
 }
 
-const homeserverStatus = new class HomeserverStatus {
+const homeserverStatus = sync.remember(() => new class HomeserverStatus {
 	constructor() {
 		/** @private */
 		this.queue = new Denque()
@@ -151,6 +151,6 @@ const homeserverStatus = new class HomeserverStatus {
 			this.queuePacket(sourceAndPacket)
 		}
 	}
-}
+})
 
 module.exports.homeserverStatus = homeserverStatus
