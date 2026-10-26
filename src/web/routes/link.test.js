@@ -822,7 +822,6 @@ test("web unlink space: successfully calls unbridgeChannel on linked channels in
 		},
 		snow: {
 			user: {
-				// @ts-ignore - snowtransfer or discord-api-types broken, 204 No Content should be mapped to void but is actually mapped to never
 				async leaveGuild(guildID) {
 					t.equal(guildID, "665289423482519565")
 				}

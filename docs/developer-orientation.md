@@ -130,7 +130,7 @@ Total transitive production dependencies: 114
 * (0) try-to-catch: Not strictly necessary, but it's already pulled in by supertape, so I may as well.
 * (0) uqr: QR code SVG generator. Used on the website to scan in an invite link.
 * (0) xxhash-wasm: Used where cryptographically secure hashing is not required.
-* (0) zod: Input validation for the web server. It's popular and easy to use.
+* (0) zod: Input validation. Author using LLMs since Feb 2026, but there are no reasonable alternatives. Forking an old version would be irresponsible for security.
 
 ### Outdated versions
 
@@ -146,3 +146,5 @@ Total transitive production dependencies: 114
     * Using major version 1. Version 2 has been stuck as **release candidates for months**, and all the code comments are Claude.
 * htmx.org
     * Using major version 2. Version 4 exists, and **I'd be okay updating to it**, but the author changed a lot and the entire site would need to be re-tested.
+* try-to-catch
+    * Using 4.0.5. Version 4.1.0 added annoying types and has no benefit.
