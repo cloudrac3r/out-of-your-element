@@ -22,6 +22,10 @@ Applications that requested **all 3 privileged intents** have been successful, s
 
 ## Writing your application
 
+First, you need to publicise a contact method that people can use to request manual data removal. Run `node scripts/contact-me.js`
+
+Now that you've done that, the privacy policy is linked at the bottom of every web page on your OOYE instance. You should include that link in your application. You should also consider adding the privacy policy link to the Discord bot's bio.
+
 This [application by Amber of kathund.dev](https://bridge.cadence.moe/download/matrix/snowball.kathund.dev/kDSCaRYXXrXpfZQiifZDnhNW) for only Message Content and Server Members was successful. You may wish to take notes from it when writing your own application, though I suggest _not_ copying it word for word.
 
 I recorded a video demonstrating the Guild Members intent, you can use this: https://youtu.be/i9_sx0fYQWs

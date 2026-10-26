@@ -123,9 +123,7 @@ as.router.get("/icon.png", defineEventHandler(async event => {
 
 // Routes
 
-if (reg.reg.ooye.bridge_admin_contact) {
-	pugSync.createRoute(as.router, "/ok", "ok.pug")
-}
+pugSync.createRoute(as.router, "/ok", "ok.pug")
 pugSync.createRoute(as.router, "/opt-out", "opt-out.pug")
 pugSync.createRoute(as.router, "/privacy-policy", "privacy-policy.pug")
 
