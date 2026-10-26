@@ -6,7 +6,7 @@
 
 const util = require("util")
 const Ty = require("../types")
-const {discord, db, sync, as, select} = require("../passthrough")
+const {discord, db, sync, as, select, from} = require("../passthrough")
 const {tag} = require("@cloudrac3r/html-template-tag")
 const {Semaphore} = require("@chriscdn/promise-semaphore")
 
@@ -38,6 +38,8 @@ const retrigger = sync.require("../d2m/actions/retrigger")
 const homeserverStatus = sync.require("../matrix/homeserver-status")
 /** @type {import("./actions/typing")} */
 const typing = sync.require("./actions/typing")
+/** @type {import("./actions/nickname")} */
+const nickname = sync.require("./actions/nickname")
 /** @type {import("../js/errors")} */
 const errors = sync.require("../js/errors")
 const {reg} = require("../matrix/read-registration")
@@ -268,6 +270,7 @@ async event => {
 	} else {
 		if (matrixCommandHandler.onReactionAdd(event)) return
 		await addReaction.addReaction(event)
+		await nickname.setNicknameFromRoomID(event.room_id)
 	}
 }))
 
@@ -488,12 +491,13 @@ sync.addTemporaryListener(as, "ephemeral_type:m.typing", guard("m.typing",
  * @param {Ty.Event.Outer_M_Typing} event
  */
 async event => {
-	const channelID = select("channel_room", "channel_id", {room_id: event.room_id}).pluck().get()
-	if (!channelID) return
+	const row = select("channel_room", ["channel_id", "guild_id"], {room_id: event.room_id}).get()
+	if (!row) return
 	if (event.content.user_ids.some(mxid => !utils.eventSenderIsFromDiscord(mxid))) {
-		typing.startTyping(channelID)
+		await nickname.setNicknameFromGuildID(row.guild_id)
+		typing.startTyping(row.channel_id)
 	} else {
-		typing.stopTyping(channelID)
+		typing.stopTyping(row.channel_id)
 	}
 }))
 

@@ -19,7 +19,7 @@ export type Models = {
 		custom_avatar: string | null
 		last_bridged_pin_timestamp: number | null
 		speedbump_checked: number | null
-		guild_id: string | null
+		guild_id: string
 		custom_topic: number
 		room_mention_role: string | null
 	}
@@ -65,6 +65,7 @@ export type Models = {
 		presence: 0 | 1
 		url_preview: 0 | 1
 		webhook_profile: 0 | 1
+		nicknamed: 0 | 1
 	}
 
 	guild_active: {
