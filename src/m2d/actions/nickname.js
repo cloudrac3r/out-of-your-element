@@ -3,14 +3,23 @@
 const {discord, db, select} = require("../../passthrough")
 
 /** @param {string} guildID */
+function markGuildNicknamed(guildID) {
+	db.prepare("UPDATE guild_space SET nicknamed = 1 WHERE guild_id = ?").run(guildID)
+}
+
+/** @param {string} guildID */
 async function setNicknameFromGuildID(guildID) {
 	const nicknamed = select("guild_space", "nicknamed", {guild_id: guildID}).pluck().get()
 	if (nicknamed !== 0) return
 	try {
 		await discord.snow.guild.editGuildMember(guildID, "@me", {nick: "a Matrix user"})
-		db.prepare("UPDATE guild_space SET nicknamed = 1 WHERE guild_id = ?").run(guildID)
+		markGuildNicknamed(guildID)
 	} catch (e) {
-		console.error(e) // low priority failure should be logged instead of interrupting
+		if (e.message === "Missing Permissions") {
+			markGuildNicknamed(guildID) // skip this guild and don't try again
+		} else {
+			console.error(e) // low priority failure should be logged instead of interrupting
+		}
 	}
 }
 
