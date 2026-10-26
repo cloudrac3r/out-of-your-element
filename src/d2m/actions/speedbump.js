@@ -56,7 +56,7 @@ async function updateCache(channelID, lastChecked) {
  */
 
 /** @type {Map<string, BumpingEntry>} messageID -> BumpingEntry */
-const bumping = new Map()
+const bumping = sync.remember(() => new Map())
 
 /**
  * Slow down a message. After it passes the speedbump, return whether it's okay or if it's been deleted.

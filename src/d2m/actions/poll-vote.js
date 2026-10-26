@@ -12,7 +12,7 @@ const api = sync.require("../../matrix/api")
 /** @type {import("./register-user")} */
 const registerUser = sync.require("./register-user")
 
-const inFlightPollSema = new Semaphore()
+const inFlightPollSema = sync.remember(() => new Semaphore())
 
 /**
  * @param {import("discord-api-types/v10").GatewayMessagePollVoteAddDispatch["d"]} data

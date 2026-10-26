@@ -20,7 +20,7 @@ function debugRetrigger(message) {
 	}
 }
 
-const storage = new class {
+const storage = sync.remember(() => new class {
 	/** @private @type {Set<string>} */
 	paused = new Set()
 	/** @private @type {Map<string, ((found: Boolean) => any)[]>} id -> list of resolvers */
@@ -78,7 +78,7 @@ const storage = new class {
 			this.timers.delete(id)
 		}
 	}
-}
+})
 
 /**
  * @param {string} id

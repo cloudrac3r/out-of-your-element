@@ -8,7 +8,7 @@ const {sync} = passthrough
 /** @type {import("../matrix/homeserver-status")} */
 const homeserverStatus = sync.require("../matrix/homeserver-status")
 
-const guildReadyStatus = new class {
+const guildReadyStatus = sync.remember(() => new class {
 	/** @type {Set<string> | null} */
 	unavailableGuilds = null
 	_allReady = Promise.withResolvers()
@@ -33,7 +33,7 @@ const guildReadyStatus = new class {
 	waitForAllReady() {
 		return this._allReady.promise
 	}
-}
+})
 
 /**
  * @param {import("./discord-client")} client

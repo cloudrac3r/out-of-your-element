@@ -16,7 +16,13 @@ const {reg} = require("./src/matrix/read-registration")
 const passthrough = require("./src/passthrough")
 const db = new sqlite("ooye.db")
 
-const sync = new HeatSync({watchFunction: fs.watchFile})
+const sync = new HeatSync({
+	watchFunction(path, options, cb) {
+		return fs.watchFile(path, options, (curr, prev) => {
+			if (curr.mtimeMs !== prev.mtimeMs || curr.size !== prev.size) cb()
+		})
+	}
+})
 
 Object.assign(passthrough, {sync, db})
 

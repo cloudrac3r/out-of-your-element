@@ -11,7 +11,7 @@ const utils = sync.require("../../matrix/utils")
 const retrigger = sync.require("../../d2m/actions/retrigger")
 
 /** @type {{messageID: string, emojiIdOrName: string}[]} */
-const m2dDeletedReactions = []
+const m2dDeletedReactions = sync.remember(() => [])
 
 /**
  * @param {Ty.Event.Outer_M_Room_Redaction} event

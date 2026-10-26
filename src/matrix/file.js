@@ -12,7 +12,7 @@ const DISCORD_IMAGES_BASE = "https://cdn.discordapp.com"
 const IMAGE_SIZE = 1024
 
 /** @type {Map<string, Promise<string>>} */
-const inflight = new Map()
+const inflight = sync.remember(() => new Map())
 
 /**
  * @param {string} urlString

@@ -51,7 +51,7 @@ function getAPI(event) {
 }
 
 /** @type {LRUCache<string, string>} nonce to guild id */
-const validNonce = new LRUCache({max: 200})
+const validNonce = sync.remember(() => new LRUCache({max: 200}))
 
 /**
  * @param {{type: number, parent_id?: string | null, position?: number}} channel

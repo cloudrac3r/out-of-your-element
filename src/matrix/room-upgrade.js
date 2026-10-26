@@ -9,7 +9,7 @@ const {db, sync, select, from} = require("../passthrough")
 /** @type {import("./utils")}) */
 const utils = sync.require("./utils")
 
-const roomUpgradeSema = new Semaphore()
+const roomUpgradeSema = sync.remember(() => new Semaphore())
 
 /**
  * @param {Ty.Event.StateOuter<Ty.Event.M_Room_Tombstone>} event
