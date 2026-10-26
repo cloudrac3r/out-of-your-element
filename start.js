@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // @ts-check
 
+// Name the process and the main thread
+process.title = "ooye"
+
 // Ensure consistent output from the Intl and Temporal API across Node.js versions
 require("temporal-polyfill-lite/global")
 
