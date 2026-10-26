@@ -1952,7 +1952,7 @@ test("message2event: multiple-choice poll", async t => {
 	}])
 })
 
-test("message2event: smalltext from regular user", async t => {
+test("message2event: smalltext from regular user is converted", async t => {
 	const events = await messageToEvent({
 		content: "-# hmm",
 		author: {
@@ -1964,5 +1964,72 @@ test("message2event: smalltext from regular user", async t => {
 		msgtype: "m.text",
 		"m.mentions": {},
 		body: "...hmm"
+	}])
+})
+
+test("message2event: smalltext from bot is intact", async t => {
+	const events = await messageToEvent({
+		content: "-# hmm",
+		author: {
+			bot: true
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {},
+		body: "-# hmm",
+		format: "org.matrix.custom.html",
+		formatted_body: "<sub>hmm</sub>"
+	}])
+})
+
+test("message2event: smalltext and parentheses from regular user is converted", async t => {
+	const events = await messageToEvent({
+		content: "-# (hmm...)",
+		author: {
+			bot: false
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {},
+		body: "(...hmm...)"
+	}])
+})
+
+test("message2event: smalltext from proxy bot is converted", async t => {
+	const events = await messageToEvent({
+		content: "-# hmm",
+		embeds: [],
+		channel_id: "112760669178241024",
+		webhook_id: "1349427364265988116"
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {},
+		body: "...hmm"
+	}])
+})
+
+test("message2event: smalltext from other webhook is intact", async t => {
+	const events = await messageToEvent({
+		content: "-# hmm",
+		embeds: [],
+		channel_id: "112760669178241024",
+		webhook_id: "4",
+		author: {
+			bot: false
+		}
+	})
+	t.deepEqual(events, [{
+		$type: "m.room.message",
+		msgtype: "m.text",
+		"m.mentions": {},
+		body: "-# hmm",
+		format: "org.matrix.custom.html",
+		formatted_body: "<sub>hmm</sub>"
 	}])
 })

@@ -24,6 +24,8 @@ const discordTime = sync.require("../../discord/time")
 const findMentions = sync.require("./find-mentions")
 /** @type {import("../../discord/interactions/poll-responses")} */
 const pollResponses = sync.require("../../discord/interactions/poll-responses")
+/** @type {import("../actions/speedbump")} */
+const speedbump = sync.require("../actions/speedbump")
 const {reg} = require("../../matrix/read-registration")
 
 /**
@@ -609,10 +611,11 @@ async function messageToEvent(message, guild, options = {}, di) {
 		content = transformAttachmentLinks(content)
 		content = await transformContentMessageLinks(content)
 
-		// Remove smalltext from non-bots (I don't like it). Webhooks included due to PluralKit.
+		// Remove smalltext from non-bots (I don't like it).
 		const isHumanOrDataMissing = !message.author?.bot
-		if (isHumanOrDataMissing || dUtils.isWebhookMessage(message)) {
-			content = content.replaceAll(/^-# +([^\n].*?)/gm, "...$1")
+		const isProxyOrHumanOrDataMissing = message.webhook_id ? speedbump.sentByProxyWebhook(message) : isHumanOrDataMissing
+		if (isProxyOrHumanOrDataMissing) {
+			content = content.replaceAll(/^-# +([([])?([^\n].*?)/gm, "$1...$2")
 		}
 
 		// Handling emojis that we don't know about. The emoji has to be present in the DB for it to be picked up in the emoji markdown converter.

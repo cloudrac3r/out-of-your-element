@@ -124,6 +124,14 @@ function onMessageDelete(messageID) {
 }
 
 /**
+ * @param {{channel_id: string, webhook_id?: string}} message
+ * @returns {string | null | undefined} user id of proxy bot, if it was a proxied message
+ */
+function sentByProxyWebhook(message) {
+	return select("channel_speedbump", "speedbump_user_id", {channel_id: message.channel_id, speedbump_webhook_id: message.webhook_id}).pluck().get()
+}
+
+/**
  * @param {DiscordTypes.APIMessage} message
  * @param {string} guildID
  * @param {string} roomID
@@ -131,7 +139,7 @@ function onMessageDelete(messageID) {
 async function getWebhookSenderId(message, guildID, roomID) {
 	const isMatrixWebhook = select("webhook", "webhook_id", {webhook_id: message.webhook_id}).pluck().get()
 	if (isMatrixWebhook) return null
-	const speedbumpUserID = select("channel_speedbump", "speedbump_user_id", {channel_id: message.channel_id, speedbump_webhook_id: message.webhook_id}).pluck().get()
+	const speedbumpUserID = sentByProxyWebhook(message)
 	const useWebhookProfile = select("guild_space", "webhook_profile", {guild_id: guildID}).pluck().get() ?? 0
 	if (speedbumpUserID === "466378653216014359") { // PluralKit public instance
 		return await registerPkUser.syncUser(message.id, message.author, roomID, true)
@@ -147,3 +155,4 @@ module.exports.updateCache = updateCache
 module.exports.maybeDoSpeedbump = maybeDoSpeedbump
 module.exports.onMessageDelete = onMessageDelete
 module.exports.getWebhookSenderId = getWebhookSenderId
+module.exports.sentByProxyWebhook = sentByProxyWebhook

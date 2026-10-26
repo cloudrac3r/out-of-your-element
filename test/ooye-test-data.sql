@@ -29,6 +29,9 @@ UPDATE channel_room SET room_mention_role = '123456' WHERE room_id = '!fGgIymcYW
 
 INSERT INTO historical_channel_room (reference_channel_id, room_id, upgraded_timestamp) SELECT channel_id, room_id, 0 FROM channel_room;
 
+INSERT INTO channel_speedbump (channel_id, speedbump_webhook_id, speedbump_user_id) VALUES
+('112760669178241024', '1349427364265988116', '466378653216014359');
+
 INSERT INTO sim (user_id, username, sim_name, mxid) VALUES
 ('0',                  'Matrix Bridge', 'bot', '@_ooye_bot:cadence.moe'),
 ('820865262526005258', 'Crunch God', 'crunch_god', '@_ooye_crunch_god:cadence.moe'),
