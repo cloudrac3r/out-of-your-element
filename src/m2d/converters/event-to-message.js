@@ -708,6 +708,12 @@ async function eventToMessage(event, guild, channel, di) {
 			// Check if we have a pointer to what was edited
 			const originalEventId = relatesTo.event_id
 			if (!originalEventId) return
+
+			// Ensure edit is by same sender as original
+			const originalEvent = await di.api.getEvent(event.room_id, originalEventId)
+			if (originalEvent.sender !== event.sender) throw new Error("You tampered with that event to try to edit somebody else's message. Stop it!")
+
+			// Figure out which messages to edit
 			if (!await retrigger.waitForEvent(originalEventId)) return
 			messageIDsToEdit = select("event_message", "message_id", {event_id: originalEventId}, "ORDER BY part").pluck().all()
 			if (!messageIDsToEdit.length) return
@@ -716,8 +722,6 @@ async function eventToMessage(event, guild, channel, di) {
 			event = {...event, content: event.content["m.new_content"]}
 
 			// Is it editing a reply? We need special handling if it is.
-			// Get the original event, then check if it was a reply
-			const originalEvent = await di.api.getEvent(event.room_id, originalEventId)
 			const repliedToEventId = originalEvent?.content?.["m.relates_to"]?.["m.in_reply_to"]?.event_id
 			if (!repliedToEventId) return
 

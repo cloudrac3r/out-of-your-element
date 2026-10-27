@@ -5,6 +5,7 @@ const {eventToMessage} = require("./event-to-message")
 const data = require("../../../test/data")
 const {MatrixServerError} = require("../../matrix/mreq")
 const {select, discord, db} = require("../../passthrough")
+const {tryToCatch} = require("try-to-catch")
 
 /**
  * @param {string} roomID
@@ -2839,6 +2840,44 @@ test("event2message: editing a plaintext body message", async t => {
 			messagesToSend: []
 		}
 	)
+})
+
+test("event2message: editing somebody else's message is rejected", async t => {
+	const [error] = await tryToCatch(() => eventToMessage({
+		"type": "m.room.message",
+		"sender": "@cadence:cadence.moe",
+		"content": {
+			"msgtype": "m.text",
+			"body": " * unless?",
+			"m.new_content": {
+				"msgtype": "m.text",
+				"body": "unless?"
+			},
+			"m.relates_to": {
+				"rel_type": "m.replace",
+				"event_id": "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs"
+			}
+		},
+		"origin_server_ts": 1693223873912,
+		"unsigned": {
+			"age": 42,
+			"transaction_id": "m1693223873796.842"
+		},
+		"event_id": "$KxGwvVNzNcmlVbiI2m5kX-jMFNi3Jle71-uu1j7P7vM",
+		"room_id": "!BnKuBPCvyfOkhcUjEu:cadence.moe"
+	}, data.guild.general, data.channel.general, {
+		api: {
+			getEvent: mockGetEvent(t, "!BnKuBPCvyfOkhcUjEu:cadence.moe", "$7LIdiJCEqjcWUrpzWzS8TELOlFfBEe4ytgS7zn2lbSs", {
+				type: "m.room.message",
+				sender: "@no:cadence.moe",
+				content: {
+					msgtype: "m.text",
+					body: "don't edit me",
+				}
+			})
+		}
+	}))
+	t.equal(error.message, "You tampered with that event to try to edit somebody else's message. Stop it!")
 })
 
 test("event2message: editing a plaintext message to be longer", async t => {
