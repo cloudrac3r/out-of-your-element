@@ -199,7 +199,7 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 			msgtype: "m.text",
 			body: `${emoji} Uploaded file: ${externalURL} (${pb(attachment.size)})`,
 			format: "org.matrix.custom.html",
-			formatted_body: `${emoji} Uploaded file: <a href="${externalURL}">${attachment.filename}</a> (${pb(attachment.size)})`
+			formatted_body: tag`${emoji} Uploaded file: <a href="${externalURL}">${attachment.filename}</a> (${pb(attachment.size)})`
 		}
 	}
 	if (attachment.content_type?.startsWith("image/") && attachment.width && attachment.height) {
@@ -315,11 +315,11 @@ async function pollToEvent(poll) {
  */
 function getFormattedInteraction(interaction, isThinkingInteraction) {
 	const mxid = select("sim", "mxid", {user_id: interaction.user.id}).pluck().get()
-	const username = interaction.member?.nick || interaction.user.global_name || interaction.user.username
+	const name = interaction.member?.nick || interaction.user.global_name || interaction.user.username
 	const thinkingText = isThinkingInteraction ? " — interaction loading..." : ""
 	return {
-		body: `❭ ${username} used \`/${interaction.name}\`${thinkingText}`,
-		html: `<blockquote><sub>❭ ${mxid ? tag`<a href="https://matrix.to/#/${mxid}">${username}</a>` : username} used <code>/${interaction.name}</code>${thinkingText}</sub></blockquote>`
+		body: `❭ ${name} used \`/${interaction.name}\`${thinkingText}`,
+		html: tag`<blockquote><sub>❭ $${mxid ? tag`<a href="https://matrix.to/#/${mxid}">${name}</a>` : tag`${name}`} used <code>/${interaction.name}</code>${thinkingText}</sub></blockquote>`
 	}
 }
 
