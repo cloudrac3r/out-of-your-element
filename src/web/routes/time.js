@@ -14,7 +14,7 @@ const webUtils = sync.require("../web-utils")
 const schema = {
 	time: z.object({
 		timestamp: z.coerce.number(),
-		style: z.string().optional()
+		style: z.enum([...discordTime.styles.keys(), "R"]).optional()
 	})
 }
 
@@ -23,7 +23,7 @@ as.router.get("/time/:timestamp", defineEventHandler(async event => {
 	const {timestamp} = await getValidatedRouterParams(event, schema.time.parse)
 	const formatOptions = discordTime.getFormatOptions()
 	const text = discordTime.convertDiscordTime(timestamp)
-	return pugSync.render(event, "time.pug", {text, timestamp, formatOptions})
+	return pugSync.render(event, "time.pug", {text, timestamp, style: discordTime.defaultStyle, formatOptions})
 }))
 
 as.router.get("/time/:timestamp/:style", defineEventHandler(async event => {

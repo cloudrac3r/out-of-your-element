@@ -69,7 +69,7 @@ html(lang="en")
     script.
       const WIDTH = !{WIDTH}
       const timestamp = !{timestamp}
-      const style = "!{style}"
+      const style = !{JSON.stringify(style)}
       const formatOptions = !{JSON.stringify(formatOptions)}
       const d = new Date(timestamp * 1000)
       const UNITS = [

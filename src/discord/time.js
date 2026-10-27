@@ -47,5 +47,7 @@ function convertDiscordTime(timestamp, style) {
 	return (formatter.format(d) + " (UTC)").replaceAll(/\p{Zs}/gv, " ")
 }
 
+module.exports.styles = styles
+module.exports.defaultStyle = defaultStyle
 module.exports.getFormatOptions = getFormatOptions
 module.exports.convertDiscordTime = convertDiscordTime
