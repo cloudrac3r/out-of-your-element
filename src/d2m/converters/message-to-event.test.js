@@ -1135,7 +1135,7 @@ test("message2event: very large attachment is linked instead of being uploaded",
 	}])
 })
 
-test("message2event: very large png is converted to jpeg for upload", async t => {
+test("message2event: very large png is converted to webp for upload", async t => {
 	const events = await messageToEvent({
 		content: "",
 		attachments: [{
@@ -1149,10 +1149,10 @@ test("message2event: very large png is converted to jpeg for upload", async t =>
 		}]
 	}, data.guild.general, {}, {
 		async fetch(url, init) {
-			t.equal(url, "https://media.discordapp.net/attachments/1160894080998461480/1548656385292509274/855064e9-bdae-487a-a497-c662bd510487.png?format=jpeg")
+			t.equal(url, "https://media.discordapp.net/attachments/1160894080998461480/1548656385292509274/855064e9-bdae-487a-a497-c662bd510487.png?format=webp")
 			t.equal(init.method, "HEAD")
 			return new Response("wa", {headers: {
-				"Content-Type": "image/jpeg",
+				"Content-Type": "image/webp",
 				"Content-Length": 483085
 			}})
 		}
@@ -1161,15 +1161,15 @@ test("message2event: very large png is converted to jpeg for upload", async t =>
 		$type: "m.room.message",
 		"m.mentions": {},
 		msgtype: "m.image",
-		body: "855064e9-bdae-487a-a497-c662bd510487.jpg",
+		body: "855064e9-bdae-487a-a497-c662bd510487.webp",
 		info: {
 			w: 5472,
 			h: 3648,
-			mimetype: "image/jpeg",
+			mimetype: "image/webp",
 			size: 483085
 		},
 		external_url: "https://bridge.example.org/download/discordcdn/1160894080998461480/1548656385292509274/855064e9-bdae-487a-a497-c662bd510487.png",
-		filename: "855064e9-bdae-487a-a497-c662bd510487.jpg",
+		filename: "855064e9-bdae-487a-a497-c662bd510487.webp",
 		url: "mxc://cadence.moe/zXNXRvJwRDMIzZZVqHUXtGeD"
 	}])
 })

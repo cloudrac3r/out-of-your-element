@@ -162,28 +162,28 @@ async function attachmentToEvent(mentions, attachment, alwaysLink, di) {
 			formatted_body: `${emoji} Uploaded <strong>SPOILER</strong> file: <a href="${externalURL}">${externalURL}</a> (${pb(attachment.size)})`
 		}
 	}
-	// attempt to convert large PNG image files to JPEG, since it's almost certainly a photo that was forced into PNG by the user copy-pasting.
+	// attempt to convert large PNG image files to WebP, since it's almost certainly a photo that was forced into PNG by the user copy-pasting.
 	if (
 		attachment.content_type === "image/png" && attachment.size > reg.ooye.max_file_size
 		&& !alwaysLink && attachment.proxy_url && attachment.width && attachment.height && di?.fetch
 	) {
 		const proxyUrl = new URL(attachment.proxy_url)
-		proxyUrl.searchParams.set("format", "jpeg")
-		const jpegUrl = proxyUrl.toString()
-		const res = await di.fetch(jpegUrl, {method: "HEAD"})
-		const newFilename = attachment.filename.replace(/\.png$/, ".jpg")
+		proxyUrl.searchParams.set("format", "webp")
+		const webpUrl = proxyUrl.toString()
+		const res = await di.fetch(webpUrl, {method: "HEAD"})
+		const newFilename = attachment.filename.replace(/\.png$/, ".webp")
 		const newSize = Number(res.headers.get("content-length"))
-		if (res.ok && res.headers.get("content-type") === "image/jpeg" && !res.headers.has("content-encoding") && newSize <= reg.ooye.max_file_size) {
+		if (res.ok && res.headers.get("content-type") === "image/webp" && !res.headers.has("content-encoding") && newSize <= reg.ooye.max_file_size) {
 			return {
 				$type: "m.room.message",
 				"m.mentions": mentions,
 				msgtype: "m.image",
-				url: await file.uploadDiscordFileToMxc(jpegUrl),
+				url: await file.uploadDiscordFileToMxc(webpUrl),
 				external_url: externalURL,
 				body: attachment.description || newFilename,
 				filename: newFilename,
 				info: {
-					mimetype: "image/jpeg",
+					mimetype: "image/webp",
 					w: attachment.width,
 					h: attachment.height,
 					size: newSize
