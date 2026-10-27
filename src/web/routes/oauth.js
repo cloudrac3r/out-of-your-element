@@ -71,7 +71,8 @@ as.router.get("/oauth", defineEventHandler(async event => {
 		const newState = randomUUID()
 		await session.update({state: newState})
 		if (parsedFirstQuery.data?.next) {
-			await session.update({next: parsedFirstQuery.data?.next})
+			webUtils.rejectInvalidNextUrl(parsedFirstQuery.data.next)
+			await session.update({next: parsedFirstQuery.data.next})
 		}
 		return sendRedirect(event, `https://discord.com/oauth2/authorize?client_id=${id}&scope=${scope}&permissions=${permissions}&response_type=code&redirect_uri=${redirect_uri}&state=${newState}`)
 	}

@@ -29,6 +29,17 @@ test("web oauth: redirects to Discord on first visit (add self service)", async 
 	t.match(event.node.res.getHeader("location"), /^https:\/\/discord.com\/oauth2\/authorize\?client_id=684280192553844747&scope=bot\+guilds&permissions=2251801424568320&response_type=code&redirect_uri=https:\/\/bridge\.example\.org\/oauth&state=/)
 })
 
+test("web oauth: checks that next query parameter is local", async t => {
+	let event = {}
+	const [e] = await tryToCatch(() => router.test("get", "/oauth?action=add-self-service&next=https://evil.com", {
+		event,
+		sessionData: {
+			password: "password123"
+		}
+	}))
+	t.equal(e.data, `Invalid next URL "https://evil.com", it's on the wrong domain`)
+})
+
 test("web oauth: advises user about cookies if state is missing", async t => {
 	let event = {}
 	const [e] = await tryToCatch(() => router.test("get", "/oauth?state=693551d5-47c5-49e2-a433-3600abe3c15c&code=DISCORD_CODE&guild_id=9", {

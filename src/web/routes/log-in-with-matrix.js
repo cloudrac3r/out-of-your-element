@@ -47,6 +47,8 @@ const validToken = sync.remember(() => new LRUCache({max: 200}))
 as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 	let {token, next} = await getValidatedQuery(event, schema.token.parse)
 
+	webUtils.rejectInvalidNextUrl(next)
+
 	if (!token) {
 		// We are in the first request and need to tell them to input their mxid
 		return pugSync.render(event, "log-in-with-matrix.pug", {next})
@@ -70,6 +72,8 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
 	const api = getAPI(event)
 	const {mxid, next} = await readValidatedBody(event, schema.form.parse)
+
+	webUtils.rejectInvalidNextUrl(next)
 
 	// Don't extend a duplicate invite for the same user
 	for (const alreadyInvited of validToken.values()) {

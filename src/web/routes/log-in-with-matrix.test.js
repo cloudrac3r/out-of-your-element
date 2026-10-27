@@ -40,7 +40,7 @@ test("log in with matrix: sends message to log in", async t => {
 	await router.test("post", "/api/log-in-with-matrix", {
 		body: {
 			mxid: "@cadence:cadence.moe",
-			next: "https://bridge.cadence.moe/guild?guild_id=123"
+			next: "https://bridge.example.org/guild?guild_id=123"
 		},
 		api: {
 			async usePrivateChat(mxid) {

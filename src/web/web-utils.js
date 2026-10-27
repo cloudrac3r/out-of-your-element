@@ -39,6 +39,17 @@ function rejectUrlPreviewer(event) {
 	if (userAgent?.match(/bot|matrix|tuwunel/i)) throw createError({status: 400, data: "Sorry URL previewer, you can't have this URL."})
 }
 
+function rejectInvalidNextUrl(next) {
+	try {
+		var nextOrigin = new URL(next, reg.ooye.bridge_origin).origin
+		var expectedOrigin = new URL(reg.ooye.bridge_origin).origin
+	} catch (e) {
+		throw createError({status: 400, data: `Invalid next URL "${next}", it didn't parse`})
+	}
+	if (nextOrigin !== expectedOrigin) throw createError({status: 400, data: `Invalid next URL "${next}", it's on the wrong domain`})
+}
+
 module.exports.getManagedGuilds = getManagedGuilds
 module.exports.useSession = useSession
 module.exports.rejectUrlPreviewer = rejectUrlPreviewer
+module.exports.rejectInvalidNextUrl = rejectInvalidNextUrl
