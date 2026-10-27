@@ -36,7 +36,7 @@ const schema = {
 
 /**
  * @param {H3Event} event
- * @returns {(string) => {user: {getGuilds: () => Promise<DiscordTypes.RESTGetAPICurrentUserGuildsResult>}}}
+ * @returns {(string) => {user: {getSelf: () => Promise<DiscordTypes.RESTGetAPICurrentUserResult>, getGuilds: () => Promise<DiscordTypes.RESTGetAPICurrentUserGuildsResult>}}}
  */
 function getClient(event) {
 	/* c8 ignore next */
@@ -55,14 +55,14 @@ function getOauth2Token(event) {
 as.router.get("/oauth", defineEventHandler(async event => {
 	const session = await webUtils.useSession(event)
 	const parsedFirstQuery = await getValidatedQuery(event, schema.first.safeParse)
-	let scope = "guilds"
+	let scope = "identify+guilds"
 
 	if (!reg.ooye.web_password || reg.ooye.web_password === session.data.password) {
 		if (parsedFirstQuery.data?.action === "add") {
-			scope = "bot+guilds"
+			scope = "bot+identify+guilds"
 			await session.update({selfService: false})
 		} else if (parsedFirstQuery.data?.action === "add-self-service") {
-			scope = "bot+guilds"
+			scope = "bot+identify+guilds"
 			await session.update({selfService: true})
 		}
 	}
@@ -87,9 +87,10 @@ as.router.get("/oauth", defineEventHandler(async event => {
 	const oauthResult = await getOauth2Token(event)(id, redirect_uri, reg.ooye.discord_client_secret, parsedQuery.data.code)
 	const parsedToken = schema.token.parse(oauthResult)
 
-	const userID = Buffer.from(parsedToken.access_token.split(".")[0], "base64").toString()
 	const client = getClient(event)(parsedToken.access_token)
 
+	const self = await client.user.getSelf()
+	const userID = self.id
 	const guilds = await client.user.getGuilds()
 	const managedGuilds = guilds.filter(g => BigInt(g.permissions) & DiscordTypes.PermissionFlagsBits.ManageGuild).map(g => g.id)
 
