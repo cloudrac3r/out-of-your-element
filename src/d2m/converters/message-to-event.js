@@ -508,7 +508,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 						content: emulatedMessageContent,
 						// @ts-ignore
 						author: {
-							username: message.embeds[0].author.name.replace(/\s*↩️\s*$/, "")
+							username: message.embeds[0].author.name.replace(/\s{,3}↩️\s*$/, "")
 						}
 					}
 					message.embeds.shift()
@@ -575,7 +575,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 */
 	async function transformContentMessageLinks(content) {
 		let offset = 0
-		for (const match of [...content.matchAll(/https:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/[0-9]+\/([0-9]+)\/([0-9]+)/g)]) {
+		for (const match of [...content.matchAll(/\bhttps:\/\/(?:ptb\.|canary\.|www\.)?discord(?:app)?\.com\/channels\/[0-9]+\/([0-9]+)\/([0-9]+)/g)]) {
 			assert(typeof match.index === "number")
 			const [_, channelID, messageID] = match
 			const result = await (async () => {

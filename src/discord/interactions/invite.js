@@ -35,7 +35,7 @@ async function* _interact({data, channel, guild_id}, {api}) {
 	/** @type {DiscordTypes.APIApplicationCommandInteractionDataStringOption[] | undefined} */ // @ts-ignore
 	const options = data.options
 	const input = options?.[0]?.value || ""
-	const mxid = input.match(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/)?.[0]
+	const mxid = input.match(/@[^@:]+:[a-z0-9:.-]+/)?.[0]
 	if (!mxid) return yield {createInteractionResponse: {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 		data: {
@@ -117,7 +117,7 @@ async function* _interact({data, channel, guild_id}, {api}) {
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
 async function _interactButton({channel, message}, {api}) {
-	const mxid = message.content.match(/`(@(?:[^:]+):(?:[a-z0-9:-]+\.[a-z0-9.:-]+))`/)?.[1]
+	const mxid = message.content.match(/`(@[^@:]+:[a-z0-9:-]+\.[a-z0-9.:-]+)`/)?.[1]
 	assert(mxid)
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	await api.inviteToRoom(roomID, mxid)

@@ -3,7 +3,6 @@
 
 const Ty = require("../../types")
 const DiscordTypes = require("discord-api-types/v10")
-const stream = require("stream")
 const chunk = require("chunk-text")
 const TurndownService = require("@cloudrac3r/turndown")
 const domino = require("domino")
@@ -150,7 +149,7 @@ turndownService.addRule("listItem", {
 	replacement: function (content, node, options) {
 		content = content
 		.replace(/^\n+/, "") // remove leading newlines
-		.replace(/\n+$/, "\n") // replace trailing newlines with just a single one
+		.replace(/([^\n])\n+$/, "$1\n") // replace trailing newlines with just a single one
 		.replace(/\n/gm, "\n  ") // indent
 		var prefix = options.bulletListMarker + " "
 		var parent = node.parentNode
@@ -226,7 +225,7 @@ turndownService.addRule("fencedCodeBlock", {
 
 /** @param {{ childNodes: Node[]; }} preCode the <code> directly inside the <pre> */
 function getCodeContent(preCode) {
-	return preCode.childNodes.map(c => c.nodeName === "BR" ? "\n" : c.textContent).join("").replace(/\n*$/g, "")
+	return preCode.childNodes.map(c => c.nodeName === "BR" ? "\n" : c.textContent).join("").replace(/([^\n])\n+$/g, "$1")
 }
 
 /**
@@ -533,6 +532,30 @@ async function getL1L2ReplyLine(called = false) {
 	/* c8 ignore stop */
 }
 
+function serialiseReplyContent(doc) {
+	/** @type {HTMLElement} */ // @ts-ignore
+	const body = doc.getElementById("reply-root")
+	body.querySelectorAll("mx-reply").forEach(e => e.remove())
+	if (body.lastChild?.["tagName"] !== "BLOCKQUOTE") {
+		while (body.firstElementChild?.tagName === "BLOCKQUOTE") body.firstElementChild.remove()
+	}
+	body.querySelectorAll("span[data-mx-spoiler]").forEach(e => e.textContent = "[spoiler]")
+	// @ts-ignore - domino FilteredElementList does not implement NodeList
+	for (const img of body.querySelectorAll("img").cache) {
+		const mxcUrlMatch = img.getAttribute("src")?.match(/mxc:\/\/[^"]+/)
+		const titleTextMatch = img.getAttribute("title")?.match(/:?([^:"]+)/)
+		if (mxcUrlMatch && titleTextMatch) {
+			img.replaceWith(convertEmoji(mxcUrlMatch[0], titleTextMatch[1], false, false))
+		}
+	}
+	// convert <br> to \n since domino does not support innerText
+	// @ts-ignore - domino FilteredElementList does not implement NodeList
+	for (const br of body.querySelectorAll("br").cache) {
+		br.replaceWith("\n")
+	}
+	return body.textContent
+}
+
 /**
  * @param {Ty.Event.Outer_M_Room_Message | Ty.Event.Outer_M_Room_Message_File | Ty.Event.Outer_M_Sticker | Ty.Event.Outer_M_Room_Message_Encrypted_File | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_Start | Ty.Event.Outer_Org_Matrix_Msc3381_Poll_End} event
  * @param {DiscordTypes.APIGuild} guild
@@ -762,16 +785,25 @@ async function eventToMessage(event, guild, channel, di) {
 					}
 					return
 				}
-				const mxReply = event.content["formatted_body"]
-				const quoted = mxReply.match(/^<mx-reply><blockquote>.*?In reply to.*?<br>(.*)<\/blockquote><\/mx-reply>/)?.[1]
+				const doc = domino.createDocument(
+					// DOM parsers arrange elements in the <head> and <body>. Wrapping in a custom element ensures elements are reliably arranged in a single element.
+					'<x-quoted id="quoted-root">' + event.content["formatted_body"].trim() + '</x-quoted>'
+					+ '<x-body id="reply-root"></x-body>'
+				)
+				/** @type {HTMLElement} */ // @ts-ignore
+				const body = doc.getElementById("reply-root")
+				const quoted = doc.querySelector("#quoted-root > mx-reply > blockquote")
 				if (!quoted) return
-				const contentPreviewChunks = chunk(
-					entities.decodeHTML5Strict( // Remove entities like &amp; &quot;
-						quoted.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
-							.replace(/(?:\n|<br>)+/g, " ") // Should all be on one line
-							.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
-							.replace(/<[^>]+>/g, "") // Completely strip all HTML tags and formatting.
-					), 50)
+				// Strip "In reply to [] []<br>"
+				let foundBr = false
+				while (quoted.firstChild && !foundBr) {
+					foundBr = quoted.firstChild["tagName"] === "BR"
+					quoted.firstChild.remove()
+				}
+				// Transfer the remainder to replyRoot
+				while (quoted.firstChild) body.appendChild(quoted.firstChild)
+				// Strip reply HTML into something usable
+				const contentPreviewChunks = chunk(serialiseReplyContent(doc).replace(/\s+/g, " "), 50)
 				replyLine = "-# > " + contentPreviewChunks[0]
 				if (contentPreviewChunks.length > 1) replyLine = replyLine.replace(/[,.']$/, "") + "..."
 				replyLine += "\n"
@@ -805,18 +837,15 @@ async function eventToMessage(event, guild, channel, di) {
 				contentPreview = " (channel details edited)"
 			} else {
 				// Generate a reply preview for a standard message
-				let repliedToContent = originalRepliedToContent
-				repliedToContent = repliedToContent.replace(/.*<\/mx-reply>/s, "") // Remove everything before replies, so just use the actual message body
-				repliedToContent = repliedToContent.replace(/^\s*<blockquote>.*?<\/blockquote>(.....)/s, "$1") // If the message starts with a blockquote, don't count it and use the message body afterwards
-				repliedToContent = repliedToContent.replace(/(?:\n|<br ?\/?>)+/g, " ") // Should all be on one line
-				repliedToContent = repliedToContent.replace(/<span [^>]*data-mx-spoiler\b[^>]*>.*?<\/span>/g, "[spoiler]") // Good enough method of removing spoiler content. (I don't want to break out the HTML parser unless I have to.)
-				repliedToContent = repliedToContent.replace(/<img([^>]*)>/g, (_, att) => { // Convert Matrix emoji images into Discord emoji markdown
-					const mxcUrlMatch = att.match(/\bsrc="(mxc:\/\/[^"]+)"/)
-					const titleTextMatch = att.match(/\btitle=":?([^:"]+)/)
-					return convertEmoji(mxcUrlMatch?.[1], titleTextMatch?.[1], false, false)
-				})
-				repliedToContent = repliedToContent.replace(/<[^:>][^>]*>/g, "") // Completely strip all HTML tags and formatting.
-				repliedToContent = entities.decodeHTML5Strict(repliedToContent) // Remove entities like &amp; &quot;
+				let repliedToContent = repliedToEvent.content.body
+				if (repliedToEvent.content.formatted_body) {
+					const doc = domino.createDocument(
+						// DOM parsers arrange elements in the <head> and <body>. Wrapping in a custom element ensures elements are reliably arranged in a single element.
+						'<x-body id="reply-root">' + repliedToEvent.content.formatted_body.trim() + '</x-body>'
+					)
+					repliedToContent = serialiseReplyContent(doc)
+				}
+				repliedToContent = repliedToContent.replace(/\s+/g, " ")
 				const contentPreviewChunks = chunk(repliedToContent, 50)
 				if (contentPreviewChunks.length) {
 					contentPreview = ": " + contentPreviewChunks[0]
@@ -874,28 +903,22 @@ async function eventToMessage(event, guild, channel, di) {
 					}
 				})
 
-				input = input.replace(/<a\s[^>]*href="https:\/\/matrix\.to\/#\/(?:!|%21|#|%23)[^"\/]*"[^>]*>@room<\/a>/g, "@room")
-
 				// Handling mentions of rooms and room-messages
 				input = await handleRoomOrMessageLinks(input, di)
 
-				// Stripping colons after mentions
-				input = input.replace(/( data-user-id.*?<\/a>):?/g, "$1")
-				input = input.replace(/("https:\/\/matrix.to.*?<\/a>):?/g, "$1")
-
 				// Element adds a bunch of <br> before </blockquote> but doesn't render them. I can't figure out how this even works in the browser, so let's just delete those.
-				input = input.replace(/(?:\n|<br ?\/?>\s*)*<\/blockquote>(?:\n|<br ?\/?>\s*)*/g, "</blockquote>")
+				//input = input.replace(/(?:[ \t\n]|<br ?\/?>)*<\/blockquote>(?:[ \t]|\n|<br ?\/?>)*/g, "</blockquote>")
 
 				// The matrix spec hasn't decided whether \n counts as a newline or not, but I'm going to count it, because if it's in the data it's there for a reason.
 				// But I should not count it if it's between block elements.
-				input = input.replace(/(<\/?([^ >]+)[^>]*>)?\n(<\/?([^ >]+)[^>]*>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
+				input = input.replace(/(<([^<>]+)>)?\n(<([^<>]+)>)?/g, (whole, beforeContext, beforeTag, afterContext, afterTag) => {
 					if (typeof beforeTag !== "string" && typeof afterTag !== "string") {
 						return "<br>"
 					}
 					beforeContext = beforeContext || ""
-					beforeTag = beforeTag || ""
+					beforeTag = beforeTag?.match(/^\/?([^ ]+)/)?.[1] || ""
 					afterContext = afterContext || ""
-					afterTag = afterTag || ""
+					afterTag = afterTag?.match(/^\/?([^ ]+)/)?.[1] || ""
 					if (!mxUtils.BLOCK_ELEMENTS.includes(beforeTag.toUpperCase()) && !mxUtils.BLOCK_ELEMENTS.includes(afterTag.toUpperCase())) {
 						return beforeContext + "<br>" + afterContext
 					} else {
@@ -918,11 +941,36 @@ async function eventToMessage(event, guild, channel, di) {
 				const root = doc.getElementById("turndown-root")
 				assert(root)
 				async function forEachNode(event, node) {
-					for (; node; node = node.nextSibling) {
+					let i = 0
+					while (node) {
+						// Emergency escape
+						if (++i > 100_000) {
+							throw new Error(`Stuck iterating through nodes. Current node: ${node.innerHTML}`)
+						}
+
 						// Don't process mx-reply further
 						if (node.nodeType === 1 && node.tagName === "MX-REPLY") {
-							node.remove()
+							const toRemove = node
+							node = node.nextSibling
+							toRemove.remove()
 							continue
+						}
+
+						// Remove colons after mentions
+						if (node.nodeType === 1 && node.tagName === "A" && node.nextSibling?.textContent.startsWith(":") && (node.hasAttribute("data-user-id") || node.getAttribute("href")?.match(/^https:\/\/matrix\.to\//))) {
+							// Dig into nextSibling to find the next
+							let next = node.nextSibling
+							while (next.nodeType !== 3) next = next.firstChild
+							if (next?.nodeValue.startsWith(":")) {
+								next.nodeValue = next.nodeValue.slice(1)
+							}
+						}
+
+						// Remove weird room mention wrapper around @room from some clients
+						if (node.nodeType === 1 && node.tagName === "A" && node.textContent === "@room") {
+							const newNode = doc.createTextNode("@room")
+							node.replaceWith(newNode)
+							node = newNode
 						}
 
 						// Check written mentions
@@ -934,6 +982,20 @@ async function eventToMessage(event, guild, channel, di) {
 								allowedMentionsParse.push(...result.allowedMentionsParse)
 							}
 						}
+
+						// Remove <br> tags before </blockquote> from Element
+						while (node.nodeType === 1 && node.tagName === "BLOCKQUOTE" && node.lastChild.nodeType === 1 && node.lastChild.tagName === "BR") {
+							node.lastChild.remove()
+						}
+
+						// Remove <br> tags after </blockquote> from Element
+						if (node.nodeType === 1 && node.tagName === "BR" && node.previousSibling?.nodeType === 1 && node.previousSibling?.tagName === "BLOCKQUOTE") {
+							const toRemove = node
+							node = node.nextSibling
+							toRemove.remove()
+							continue
+						}
+
 						// Check for incompatible backticks in code blocks
 						let preNode
 						let isBackticksTextInPre = node.nodeType === 3 && node.nodeValue.includes("```") && (preNode = nodeIsChildOf(node, ["PRE"]))
@@ -974,7 +1036,12 @@ async function eventToMessage(event, guild, channel, di) {
 								node.setAttribute("data-suppress", "")
 							}
 						}
+
+						// Iterate through children
 						await forEachNode(event, node.firstChild)
+
+						// Iterate through remaining siblings
+						node = node.nextSibling
 					}
 				}
 				await forEachNode(event, root)
@@ -985,7 +1052,7 @@ async function eventToMessage(event, guild, channel, di) {
 				endOfMessageEmojis = []
 				let match
 				let last = input.length
-				while ((match = input.slice(0, last).match(/<img [^>]*>\s*$/))) {
+				while ((match = input.slice(0, last).match(/<img [^<>]*>\s*$/))) {
 					if (!match[0].includes("data-mx-emoticon")) break
 					const mxcUrl = match[0].match(/\bsrc="(mxc:\/\/[^"]+)"/)
 					if (mxcUrl) endOfMessageEmojis.unshift(mxcUrl[1])

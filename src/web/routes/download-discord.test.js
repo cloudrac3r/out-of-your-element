@@ -43,7 +43,7 @@ test("web download discord: works if a known attachment", async t => {
 		}
 	})
 	t.equal(event.node.res.statusCode, 302)
-	t.match(event.node.res.getHeader("location"), /https:\/\/cdn.discordapp.com\/attachments\/655216173696286746\/1314358913482621010\/image\.png\?ex=/)
+	t.match(event.node.res.getHeader("location"), /https:\/\/cdn\.discordapp\.com\/attachments\/655216173696286746\/1314358913482621010\/image\.png\?ex=/)
 })
 
 test("web download discord: works with spoilers for humans", async t => {
@@ -70,7 +70,7 @@ test("web download discord: works with spoilers for humans", async t => {
 		}
 	})
 	t.equal(event.node.res.statusCode, 302)
-	t.match(event.node.res.getHeader("location"), /https:\/\/cdn.discordapp.com\/attachments\/655216173696286746\/1314358913482621010\/image\.png\?ex=/)
+	t.match(event.node.res.getHeader("location"), /https:\/\/cdn\.discordapp\.com\/attachments\/655216173696286746\/1314358913482621010\/image\.png\?ex=/)
 })
 
 test("web download discord: rejects with spoilers for bots", async t => {

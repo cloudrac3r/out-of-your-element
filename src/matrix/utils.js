@@ -110,7 +110,7 @@ class MatrixStringBuilder {
 			if (formattedBody == undefined) formattedBody = tag`${body}`
 			if (this.body.length && this.body.slice(-1) !== "\n") this.body += "\n"
 			this.body += body
-			const match = this.formattedBody.match(/<\/?([a-zA-Z]+[a-zA-Z0-9]*)[^>]*>\s*$/)
+			const match = this.formattedBody.match(/<\/?([a-zA-Z][a-zA-Z0-9]*)>\s*$/)
 			if (this.formattedBody.length && (!match || !NEWLINE_ELEMENTS.includes(match[1].toUpperCase()))) this.formattedBody += "<br>"
 			this.formattedBody += formattedBody
 		}
@@ -188,7 +188,7 @@ async function getViaServers(roomID, api) {
 			assert(match)
 			return match[1]
 		})
-		.filter(server => !server.match(/([a-f0-9:]+:+)+[a-f0-9]+/)) // No IPv6 servers
+		.filter(server => !server.match(/^\[[a-f0-9:\]]+$/)) // No IPv6 servers
 		.filter(server => !server.match(/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/)) // No IPv4 servers
 		// I don't care enough to check ACLs
 		.forEach(server => {

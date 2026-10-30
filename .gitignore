@@ -16,3 +16,4 @@ icon.svg
 .#*
 \#*#
 launch.json
+/codeql*

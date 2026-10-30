@@ -1403,17 +1403,17 @@ test("event2message: lists have appropriate line breaks", async t => {
 			content: {
 				body: 'i am not certain what you mean by "already exists with as discord". my goals are\n' +
 					'* bridgeing specific channels with existing matrix rooms\n' +
-					'  * optionally maybe entire "servers"\n' +
+					'  * optionally maybe entire "guilds"\n' +
 					'* offering the bridge as a public service ',
 				format: 'org.matrix.custom.html',
 				formatted_body: '<p>i am not certain what you mean by "already exists with as discord". my goals are</p>\n' +
 					'<ul>\n' +
 					'<li>bridgeing specific channels with existing matrix rooms\n' +
 					'<ul>\n' +
-					'<li>optionally maybe entire "servers"</li>\n' +
+					'<li>optionally maybe entire "guilds"</li>\n' +
 					'</ul>\n' +
 					'</li>\n' +
-					'<li>offering the bridge as a public service</li>\n' +
+					'<li>offering the bridge as a public service \n\n</li>\n' +
 					'</ul>\n',
 				'm.mentions': {},
 				msgtype: 'm.text'
@@ -1428,7 +1428,7 @@ test("event2message: lists have appropriate line breaks", async t => {
 			messagesToEdit: [],
 			messagesToSend: [{
 				username: "Milan",
-				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n* bridgeing specific channels with existing matrix rooms\n  * optionally maybe entire "servers"\n* offering the bridge as a public service`,
+				content: `i am not certain what you mean by "already exists with as discord". my goals are\n\n* bridgeing specific channels with existing matrix rooms\n  * optionally maybe entire "guilds"\n* offering the bridge as a public service`,
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=M&hue=210",
 				allowed_mentions: {
 					parse: ["roles"],
@@ -2611,7 +2611,7 @@ test("event2message: reply preview ignores garbage image", async t => {
 				msgtype: "m.text",
 				body: "> <@cadence:cadence.moe> I am having AAAA a nice day\n\nreply",
 				format: "org.matrix.custom.html",
-				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>I am having <img src=\"mxc://cadence.moe/AAAA\" /> a nice day</blockquote></mx-reply>reply",
+				formatted_body: "<mx-reply><blockquote><a href=\"https://matrix.to/#/!TqlyQmifxGUggEmdBN:cadence.moe/$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs?via=cadence.moe&via=matrix.org&via=conduit.rory.gay\">In reply to</a> <a href=\"https://matrix.to/#/@cadence:cadence.moe\">@cadence:cadence.moe</a><br>I am having <img src=\"mxc://cadence.moe/AAAA\" alt=\"AAAA\" title=\"AAAA\" /> a nice day</blockquote></mx-reply>reply",
 				"m.relates_to": {
 					"m.in_reply_to": {
 						event_id: "$zmO-dtPO6FubBkDxJZ5YmutPIsG1RgV5JJku-9LeGWs"
@@ -2641,7 +2641,7 @@ test("event2message: reply preview ignores garbage image", async t => {
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>**Ⓜcadence [they]**:"
-					+ " I am having  a nice day"
+					+ " I am having a nice day"
 					+ "\nreply",
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
@@ -3102,7 +3102,7 @@ test("event2message: rich reply to a matrix user's long message with formatting"
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "-# > <:L1:1144820033948762203><:L2:1144820084079087647>https://discord.com/channels/112760669178241024/687028734322147344/1144865310588014633 **Ⓜcadence [they]**:"
-					+ " i should have a little happy test   list bold em..."
+					+ " i should have a little happy test list bold em..."
 					+ "\n**no you can't!!!**",
 				avatar_url: "https://bridge.example.org/download/matrix/cadence.moe/azCAhThKTojXSZJRoWwZmhvU?preset=avatar",
 				allowed_mentions: {
@@ -5603,6 +5603,71 @@ test("event2message: @room converts to @everyone and is allowed when the room do
 			messagesToSend: [{
 				username: "cadence [they]",
 				content: "@everyone dinner's ready",
+				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
+				allowed_mentions: {
+					users: [],
+					parse: ["roles", "everyone"]
+				}
+			}],
+			ensureJoined: []
+		}
+	)
+})
+
+test("event2message: @room converts to @everyone (formatted body with weird room link)", async t => {
+	let called = 0
+	t.deepEqual(
+		await eventToMessage({
+			content: {
+				body: "> can you\n@room",
+				format: "org.matrix.custom.html",
+				formatted_body: "<blockquote>can you<br><br></blockquote><br><a href=\"https://matrix.to/#/!WTLleupRlSKvXjokiB:krzak.org\">@room</a>",
+				"m.mentions": {
+					room: true
+				},
+				msgtype: "m.text"
+			},
+			event_id: "$lp26s6ARdYKSgipe1N4rBJymaO74zlkJxHb-dJws-vA",
+			origin_server_ts: 1791883507643,
+			room_id: "!kLRqKKUQXcibIMtOpl:cadence.moe",
+			sender: "@cadence:cadence.moe",
+			type: "m.room.message",
+			unsigned: {}
+		}, data.guild.general, data.channel.general, {
+			api: {
+				async getStateEvent(roomID, type, key) {
+					called++
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.power_levels")
+					t.equal(key, "")
+					return {
+						users: {},
+						notifications: {
+							room: 0
+						}
+					}
+				},
+				async getStateEventOuter(roomID, type, key) {
+					t.equal(roomID, "!kLRqKKUQXcibIMtOpl:cadence.moe")
+					t.equal(type, "m.room.create")
+					t.equal(key, "")
+					return {
+						type: "m.room.create",
+						state_key: "",
+						sender: "@_ooye_bot:cadence.moe",
+						content: {
+							room_version: "11"
+						}
+					}
+				}
+			}
+		}),
+		{
+			messagesToDelete: [],
+			messagesToEdit: [],
+			messagesToSend: [{
+				username: "cadence [they]",
+				content: "> can you\n@everyone",
 				avatar_url: "https://bridge.example.org/download/letter-avatar?letter=C&hue=90",
 				allowed_mentions: {
 					users: [],

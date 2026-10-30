@@ -31,7 +31,7 @@ const schema = {
 		guild_id: z.string().optional()
 	}),
 	invite: z.object({
-		mxid: z.string().regex(/@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)/),
+		mxid: z.string().regex(/^@[^:]+:[a-z0-9:.-]+$/),
 		permissions: z.enum(["default", "moderator", "admin"]),
 		guild_id: z.string().optional(),
 		nonce: z.string().optional()

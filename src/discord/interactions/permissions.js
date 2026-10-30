@@ -104,7 +104,7 @@ async function* _interact({data, guild_id}, {api, utils}) {
  */
 async function* _interactEdit({data, guild_id, message}, {api}) {
 	// Get the person that will be inspected/edited
-	const mxid = message.content.match(/`(@(?:[^:]+):(?:[a-z0-9:-]+\.[a-z0-9.:-]+))`/)?.[1]
+	const mxid = message.content.match(/`(@[^@:]+:[a-z0-9:.-]+)`/)?.[1]
 	assert(mxid)
 
 	const permission = data.values[0]

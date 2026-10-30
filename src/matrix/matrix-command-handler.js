@@ -160,7 +160,7 @@ const commands = [{
 					toUpload.push({url: repliedToEvent.content.url, name: nameMatch[1]})
 				} else if (repliedToEvent.type === "m.room.message" && repliedToEvent.content.msgtype === "m.text" && "formatted_body" in repliedToEvent.content) {
 					const namePrefixMatch = realBody.match(/:([a-zA-Z0-9_]{2,})(?:\b|:)/)
-					const imgMatches = [...repliedToEvent.content.formatted_body.matchAll(/<img [^>]*>/g)]
+					const imgMatches = [...repliedToEvent.content.formatted_body.matchAll(/<img [^<>]*>/g)]
 					for (const match of imgMatches) {
 						const e = match[0]
 						const url = e.match(/src="([^"]*)"/)?.[1]
