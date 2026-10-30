@@ -70,6 +70,7 @@ as.router.get("/log-in-with-matrix", defineEventHandler(async event => {
 }))
 
 as.router.post("/api/log-in-with-matrix", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const api = getAPI(event)
 	const {mxid, next} = await readValidatedBody(event, schema.form.parse)
 

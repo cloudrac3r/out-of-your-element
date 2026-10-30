@@ -216,6 +216,7 @@ as.router.get("/invite", defineEventHandler(async event => {
 }))
 
 as.router.post("/api/invite", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const parsedBody = await readValidatedBody(event, schema.invite.parse)
 	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)

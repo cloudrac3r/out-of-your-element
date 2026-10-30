@@ -27,7 +27,50 @@ async function getManagedGuilds(event) {
  * @returns {ReturnType<typeof h3.useSession<{userID?: string, mxid?: string, managedGuilds?: string[], state?: string, selfService?: boolean, next?: string, password?: string}>>}
  */
 function useSession(event) {
-	return h3.useSession(event, {password: reg.as_token + "2", maxAge: 365 * 24 * 60 * 60})
+	return h3.useSession(event, {
+		password: reg.as_token + "2",
+		maxAge: 365 * 24 * 60 * 60,
+		cookie: {sameSite: "lax"},
+	})
+}
+
+/**
+ * CSRF guard, throws an error if the request is cross-site.
+ * @param {h3.H3Event} event
+ */
+function rejectCrossSiteRequest(event) {
+	const site = getRequestHeader(event, "Sec-Fetch-Site")
+	if (site) {
+		if (site !== "same-origin") {
+			throw createError({
+				status: 403,
+				message: "Forbidden",
+				data: `This request was made by another website (Sec-Fetch-Site: ${site}).`,
+			})
+		}
+		return
+	}
+
+	// Fallback for browsers that don't send Sec-Fetch-Site
+	const origin = getRequestHeader(event, "Origin")
+	if (origin) {
+		if (origin !== new URL(reg.ooye.bridge_origin).origin) throw createError({
+			status: 403,
+			message: "Forbidden",
+			data: `This request was made by another website (${origin}).`,
+		})
+		return
+	}
+
+	// Reject browsers that don't send either of the headers
+	const userAgent = getRequestHeader(event, "User-Agent")
+	if (userAgent && userAgent.includes("Mozilla")) {
+		throw createError({
+			status: 403,
+			message: "Forbidden",
+			data: "This request was made by another website (no Sec-Fetch-Site or Origin header).",
+		})
+	}
 }
 
 /**
@@ -51,5 +94,6 @@ function rejectInvalidNextUrl(next) {
 
 module.exports.getManagedGuilds = getManagedGuilds
 module.exports.useSession = useSession
+module.exports.rejectCrossSiteRequest = rejectCrossSiteRequest
 module.exports.rejectUrlPreviewer = rejectUrlPreviewer
 module.exports.rejectInvalidNextUrl = rejectInvalidNextUrl

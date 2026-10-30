@@ -50,6 +50,7 @@ function defineToggle(key, inputOptions) {
 	}
 	Object.assign(options, inputOptions)
 	return defineEventHandler(async event => {
+		webUtils.rejectCrossSiteRequest(event)
 		const bodySchema = z.object({
 			guild_id: z.string(),
 			[key]: z.string().optional()
@@ -106,6 +107,7 @@ as.router.post("/api/privacy-level", defineToggle("privacy_level", {
 }))
 
 as.router.post("/api/default-roles", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const parsedBody = await readValidatedBody(event, schema.defaultRoles.parse)
 
 	const managed = await webUtils.getManagedGuilds(event)
@@ -143,6 +145,7 @@ as.router.post("/api/default-roles", defineEventHandler(async event => {
 
 // An empty role restores @everyone
 as.router.post("/api/room-mention-role", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const body = await readValidatedBody(event, z.object({
 		guild_id: z.string(),
 		channel_id: z.string(),

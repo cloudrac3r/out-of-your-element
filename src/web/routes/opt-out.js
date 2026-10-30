@@ -16,7 +16,8 @@ const schema = {
 }
 
 as.router.post("/api/opt-out", defineEventHandler(async event => {
-	// CSRF prevention for a more important endpoint
+	webUtils.rejectCrossSiteRequest(event)
+	// Additional CSRF prevention for a more important endpoint
 	if (!getRequestHeader(event, "HX-Request")) {
 		throw createError({status: 403, message: "Forbidden", data: "JavaScript is required for the opt-out form."})
 	}

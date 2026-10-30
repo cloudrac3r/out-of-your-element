@@ -97,6 +97,7 @@ async function validateAndUnbridgeChannel(event, channel_id, guild_id) {
 }
 
 as.router.post("/api/link-space", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const parsedBody = await readValidatedBody(event, schema.linkSpace.parse)
 	const session = await webUtils.useSession(event)
 	const managed = await webUtils.getManagedGuilds(event)
@@ -147,6 +148,7 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 }))
 
 as.router.post("/api/link", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const parsedBody = await readValidatedBody(event, schema.link.parse)
 	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)
@@ -239,6 +241,7 @@ as.router.post("/api/link", defineEventHandler(async event => {
 }))
 
 as.router.post("/api/unlink", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const {channel_id, guild_id} = await readValidatedBody(event, schema.unlink.parse)
 	const managed = await webUtils.getManagedGuilds(event)
 
@@ -256,6 +259,7 @@ as.router.post("/api/unlink", defineEventHandler(async event => {
 }))
 
 as.router.post("/api/unlink-space", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const {guild_id} = await readValidatedBody(event, schema.unlinkSpace.parse)
 	const managed = await webUtils.getManagedGuilds(event)
 	const api = getAPI(event)

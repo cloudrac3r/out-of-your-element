@@ -14,6 +14,7 @@ const schema = {
 }
 
 as.router.post("/api/password", defineEventHandler(async event => {
+	webUtils.rejectCrossSiteRequest(event)
 	const {password} = await readValidatedBody(event, schema.password.parse)
 	const session = await webUtils.useSession(event)
 	await session.update({password})
