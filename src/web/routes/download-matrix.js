@@ -22,6 +22,35 @@ const emojiSheetConverter = sync.require("../../m2d/converters/emoji-sheet")
 /** @type {import("../../m2d/actions/sticker")} */
 const sticker = sync.require("../../m2d/actions/sticker")
 
+const INLINE_CONTENT_TYPES = new Set([
+	"text/css",
+	"text/plain",
+	"text/csv",
+	"application/json",
+	"application/ld+json",
+	"image/jpeg",
+	"image/gif",
+	"image/png",
+	"image/apng",
+	"image/webp",
+	"image/avif",
+	"video/mp4",
+	"video/webm",
+	"video/ogg",
+	"video/quicktime",
+	"audio/mp4",
+	"audio/webm",
+	"audio/aac",
+	"audio/mpeg",
+	"audio/ogg",
+	"audio/wave",
+	"audio/wav",
+	"audio/x-wav",
+	"audio/x-pn-wav",
+	"audio/flac",
+	"audio/x-flac",
+])
+
 // Resizing client-side because server-side is too slow, at least with Synapse. Really need it to be fast because webhook avatars show a placeholder in the interim.
 /** @type {{[presetKey: string]: (body: ReadableStream) => ReadableStream}} */
 const MEDIA_THUMBNAIL_PRESETS = {
@@ -98,8 +127,14 @@ as.router.get(`/download/matrix/:server_name/:media_id`, defineEventHandler(asyn
 	setResponseHeader(event, "Content-Type", contentType)
 	setResponseHeader(event, "Transfer-Encoding", "chunked")
 
+	// https://spec.matrix.org/latest/client-server-api/#content-repository
+	setResponseHeader(event, "Content-Security-Policy", "sandbox; default-src 'none'; script-src 'none'; plugin-types application/pdf; style-src 'unsafe-inline'; object-src 'self';")
+
+	// https://spec.matrix.org/v1.19/client-server-api/#serving-inline-content
 	const contentDisposition = res.headers.get("content-disposition")
-	if (contentDisposition) {
+	if (!INLINE_CONTENT_TYPES.has(contentType) && contentDisposition?.split(";")[0] !== "attachment") {
+		setResponseHeader(event, "Content-Disposition", contentDisposition?.match(/^inline;/) ? contentDisposition.replace(/^inline;/, "attachment;") : "attachment")
+	} else if (contentDisposition) {
 		setResponseHeader(event, "Content-Disposition", contentDisposition)
 	}
 

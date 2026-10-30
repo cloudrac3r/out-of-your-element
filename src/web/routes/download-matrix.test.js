@@ -39,6 +39,46 @@ test("web download matrix: works if a known attachment", async t => {
 	t.equal(event.node.res.getHeader("content-disposition"), `attachment; filename="wa.png"`)
 })
 
+test("web download matrix: inline disposition converted to attachment for html", async t => {
+	const event = {}
+	await router.test("get", "/download/matrix/:server_name/:media_id", {
+		params: {
+			server_name: "cadence.moe",
+			media_id: "KrwlqopRyMxnEBcWDgpJZPxh",
+		},
+		event,
+		api: {
+			// @ts-ignore
+			async getMedia(mxc, init) {
+				return new Response("", {status: 200, headers: {"content-type": "text/html", "content-disposition": `inline; filename="evil.html"`}})
+			}
+		}
+	})
+	t.equal(event.node.res.statusCode, 200)
+	t.equal(event.node.res.getHeader("content-type"), "text/html")
+	t.equal(event.node.res.getHeader("content-disposition"), `attachment; filename="evil.html"`)
+})
+
+test("web download matrix: missing disposition set to attachment for html", async t => {
+	const event = {}
+	await router.test("get", "/download/matrix/:server_name/:media_id", {
+		params: {
+			server_name: "cadence.moe",
+			media_id: "KrwlqopRyMxnEBcWDgpJZPxh",
+		},
+		event,
+		api: {
+			// @ts-ignore
+			async getMedia(mxc, init) {
+				return new Response("", {status: 200, headers: {"content-type": "text/html"}})
+			}
+		}
+	})
+	t.equal(event.node.res.statusCode, 200)
+	t.equal(event.node.res.getHeader("content-type"), "text/html")
+	t.equal(event.node.res.getHeader("content-disposition"), `attachment`)
+})
+
 /**
  * MOCK: Gets the emoji from the filesystem and converts to uncompressed PNG data.
  * @param {string} mxc a single mxc:// URL
