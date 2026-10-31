@@ -143,6 +143,10 @@ async function editToChanges(message, guild, api) {
 			dUtils.filterTo(eventsToReplace, e => e.old.event_subtype === "m.notice" && e.old.source === 1) // Move everything except embeds from eventsToReplace to unchangedEvents.
 		)
 		eventsToSend = eventsToSend.filter(e => e.msgtype === "m.notice") // Don't send new events that aren't the embed.
+		// If generating embeds for a Matrix message, don't ask the server for previews for those. The URLs may already be server previewed on the Matrix message.
+		if (originallyFromMatrix) {
+			eventsToSend.forEach(e => e["m.url_previews"] = [])
+		}
 	}
 
 	// Don't post new generated embeds for messages if it's been a while since the message was sent. Detached embeds look weird.

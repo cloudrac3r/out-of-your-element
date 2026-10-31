@@ -341,6 +341,7 @@ function mergeTextEvents(newEvents, events, forceSameMsgtype, forceMerge = false
 			rep.addLine(ne.body, ne.formatted_body)
 			prev.body = rep.body
 			prev.formatted_body = rep.formattedBody
+			if (Array.isArray(prev["m.url_previews"]) && Array.isArray(ne["m.url_previews"])) prev["m.url_previews"].push(...ne["m.url_previews"])
 		} else if (forceMerge) {
 			throw new Error("Unable to merge events")
 		} else {
@@ -696,8 +697,9 @@ async function messageToEvent(message, guild, options = {}, di) {
 	 * @param {string} body matrix event plaintext body
 	 * @param {string} html matrix event HTML body
 	 * @param {string} msgtype matrix event msgtype (maybe m.text or m.notice)
+	 * @param {{urlPreviews?: any}} eventOptions
 	 */
-	async function addTextEvent(body, html, msgtype) {
+	async function addTextEvent(body, html, msgtype, eventOptions = {}) {
 		// Star * prefix for fallback edits
 		if (options.includeEditFallbackStar) {
 			body = "* " + body
@@ -788,7 +790,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 			msgtype,
 			body: body,
 			format: "org.matrix.custom.html",
-			formatted_body: html
+			formatted_body: html,
+		}
+
+		if (!eventOptions.urlPreviews) {
+			newTextMessageEvent["m.url_previews"] = []
+		} else if (Array.isArray(eventOptions.urlPreviews)) {
+			newTextMessageEvent["m.url_previews"] = eventOptions.urlPreviews
 		}
 
 		events.push(newTextMessageEvent)
@@ -1153,7 +1161,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 			let {body, formatted_body: html} = rep.get()
 			html = `<blockquote>${html}</blockquote>`
-			await addTextEvent(body, html, "m.text")
+			await addTextEvent(body, html, "m.text", {urlPreviews: true})
 			continue
 		}
 
@@ -1227,8 +1235,14 @@ async function messageToEvent(message, guild, options = {}, di) {
 			continue
 		}
 
+		// Always allow client generation of GIFs and YouTube videos so they can be embedded in chat
+		const urlPreviews = []
+		if (embed.provider?.name === "YouTube" || embed.provider?.name === "Tenor") {
+			urlPreviews.push({"matrix:matched_url": embed.url})
+		}
+
 		// Send as m.notice to apply the usual automated/subtle appearance, showing this wasn't actually typed by the person
-		await addTextEvent(body, html, "m.notice")
+		await addTextEvent(body, html, "m.notice", {urlPreviews})
 	}
 
 	// Then stickers
@@ -1261,6 +1275,13 @@ async function messageToEvent(message, guild, options = {}, di) {
 			}
 		}))
 		events.push(...stickerEvents)
+	}
+
+	// If d->m URL previews are disabled then use default server side generation instead
+	if (!urlPreviewEnabled) {
+		for (const event of events) {
+			delete event["m.url_previews"]
+		}
 	}
 
 	// Rich replies
