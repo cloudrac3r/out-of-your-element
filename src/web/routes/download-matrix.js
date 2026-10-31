@@ -21,6 +21,8 @@ const emojiSheetConverter = sync.require("../../m2d/converters/emoji-sheet")
 
 /** @type {import("../../m2d/actions/sticker")} */
 const sticker = sync.require("../../m2d/actions/sticker")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 
 const INLINE_CONTENT_TYPES = new Set([
 	"text/css",
@@ -66,8 +68,8 @@ const MEDIA_THUMBNAIL_PRESETS = {
 
 const schema = {
 	media: z.object({
-		server_name: z.string(),
-		media_id: z.string()
+		server_name: z.stringFormat("server_name", mxUtils.isServerName),
+		media_id: z.stringFormat("media_id", mxUtils.isMediaId)
 	}),
 	mediaQuery: z.object({
 		preset: z.enum(Object.keys(MEDIA_THUMBNAIL_PRESETS)) // list of possible thumbnail presets
@@ -76,8 +78,8 @@ const schema = {
 		e: z.array(z.string()).or(z.string())
 	}),
 	sticker: z.object({
-		server_name: z.string().regex(/^[^/]+$/),
-		media_id: z.string().regex(/^[A-Za-z0-9_-]+$/)
+		server_name: z.stringFormat("server_name", mxUtils.isServerName),
+		media_id: z.stringFormat("media_id", mxUtils.isMediaId)
 	})
 }
 

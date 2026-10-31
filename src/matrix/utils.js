@@ -188,8 +188,7 @@ async function getViaServers(roomID, api) {
 			assert(match)
 			return match[1]
 		})
-		.filter(server => !server.match(/^\[[a-f0-9:\]]+$/)) // No IPv6 servers
-		.filter(server => !server.match(/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/)) // No IPv4 servers
+		.filter(server => !server.match(_serverNameIpAddressRegex)) // No IPv4/IPv6 servers
 		// I don't care enough to check ACLs
 		.forEach(server => {
 			const existing = servers.get(server)
@@ -244,16 +243,108 @@ function getPublicUrlForMxc(mxc) {
 	return `${reg.ooye.bridge_origin}/download/matrix/${serverAndMediaID}`
 }
 
+const serverNameIpv4Address = String.raw`[0-9]{1,3}(?:\.[0-9]{1,3}){3}`
+const serverNameIpv6Address = String.raw`[0-9A-Fa-f:.]{2,45}`
+const serverNameDnsName = String.raw`[0-9A-Za-z.-]{1,255}`
+const serverNameHostname = String.raw`(?:${serverNameIpv4Address}|\[${serverNameIpv6Address}\]|${serverNameDnsName})`
+const serverNamePort = String.raw`[0-9]{1,5}`
+
+/**
+ * Pattern to match a `server-name`.
+ * @see https://spec.matrix.org/latest/appendices/#server-name specification
+ */
+const serverNamePattern = String.raw`${serverNameHostname}(?::${serverNamePort})?`
+const serverNameRegex = new RegExp(String.raw`^${serverNamePattern}$`)
+const serverNameIpAddressRegex = new RegExp(String.raw`^(?:${serverNameIpv4Address}|\[${serverNameIpv6Address}\])(?::${serverNamePort})?$`)
+
+/**
+ * Validate a server name according to the Matrix specification.
+ * @param {string} serverName
+ * @returns {boolean}
+ */
+function isServerName(serverName) {
+	if (serverName.startsWith(".") || serverName.endsWith(".")) return false
+	return serverNameRegex.test(serverName)
+}
+
+/**
+ * Pattern to match a `media-id`, typically used in mxc:// URIs.
+ * @see https://spec.matrix.org/latest/client-server-api/#matrix-content-mxc-uris specification
+ * @see https://spec.matrix.org/latest/client-server-api/#content-repo-security-considerations mxc security considerations
+ */
+const mediaIdPattern = String.raw`[A-Za-z0-9_-]+`
+const mediaIdRegex = new RegExp(String.raw`^${mediaIdPattern}$`)
+
+/**
+ * Validate a media ID according to the Matrix specification.
+ * @param {string} mediaId
+ * @returns {boolean}
+ */
+function isMediaId(mediaId) {
+	return mediaIdRegex.test(mediaId)
+}
+
+/**
+ * Pattern to match an `mxc://` URI.
+ * Captures the components in named groups: `serverName` and `mediaId`.
+ * @see https://spec.matrix.org/latest/client-server-api/#matrix-content-mxc-uris specification
+ */
+const mxcUrlPattern = String.raw`mxc:\/\/(?<serverName>${serverNamePattern})\/(?<mediaId>${mediaIdPattern})`
+const anchoredMxcUriRegex = new RegExp(String.raw`^${mxcUrlPattern}$`)
+const unanchoredMxcUriRegex = new RegExp(String.raw`\b${mxcUrlPattern}\b`, "g")
+
+/**
+ * @param {string} mxc
+ * @param {{[key: string]: string}} matchGroups
+ * @returns {{mxc: string, serverName: string, mediaId: string} | null} null if it isn't a valid mxc URI
+ */
+function _mxcFromMatchGroups(mxc, matchGroups) {
+	// A server name starting or ending with "." is *technically* valid, but not in practise.
+	// This also rules out "." and "..", which would become dot-segments (path traversal) in URL paths.
+	if (matchGroups.serverName.startsWith(".") || matchGroups.serverName.endsWith(".")) return null
+	return {
+		mxc: mxc,
+		serverName: matchGroups.serverName,
+		mediaId: matchGroups.mediaId,
+	}
+}
+
+/**
+ * Parse an `mxc://` URI into its server name and media ID components.
+ * @param {string | null | undefined} mxc
+ * @returns {{mxc: string, serverName: string, mediaId: string} | null} null if it isn't a valid mxc URI
+ */
+function parseMxc(mxc) {
+	const matchGroups = mxc?.match(anchoredMxcUriRegex)?.groups
+	if (!mxc || !matchGroups) return null
+	return _mxcFromMatchGroups(mxc, matchGroups)
+}
+
+/**
+ * Find and parse the first valid `mxc://` URI in a string, e.g. from a message body.
+ * @param {string | null | undefined} content
+ * @returns {{mxc: string, serverName: string, mediaId: string} | null} null if it doesn't contain a valid mxc URI
+ */
+function findMxc(content) {
+	if (!content) return null
+	for (const match of content.matchAll(unanchoredMxcUriRegex)) {
+		if (!match.groups) continue
+		const parsed = _mxcFromMatchGroups(match[0], match.groups)
+		if (parsed) return parsed
+	}
+	return null
+}
+
 /**
  * @param {string | null | undefined} mxc
  * @returns {string | undefined} mxc URL with protocol stripped, e.g. "cadence.moe/abcdef1234"
  */
 function makeMxcPublic(mxc) {
 	assert(hasher, "xxhash is not ready yet")
-	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/([a-zA-Z0-9_-]+)$/)
+	const mediaParts = parseMxc(mxc)
 	if (!mediaParts) return undefined
 
-	const serverAndMediaID = `${mediaParts[1]}/${mediaParts[2]}`
+	const serverAndMediaID = `${mediaParts.serverName}/${mediaParts.mediaId}`
 	const unsignedHash = hasher.h64(serverAndMediaID)
 	const signedHash = unsignedHash - 0x8000000000000000n // shifting down to signed 64-bit range
 	db.prepare("INSERT OR IGNORE INTO media_proxy (permitted_hash) VALUES (?)").run(signedHash)
@@ -388,6 +479,10 @@ async function setUserPowerCascade(spaceID, mxid, power, api) {
 module.exports.bot = bot
 module.exports.BLOCK_ELEMENTS = BLOCK_ELEMENTS
 module.exports.eventSenderIsFromDiscord = eventSenderIsFromDiscord
+module.exports.isServerName = isServerName
+module.exports.isMediaId = isMediaId
+module.exports.parseMxc = parseMxc
+module.exports.findMxc = findMxc
 module.exports.makeMxcPublic = makeMxcPublic
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash

@@ -152,7 +152,7 @@ const commands = [{
 			/** @type {{url: string, name: string}[]} */
 			const toUpload = []
 			const nameMatch = realBody.match(/:([a-zA-Z0-9_]{2,}):/)
-			const mxcMatch = realBody.match(/(mxc:\/\/.*?)\b/)
+			const mxcUrl = mxUtils.findMxc(realBody)?.mxc
 			if (event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id) {
 				const repliedToEventID = event.content["m.relates_to"]["m.in_reply_to"].event_id
 				const repliedToEvent = await api.getEvent(event.room_id, repliedToEventID)
@@ -171,8 +171,8 @@ const commands = [{
 					}
 				}
 			}
-			if (!toUpload.length && mxcMatch && nameMatch) {
-				toUpload.push({url: mxcMatch[1], name: nameMatch[1]})
+			if (!toUpload.length && mxcUrl && nameMatch) {
+				toUpload.push({url: mxcUrl, name: nameMatch[1]})
 			}
 			if (!toUpload.length) {
 				return api.sendEvent(event.room_id, "m.room.message", {

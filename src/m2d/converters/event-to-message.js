@@ -244,7 +244,7 @@ function convertEmoji(mxcUrl, nameForGuess, allowSpriteSheetIndicator, allowLink
 		if (!found) row = null
 	}
 	// Or, if we don't have an emoji right now, we search for the name instead.
-	const isLocalMxc = mxcUrl?.match(/^mxc:\/\/([^/]+)/)?.[1] === reg.ooye.server_name
+	const isLocalMxc = mxUtils.parseMxc(mxcUrl)?.serverName === reg.ooye.server_name
 	if (!row && nameForGuess && isLocalMxc) {
 		const nameForGuessLower = nameForGuess.toLowerCase()
 		for (const guild of discord.guilds.values()) {
@@ -542,10 +542,10 @@ function serialiseReplyContent(doc) {
 	body.querySelectorAll("span[data-mx-spoiler]").forEach(e => e.textContent = "[spoiler]")
 	// @ts-ignore - domino FilteredElementList does not implement NodeList
 	for (const img of body.querySelectorAll("img").cache) {
-		const mxcUrlMatch = img.getAttribute("src")?.match(/mxc:\/\/[^"]+/)
+		const mxcUrl = img.getAttribute("src")
 		const titleTextMatch = img.getAttribute("title")?.match(/:?([^:"]+)/)
-		if (mxcUrlMatch && titleTextMatch) {
-			img.replaceWith(convertEmoji(mxcUrlMatch[0], titleTextMatch[1], false, false))
+		if (mxcUrl && mxUtils.parseMxc(mxcUrl) && titleTextMatch) {
+			img.replaceWith(convertEmoji(mxcUrl, titleTextMatch[1], false, false))
 		}
 	}
 	// convert <br> to \n since domino does not support innerText

@@ -2,7 +2,7 @@
 
 const {select} = require("../passthrough")
 const {test} = require("supertape")
-const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers, roomHasAtLeastVersion, removeCreatorsFromPowerLevels, setUserPower} = require("./utils")
+const {eventSenderIsFromDiscord, getEventIDHash, MatrixStringBuilder, getViaServers, roomHasAtLeastVersion, removeCreatorsFromPowerLevels, setUserPower, parseMxc, findMxc} = require("./utils");
 const util = require("util")
 
 /** @param {string[]} mxids */
@@ -415,6 +415,89 @@ test("set user power: privileged users must demote themselves", async t => {
 		}
 	})
 	t.equal(called, 3)
+})
+
+const VALID_MXCS = [
+	{ serverName: "cadence.moe", mediaId: "KrwlqopRyMxnEBcWDgpJZPxh" },
+	{ serverName: "cadence.moe", mediaId: "a_b-c" },
+	{ serverName: "cadence.moe", mediaId: "-" },
+	{ serverName: "cadence.moe", mediaId: "_" },
+	{ serverName: "matrix.example.org:8448", mediaId: "abc" },
+	{ serverName: "xn--mnchen-3ya.example", mediaId: "abc" }, // münchen in punycode
+	{ serverName: "Matrix.Example.org", mediaId: "abc" },
+	{ serverName: "123example.456example", mediaId: "abc" },
+	{ serverName: "localhost", mediaId: "abc" },
+	{ serverName: "localhost:8008", mediaId: "abc" },
+	{ serverName: "192.0.2.1", mediaId: "abc" },
+	{ serverName: "192.0.2.1:8448", mediaId: "abc" },
+	{ serverName: "[::1]", mediaId: "abc" },
+	{ serverName: "[2001:db8::]:8448", mediaId: "abc" },
+	{ serverName: "[2001:db8::1]:8448", mediaId: "abc" },
+	{ serverName: "[2001:db8:0:0:0:0:0:1]", mediaId: "abc" },
+	{ serverName: "[::ffff:192.0.2.1]", mediaId: "abc" },
+];
+
+for (const expected of VALID_MXCS) {
+	const mxc = `mxc://${expected.serverName}/${expected.mediaId}`
+	expected.mxc = mxc
+	test(`parse mxc: ${mxc} is valid`, t => {
+		t.deepEqual(parseMxc(mxc), expected)
+	})
+}
+
+const INVALID_MXCS = [
+	null,
+	undefined,
+	"",
+	"mxc://./abcd",
+	"mxc://../abcd",
+	"mxc://.example.org/abcd",
+	"mxc://example.org./abcd",
+	"mxc://example.org?x=1/abcd",
+	"mxc://example.org#x/abcd",
+	"mxc://example.org\\x/abcd",
+	"mxc://example.org\\abcd",
+	"mxc://%2e%2e/abcd",
+	"mxc://%2E%2E/abcd",
+	"mxc://example.org%2Fx/abcd",
+	"mxc://example.org%2F./abcd",
+	"mxc://example.org%2F../abcd",
+	"mxc://example.org/%2F..",
+	"mxc://exa mple.org/abcd",
+	"mxc://exa%20mple.org/abcd",
+	"mxc:///abcd",
+	"mxc://example.org/a/b",
+	"mxc://example.org/..",
+	"mxc://example.org/",
+	"https://example.org/abcd",
+	"mxc://..\\..\\..\\v3\\account\\whoami#/abcd",
+];
+
+for (const mxc of INVALID_MXCS) {
+	test(`parse mxc: ${mxc} is invalid`, t => {
+		t.equal(parseMxc(mxc), null)
+	})
+}
+
+
+test("find mxc: finds mxc in surrounding text", t => {
+	t.deepEqual(
+		findMxc("look at mxc://cadence.moe/abc please"),
+		{ mxc: "mxc://cadence.moe/abc", serverName: "cadence.moe", mediaId: "abc" },
+	)
+})
+
+test("find mxc: skips invalid matches, returns first valid one", t => {
+	t.deepEqual(
+		findMxc("mxc://../abc mxc://./abc mxc://cadence.moe/def mxc://cadende.moe/ghi"),
+		{ mxc: "mxc://cadence.moe/def", serverName: "cadence.moe", mediaId: "def" },
+	)
+})
+
+test("find mxc: skips invalid matches, returns undefined", t => {
+	t.equal(findMxc("mxc://../abc mxc://./abc"), null)
+	t.equal(findMxc(""), null)
+	t.equal(findMxc(null), null)
 })
 
 module.exports.mockGetEffectivePower = mockGetEffectivePower

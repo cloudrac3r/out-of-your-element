@@ -10,6 +10,8 @@ const {sync, db, select} = passthrough
 const mreq = sync.require("./mreq")
 /** @type {import("./txnid")} */
 const makeTxnId = sync.require("./txnid")
+/** @type {import("./utils")} */
+const mxUtils = sync.require("./utils")
 const {reg} = require("./read-registration.js")
 
 const ENCODED_PERIOD = "%" + ".".charCodeAt(0).toString(16) // %2e
@@ -510,18 +512,18 @@ async function previewUrlIfEnabled(url) {
 async function getMedia(mxc, init = {}) {
 	init = {...init}
 
-	const mediaParts = mxc?.match(/^mxc:\/\/([^/]+)\/([a-zA-Z0-9_-]+)$/)
-	assert(mediaParts)
+	const mediaParts = mxUtils.parseMxc(mxc)
+	assert(mediaParts, `not a valid mxc URL: ${JSON.stringify(mxc)}`)
 
-	let route = "download"
+	let endpoint = "download"
 	let query = ""
 
 	if (init.thumbnail) {
-		route = "thumbnail"
+		endpoint = "thumbnail"
 		query = "?" + new URLSearchParams(Object.keys(init.thumbnail).map(k => [k, String(init.thumbnail?.[k])]))
 	}
 
-	let url = `${mreq.baseUrl}/client/v1/media/${route}/${mediaParts[1]}/${mediaParts[2]}${query}`
+	const url = mreq.baseUrl + route`/client/v1/media/${endpoint}/${mediaParts.serverName}/${mediaParts.mediaId}` + query
 	const res = await fetch(url, {
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
