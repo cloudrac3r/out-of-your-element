@@ -168,11 +168,11 @@ async function getViaServers(roomID, api) {
 	for (const mxid of sorted) {
 		if (!(mxid in joined)) continue // joined...
 		if (userRegex.some(r => mxid.match(r))) continue // non-sim non-bot...
-		const match = mxid.match(/:(.*)/)
-		assert(match)
+		const serverName = parseMxid(mxid)?.serverName
+		if (!serverName) continue
 		/* c8 ignore next - should be already covered by the userRegex test, but let's be explicit */
-		if (candidates.includes(match[1])) continue // from a different server
-		candidates.push(match[1])
+		if (candidates.includes(serverName)) continue // from a different server
+		candidates.push(serverName)
 		break
 	}
 	// Candidates 2-3: Most popular servers in the room
@@ -183,12 +183,8 @@ async function getViaServers(roomID, api) {
 		.filter(mxid => !mxid.startsWith("@_")) // Quick check
 		.filter(mxid => !userRegex.some(r => mxid.match(r))) // Full check
 		.slice(0, 1000) // Just sample the first thousand real members
-		.map(mxid => {
-			const match = mxid.match(/:(.*)/)
-			assert(match)
-			return match[1]
-		})
-		.filter(server => !server.match(_serverNameIpAddressRegex)) // No IPv4/IPv6 servers
+		.flatMap(mxid => parseMxid(mxid)?.serverName ?? [])
+		.filter(server => !server.match(serverNameIpAddressRegex)) // No IPv4/IPv6 servers
 		// I don't care enough to check ACLs
 		.forEach(server => {
 			const existing = servers.get(server)
@@ -336,6 +332,65 @@ function findMxc(content) {
 }
 
 /**
+ * Pattern to match the localpart of a matrix user ID.
+ * This uses the historical grammar (any printable ASCII except ":").
+ * This implementation also disallows "@" due to redos concerns.
+ * @see https://spec.matrix.org/latest/appendices/#user-identifiers specification
+ * @see https://spec.matrix.org/latest/appendices/#historical-user-ids historical user IDs
+ */
+const mxidLocalpartPattern = String.raw`[\x21-\x39\x3B-\x3F\x41-\x7E]*`
+
+/**
+ * Pattern to match a matrix user ID, e.g. "@cadence:cadence.moe".
+ * Captures the components in named groups: `localpart` and `serverName`.
+ * @see https://spec.matrix.org/latest/appendices/#user-identifiers specification
+ */
+const mxidPattern = String.raw`@(?<localpart>${mxidLocalpartPattern}):(?<serverName>${serverNamePattern})`
+const unanchoredMxidRegex = new RegExp(mxidPattern, "g")
+const anchoredMxidRegex = new RegExp(String.raw`^${mxidPattern}$`)
+
+/**
+ * @param {string} mxid
+ * @param {{[key: string]: string}} matchGroups
+ * @returns {{mxid: string, localpart: string, serverName: string} | null} null if it isn't a valid user ID
+ */
+function _mxidFromMatchGroups(mxid, matchGroups) {
+	if (mxid.length > 255) return null
+	if (matchGroups.serverName.startsWith(".") || matchGroups.serverName.endsWith(".")) return null
+	return {
+		mxid: mxid,
+		localpart: matchGroups.localpart,
+		serverName: matchGroups.serverName,
+	}
+}
+
+/**
+ * Parse a matrix user ID into its localpart and server name components.
+ * @param {string | null | undefined} mxid
+ * @returns {{mxid: string, localpart: string, serverName: string} | null} null if it isn't a valid user ID
+ */
+function parseMxid(mxid) {
+	const matchGroups = mxid?.match(anchoredMxidRegex)?.groups
+	if (!mxid || !matchGroups) return null
+	return _mxidFromMatchGroups(mxid, matchGroups)
+}
+
+/**
+ * Find and parse the first valid matrix user ID in a string, e.g. from a message body.
+ * @param {string | null | undefined} content
+ * @returns {{mxid: string, localpart: string, serverName: string} | null} null if it doesn't contain a valid user ID
+ */
+function findMxid(content) {
+	if (!content) return null
+	for (const match of content.matchAll(unanchoredMxidRegex)) {
+		if (!match.groups) continue
+		const parsed = _mxidFromMatchGroups(match[0], match.groups)
+		if (parsed) return parsed
+	}
+	return null
+}
+
+/**
  * @param {string | null | undefined} mxc
  * @returns {string | undefined} mxc URL with protocol stripped, e.g. "cadence.moe/abcdef1234"
  */
@@ -435,7 +490,7 @@ async function getEffectivePower(roomID, mxids, api) {
  */
 async function setUserPower(roomID, mxid, newPower, api) {
 	assert(roomID[0] === "!")
-	assert(mxid[0] === "@")
+	assert(parseMxid(mxid))
 	// Yes there's no shortcut https://github.com/matrix-org/matrix-appservice-bridge/blob/2334b0bae28a285a767fe7244dad59f5a5963037/src/components/intent.ts#L352
 	const {powerLevels, powers: {[mxid]: oldPowerLevel, [bot]: botPowerLevel}} = await getEffectivePower(roomID, [mxid, bot], api)
 
@@ -465,7 +520,7 @@ async function setUserPower(roomID, mxid, newPower, api) {
  */
 async function setUserPowerCascade(spaceID, mxid, power, api) {
 	assert(spaceID[0] === "!")
-	assert(mxid[0] === "@")
+	assert(parseMxid(mxid))
 	let seenSpace = false
 	for await (const room of api.generateFullHierarchy(spaceID)) {
 		if (room.room_id === spaceID) seenSpace = true
@@ -483,6 +538,8 @@ module.exports.isServerName = isServerName
 module.exports.isMediaId = isMediaId
 module.exports.parseMxc = parseMxc
 module.exports.findMxc = findMxc
+module.exports.parseMxid = parseMxid
+module.exports.findMxid = findMxid
 module.exports.makeMxcPublic = makeMxcPublic
 module.exports.getPublicUrlForMxc = getPublicUrlForMxc
 module.exports.getEventIDHash = getEventIDHash

@@ -68,7 +68,7 @@ async function* _interactAutocomplete({data, channel}, {api}) {
 		let mxidMatches = select("member_cache", ["mxid", "displayname"], {room_id: roomID}, "AND displayname IS NOT NULL AND mxid LIKE ? ESCAPE '$' LIMIT 25").all(query)
 		mxidMatches = mxidMatches.filter(match => {
 			// don't include matches in domain part of mxid
-			if (!match.mxid.match(/^[^:]*/)?.includes(query)) return false
+			if (!utils.parseMxid(match.mxid)?.localpart.toLowerCase().includes(input.toLowerCase())) return false
 			if (displaynameMatches.some(m => m.mxid === match.mxid)) return false
 			return true
 		})
@@ -118,7 +118,7 @@ async function* _interactCommand({data, channel, guild_id}, {api}) {
 
 	assert(data.options?.[0]?.type === DiscordTypes.ApplicationCommandOptionType.String)
 	const mxid = data.options[0].value
-	if (!mxid.match(/^@[^:]*:./)) {
+	if (!utils.parseMxid(mxid)) {
 		return yield {createInteractionResponse: {
 			type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 			data: {

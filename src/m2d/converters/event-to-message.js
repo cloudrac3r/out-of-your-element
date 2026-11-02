@@ -572,8 +572,8 @@ async function eventToMessage(event, guild, channel, di) {
 	let replyLine = ""
 
 	// Extract a basic display name from the sender
-	const match = event.sender.match(/^@(.*?):/)
-	if (match) displayName = match[1]
+	const localpart = mxUtils.parseMxid(event.sender)?.localpart
+	if (localpart) displayName = localpart
 
 	// Try to extract an accurate display name and avatar URL from the member event
 	const member = await getMemberFromCacheOrHomeserver(event.room_id, event.sender, di?.api)
@@ -872,7 +872,7 @@ async function eventToMessage(event, guild, channel, di) {
 				replyLine += authorMention
 			} else {
 				let senderName = select("member_cache", "displayname", {mxid: sender}).pluck().get()
-				if (!senderName) senderName = sender.match(/@([^:]*)/)?.[1]
+				if (!senderName) senderName = mxUtils.parseMxid(sender)?.localpart
 				if (senderName) replyLine += `**Ⓜ${senderName}**`
 			}
 			replyLine = `-# > ${replyLine}${contentPreview}\n`
@@ -896,7 +896,7 @@ async function eventToMessage(event, guild, channel, di) {
 					} else {
 						// Handle mention of a Matrix user by their mxid
 						// Check if this Matrix user is actually the sim user from another old bridge in the room?
-						const match = mxid.match(/[^:]*discord[^:]*_([0-9]{6,}):/) // try to match @_discord_123456, @_discordpuppet_123456, etc.
+						const match = mxUtils.parseMxid(mxid)?.localpart.match(/discord.*_([0-9]{6,})$/) // try to match @_discord_123456, @_discordpuppet_123456, etc.
 						if (match) return `${attributeValue} data-user-id="${match[1]}">`
 						// Nope, just a real Matrix user.
 						return whole

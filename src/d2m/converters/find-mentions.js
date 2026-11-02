@@ -1,8 +1,9 @@
 // @ts-check
 
-const assert = require("assert").strict
-
 const {reg} = require("../../matrix/read-registration")
+const {sync} = require("../../passthrough")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 const userRegex = reg.namespaces.users.map(u => new RegExp(u.regex))
 
 /**
@@ -108,14 +109,14 @@ function tokenise(name) {
  */
 function processJoined(joined) {
 	return {
-		mxids: joined.map(j => {
-			const localpart = j.mxid.match(/@([^:]*)/)
-			assert(localpart)
-			return {
-				localpart: localpart[1].toLowerCase(),
+		mxids: joined.flatMap(j => {
+			const parsed = mxUtils.parseMxid(j.mxid)
+			if (!parsed) return []
+			return [{
+				localpart: parsed.localpart.toLowerCase(),
 				mxid: j.mxid,
 				displayname: j.displayname
-			}
+			}]
 		}),
 		names: joined.filter(j => j.displayname).map(j => {
 			return {

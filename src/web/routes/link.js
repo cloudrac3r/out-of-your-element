@@ -119,7 +119,7 @@ as.router.post("/api/link-space", defineEventHandler(async event => {
 	const inviteRow = guildRoute.getInviteTargetSpaces(session.data.mxid).find(s => s.room_id === spaceID)
 	if (!inviteRow) throw createError({status: 403, message: "Forbidden", data: "You personally must invite OOYE to that space on Matrix"})
 
-	const inviteServer = inviteRow.mxid.match(/:(.*)/)?.[1]
+	const inviteServer = utils.parseMxid(inviteRow.mxid)?.serverName
 	assert(inviteServer)
 	const via = [inviteServer]
 

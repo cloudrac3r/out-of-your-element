@@ -14,10 +14,12 @@ const assert = require("assert").strict
 const pugSync = sync.require("../pug-sync")
 /** @type {import("../web-utils")} */
 const webUtils = sync.require("../web-utils")
+/** @type {import("../../matrix/utils")} */
+const mxUtils = sync.require("../../matrix/utils")
 
 const schema = {
 	form: z.object({
-		mxid: z.string().regex(/^@([^:]+):([a-z0-9:-]+\.[a-z0-9.:-]+)$/),
+		mxid: z.stringFormat("mxid", mxUtils.parseMxid),
 		next: z.string().optional()
 	}),
 	token: z.object({

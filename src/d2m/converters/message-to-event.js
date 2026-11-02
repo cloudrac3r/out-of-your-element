@@ -735,9 +735,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 				let repliedToDisplayName
 				let repliedToUserHtml
 				if (repliedToEventRow?.source === 0 && repliedToEventSenderMxid) {
-					const match = repliedToEventSenderMxid.match(/^@([^:]*)/)
-					assert(match)
-					repliedToDisplayName = referenced.author.username || match[1] || "a Matrix user" // grab the localpart as the display name, whatever
+					repliedToDisplayName = referenced.author.username || mxUtils.parseMxid(repliedToEventSenderMxid)?.localpart || "a Matrix user" // grab the localpart as the display name, whatever
 					repliedToUserHtml = tag`<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
 				} else {
 					repliedToDisplayName = referenced.author.global_name || referenced.author.username || "a Discord user"

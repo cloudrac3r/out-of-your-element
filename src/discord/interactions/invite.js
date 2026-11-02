@@ -12,6 +12,8 @@ const createRoom = sync.require("../../d2m/actions/create-room")
 const createSpace = sync.require("../../d2m/actions/create-space")
 /** @type {import("../../matrix/api")} */
 const api = sync.require("../../matrix/api")
+/** @type {import("../../matrix/utils")} */
+const utils = sync.require("../../matrix/utils")
 /** @type {import("../../matrix/read-registration")} */
 const {reg} = sync.require("../../matrix/read-registration")
 
@@ -35,7 +37,7 @@ async function* _interact({data, channel, guild_id}, {api}) {
 	/** @type {DiscordTypes.APIApplicationCommandInteractionDataStringOption[] | undefined} */ // @ts-ignore
 	const options = data.options
 	const input = options?.[0]?.value || ""
-	const mxid = input.match(/@[^@:]+:[a-z0-9:.-]+/)?.[0]
+	const mxid = utils.findMxid(input)?.mxid
 	if (!mxid) return yield {createInteractionResponse: {
 		type: DiscordTypes.InteractionResponseType.ChannelMessageWithSource,
 		data: {
@@ -117,7 +119,7 @@ async function* _interact({data, channel, guild_id}, {api}) {
  * @returns {Promise<DiscordTypes.APIInteractionResponse>}
  */
 async function _interactButton({channel, message}, {api}) {
-	const mxid = message.content.match(/`(@[^@:]+:[a-z0-9:-]+\.[a-z0-9.:-]+)`/)?.[1]
+	const mxid = utils.findMxid(message.content)?.mxid
 	assert(mxid)
 	const roomID = select("channel_room", "room_id", {channel_id: channel.id}).pluck().get()
 	await api.inviteToRoom(roomID, mxid)
