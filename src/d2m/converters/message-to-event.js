@@ -46,9 +46,9 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 				|| (message.author?.id === node.id ? message.author.username : null)
 				|| "unknown-user"
 			if (mxid && useHTML) {
-				return `<a href="https://matrix.to/#/${mxid}">@${username}</a>`
+				return tag`<a href="https://matrix.to/#/${mxid}">@${username}</a>`
 			} else {
-				return `@${username}:`
+				return useHTML ? tag`@${username}:` : `@${username}:`
 			}
 		},
 		/** @param {{id: string, type: "discordChannel", row: {room_id: string, name: string, nick: string?}?, via: string}} node */
@@ -56,12 +56,12 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 			if (!node.row) { // fallback for when this channel is not bridged
 				const channel = discord.channels.get(node.id)
 				if (channel) {
-					return `#${channel.name} [channel not bridged]`
+					return useHTML ? tag`#${channel.name} [channel not bridged]` : `#${channel.name} [channel not bridged]`
 				} else {
 					return `#unknown-channel [channel from an unbridged server]`
 				}
 			} else if (useHTML) {
-				return `<a href="https://matrix.to/#/${node.row.room_id}?${node.via}">#${node.row.nick || node.row.name}</a>`
+				return tag`<a href="https://matrix.to/#/${node.row.room_id}?$${node.via}">#${node.row.nick || node.row.name}</a>`
 			} else {
 				return `#${node.row.nick || node.row.name}`
 			}
@@ -99,9 +99,9 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 				// If the cache breaks, fix discord-packets.js to store role info properly.
 				return "@&" + node.id
 			} else if (useHTML && role.color) {
-				return `<font color="#${role.color.toString(16)}">@${role.name}</font>`
+				return tag`<font color="#${role.color.toString(16)}">@${role.name}</font>`
 			} else if (useHTML) {
-				return `<span data-mx-color="#ffffff" data-mx-bg-color="#414eef">@${role.name}</span>`
+				return tag`<span data-mx-color="#ffffff" data-mx-bg-color="#414eef">@${role.name}</span>`
 			} else {
 				return `@${role.name}:`
 			}
@@ -706,7 +706,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 
 		if (((message.flags || 0) & DiscordTypes.MessageFlags.IsCrosspost) && message.author?.username) {
 			body = `[↷ ${message.author.username}]\n` + body
-			html = `↷ <strong>${message.author.username}</strong><br>` + html
+			html = tag`↷ <strong>${message.author.username}</strong><br>` + html
 		}
 
 		// Fallback body/formatted_body for replies
@@ -737,7 +737,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 					repliedToUserHtml = tag`<a href="https://matrix.to/#/${repliedToEventSenderMxid}">${repliedToDisplayName}</a>`
 				} else {
 					repliedToDisplayName = referenced.author.global_name || referenced.author.username || "a Discord user"
-					repliedToUserHtml = repliedToDisplayName
+					repliedToUserHtml = tag`${repliedToDisplayName}`
 				}
 
 				// Content
@@ -767,7 +767,7 @@ async function messageToEvent(message, guild, options = {}, di) {
 					body = `> ${repliedToDisplayName} joined the room\n\n` + body
 				} else { // repliedToUnknownEvent
 					const dateDisplay = dUtils.howOldUnbridgedMessage(referenced.timestamp, message.timestamp)
-					html = `<blockquote>In reply to ${dateDisplay} from ${repliedToDisplayName}:`
+					html = tag`<blockquote>In reply to ${dateDisplay} from ${repliedToDisplayName}:`
 						+ `<br>${repliedToHtml}</blockquote>`
 						+ html
 					body = `In reply to ${dateDisplay}:\n${repliedToDisplayName}: ${repliedToBody}`.split("\n").map(line => "> " + line).join("\n")

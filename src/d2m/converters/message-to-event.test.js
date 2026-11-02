@@ -1,10 +1,11 @@
 const {test} = require("supertape")
+const domino = require("domino")
 const {messageToEvent} = require("./message-to-event")
 const {MatrixServerError} = require("../../matrix/mreq")
 const data = require("../../../test/data")
 const {mockGetEffectivePower} = require("../../matrix/utils.test")
 const Ty = require("../../types")
-const {db} = require("../../passthrough")
+const {db, discord} = require("../../passthrough")
 
 /**
  * @param {string} roomID
@@ -2033,3 +2034,141 @@ test("message2event: smalltext from other webhook is intact", async t => {
 		formatted_body: "<sub>hmm</sub>"
 	}])
 })
+
+// Property tests:
+// A canary is appended to potentially user-controlled fields in a discord event
+// and should never come out as real HTML.
+
+const CANARY = `"'><x-canary></x-canary>`
+
+const DISCORD_GENERATED_FIELDS = new Set([
+	"application_id",
+	"avatar",
+	"channel_id",
+	"discriminator",
+	"edited_timestamp",
+	"guild_id",
+	"id",
+	"identity_guild_id",
+	"message_id",
+	"proxy_icon_url",
+	"proxy_url",
+	"reference_id",
+	"target_message_id",
+	"timestamp",
+	"webhook_id",
+])
+
+/**
+ * Paths to every field in a discord event that a user could have written.
+ * @returns {Generator<string[]>}
+ */
+function* userControlledFields(value, path = []) {
+	for (const [k, v] of Object.entries(value)) {
+		if (typeof v === "string") {
+			if (!DISCORD_GENERATED_FIELDS.has(k)) yield [...path, k]
+		} else if (v && typeof v === "object") {
+			yield* userControlledFields(v, [...path, k])
+		}
+	}
+}
+
+/**
+ * Return a deep copy of `value` with a canary appended to the string at `path`.
+ * @param {Object} value
+ * @param {string[]} path
+ */
+function withCanary(value, path) {
+	const copy = structuredClone(value)
+	let parent = copy
+	for (const k of path.slice(0, -1)) {
+		parent = parent[k]
+	}
+	parent[path.at(-1)] += CANARY
+	return copy
+}
+
+// This covers most of the API calls that messageToEvent makes.
+const PROPERTY_TEST_DI = {
+	api: {
+		getEffectivePower: mockGetEffectivePower(),
+		getJoinedMembers: async () => ({ joined: {} }),
+		// Used for discord replies to matrix events
+		getEvent: async (roomID, eventID) => ({
+			type: "m.room.message",
+			sender: "@cadence:cadence.moe",
+			content: { msgtype: "m.text", body: "hi" },
+			event_id: eventID,
+			room_id: roomID,
+			origin_server_ts: 0,
+			unsigned: {},
+		}),
+		// Used for historical events
+		getEventForTimestamp: async () => ({
+			event_id: "$canary",
+			origin_server_ts: 0,
+		}),
+	},
+}
+
+async function assertCanaryEscaped(t, message, guild) {
+	let events
+	try {
+		events = await messageToEvent(message, guild, {}, PROPERTY_TEST_DI)
+	} catch (e) {
+		// The file upload guard in test.js may throw.
+		return t.pass(`not checked, conversion threw: ${e.message.split("\n")[0]}`)
+	}
+	const leaked = events.find(event => event.formatted_body && domino.createDocument(`<body>${event.formatted_body}</body>`).querySelector("x-canary"))
+	t.equal(leaked?.formatted_body, undefined, "canary should stay escaped")
+}
+
+const MESSAGE_CATEGORIES = [
+	"message",
+	"pk_message",
+	"message_mention_everyone",
+	"message_with_embeds",
+	"message_with_components",
+	"special_message",
+	"interaction_message",
+]
+
+for (const category of MESSAGE_CATEGORIES) {
+	for (const [name, message] of Object.entries(data[category])) {
+		for (const path of userControlledFields(message)) {
+			test(`message2event: ${category}.${name}.${path.join(".")} never becomes HTML`, async t => {
+				await assertCanaryEscaped(t, withCanary(message, path), data.guild.general)
+			})
+		}
+	}
+}
+
+// Channel and role names need to be edited in the database/discord objects.
+for (const category of MESSAGE_CATEGORIES) {
+	for (const [name, message] of Object.entries(data[category])) {
+		test(`message2event: channel/role names in ${category}.${name} never become HTML`, async t => {
+			const guild = structuredClone(data.guild.general)
+			for (const role of guild.roles) {
+				role.name += CANARY
+			}
+
+			const channelNames = new Map([...discord.channels].map(([id, channel]) => [id, channel.name]))
+			for (const channel of discord.channels.values()) {
+				if (channel.name) {
+					channel.name += CANARY
+				}
+			}
+
+			db.prepare("UPDATE channel_room SET name = name || ?, nick = nick || ?").run(CANARY, CANARY)
+
+			try {
+				await assertCanaryEscaped(t, message, guild)
+			} finally {
+				db.prepare("UPDATE channel_room SET name = replace(name, ?, ''), nick = replace(nick, ?, '')").run(CANARY, CANARY)
+				for (const [id, name] of channelNames) {
+					discord.channels.get(id).name = name
+				}
+			}
+		})
+	}
+}
