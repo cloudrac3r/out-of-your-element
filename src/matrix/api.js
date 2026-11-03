@@ -12,7 +12,8 @@ const mreq = sync.require("./mreq")
 const makeTxnId = sync.require("./txnid")
 const {reg} = require("./read-registration.js")
 
-const route = (strs, ...params) => strs.slice(1).reduce((a, c, i) => a + encodeURIComponent(params[i]) + c, strs[0])
+const ENCODED_PERIOD = "%" + ".".charCodeAt(0).toString(16) // %2e
+const route = (strs, ...params) => strs.slice(1).reduce((a, c, i) => a + encodeURIComponent(params[i]).replaceAll(".", ENCODED_PERIOD) + c, strs[0])
 
 /**
  * @param {string} p endpoint to access
@@ -448,7 +449,7 @@ async function profileSetAvatarUrl(mxid, avatar_url, inhibitPropagate) {
 
 async function ping() {
 	// not using mreq so that we can read the status code
-	const res = await fetch(`${mreq.baseUrl}/client/v1/appservice/${reg.id}/ping`, {
+	const res = await fetch(mreq.baseUrl + route`/client/v1/appservice/${reg.id}/ping`, {
 		method: "POST",
 		headers: {
 			Authorization: `Bearer ${reg.as_token}`
@@ -605,6 +606,7 @@ async function usePrivateChat(mxid) {
 	return roomID
 }
 
+module.exports.route = route
 module.exports.path = path
 module.exports.register = register
 module.exports.createRoom = createRoom

@@ -90,10 +90,10 @@ async function migrateGuild(guild) {
 		// Step 3: Remove the old bridge's aliases
 		console.log(`-- -- Deleting aliases...`)
 		await mreq.withAccessToken(oldAT, async () => { // have to run as old application service since the AS owns its aliases
-			const aliases = (await mreq.mreq("GET", `/client/v3/rooms/${roomID}/aliases`)).aliases
+			const aliases = (await mreq.mreq("GET", api.route`/client/v3/rooms/${roomID}/aliases`)).aliases
 			for (const alias of aliases) {
 				if (alias.match(/^#?_?discord/)) {
-					await mreq.mreq("DELETE", `/client/v3/directory/room/${alias.replace(/#/g, "%23")}`)
+					await mreq.mreq("DELETE", api.route`/client/v3/directory/room/${alias.replace(/#/g, "%23")}`)
 				}
 			}
 			await api.sendState(roomID, "m.room.canonical_alias", "", {})

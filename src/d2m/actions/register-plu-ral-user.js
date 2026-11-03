@@ -17,7 +17,7 @@ const registerUser = sync.require("./register-user")
 async function fetchMessage(channelID, messageID) {
 	assert(reg.ooye.plu_ral_api_key)
 	try {
-		var res = await fetch(`https://api.plural.gg/messages/${channelID}/${messageID}?member=true`, {
+		var res = await fetch("https://api.plural.gg" + api.route`/messages/${channelID}/${messageID}?member=true`, {
 			headers: {
 				Authorization: reg.ooye.plu_ral_api_key
 			}

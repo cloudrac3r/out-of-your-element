@@ -17,7 +17,7 @@ const registerUser = sync.require("./register-user")
 /** @returns {Promise<Ty.PkMessage>} */
 async function fetchMessage(messageID, attempt = 1) {
 	try {
-		var res = await fetch(`https://api.pluralkit.me/v2/messages/${messageID}`)
+		var res = await fetch("https://api.pluralkit.me" + api.route`/v2/messages/${messageID}`)
 	} catch (networkError) {
 		// Network issue, raise a more readable message
 		throw new Error(`Failed to connect to PK API: ${networkError.toString()}`)

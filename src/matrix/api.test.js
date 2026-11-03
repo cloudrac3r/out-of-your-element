@@ -1,5 +1,7 @@
+// @ts-check
+
 const {test} = require("supertape")
-const {path} = require("./api")
+const {path, route} = require("./api")
 
 test("api path: no change for plain path", t => {
 	t.equal(path("/hello/world"), "/hello/world")
@@ -27,4 +29,12 @@ test("api path: extras number works", t => {
 
 test("api path: multiple via params", t => {
 	t.equal(path(`/client/v3/rooms/!example/join`, null, {via: ["cadence.moe", "matrix.org"], ts: 1687324651120}), "/client/v3/rooms/!example/join?via=cadence.moe&via=matrix.org&ts=1687324651120")
+})
+
+test("api route: encodes params", t => {
+	const unsafe1 = "../../doom"
+	const unsafe2 = "?catastrophe"
+	const unsafe3 = "..\\..\\destruction"
+	const result = route`/client/v3/rooms/${unsafe1}/state/${unsafe2}/${unsafe3}`
+	t.equal(result, "/client/v3/rooms/%2e%2e%2F%2e%2e%2Fdoom/state/%3Fcatastrophe/%2e%2e%5C%2e%2e%5Cdestruction")
 })
