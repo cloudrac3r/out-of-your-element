@@ -6916,7 +6916,6 @@ module.exports = {
 			attachments: [],
 			application_id: "684280192553844747"
 		},
-		shard_id: 0
 	},
 	interaction_message: {
 		thinking_interaction_without_bot_user: {

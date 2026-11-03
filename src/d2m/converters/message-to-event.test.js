@@ -4,7 +4,7 @@ const {MatrixServerError} = require("../../matrix/mreq")
 const data = require("../../../test/data")
 const {mockGetEffectivePower} = require("../../matrix/utils.test")
 const Ty = require("../../types")
-const {db} = require("../../passthrough")
+const {db, discord} = require("../../passthrough")
 
 /**
  * @param {string} roomID
