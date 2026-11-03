@@ -55,7 +55,7 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 		channel: node => {
 			if (!node.row) { // fallback for when this channel is not bridged
 				const channel = discord.channels.get(node.id)
-				if (channel) {
+				if (channel?.name) {
 					return useHTML ? tag`#${channel.name} [channel not bridged]` : `#${channel.name} [channel not bridged]`
 				} else {
 					return `#unknown-channel [channel from an unbridged server]`
@@ -110,6 +110,8 @@ function getDiscordParseCallbacks(message, guild, useHTML, spoilers = []) {
 			const game = message.mention_games?.find(g => g.id === node.id)
 			if (!game?.name) {
 				return "@$" + node.id
+			} else if (useHTML) {
+				return tag`${game.name}`
 			} else {
 				return game.name
 			}
