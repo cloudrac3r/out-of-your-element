@@ -41,6 +41,7 @@ New versions are announced in [#updates](https://matrix.to/#/#ooye-updates:caden
 1. Fetch the repo and checkout the latest release tag.
 
 1. Install dependencies: `npm install`
+	* If npm happens to warn you about security vulnerabilities, you **may** attempt to run `npm audit fix`, but **do not** run `npm audit fix --force` (even if npm suggests it!) as this will break packages.
 
 1. Restart the bridge: Stop the currently running process, and then start the new one with `npm run start`
 

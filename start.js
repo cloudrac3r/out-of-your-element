@@ -4,7 +4,7 @@
 // Name the process and the main thread
 process.title = "ooye"
 
-// Ensure consistent output from the Intl and Temporal API across Node.js versions
+// Backport the Intl and Temporal API to Node.js versions older than 26
 require("temporal-polyfill-lite/global")
 
 const fs = require("fs")

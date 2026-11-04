@@ -1,7 +1,7 @@
 // @ts-check
 
 // Ensure consistent output from the Intl and Temporal API across Node.js versions
-require("temporal-polyfill-lite/global")
+require("temporal-polyfill-lite/shim").install(true)
 
 const fs = require("fs")
 const {join} = require("path")
