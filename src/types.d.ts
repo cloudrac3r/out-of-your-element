@@ -532,6 +532,20 @@ export namespace R {
 			[extension_key: string]: any
 		}
 	}
+
+	/** Any properties may be optional with no correlation. */
+	export type UrlPreviewOpenGraph = {
+		/** Byte size of image, if present. */
+		"matrix:image:size"?: number
+		/** mxc:// URI of image, if present. Expires in a matter of hours. */
+		"og:image"?: string
+		"og:image:type"?: string
+		"og:image:width"?: number
+		"og:image:height"?: number
+		"og:title"?: string
+		"og:description"?: string
+		"og:type"?: string
+	}
 }
 
 export type Membership = "invite" | "knock" | "join" | "leave" | "ban"

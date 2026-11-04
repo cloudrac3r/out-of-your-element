@@ -89,8 +89,6 @@ async function ensureSimJoined(fakeUserID, author, roomID) {
  * @param {Ty.WebhookAuthor} author
  */
 async function authorToStateContent(author) {
-	// We prefer to use the member's avatar URL data since the image upload can be cached across channels,
-	// unlike the userAvatar URL which is unique per channel, due to the webhook ID being in the URL.
 	const avatar = file.userAvatar(author)
 
 	const content = {

@@ -465,6 +465,39 @@ async function ping() {
 	}
 }
 
+/** memoised promise calculated on first await */
+const urlPreviewEnabled = sync.remember(() => ({
+	/** @type {Promise<boolean?>?} */
+	cache: null,
+	then(/** @type {(_: typeof this.cache) => any} */ fulfilled) {
+		fulfilled(this.cache ??= capabilities().then(c => c.capabilities?.["io.element.msc4452.preview_url"]?.enabled))
+	}
+}))
+
+/**
+ * @param {string} url
+ * @returns {Promise<Ty.R.UrlPreviewOpenGraph | false>} false if not enabled
+ */
+async function previewUrlIfEnabled(url) {
+	if (await urlPreviewEnabled === false) return false
+	try {
+		/** @type {Ty.R.UrlPreviewOpenGraph} */
+		const root = await mreq.mreq("GET", path("/client/v1/media/preview_url", null, {url}))
+		return root
+	} catch (e) {
+		if (e instanceof mreq.MatrixServerError) {
+			const notAllowed =
+				e.httpStatus === 403 // Tuwunel and Conduwuit
+				|| e.errcode === "M_UNRECOGNIZED" // Synapse
+			if (notAllowed) {
+				urlPreviewEnabled.cache = Promise.resolve(false)
+				return false
+			}
+		}
+		throw e
+	}
+}
+
 /**
  * Given an mxc:// URL, and optional parameters for thumbnailing, get the file from the content repository. Returns res.
  *
@@ -576,6 +609,10 @@ function versions() {
 	return mreq.mreq("GET", "/client/versions")
 }
 
+function capabilities() {
+	return mreq.mreq("GET", "/client/v3/capabilities")
+}
+
 /**
  * @param {string} mxid
  */
@@ -635,6 +672,7 @@ module.exports.sendTyping = sendTyping
 module.exports.profileSetDisplayname = profileSetDisplayname
 module.exports.profileSetAvatarUrl = profileSetAvatarUrl
 module.exports.ping = ping
+module.exports.previewUrlIfEnabled = previewUrlIfEnabled
 module.exports.getMedia = getMedia
 module.exports.sendReadReceipt = sendReadReceipt
 module.exports.ackEvent = ackEvent
@@ -644,4 +682,5 @@ module.exports.setAccountData = setAccountData
 module.exports.setPresence = setPresence
 module.exports.getProfile = getProfile
 module.exports.versions = versions
+module.exports.capabilities = capabilities
 module.exports.usePrivateChat = usePrivateChat

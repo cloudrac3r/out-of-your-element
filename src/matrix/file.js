@@ -7,9 +7,28 @@ const Ty = require("../types")
 const {sync, db, select} = passthrough
 /** @type {import("./mreq")} */
 const mreq = sync.require("./mreq")
+/** @type {import("./api")} */
+const api = sync.require("./api")
 
 const DISCORD_IMAGES_BASE = "https://cdn.discordapp.com"
 const IMAGE_SIZE = 1024
+
+const PREAPPROVED_ORIGINS = new Set([
+	"https://avatars.akamai.steamstatic.com",
+	"https://avatars.githubusercontent.com",
+	"https://cadence.moe",
+	"https://cdn.discordapp.com",
+	"https://cdn.modrinth.com",
+	"https://cdn.pluralkit.me",
+	"https://cdn.tupperbox.app",
+	"https://codeberg.org",
+	"https://files.catbox.moe",
+	"https://i.imgur.com",
+	"https://media.discordapp.net",
+	"https://media.forgecdn.net",
+	"https://pbs.twimg.com",
+	"https://upload.wikimedia.org",
+])
 
 /** @type {Map<string, Promise<string>>} */
 const inflight = sync.remember(() => new Map())
@@ -70,7 +89,31 @@ async function uploadDiscordFileToMxc(path) {
  * @returns {Promise<Ty.R.FileUploaded>}
  */
 async function _actuallyUploadDiscordFileToMxc(url) {
-	const res = await fetch(url, {})
+	function throwDownloadError(message) {
+		const e = new Error(message)
+		e["downloadURL"] = url
+		throw e
+	}
+
+	// Download file (with body stream)
+
+	const u = new URL(url)
+	if (PREAPPROVED_ORIGINS.has(u.origin) || u.host.endsWith(".discordapp.net")) {
+		// Request the file directly, we trust these domains to not point at SSRF
+		var res = await fetch(url, {})
+		if (!res.ok) throwDownloadError(`File download had failure status code ${res.status}`)
+	} else {
+		// Try to receive unapproved origins via homeserver url preview, since it knows how to deal with SSRF
+		const previewed = await api.previewUrlIfEnabled(url)
+		if (previewed === false) throwDownloadError(`File download blocked from unapproved host "${u.host}". Enable URL previews on the homeserver to download this safely.`)
+		if (!previewed["og:image"]) throwDownloadError(`File download via URL preview expected an image but didn't get one.`)
+		// There is an image
+		// @ts-ignore
+		var res = await api.getMedia(previewed["og:image"])
+	}
+
+	// Upload file
+
 	try {
 		/** @type {Ty.R.FileUploaded} */
 		const root = await mreq.mreq("POST", "/media/v3/upload", res.body, {
