@@ -422,7 +422,7 @@ async event => {
 
 	if (utils.eventSenderIsFromDiscord(event.state_key)) return
 
-	const exists = select("channel_room", "room_id", {room_id: event.room_id}) ?? select("guild_space", "space_id", {space_id: event.room_id})
+	const exists = select("channel_room", "room_id", {room_id: event.room_id}).pluck().get() ?? select("guild_space", "space_id", {space_id: event.room_id}).pluck().get()
 	if (!exists) return // don't cache members in unbridged rooms
 
 	// Member is here
