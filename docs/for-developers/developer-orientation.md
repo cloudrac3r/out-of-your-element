@@ -1,11 +1,13 @@
-# Development setup
+# Developer orientation
+
+## Development setup
 
 * Install development dependencies with `npm install --save-dev` so you can run the tests.
 * Most files you change, such as actions, converters, and web, will automatically be reloaded.
 * If developing on a different computer to the one running the homeserver, use SSH port forwarding so that Synapse can connect on its `localhost:6693` to reach the running bridge on your computer. Example: `ssh -T -v -R 6693:localhost:6693 me@matrix.cadence.moe`
 * I recommend developing in Visual Studio Code so that the JSDoc x TypeScript annotation comments just work automatically. I don't know which other editors or language servers support annotations and type inference.
 
-# Efficiency details
+## Efficiency details
 
 Using WeatherStack as a thin layer between the bridge application and the Discord API lets us control exactly what data is cached in memory. Only necessary information is cached. For example, member data, user data, message content, and past edits are never stored in memory. This keeps the memory usage low and also prevents it ballooning in size over the bridge's runtime.
 
@@ -18,7 +20,7 @@ File uploads (like avatars from bridged members) are checked locally and dedupli
 Switching to [WAL mode](https://www.sqlite.org/wal.html) could improve your database access speed even more. Run `node scripts/wal.js` if you want to switch to WAL mode. (This will also enable `synchronous = NORMAL`.)
 
 
-# Repository structure
+## Repository structure
 
     .
     * Runtime configuration, like tokens and user info:
@@ -73,13 +75,13 @@ Switching to [WAL mode](https://www.sqlite.org/wal.html) could improve your data
             * Hopefully you won't need the rest of these. Code quality varies wildly.
             └── *.js
 
-# Read next
+## Read next
 
-If you haven't set up Out Of Your Element yet, you might find [Simplified homeserver setup](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/simplified-homeserver-setup.md) helpful.
+If you haven't set up Out Of Your Element yet, you might find [Simplified homeserver setup](./simplified-homeserver-setup.md) helpful.
 
 If you don't know what the Matrix event JSON generally looks like, turn on developer tools in your client (Element has pretty good ones). Right click a couple of messages and see what they look like on the inside.
 
-I recommend first reading [How to add a new event type](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/how-to-add-a-new-event-type.md) as this will fill you in on key information in how the codebase is organised, which data structures are important, and what level of abstraction we're working on.
+I recommend first reading [How to add a new event type](./how-to-add-a-new-event-type.md) as this will fill you in on key information in how the codebase is organised, which data structures are important, and what level of abstraction we're working on.
 
 If you haven't seen the [Discord API documentation](https://discord.com/developers/docs/) before, have a quick look at one of the pages on there. Same with the [Matrix Client-Server APIs](https://spec.matrix.org/latest/client-server-api/). You don't need to know these inside out, they're primarily references, not stories. But it is useful to have an idea of what a couple of the API endpoints look like, the kind of data they tend to accept, and the kind of data they tend to return.
 
@@ -87,7 +89,7 @@ Then you might like to peruse the other files in the docs folder. Most of these 
 
 Whether you read those or not, I'm more than happy to help you 1-on-1 with coding your dream feature. Join the chatroom [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe) or PM me [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) and ask away.
 
-# Dependency justification
+## Dependency justification
 
 Total transitive production dependencies: 114
 

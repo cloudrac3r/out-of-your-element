@@ -1,3 +1,5 @@
+# PluralKit notetaking
+
 ## What is PluralKit
 
 PluralKit is a Discord bot. After a Discord user registers with PK, PK will delete and repost their messages. The reposted messages will be sent by a webhook with a custom display name and avatar. This effectively lets a person assume a custom display name and avatar at will on a per-message basis. People use this for roleplaying and/or dissociative-identity-disorder things. PK is extremely popular.

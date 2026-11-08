@@ -1,4 +1,4 @@
-# Foreign keys in the Out Of Your Element database
+# Database foreign keys
 
 Historically, Out Of Your Element did not use foreign keys in the database, but since I found a need for them, I have decided to add them. Referential integrity is probably valuable as well.
 

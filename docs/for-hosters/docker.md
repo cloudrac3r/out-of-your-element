@@ -6,7 +6,7 @@ This also goes for Podman, Nix, and other similar technology that upends a progr
 
 ## What I recommend
 
-I recommend [following the official setup guide,](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md) which does not use Docker.
+I recommend [following the official setup guide,](./install.md) which does not use Docker.
 
 Ultimately, though, do what makes you happy. I can't stop you from doing what you want. As long as you read this page and understand my perspective, that's good enough for me.
 
@@ -44,13 +44,13 @@ OOYE was designed to be simple and courteous:
 
 ### If you care about ease of setup
 
-In my opinion, the [official setup process](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/get-started.md) is straightforward. After installing prerequisites (Node.js and the repo clone), the rest of the process interactively guides you through providing necessary information. Your input is checked for correctness so the bridge will definitely work when you run it.
+In my opinion, the [official setup process](./install.md) is straightforward. After installing prerequisites (Node.js and the repo clone), the rest of the process interactively guides you through providing necessary information. Your input is checked for correctness so the bridge will definitely work when you run it.
 
 I find this easier than the usual Docker workflow of pasting values into a YAML and rolling the dice on whether it will start up or not.
 
 ### If you care about security in the case of compromise/RCE
 
-There are no known vulnerabilities in dependencies. I [carefully selected simple, light dependencies](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/developer-orientation.md#dependency-justification) to reduce attack surface area.
+There are no known vulnerabilities in dependencies. I [carefully selected simple, light dependencies](../for-developers/developer-orientation.md#dependency-justification) to reduce attack surface area.
 
 For defense in depth, I suggest running OOYE as a different user.
 

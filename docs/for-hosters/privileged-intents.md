@@ -28,9 +28,9 @@ Now that you've done that, the privacy policy is linked at the bottom of every w
 
 This [application by Amber of kathund.dev](https://bridge.cadence.moe/download/matrix/snowball.kathund.dev/kDSCaRYXXrXpfZQiifZDnhNW) for only Message Content and Server Members was successful. You may wish to take notes from it when writing your own application, though I suggest _not_ copying it word for word.
 
-I recorded a video demonstrating the Guild Members intent, you can use this: https://youtu.be/i9_sx0fYQWs
+I recorded a video demonstrating the Guild Members intent, you can use this: <https://youtu.be/i9_sx0fYQWs>
 
-I also recorded a video demonstrating the Message Content intent, you can use this too: https://youtu.be/LsPho8gtGRw
+I also recorded a video demonstrating the Message Content intent, you can use this too: <https://youtu.be/LsPho8gtGRw>
 
 ## Difference between privileged intents and verification
 

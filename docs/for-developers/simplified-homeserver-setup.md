@@ -1,4 +1,4 @@
-# Simplified Homeserver Setup
+# Simplified homeserver setup
 
 Full instructions are located around here: https://matrix-org.github.io/synapse/v1.37/setup/installation.html
 

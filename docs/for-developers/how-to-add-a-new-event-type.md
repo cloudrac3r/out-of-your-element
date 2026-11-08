@@ -7,6 +7,7 @@ It's much easier to understand code with examples. So let's go through it togeth
 First, we need to know what pinned events are supposed to look like. The Matrix C-S spec gives this example:
 
 > **pinned** ... [string] ... Required: An ordered list of event IDs to pin.
+>
 > ```json
 > {
 >   "content": {
@@ -26,8 +27,8 @@ This is part of the persistent room state. Simple enough. To update this, the st
 
 What does it look like on Discord-side?
 
-> **Get Pinned Messages** \
-> `GET` `/channels/{channel.id}/pins` \
+> **Get Pinned Messages**<br>
+> `GET` `/channels/{channel.id}/pins`<br>
 > Returns all pinned messages in the channel as an array of message objects.
 
 This is an API request to get the pinned messages. To update this, an API request will pin or unpin any specific message, adding or removing it from the list.
@@ -289,10 +290,10 @@ As long as the database is consistent, this new `select` will return at most 1 e
 
 Actions call converters to do the thing, but actions have to receive their input event from somewhere. Let's wire it up so we receive a "pins changed" event from Discord and do the whole flow from there. Checking the documentation again, Discord will trigger this gateway event when the pins change:
 
-> **Channel Pins Update** \
-> Sent when a message is pinned or unpinned in a text channel. This is not sent when a pinned message is deleted. \
-> **guild_id?** ... snowflake ... ID of the guild \
-> **channel_id** ... snowflake ... ID of the channel \
+> **Channel Pins Update**<br>
+> Sent when a message is pinned or unpinned in a text channel. This is not sent when a pinned message is deleted.<br>
+> **guild_id?** ... snowflake ... ID of the guild<br>
+> **channel_id** ... snowflake ... ID of the channel<br>
 > **last_pin_timestamp?** ... ?ISO8601 timestamp ... Time at which the most recent pinned message was pinned
 
 Notably, the event doesn't deliver the actual list of pinned messages to us. We'll have to listen for this event, then trigger an API request to `GET` the pins list. Alright, enough preparation, time to code.

@@ -1,6 +1,10 @@
-# Setup
+---
+title: Install
+---
 
-If you want Docker, [please read this first.](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/docker.md)
+## Setup
+
+If you want Docker, [please read this first.](./docker.md)
 
 If you get stuck, you're welcome to message [#out-of-your-element:cadence.moe](https://matrix.to/#/#out-of-your-element:cadence.moe) or [@cadence:cadence.moe](https://matrix.to/#/@cadence:cadence.moe) to ask for help setting up OOYE!
 
@@ -8,7 +12,7 @@ You'll need:
 
 * Administrative access to a homeserver
 * Discord bot
-* Domain name for the bridge's website - [more info](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/why-does-the-bridge-have-a-website.md)
+* Domain name for the bridge's website - [more info](./why-does-the-bridge-have-a-website.md)
 * Reverse proxy for that domain - an interactive process will help you set this up in step 5!
 
 Follow these steps:
@@ -18,7 +22,7 @@ Follow these steps:
 1. Switch to a normal user account. (i.e. do not run any of the following commands as root or sudo.)
 
 1. Clone this repo and checkout a specific tag. (Development happens on main. Stable versions are tagged.)
-	* The latest release tag is ![](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=flat-square&label=%20&color=black).
+	* The latest release tag is ![](https://img.shields.io/gitea/v/release/cadence/out-of-your-element?gitea_url=https%3A%2F%2Fgitdab.com&style=flat-square&label=%20&color=white).
 
 1. Install dependencies: `npm install`
 
@@ -45,7 +49,7 @@ New versions are announced in [#updates](https://matrix.to/#/#ooye-updates:caden
 
 1. Restart the bridge: Stop the currently running process, and then start the new one with `npm run start`
 
-# Get Started
+## Bridge something
 
 Visit the website on the domain name you set up, and click the button to add the bot to your Discord server.
 
@@ -57,9 +61,9 @@ After that, to get into the rooms on your Matrix account, use the invite form on
 
 I hope you enjoy Out Of Your Element!
 
-# Extras
+## Extras
 
-## /plu/ral support
+### /plu/ral support
 
 To support /plu/ral webhook proxying, OOYE needs to call the /plu/ral API authenticated. I can't provide an API key for everyone to share, so you have to make your own. Here's how:
 
@@ -68,9 +72,9 @@ To support /plu/ral webhook proxying, OOYE needs to call the /plu/ral API authen
 3. Create a new application named Out Of Your Element. Copy the displayed token.
 3. Run `node scripts/plu-ral-api.js` and paste the token.
 
-# Appendix
+## Appendix
 
-## Example reverse proxy for nginx, dedicated domain name
+### Example reverse proxy for nginx, dedicated domain name
 
 Replace `bridge.cadence.moe` with the hostname you're using.
 
@@ -98,14 +102,14 @@ server {
 }
 ```
 
-## Example reverse proxy for nginx, sharing a domain name
+### Example reverse proxy for nginx, sharing a domain name
 
 Same as above, but change the following:
 
 - `location / {` -> `location /ooye/ {` (any sub-path you want; you MUST use a trailing slash or it won't work)
 - `proxy_pass http://127.0.0.1:6693;` -> `proxy_pass http://127.0.0.1:6693/;` (you MUST use a trailing slash on this too or it won't work)
 
-## Example reverse proxy for Caddy, dedicated domain name
+### Example reverse proxy for Caddy, dedicated domain name
 
 ```nix
 bridge.cadence.moe {
@@ -118,8 +122,8 @@ bridge.cadence.moe {
 }
 ```
 
-## Example reverse proxy for traefik
+### Example reverse proxy for traefik
 
 Note: Out Of Your Element has no official Docker support. This guide is for using traefik when OOYE is ***not*** in a container.
 
-See [third-party/reverse-proxy-traefik.md](https://gitdab.com/cadence/out-of-your-element/src/branch/main/docs/third-party/reverse-proxy-traefik.md)
+See [third-party/reverse-proxy-traefik.md](./reverse-proxy-traefik.md)

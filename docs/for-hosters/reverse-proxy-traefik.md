@@ -1,3 +1,9 @@
+---
+title: Reverse proxy with Traefik
+authors:
+  - "@bgtlover:stealthy.club"
+---
+
 > This guide was written by @bgtlover:stealthy.club, a community contributor. The author of Out Of Your Element hopes it will be useful, but cannot say whether the information is accurate or complete.
 
 ## Example reverse proxy configuration with traefik
