@@ -21,6 +21,18 @@ test("kstate strip: keeps true conditions while removing $if", t => {
 	})
 })
 
+test("kstateUploadMxc: removes keys where $url is null", async t => {
+	const input = {
+		"m.room.avatar/": {
+			url: {$url: null}
+		}
+	}
+	await kstateUploadMxc(input)
+	t.deepEqual(input, {
+		"m.room.avatar/": {}
+	})
+})
+
 test("kstateUploadMxc: sets the mxc", async t => {
 	const input = {
 		"m.room.avatar/": {

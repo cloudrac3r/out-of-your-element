@@ -102,8 +102,8 @@ async function userToGlobalProfile(user) {
 	globalProfile.displayname = user.username
 	if (user.global_name) globalProfile.displayname = user.global_name
 
-	if (user.avatar) {
-		const avatarPath = file.userAvatar(user) // the user avatar only
+	const avatarPath = file.userAvatar(user) // the user avatar only
+	if (avatarPath) {
 		globalProfile.avatar_url = await file.uploadDiscordFileToMxc(avatarPath)
 	}
 
@@ -113,6 +113,8 @@ async function userToGlobalProfile(user) {
 /**
  * @param {DiscordTypes.APIUser} user
  * @param {Omit<DiscordTypes.APIGuildMember, "user"> | undefined} member
+ * @param {string} guildID
+ * @returns {Promise<Ty.Event.M_Room_Member>}
  */
 async function memberToStateContent(user, member, guildID) {
 	let displayname = user.username
@@ -132,9 +134,9 @@ async function memberToStateContent(user, member, guildID) {
 		}
 	}
 
-	if (member?.avatar || user.avatar) {
-		// const avatarPath = file.userAvatar(user) // the user avatar only
-		const avatarPath = file.memberAvatar(guildID, user, member) // the member avatar or the user avatar
+	// const avatarPath = file.userAvatar(user) // the user avatar only
+	const avatarPath = file.memberAvatar(guildID, user, member) // the member avatar or the user avatar
+	if (avatarPath) {
 		content["moe.cadence.ooye.member"].avatar = avatarPath
 		content.avatar_url = await file.uploadDiscordFileToMxc(avatarPath)
 	}

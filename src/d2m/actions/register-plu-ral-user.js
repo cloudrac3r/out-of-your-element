@@ -111,6 +111,7 @@ async function ensureSimJoined(pluRalMessage, roomID) {
  * Generate profile data based on webhook displayname and configured avatar.
  * @param {Ty.PluRalWebhookMessage} pluRalMessage
  * @param {Ty.WebhookAuthor} author
+ * @returns {Promise<Ty.Event.M_Room_Member>}
  */
 async function memberToStateContent(pluRalMessage, author) {
 	// We prefer to use the member's avatar URL data since the image upload can be cached across channels,

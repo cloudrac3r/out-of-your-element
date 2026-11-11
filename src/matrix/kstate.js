@@ -32,7 +32,11 @@ async function kstateUploadMxc(obj) {
 		for (const [k, v] of Object.entries(obj)) {
 			if (v == null || typeof v !== "object") continue
 
-			if (v.$url) {
+			if ("$url" in v) {
+				if (!v.$url) {
+					delete obj[k]
+					continue
+				}
 				promises.push(
 					file.uploadDiscordFileToMxc(v.$url)
 					.then(mxc => obj[k] = mxc)

@@ -26,3 +26,33 @@ test("removeExpiryParams: works on media proxy and keeps quality", t => {
 	const result = file._removeExpiryParams(url)
 	t.equal(result, "https://media.discordapp.net/attachments/1160894080998461480/1548665030898094240/855064e9-bdae-487a-a497-c662bd510487.png?format=webp")
 })
+
+test("guildIcon: returns icon path", t => {
+	t.equal(
+		// @ts-ignore
+		file.guildIcon({id: "112760669178241024", icon: "a_f83622e09ead74f0c5c527fe241f8f8c"}),
+		"/icons/112760669178241024/a_f83622e09ead74f0c5c527fe241f8f8c.png?size=1024"
+	)
+})
+
+test("guildIcon: returns null if guild has no icon", t => {
+	t.equal(
+		// @ts-ignore
+		file.guildIcon({id: "112760669178241024", icon: null}),
+		null
+	)
+})
+
+test("userAvatar: returns avatar path", t => {
+	t.equal(
+		file.userAvatar({id: "113340068197859328", username: "kumaccino", avatar: "b48302623a12bc7c59a71328f72ccb39"}),
+		"/avatars/113340068197859328/b48302623a12bc7c59a71328f72ccb39.png?size=1024"
+	)
+})
+
+test("userAvatar: returns null if user has no avatar", t => {
+	t.equal(
+		file.userAvatar({id: "113340068197859328", username: "kumaccino", avatar: null}),
+		null
+	)
+})

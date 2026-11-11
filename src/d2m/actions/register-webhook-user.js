@@ -87,6 +87,7 @@ async function ensureSimJoined(fakeUserID, author, roomID) {
 /**
  * Generate profile data based on webhook displayname and configured avatar.
  * @param {Ty.WebhookAuthor} author
+ * @returns {Promise<Ty.Event.M_Room_Member>}
  */
 async function authorToStateContent(author) {
 	const avatar = file.userAvatar(author)

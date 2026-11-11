@@ -1,5 +1,6 @@
 // @ts-check
 
+const DiscordTypes = require("discord-api-types/v10")
 const passthrough = require("../passthrough")
 const {reg, writeRegistration} = require("./read-registration.js")
 const Ty = require("../types")
@@ -138,14 +139,30 @@ async function _actuallyUploadDiscordFileToMxc(url) {
 	}
 }
 
+/**
+ * @param {DiscordTypes.APIGuild} guild
+ * @returns {string | null}
+ */
 function guildIcon(guild) {
+	if (!guild.icon) return null
 	return `/icons/${guild.id}/${guild.icon}.png?size=${IMAGE_SIZE}`
 }
 
+/**
+ * @param {DiscordTypes.APIUser | Ty.WebhookAuthor} user
+ * @returns {string | null}
+ */
 function userAvatar(user) {
+	if (!user.avatar) return null
 	return `/avatars/${user.id}/${user.avatar}.png?size=${IMAGE_SIZE}`
 }
 
+/**
+ * @param {string} guildID
+ * @param {DiscordTypes.APIUser} user
+ * @param {Omit<DiscordTypes.APIGuildMember, "user"> | undefined} member
+ * @returns {string}
+ */
 function memberAvatar(guildID, user, member) {
 	if (!member?.avatar) return userAvatar(user)
 	return `/guilds/${guildID}/users/${user.id}/avatars/${member?.avatar}.png?size=${IMAGE_SIZE}`
