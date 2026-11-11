@@ -138,9 +138,10 @@ async function channelToKState(channel, guild, di) {
 	const globalAdmins = select("member_power", ["mxid", "power_level"], {room_id: "*"}).all()
 	const globalAdminPower = globalAdmins.reduce((a, c) => (a[c.mxid] = c.power_level, a), {})
 
-	const additionalCreators = select("member_power", "mxid", {room_id: "*"}, "AND power_level > 100").pluck().all().concat(spaceCreatorsAndFounders)
+	const additionalCreatorsList = select("member_power", "mxid", {room_id: "*"}, "AND power_level > 100").pluck().all().concat(spaceCreatorsAndFounders)
+	const additionalCreatorsUnique = [...new Set(additionalCreatorsList)].filter(mxid => mxid !== mUtils.bot)
 	const creationContent = {}
-	creationContent.additional_creators = additionalCreators
+	creationContent.additional_creators = additionalCreatorsUnique
 
 	if (channel.type === DiscordTypes.ChannelType.GuildForum) creationContent.type = "m.space"
 
