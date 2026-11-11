@@ -1,16 +1,28 @@
 // @ts-check
 
-const {discord, db, select} = require("../../passthrough")
+const {discord, db, select, sync} = require("../../passthrough")
+
+const guildNicknamedCache = sync.remember(() => new Set())
 
 /** @param {string} guildID */
 function markGuildNicknamed(guildID) {
 	db.prepare("UPDATE guild_space SET nicknamed = 1 WHERE guild_id = ?").run(guildID)
+	guildNicknamedCache.add(guildID)
 }
 
 /** @param {string} guildID */
 async function setNicknameFromGuildID(guildID) {
+	// Check if nickname is already set via cache
+	if (guildNicknamedCache.has(guildID)) return
+
+	// Check if nickname is already set via DB (and update cache if so)
 	const nicknamed = select("guild_space", "nicknamed", {guild_id: guildID}).pluck().get()
-	if (nicknamed !== 0) return
+	if (nicknamed !== 0) {
+		guildNicknamedCache.add(guildID)
+		return
+	}
+
+	// Hasn't been done yet. Apply nickname now
 	try {
 		await discord.snow.guild.editGuildMember(guildID, "@me", {nick: "a Matrix user"})
 		markGuildNicknamed(guildID)
