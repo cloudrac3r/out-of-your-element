@@ -22,6 +22,8 @@ function getStats() {
 		["hour", 1 * 60 * 60 * 1000]
 	]
 
+	const oldestMessageID = db.prepare("select min(message_id) from event_message where source = 0").pluck().get()
+
 	// console.time("get stats")
 	let temp = {
 		guilds: db.prepare("select count(*) from guild_space").pluck().get(),
@@ -29,7 +31,7 @@ function getStats() {
 		messages: db.prepare("select count(*) from message_room").pluck().get(),
 		...durations.reduce((a, c) => (a[`messages_last_${c[0]}`] = getMessageCountLastDuration(c[1]), a), {}),
 		message_sources: db.prepare("select count(*) from event_message where part = 0 group by source order by source").pluck().all(),
-		oldest_message: new Date(dUtils.snowflakeToTimestampExact(db.prepare("select min(message_id) from event_message where source = 0").pluck().get())), // good until 2090
+		oldest_message: new Date(oldestMessageID ? dUtils.snowflakeToTimestampExact(oldestMessageID) : 0), // good until 2090
 		discord_users: db.prepare("select count(*) from sim").pluck().get(),
 		matrix_users: db.prepare("select count(distinct mxid) from member_cache where mxid not like ?").pluck().get(reg.namespaces.users[0].regex.replace(/\.\*.*/, "%")),
 	}
